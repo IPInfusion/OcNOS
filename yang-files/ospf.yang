@@ -28,8 +28,8 @@ submodule ospf {
         "Layer-3 ospf configurations";
 
 
-    revision "2015-04-25" {
-        description "Revisied on 2015-04-25.";    }
+    revision "2016-08-10" {
+        description "Revisied on 2016-08-10.";    }
 
 
 
@@ -59,6 +59,13 @@ submodule ospf {
                 config true;
             } // END of ospfProcessId definition.
 
+            leaf vrfName  {
+                mandatory true;                
+                type  leafref {
+                    path  "/vr/vrf/vrfName";
+                }
+            } // END of vrfName definition.
+
             leaf ospfShutDown  {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
@@ -75,6 +82,7 @@ submodule ospf {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
+                description "domain-id";
             } // END of nullDomainValue definition.
 
             leaf domainValue  {
@@ -88,24 +96,6 @@ submodule ospf {
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
             } // END of isPrimaryDomainId definition.
-
-            leaf passiveIfName  {
-                mandatory false;                
-                type  cml_data_types:CML_STRING_T;  
-                config true;
-            } // END of passiveIfName definition.
-
-            leaf isPassiveInterface  {
-                mandatory false;                
-                type  cml_data_types:CML_BOOL_T;  
-                config true;
-            } // END of isPassiveInterface definition.
-
-            leaf passiveIfIpAddr  {
-                mandatory false;                
-                type  cml_data_types:CML_IPV4_ADDR_T;  
-                config true;
-            } // END of passiveIfIpAddr definition.
 
             leaf isPassiveIfDefault  {
                 mandatory false;                
@@ -142,6 +132,7 @@ submodule ospf {
                 }
                 default "5000";
                 config true;
+                description "timers spf exp";
             } // END of spfMaxDelay definition.
 
             leaf throttleTimersStartDelay  {
@@ -169,6 +160,7 @@ submodule ospf {
                 }
                 default "5000";
                 config true;
+                description "timers throttle lsa";
             } // END of throttleTimersMaxDelay definition.
 
             leaf lsaMinArrival  {
@@ -232,6 +224,7 @@ submodule ospf {
                 }
                 default "0";
                 config true;
+                description "overflow database external";
             } // END of exitOverflowInterval definition.
 
             leaf metricValue  {
@@ -250,6 +243,7 @@ submodule ospf {
                 }
                 default "110";
                 config true;
+                description "admin distance";
             } // END of adminDistance definition.
 
             leaf restartMethod  {
@@ -311,6 +305,7 @@ submodule ospf {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
+                description "overflow database";
             } // END of isLsdbLimit definition.
 
             leaf tieBreakField  {
@@ -373,6 +368,7 @@ submodule ospf {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
+                description "capability te/traffic-engineering";
             } // END of isTE definition.
 
             leaf isEnableTE  {
@@ -385,12 +381,14 @@ submodule ospf {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
+                description "capability opaque";
             } // END of isOpaqueLsa definition.
 
             leaf checkOpaqueLsa  {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
+                description "opaque-lsa-capable";
             } // END of checkOpaqueLsa definition.
 
             leaf refreshTimer  {
@@ -424,6 +422,7 @@ submodule ospf {
                 
                 type  cml_data_types:CML_OSPF_DIST_ROUTE_SOURCE_TYPE_T;  
                 config true;
+                description "distribute-list";
             } // END of routeSourceDistType definition.
 
             leaf-list secondaryOspfProcId  {
@@ -432,12 +431,14 @@ submodule ospf {
                      range "1..65535";
                 }
                 config true;
+                description "distribute-list ospf";
             } // END of secondaryOspfProcId definition.
 
             leaf isDistributeListIn  {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
+                description "distribute-list";
             } // END of isDistributeListIn definition.
 
             leaf opaqueAsDesc  {
@@ -1554,6 +1555,7 @@ submodule ospf {
                 mandatory false;                
                 type  cml_data_types:CML_STRING_T;  
                 config true;
+                description "distance Access List Name";
             } // END of distanceAccessListName definition.
 
             leaf sourceIpAddr  {
@@ -1586,6 +1588,7 @@ submodule ospf {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
+                description "log-adjacency-changes";
             } // END of isLogAdjSet definition.
 
             leaf isFrrSet  {
@@ -1619,24 +1622,53 @@ submodule ospf {
             } // END of mlinkNbr definition.
 
 
-            list ospfVrf {
+            list passiveIf {
                  
 
                 description
-                    "ospfVrf";
+                    "passiveIf";
 
                 config true;
-                key "vrfName";
+                key "passiveIfName";
 
                 
-                leaf vrfName  {
+                leaf passiveIfName  {
                     mandatory true;                    
-                    type  leafref {
-                        path  "/vr/vrf/vrfName";
-                    }
-                } // END of vrfName definition.
+                    type  cml_data_types:CML_STRING_T;  
+                    config true;
+                } // END of passiveIfName definition.
 
-            } // End of ospfVrf-list
+                leaf passiveIfIpAddr  {
+                    mandatory true;                    
+                    type  cml_data_types:CML_STRING_T;  
+                    config true;
+                } // END of passiveIfIpAddr definition.
+
+            } // End of passiveIf-list
+
+            list noPassiveIfRun {
+                 
+
+                description
+                    "noPassiveIfRun";
+
+                config false;
+                key "noPassiveIfName";
+
+                
+                leaf noPassiveIfName  {
+                    mandatory true;                    
+                    type  cml_data_types:CML_STRING_T;  
+                    config false;
+                } // END of noPassiveIfName definition.
+
+                leaf noPassiveIfIpAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_STRING_T;  
+                    config false;
+                } // END of noPassiveIfIpAddr definition.
+
+            } // End of noPassiveIfRun-list
 
             list ospfDefaultInformation {
                  
@@ -1652,6 +1684,7 @@ submodule ospf {
                     mandatory true;                    
                     type  cml_data_types:CML_BOOL_T;  
                     config true;
+                    description "default-information originate";
                 } // END of defaultOrigin definition.
 
                 leaf defaultAlways  {
@@ -1750,6 +1783,7 @@ submodule ospf {
                          range "0..4294967295";
                     }
                     config true;
+                    description "summary-address with tag Value";
                 } // END of addressTag definition.
 
             } // End of summaryAddress-list
@@ -1785,6 +1819,7 @@ submodule ospf {
                         mandatory true;                        
                         type  cml_data_types:CML_STRING_T;  
                         config true;
+                        description "host Area";
                     } // END of hostAreaId definition.
 
                     leaf hostEntryCost  {
@@ -1793,6 +1828,7 @@ submodule ospf {
                              range "0..65535";
                         }
                         config true;
+                        description "host Area Cost";
                     } // END of hostEntryCost definition.
 
                 } // End of hostArea-list
@@ -1854,6 +1890,7 @@ submodule ospf {
                     type  cml_data_types:CML_OSPF_AREA_SHORTCUT_TYPE_T;  
                     default "default";
                     config true;
+                    description "area shortcut";
                 } // END of areaShortcutType definition.
 
                 leaf addrAggrType  {
@@ -1936,7 +1973,7 @@ submodule ospf {
 
                 leaf spfLastExec  {
                     mandatory false;                    
-                    type  cml_data_types:CML_UINT32_T;  
+                    type  cml_data_types:CML_STRING_T;  
                     config false;
                 } // END of spfLastExec definition.
 
@@ -1996,6 +2033,7 @@ submodule ospf {
                             mandatory true;                            
                             type  cml_data_types:CML_OSPF_AREA_FILTER_LIST_PREFIX_T;  
                             config true;
+                            description "area filter-list";
                         } // END of prefixType definition.
 
                     } // End of filterPrefixType-list
@@ -2051,24 +2089,28 @@ submodule ospf {
                         mandatory true;                        
                         type  cml_data_types:CML_IPV4_PREFIX_T;  
                         config true;
+                        description "ospf Area Range";
                     } // END of ospfAreaRange definition.
 
                     leaf isAreaRangeAdvertise  {
                         mandatory false;                        
                         type  cml_data_types:CML_BOOL_T;  
                         config true;
+                        description "area range as advertise";
                     } // END of isAreaRangeAdvertise definition.
 
                     leaf isAreaRangeNotAdvertise  {
                         mandatory false;                        
                         type  cml_data_types:CML_BOOL_T;  
                         config true;
+                        description "area range as not-advertise";
                     } // END of isAreaRangeNotAdvertise definition.
 
                     leaf substituteAddr  {
                         mandatory false;                        
                         type  cml_data_types:CML_IPV4_PREFIX_T;  
                         config true;
+                        description "area range with substitute";
                     } // END of substituteAddr definition.
 
                 } // End of rangeArea-list
@@ -2104,18 +2146,21 @@ submodule ospf {
                             mandatory true;                            
                             type  cml_data_types:CML_IPV4_ADDR_T;  
                             config true;
+                            description "area range with mask";
                         } // END of areaRangeMask definition.
 
                         leaf rangeMaskAdvertise  {
                             mandatory false;                            
                             type  cml_data_types:CML_BOOL_T;  
                             config true;
+                            description "area range with mask as advertise";
                         } // END of rangeMaskAdvertise definition.
 
                         leaf rangeMaskNotAdvertise  {
                             mandatory false;                            
                             type  cml_data_types:CML_BOOL_T;  
                             config true;
+                            description "area range with mask as not-advertise";
                         } // END of rangeMaskNotAdvertise definition.
 
                     } // End of rangeMaskLenArea-list
@@ -2204,6 +2249,7 @@ submodule ospf {
                             mandatory false;                            
                             type  cml_data_types:CML_OSPF_NSSA_TRANSLATOR_ROLE_T;  
                             config true;
+                            description "area nssa";
                         } // END of nssaAreaTranslatorRole definition.
 
                     } // END of nssaAreaTranslator-container definition.
@@ -2223,12 +2269,14 @@ submodule ospf {
                         mandatory true;                        
                         type  cml_data_types:CML_BOOL_T;  
                         config true;
+                        description "area stub";
                     } // END of isStubArea definition.
 
                     leaf stubAreaNoSummary  {
                         mandatory false;                        
                         type  cml_data_types:CML_BOOL_T;  
                         config true;
+                        description "area stub no-summary";
                     } // END of stubAreaNoSummary definition.
 
                 } // End of stubArea-list
@@ -2247,6 +2295,7 @@ submodule ospf {
                         mandatory true;                        
                         type  cml_data_types:CML_IPV4_ADDR_T;  
                         config true;
+                        description "area virtual-link";
                     } // END of peerId definition.
 
                     leaf virtMsgDigestKeyId  {
@@ -2399,6 +2448,7 @@ submodule ospf {
                         mandatory true;                        
                         type  cml_data_types:CML_STRING_T;  
                         config true;
+                        description "network area";
                     } // END of networkAreaId definition.
 
                     leaf ospfInterfaceInstanceId  {
@@ -2426,6 +2476,7 @@ submodule ospf {
                     mandatory true;                    
                     type  cml_data_types:CML_IPV4_ADDR_T;  
                     config true;
+                    description "Network Area with Mask";
                 } // END of ospfNetAddrMask definition.
 
                 leaf netMask  {
@@ -2686,6 +2737,7 @@ submodule ospf {
                     mandatory true;                    
                     type  cml_data_types:CML_IPV4_ADDR_T;  
                     config true;
+                    description "Neighbor Addr";
                 } // END of neighborIpAddr definition.
 
                 leaf neighborStaticPriority  {
@@ -2713,6 +2765,7 @@ submodule ospf {
                     }
                     default "10";
                     config true;
+                    description "neighbor area with Cost,poll-interval";
                 } // END of neighborCost definition.
 
             } // End of neighbor-list
@@ -2782,11 +2835,13 @@ submodule ospf {
                     mandatory true;                    
                     type  cml_data_types:CML_OSPF_ROUTE_SOURCE_TYPE_T;  
                     config true;
+                    description "Ospf redistribute";
                 } // END of routeSourceType definition.
 
                 leaf redistMetricType  {
                     mandatory false;                    
                     type  cml_data_types:CML_OSPF_METRIC_TYPE_T;  
+                    default "2";
                     config true;
                 } // END of redistMetricType definition.
 
@@ -2795,6 +2850,7 @@ submodule ospf {
                     type  cml_data_types:CML_INT32_T {
                          range "0..16777214";
                     }
+                    default "0";
                     config true;
                 } // END of redistMetricValue definition.
 
@@ -2803,6 +2859,7 @@ submodule ospf {
                     type  cml_data_types:CML_UINT32_T {
                          range "0..4294967295";
                     }
+                    default "0";
                     config true;
                 } // END of redistTag definition.
 
@@ -2810,6 +2867,7 @@ submodule ospf {
                     mandatory false;                    
                     type  cml_data_types:CML_STRING_T;  
                     config true;
+                    description "Ospf redistribute with metric-type,route-map";
                 } // END of routeMapName definition.
 
             } // End of redistribute-list
@@ -2845,6 +2903,7 @@ submodule ospf {
                     }
                     default "110";
                     config true;
+                    description "external Distance";
                 } // END of externalDistance definition.
 
             } // END of distanceTypes-container definition.
@@ -2870,6 +2929,33 @@ submodule ospf {
                 }
             } // END of ifName definition.
 
+            leaf ifBfdSet  {
+                mandatory false;                
+                type  cml_data_types:CML_BOOL_T;  
+                config true;
+            } // END of ifBfdSet definition.
+
+            leaf ifBfdDisable  {
+                mandatory false;                
+                type  cml_data_types:CML_BOOL_T;  
+                config true;
+            } // END of ifBfdDisable definition.
+
+            leaf holdDownTimer  {
+                mandatory false;                
+                type  cml_data_types:CML_UINT32_T {
+                     range "1..2147483";
+                }
+                default "70000";
+                config true;
+            } // END of holdDownTimer definition.
+
+            leaf fastRerouteIfSet  {
+                mandatory false;                
+                type  cml_data_types:CML_BOOL_T;  
+                config true;
+            } // END of fastRerouteIfSet definition.
+
             leaf ifNetworkType  {
                 mandatory false;                
                 type  cml_data_types:CML_OSPF_NETWORK_T;  
@@ -2890,29 +2976,18 @@ submodule ospf {
                 config true;
             } // END of ifAuthType definition.
 
-            leaf ipOspfAddr  {
+            leaf ifAuthKeyEncryption  {
                 mandatory false;                
-                type  cml_data_types:CML_IPV4_ADDR_T;  
+                type  cml_data_types:CML_BOOL_T;  
                 config true;
-            } // END of ipOspfAddr definition.
+            } // END of ifAuthKeyEncryption definition.
 
-            leaf ifPriority  {
+            leaf ifAuthKey  {
                 mandatory false;                
-                type  cml_data_types:CML_UINT8_T {
-                     range "0..255";
-                }
-                default "1";
+                type  cml_data_types:CML_STRING_T;  
                 config true;
-            } // END of ifPriority definition.
-
-            leaf ifMtu  {
-                mandatory false;                
-                type  cml_data_types:CML_UINT16_T {
-                     range "576..65535";
-                }
-                default "576";
-                config true;
-            } // END of ifMtu definition.
+                description "ospf authentication-key with IP address of the interface.";
+            } // END of ifAuthKey definition.
 
             leaf ifCost  {
                 mandatory false;                
@@ -2923,20 +2998,23 @@ submodule ospf {
                 config true;
             } // END of ifCost definition.
 
-            leaf fastRerouteIfSet  {
-                mandatory false;                
-                type  cml_data_types:CML_BOOL_T;  
-                config true;
-            } // END of fastRerouteIfSet definition.
-
-            leaf holdDownTimer  {
+            leaf ifDeadInterval  {
                 mandatory false;                
                 type  cml_data_types:CML_UINT32_T {
-                     range "1..2147483";
+                     range "1..65535";
                 }
-                default "70000";
+                default "40";
                 config true;
-            } // END of holdDownTimer definition.
+            } // END of ifDeadInterval definition.
+
+            leaf ifHelloInterval  {
+                mandatory false;                
+                type  cml_data_types:CML_UINT32_T {
+                     range "1..65535";
+                }
+                default "10";
+                config true;
+            } // END of ifHelloInterval definition.
 
             leaf isMtuIgnore  {
                 mandatory false;                
@@ -2953,11 +3031,14 @@ submodule ospf {
                 config true;
             } // END of ifTransmitDelay definition.
 
-            leaf ifDisableAll  {
+            leaf ifPriority  {
                 mandatory false;                
-                type  cml_data_types:CML_BOOL_T;  
+                type  cml_data_types:CML_UINT8_T {
+                     range "0..255";
+                }
+                default "1";
                 config true;
-            } // END of ifDisableAll definition.
+            } // END of ifPriority definition.
 
             leaf ifRetransmitInterval  {
                 mandatory false;                
@@ -2968,61 +3049,26 @@ submodule ospf {
                 config true;
             } // END of ifRetransmitInterval definition.
 
-            leaf ifHelloInterval  {
-                mandatory false;                
-                type  cml_data_types:CML_UINT32_T {
-                     range "1..65535";
-                }
-                default "10";
-                config true;
-            } // END of ifHelloInterval definition.
-
-            leaf ifDeadInterval  {
-                mandatory false;                
-                type  cml_data_types:CML_UINT32_T {
-                     range "1..65535";
-                }
-                default "40";
-                config true;
-            } // END of ifDeadInterval definition.
-
-            leaf ifAuthKeyEncryption  {
-                mandatory false;                
-                type  cml_data_types:CML_BOOL_T;  
-                config true;
-            } // END of ifAuthKeyEncryption definition.
-
-            leaf ifAuthKey  {
-                mandatory false;                
-                type  cml_data_types:CML_STRING_T;  
-                config true;
-            } // END of ifAuthKey definition.
-
             leaf ifDatabaseFilter  {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
             } // END of ifDatabaseFilter definition.
 
-            leaf msgDigestKeyId  {
+            leaf ifMtu  {
                 mandatory false;                
-                type  cml_data_types:CML_UINT32_T {
-                     range "1..255";
+                type  cml_data_types:CML_UINT16_T {
+                     range "576..65535";
                 }
+                default "576";
                 config true;
-            } // END of msgDigestKeyId definition.
+            } // END of ifMtu definition.
 
-            leaf msgDigestKeyEncryption  {
+            leaf ifDisableAll  {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
-            } // END of msgDigestKeyEncryption definition.
-
-            leaf msgifAuthKey  {
-                mandatory false;                
-                type  cml_data_types:CML_STRING_T;  
-                config true;
-            } // END of msgifAuthKey definition.
+            } // END of ifDisableAll definition.
 
             leaf ifTEMetric  {
                 mandatory false;                
@@ -3042,31 +3088,11 @@ submodule ospf {
                 config true;
             } // END of ifResyncTimeout definition.
 
-            leaf ifOpsfProcId  {
-                mandatory false;                
-                type  cml_data_types:CML_INT32_T {
-                     range "0..65535";
-                }
-                config true;
-            } // END of ifOpsfProcId definition.
-
-            leaf ifOspfAreaId  {
-                mandatory false;                
-                type  cml_data_types:CML_STRING_T;  
-                config true;
-            } // END of ifOspfAreaId definition.
-
-            leaf ifBfdSet  {
+            leaf ifDna  {
                 mandatory false;                
                 type  cml_data_types:CML_BOOL_T;  
                 config true;
-            } // END of ifBfdSet definition.
-
-            leaf ifBfdDisable  {
-                mandatory false;                
-                type  cml_data_types:CML_BOOL_T;  
-                config true;
-            } // END of ifBfdDisable definition.
+            } // END of ifDna definition.
 
             leaf isIfRunning  {
                 mandatory false;                
@@ -3394,7 +3420,7 @@ submodule ospf {
 
             leaf multiIfDbFilterGetState  {
                 mandatory false;                
-                type  cml_data_types:CML_STRING_T;  
+                type  cml_data_types:CML_INT32_T;  
                 config false;
             } // END of multiIfDbFilterGetState definition.
 
@@ -3488,12 +3514,226 @@ submodule ospf {
                 config false;
             } // END of multiIfMtu definition.
 
-            leaf ifDna  {
-                mandatory false;                
-                type  cml_data_types:CML_BOOL_T;  
-                config true;
-            } // END of ifDna definition.
 
+            list ospfMultiAreaIf {
+                 
+
+                description
+                    "ospfMultiAreaIf";
+
+                config true;
+                key "ifOpsfProcId";
+
+                
+                leaf ifOpsfProcId  {
+                    mandatory true;                    
+                    type  cml_data_types:CML_INT32_T {
+                         range "0..65535";
+                    }
+                    config true;
+                } // END of ifOpsfProcId definition.
+
+
+                list ospfMultiAreaId {
+                     
+
+                    description
+                        "ospfMultiAreaId";
+
+                    config true;
+                    key "ifOspfAreaId";
+
+                    
+                    leaf ifOspfAreaId  {
+                        mandatory true;                        
+                        type  cml_data_types:CML_STRING_T;  
+                        config true;
+                    } // END of ifOspfAreaId definition.
+
+                    leaf ifOspfNbrId  {
+                        mandatory true;                        
+                        type  cml_data_types:CML_STRING_T;  
+                        config true;
+                    } // END of ifOspfNbrId definition.
+
+                } // End of ospfMultiAreaId-list
+            } // End of ospfMultiAreaIf-list
+
+            list ospfCryptKey {
+                 
+
+                description
+                    "ospfCryptKey";
+
+                config true;
+                key "msgDigestKeyId";
+
+                
+                leaf msgDigestKeyId  {
+                    mandatory true;                    
+                    type  cml_data_types:CML_UINT32_T {
+                         range "1..255";
+                    }
+                    config true;
+                } // END of msgDigestKeyId definition.
+
+                leaf msgDigestKeyEncryption  {
+                    mandatory true;                    
+                    type  cml_data_types:CML_BOOL_T;  
+                    config true;
+                } // END of msgDigestKeyEncryption definition.
+
+                leaf msgifAuthKey  {
+                    mandatory true;                    
+                    type  cml_data_types:CML_STRING_T;  
+                    config true;
+                } // END of msgifAuthKey definition.
+
+            } // End of ospfCryptKey-list
+
+            list ospfInterfaceParamsAddrList {
+                 
+
+                description
+                    "ospfInterfaceParamsAddrList";
+
+                config true;
+                key "ipOspfAddr";
+
+                
+                leaf ipOspfAddr  {
+                    mandatory true;                    
+                    type  cml_data_types:CML_IPV4_ADDR_T;  
+                    config true;
+                } // END of ipOspfAddr definition.
+
+                leaf ifAuthTypeAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_OSPF_AUTH_TYPE_T;  
+                    default "simple";
+                    config true;
+                } // END of ifAuthTypeAddr definition.
+
+                leaf ifAuthKeyEncryptionAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_BOOL_T;  
+                    config true;
+                } // END of ifAuthKeyEncryptionAddr definition.
+
+                leaf ifAuthKeyAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_STRING_T;  
+                    config true;
+                } // END of ifAuthKeyAddr definition.
+
+                leaf ifCostAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_UINT32_T {
+                         range "1..65535";
+                    }
+                    default "10";
+                    config true;
+                } // END of ifCostAddr definition.
+
+                leaf ifDeadIntervalAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_UINT32_T {
+                         range "1..65535";
+                    }
+                    default "40";
+                    config true;
+                } // END of ifDeadIntervalAddr definition.
+
+                leaf ifHelloIntervalAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_UINT32_T {
+                         range "1..65535";
+                    }
+                    default "10";
+                    config true;
+                } // END of ifHelloIntervalAddr definition.
+
+                leaf isMtuIgnoreAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_BOOL_T;  
+                    config true;
+                } // END of isMtuIgnoreAddr definition.
+
+                leaf ifTransmitDelayAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_UINT32_T {
+                         range "1..3600";
+                    }
+                    default "1";
+                    config true;
+                } // END of ifTransmitDelayAddr definition.
+
+                leaf ifPriorityAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_UINT8_T {
+                         range "0..255";
+                    }
+                    default "1";
+                    config true;
+                } // END of ifPriorityAddr definition.
+
+                leaf ifRetransmitIntervalAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_UINT32_T {
+                         range "1..65535";
+                    }
+                    default "5";
+                    config true;
+                } // END of ifRetransmitIntervalAddr definition.
+
+                leaf ifDatabaseFilterAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_BOOL_T;  
+                    config true;
+                } // END of ifDatabaseFilterAddr definition.
+
+                leaf ifResyncTimeoutAddr  {
+                    mandatory false;                    
+                    type  cml_data_types:CML_UINT32_T {
+                         range "1..65535";
+                    }
+                    default "40";
+                    config true;
+                } // END of ifResyncTimeoutAddr definition.
+
+
+                list ospfCryptKeyAddr {
+                     
+
+                    description
+                        "ospfCryptKeyAddr";
+
+                    config true;
+                    key "msgDigestKeyIdAddr";
+
+                    
+                    leaf msgDigestKeyIdAddr  {
+                        mandatory true;                        
+                        type  cml_data_types:CML_UINT32_T {
+                             range "1..255";
+                        }
+                        config true;
+                    } // END of msgDigestKeyIdAddr definition.
+
+                    leaf msgDigestKeyEncryptionAddr  {
+                        mandatory true;                        
+                        type  cml_data_types:CML_BOOL_T;  
+                        config true;
+                    } // END of msgDigestKeyEncryptionAddr definition.
+
+                    leaf msgifAuthKeyAddr  {
+                        mandatory true;                        
+                        type  cml_data_types:CML_STRING_T;  
+                        config true;
+                    } // END of msgifAuthKeyAddr definition.
+
+                } // End of ospfCryptKeyAddr-list
+            } // End of ospfInterfaceParamsAddrList-list
         } // End of ospfInterface-list
     } // END of ospfInterface-grouping definition.
 
@@ -3604,6 +3844,7 @@ submodule ospf {
                     mandatory false;                    
                     type  cml_data_types:CML_BOOL_T;  
                     config true;
+                    description "ospf hitless-restart helper";
                 } // END of never definition.
 
                 leaf nbrRouterId  {
@@ -3673,6 +3914,7 @@ submodule ospf {
                 mandatory false;                
                 type  cml_data_types:CML_OSPF_TELINK_LOCAL_T;  
                 config true;
+                description "te-link";
             } // END of linkLocalEnable definition.
 
             leaf teFloodOspfId  {
@@ -3688,6 +3930,7 @@ submodule ospf {
                 mandatory false;                
                 type  cml_data_types:CML_STRING_T;  
                 config true;
+                description "Te Flood Ospf Id";
             } // END of teFloodareaId definition.
 
         } // End of teLinkOspf-list
