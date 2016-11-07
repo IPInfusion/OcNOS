@@ -1,0 +1,1987 @@
+    CMM-CHASSIS-MIB DEFINITIONS ::= BEGIN
+    
+    --  This module provides authoritative definitions for cmm modules
+    --
+    --  This module will be extended, as needed.
+    --  
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, 
+        Gauge32, Counter32, INTEGER, Unsigned32, 
+        TimeTicks, NOTIFICATION-TYPE
+            FROM SNMPv2-SMI
+        DateAndTime, DisplayString, 
+        MacAddress, RowStatus, TEXTUAL-CONVENTION
+            FROM SNMPv2-TC
+        MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+            FROM SNMPv2-CONF
+	MODULE-IDENTITY,enterprises,
+		OBJECT-IDENTITY 
+			FROM SNMPv2-SMI; 
+       
+
+	ipi  MODULE-IDENTITY
+	LAST-UPDATED "201603301200Z"   -- Mar 30, 2016 12:00:00 GMT
+	ORGANIZATION
+	  "IPI."
+	CONTACT-INFO
+	  "ipinfusion.com"
+
+	DESCRIPTION
+	   "The Structure of CMM Management Information for
+	    the IPI enterprise."
+
+	::= { enterprises 36673 }	-- assigned by IANA
+              
+    CmmChassisMib MODULE-IDENTITY
+    LAST-UPDATED "201603301130Z"  -- Mar 30, 2016 11:30:00 GMT    
+    ORGANIZATION "IP Infusion"
+    CONTACT-INFO "www.ipinfusion.com"
+    DESCRIPTION
+       "IPI CMM Chassis MIB. "
+    ::= { ipi 100 }
+   
+
+    -- ### Groups ###
+
+    CmmChassisObject      OBJECT IDENTIFIER ::={ CmmChassisMib 1 }
+    cmmObjects            OBJECT IDENTIFIER ::={ CmmChassisObject 1 }
+    cmmSysObjects         OBJECT IDENTIFIER ::={ CmmChassisObject 2 }
+    cmmAlarmObjects       OBJECT IDENTIFIER ::={ CmmChassisObject 3 }
+  
+    -- ### Textual Convention
+                 
+    CodeType ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "x"
+        STATUS      current
+        DESCRIPTION
+            "The code type value for a given unit, 
+            displayed in hexadecimal."
+        SYNTAX  Unsigned32  
+
+    UnitType ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "x"
+        STATUS      current
+        DESCRIPTION
+            "The unit type value for a given unit, 
+            displayed in hexadecimal."
+        SYNTAX  Unsigned32  
+        
+    -- ### Chassis Information
+
+      cmmhNumStackUnits     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of stack units configured
+            on the chassis."
+        ::= { cmmObjects 1 }
+        
+
+
+    -- ### Chassis System  ###
+
+                
+    -- ## StackUnit Table
+
+    -- The Cmm chassis is a single virtual system to 
+    -- have the stackable units as virtual slots.
+    -- In the chassis, there can be multiple physical units
+    -- stacked together.  
+
+    -- The StackUnit table contains the management information 
+    -- of each stacked unit in the chassis.
+
+      cmmStackUnitTable     OBJECT-TYPE
+        SYNTAX        SEQUENCE OF CmmStackUnitEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+                      "A list of stack units configured in the chassis.
+                      The StackUnit table contains the management 
+                      information of each stacked unit in the chassis. 
+                      "
+        ::= { cmmSysObjects 1 }
+
+      cmmStackUnitEntry  OBJECT-TYPE 
+        SYNTAX        CmmStackUnitEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A list of units entries containing information 
+             for each stacked unit."
+        INDEX    { cmmStackUnitIndex }
+        ::= { cmmStackUnitTable 1 }
+      CmmStackUnitEntry    ::=
+        SEQUENCE {
+           cmmStackUnitIndex               INTEGER,
+           cmmStackUnitModelName           DisplayString,
+           cmmStackUnitSerialNumber        DisplayString, 
+           cmmStackUnitUpTime              DisplayString,
+           cmmStackUnitMfgDate             DisplayString,
+           cmmStackUnitMacAddress          MacAddress,
+           cmmStackUnitPartNum             DisplayString,
+           cmmStackLabelRevision           DisplayString,
+           cmmStackUnitCountryCode         OCTET STRING,
+           cmmStackUnitNum10GigEtherPorts  INTEGER,
+           cmmStackUnitNumGigEtherPorts    INTEGER,
+           cmmStackUnitNumFastEtherPorts   INTEGER,
+           cmmStackUnitNumFanTrays         INTEGER,
+           cmmStackUnitNumPowerSupplies    INTEGER,
+           cmmStackUnitNumPluggableModules INTEGER,
+           cmmStackUnitNum40GigEtherPorts  INTEGER,
+           cmmStackUnitServiceTag          DisplayString,
+           cmmStackPlatformName            DisplayString,
+           cmmStackOnieVersion             DisplayString,
+           cmmStackMfg                     DisplayString,
+           cmmStackVendorName              DisplayString,
+           cmmStackDiagVersion             DisplayString,
+           cmmStackCrc32                   DisplayString
+           
+        }
+       
+       cmmStackUnitIndex		OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+             "The unique index for this entry. 
+             Refer to the object cmmStackUnitIndexNext." 
+        ::= { cmmStackUnitEntry 1 }
+ 
+       cmmStackUnitModelName  OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The plugged-in model ID for this unit."
+        ::= { cmmStackUnitEntry 2 }
+
+       cmmStackUnitSerialNumber OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's serial number."
+        ::= { cmmStackUnitEntry 3 }
+                
+       cmmStackUnitUpTime OBJECT-TYPE
+        SYNTAX      DisplayString 
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The system up time of the unit."
+        ::= { cmmStackUnitEntry 4 }
+        
+       cmmStackUnitMfgDate    OBJECT-TYPE
+        SYNTAX        OCTET STRING (SIZE (8 | 11))
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The date the unit is manufactured."
+        ::= { cmmStackUnitEntry 5 }
+
+       cmmStackUnitMacAddress   OBJECT-TYPE
+        SYNTAX          MacAddress
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "A 6-octet MAC Address assigned
+             to this unit."
+        ::= { cmmStackUnitEntry 6 }
+
+       cmmStackUnitPartNum    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit part number"
+        ::= { cmmStackUnitEntry 7 }
+
+        cmmStackLabelRevision OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's label Revesion"
+        ::= { cmmStackUnitEntry 8 }
+
+
+       cmmStackUnitCountryCode    OBJECT-TYPE
+        SYNTAX        OCTET STRING (SIZE (2))
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit manufacturer's country
+            code"
+        ::= { cmmStackUnitEntry 9 }
+
+       cmmStackUnitNum10GigEtherPorts     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The number of 10G Ethernet/802.3 interfaces
+            in this unit."
+        ::= { cmmStackUnitEntry 10 }
+
+       cmmStackUnitNumGigEtherPorts     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The number of 1G Ethernet/802.3 interfaces
+            in this unit."
+        ::= { cmmStackUnitEntry 11 }
+
+       cmmStackUnitNumFastEtherPorts     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The number of 10/100 Ethernet/802.3 interfaces
+            in this unit."
+        ::= { cmmStackUnitEntry 12 }
+
+       cmmStackUnitNumFanTrays  OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The number of fan trays
+            on the unit."
+        ::= { cmmStackUnitEntry 13 }
+
+       cmmStackUnitNumPowerSupplies     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The number of power supplies available
+            to the unit."
+        ::= { cmmStackUnitEntry 14 }
+       
+       cmmStackUnitNumPluggableModules OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The number of pluggable modules 
+            in the stack."
+        ::= { cmmStackUnitEntry 15 }
+
+       cmmStackUnitNum40GigEtherPorts     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The number of 40G Ethernet/802.3 interfaces
+            in this unit."
+        ::= { cmmStackUnitEntry 16 }
+
+       cmmStackUnitServiceTag OBJECT-TYPE
+        SYNTAX        DisplayString (SIZE (0..7))
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's service tag."
+        ::= { cmmStackUnitEntry 17 }
+
+       cmmStackPlatformName OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's Platform Name."
+        ::= { cmmStackUnitEntry 18 }
+
+       cmmStackOnieVersion OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's ONIE Version."
+        ::= { cmmStackUnitEntry 19 }
+
+       cmmStackMfg OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's Manufacturer Name."
+        ::= { cmmStackUnitEntry 20 }
+
+       cmmStackVendorName OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's Vendor Name."
+        ::= { cmmStackUnitEntry 21 }
+
+       cmmStackDiagVersion OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's Diagnostic Version."
+        ::= { cmmStackUnitEntry 22 }
+
+        cmmStackCrc32 OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's Cyclic Redundancy Check 32 Bit value."
+        ::= { cmmStackUnitEntry 23 }
+
+
+
+    -- ## Port Entry 
+     cmmSysPortTable    OBJECT-TYPE
+     SYNTAX        SEQUENCE OF CmmSysPortEntry
+     MAX-ACCESS    not-accessible
+     STATUS        current
+     DESCRIPTION
+         "A list of power supply resident
+         in the  chassis."
+     ::= { cmmSysObjects 2 }
+
+      cmmSysPortEntry  OBJECT-TYPE 
+        SYNTAX        CmmSysPortEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A port entry containing objects for a
+            particular port."
+        INDEX    { cmmStackUnitIndex,
+                   cmmSysPortIndex }
+        ::= { cmmSysPortTable 1 }
+
+      CmmSysPortEntry    ::=
+        SEQUENCE {
+           cmmSysPortIndex            INTEGER,
+           cmmSysPortType             DisplayString,
+           cmmSysidentifier           DisplayString,           
+           cmmSysextendedidentifier  DisplayString,
+           cmmSysconnectortype       DisplayString,
+           cmmSystransceivercode     DisplayString,
+           cmmSysencoding            DisplayString,
+           cmmSysnominalbitrate      INTEGER,
+           cmmSyslengthkmtrs         INTEGER,
+           cmmSyslengthmtrs          INTEGER,
+           cmmSyslengthom1           INTEGER,
+           cmmSyslengthom2           INTEGER,
+           cmmSyslengthom3           INTEGER,
+           cmmSysvendorname          DisplayString,
+           cmmSysvendoroui           DisplayString,
+           cmmSysvendorpartnumber   DisplayString,
+           cmmSysvendorrevision      DisplayString,
+           cmmSyscheckcode           DisplayString,
+           cmmSysbitratemax          INTEGER,
+           cmmSysbitratemin          INTEGER,
+           cmmSysvendorserialnumber DisplayString,
+           cmmSysdatecode            DisplayString,
+           cmmSysddmtype             DisplayString,
+           cmmSyscheckcodeextended  DisplayString,
+           cmmSysrxpower0           INTEGER,
+           cmmSysrxpower1           INTEGER,
+           cmmSysrxpower2           INTEGER,
+           cmmSysrxpower3           INTEGER,
+           cmmSysrxpower4           INTEGER,
+           cmmSyslaserbiasslope     INTEGER,
+           cmmSyslaserbiasoffset    INTEGER,
+           cmmSystxpowerslope       INTEGER,
+           cmmSystxpoweroffset      INTEGER,
+           cmmSystempslope           INTEGER,
+           cmmSystempoffset          INTEGER,
+           cmmSysvoltageslope        INTEGER,
+           cmmSysvoltageoffset       INTEGER,
+           cmmSysTemperature       DisplayString,
+           cmmSysVoltage           DisplayString,
+           cmmSysLaserBiasCurrent  DisplayString,
+           cmmSysTxOutputPower     DisplayString,
+           cmmSysRxInputPower      DisplayString,
+        }
+
+       cmmSysPortIndex OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "A unique index for each slot within the unit.
+            "
+        ::= { cmmSysPortEntry 1 }
+
+       cmmSysPortType  OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The type of port in the unit."
+        ::= { cmmSysPortEntry 2 }
+
+        cmmSysidentifier    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Type of transceiver
+            "
+
+        ::= { cmmSysPortEntry 3 }
+
+        cmmSysextendedidentifier    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Extended identifier of type of transceiver
+            "
+
+        ::= { cmmSysPortEntry 4 }
+
+
+        cmmSysconnectortype    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Code for connector type
+            "
+
+        ::= { cmmSysPortEntry 5 }
+
+        cmmSystransceivercode    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Code for electronic or optical compatibility
+            "
+
+        ::= { cmmSysPortEntry 6 }
+
+        cmmSysencoding    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Code for high speed serial encoding algorithm
+            "
+
+        ::= { cmmSysPortEntry 7 }
+
+        cmmSysnominalbitrate    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Nominal signalling rate, units of 100MBd.
+            "
+
+        ::= { cmmSysPortEntry 8 }
+
+
+        cmmSyslengthkmtrs    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Link length supported for single mode fiber, units of km
+            "
+
+        ::= { cmmSysPortEntry 9 }
+
+        cmmSyslengthmtrs    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Link length supported for single mode fiber, units of 100 m 
+            "
+
+        ::= { cmmSysPortEntry 10 }
+
+        cmmSyslengthom1    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Link length supported for 62.5 um OM1 fiber, units of 10 m
+            "
+
+        ::= { cmmSysPortEntry 11 }
+
+        cmmSyslengthom2    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Link length supported for 50 um OM2 fiber, units of 10 m
+            "
+
+        ::= { cmmSysPortEntry 12 }
+
+
+        cmmSyslengthom3    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Link length supported for 50 um OM3 fiber, units of 10 m
+            "
+
+        ::= { cmmSysPortEntry 13 }
+
+        
+        cmmSysvendorname    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            SFP vendor name
+            "
+
+        ::= { cmmSysPortEntry 14 }
+
+
+        cmmSysvendoroui    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+             SFP vendor IEEE company ID 
+            "
+
+        ::= { cmmSysPortEntry 15 }
+
+
+        cmmSysvendorpartnumber    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Part number provided by SFP vendor
+            "
+
+        ::= { cmmSysPortEntry 16 }
+
+        cmmSysvendorrevision    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Revision level for part number provided by vendor
+            "
+
+        ::= { cmmSysPortEntry 17 }
+
+
+        cmmSyscheckcode    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Check code for Base ID Fields
+            "
+
+        ::= { cmmSysPortEntry 18 }
+
+
+    
+        cmmSysbitratemax    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Upper bit rate margin, units of %
+            "
+
+        ::= { cmmSysPortEntry 19 }
+
+        cmmSysbitratemin    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Lower bit rate margin, units of %
+            "
+
+        ::= { cmmSysPortEntry 20 }
+
+        cmmSysvendorserialnumber    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Serial number provided by vendor
+            "
+
+        ::= { cmmSysPortEntry 21 }
+
+        cmmSysdatecode    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Vendor's manufacturing date code
+            "
+
+        ::= { cmmSysPortEntry 22 }
+
+        
+        cmmSysddmtype    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Indicates which type of diagnostic monitoring is implemented
+            "
+
+        ::= { cmmSysPortEntry 23 }
+
+
+
+        cmmSyscheckcodeextended     OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Check code for the Extended ID Fields
+            "
+
+        ::= { cmmSysPortEntry 24 } 
+
+
+        cmmSysrxpower0     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Single precision floating point calibration data, Rx optical power. Bit 7 of
+            byte 72 is MSB, bit 0 of byte 75 is LSB. RxPWR(0) should be set to zero
+            for internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 25 } 
+
+
+        cmmSysrxpower1     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Single precision floating point calibration data, Rx optical power. Bit 7 of
+            byte 68 is MSB, bit 0 of byte 71 is LSB. RxPWR(1) should be set to 1 for
+            internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 26 } 
+
+        cmmSysrxpower2     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Single precision floating point calibration data, Rx optical power.
+            Bit 7 of byte 64 is MSB, bit 0 of byte 67 is LSB. RxPWR(2) should be set
+            to zero for internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 27 } 
+
+        cmmSysrxpower3     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Single precision floating point calibration data - Rx optical power.
+            Bit 7 of byte 60 is MSB. Bit 0 of byte 63 is LSB. RxPWR(3) should be set
+            to zero for internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 28 } 
+
+        cmmSysrxpower4     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Single precision floating point calibration data - Rx optical power. Bit 7 of
+            byte 56 is MSB. Bit 0 of byte 59 is LSB. RxPWR(4) should be set to zero
+            for internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 29 } 
+
+        cmmSyslaserbiasslope     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Fixed decimal (unsigned) calibration data, laser bias current. Bit 7 of byte
+            76 is MSB, bit 0 of byte 77 is LSB. TxI(Slope) should be set to 1 for
+            internally calibrated devices.
+            "
+
+        ::= {cmmSysPortEntry 30 } 
+
+        cmmSyslaserbiasoffset     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Fixed decimal (signed two's complement) calibration data, laser bias
+            current. Bit 7 of byte 78 is MSB, bit 0 of byte 79 is LSB. TxI(Offset) should
+            be set to zero for internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 31 } 
+
+
+        cmmSystxpowerslope     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Fixed decimal (unsigned) calibration data, transmitter coupled output
+            power. Bit 7 of byte 80 is MSB, bit 0 of byte 81 is LSB. TxPWR(Slope)
+            should be set to 1 for internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 32 } 
+
+        cmmSystxpoweroffset     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Fixed decimal (signed two's complement) calibration data, transmitter
+            coupled output power. Bit 7 of byte 82 is MSB, bit 0 of byte 83 is LSB.
+            TxPWR(Offset) should be set to zero for internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 33 } 
+
+        cmmSystempslope     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Fixed decimal (unsigned) calibration data, internal module temperature. Bit
+            7 of byte 84 is MSB, bit 0 of byte 85 is LSB. T(Slope) should be set to 1 for
+            internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 34 } 
+
+        cmmSystempoffset     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Fixed decimal (signed two's complement) calibration data, internal module
+            temperature. Bit 7 of byte 86 is MSB, bit 0 of byte 87 is LSB. T(Offset)
+            should be set to zero for internally calibrated devices
+            "
+
+        ::= { cmmSysPortEntry 35 } 
+
+        cmmSysvoltageslope     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Fixed decimal (unsigned) calibration data, internal module supply voltage.
+            Bit 7 of byte 88 is MSB, bit 0 of byte 89 is LSB. V(Slope) should be set to 1
+            for internally calibrated devices
+            "
+
+        ::= { cmmSysPortEntry 36 } 
+
+        cmmSysvoltageoffset     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Fixed decimal (signed two's complement) calibration data, internal module
+            supply voltage. Bit 7 of byte 90 is MSB. Bit 0 of byte 91 is LSB. V(Offset)
+            should be set to zero for internally calibrated devices.
+            "
+
+        ::= { cmmSysPortEntry 37 } 
+
+        cmmSysTemperature    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Temperature value of the system
+            "
+
+        ::= { cmmSysPortEntry 38 }
+
+        cmmSysVoltage    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Internally measured supply voltage in transceiver 
+            "
+
+        ::= { cmmSysPortEntry 39 }
+
+        cmmSysLaserBiasCurrent    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Internally measured TX Bias Current. 
+            "
+
+        ::= { cmmSysPortEntry 40 }
+
+        cmmSysTxOutputPower    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Measured TX output power.
+            "
+
+        ::= { cmmSysPortEntry 41 }
+
+        cmmSysRxInputPower    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "
+            Measured RX input power.
+            "
+
+        ::= { cmmSysPortEntry 42 }
+
+     cmmSysRamTable    OBJECT-TYPE
+     SYNTAX        SEQUENCE OF CmmSysRamEntry
+     MAX-ACCESS    not-accessible
+     STATUS        current
+     DESCRIPTION
+         "A list of Ram Entries."
+     ::= { cmmSysObjects 3 }
+
+       cmmSysRamEntry OBJECT-TYPE
+       SYNTAX        CmmSysRamEntry
+       MAX-ACCESS    not-accessible
+       STATUS        current
+       DESCRIPTION
+           "Ram entries"
+       INDEX    { cmmStackUnitIndex }
+       ::= { cmmSysRamTable 1 }
+
+     CmmSysRamEntry    ::=
+       SEQUENCE {
+          cmmSysRamFreeMem       INTEGER,
+          cmmSysRamAvailableMem  INTEGER,
+          cmmSysRamThreshold     INTEGER
+         }
+        cmmSysRamFreeMem  OBJECT-TYPE 
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "CPU RAM's total free memory available for utilisation in KBytes."
+        ::= { cmmSysRamEntry 1 }
+
+        cmmSysRamAvailableMem  OBJECT-TYPE 
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "CPU RAM's total memory in Kbytes."
+        ::= { cmmSysRamEntry 2 }
+
+        cmmSysRamThreshold  OBJECT-TYPE 
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION
+            "The CPU Free Memory threshold in kilobytes. 
+             A zero threshold value indicates the CPU Free Memory Notification feature is disabled.
+             Notifications are triggered when the CPU Free Memory falls below the configured threshold 
+             and when it rises to 10% above the configured threshold.CPU utilization in percentage for last 1 minute."
+        ::= { cmmSysRamEntry 3 }
+
+      
+
+       cmmStackUnitUtilTable    OBJECT-TYPE
+       SYNTAX        SEQUENCE OF CmmStackUnitUtilEntry
+       MAX-ACCESS    not-accessible
+       STATUS        current
+       DESCRIPTION
+           "A list of Stack Unit Util Entries."
+       ::= { cmmSysObjects 4 }
+
+       cmmStackUnitUtilEntry OBJECT-TYPE
+       SYNTAX        CmmStackUnitUtilEntry
+       MAX-ACCESS    not-accessible
+       STATUS        current
+       DESCRIPTION
+           "Unit Til Entries"
+       INDEX    { cmmStackUnitIndex }
+       ::= { cmmStackUnitUtilTable 1 }
+
+     CmmStackUnitUtilEntry    ::=
+       SEQUENCE {
+          cmmStackUnitCpuType        DisplayString,
+          cmmStackUnitCpuUtil1Min    DisplayString,
+          cmmStackUnitCpuUtil5Min    DisplayString,
+          cmmStackUnitCpuUtil15Min   DisplayString,
+          cmmSysCpuThresholdInterval INTEGER,
+          cmmSysCpuThreshold         INTEGER,
+          cmmStackUnitCpuUtilization DisplayString,
+         }
+
+        cmmStackUnitCpuType  OBJECT-TYPE 
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The type of module running on the Processor"
+        ::= { cmmStackUnitUtilEntry 1 }
+
+        cmmStackUnitCpuUtil1Min  OBJECT-TYPE 
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+             "CPU utilization in percentage for last 5 seconds"
+        ::= { cmmStackUnitUtilEntry 2 }
+
+        cmmStackUnitCpuUtil5Min  OBJECT-TYPE 
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "CPU utilization in percentage for last 1 minute"
+        ::= { cmmStackUnitUtilEntry 3 }
+
+        cmmStackUnitCpuUtil15Min  OBJECT-TYPE 
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "CPU utilization in percentage for last 5 minutes."
+        ::= { cmmStackUnitUtilEntry 4 }
+
+        cmmSysCpuThresholdInterval  OBJECT-TYPE 
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION
+            "The CPU Rising threshold interval in seconds. The time interval is configured in multiples of 5 seconds. 
+             A zero Rising interval indicates CPU Utilization Notification feature is disabled.."
+        ::= { cmmStackUnitUtilEntry 5 }
+
+
+        cmmSysCpuThreshold  OBJECT-TYPE 
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION
+            "The CPU MAX Threshold"
+        ::= { cmmStackUnitUtilEntry 6 }
+
+
+
+       cmmStackUnitCpuUtilization  OBJECT-TYPE 
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+          "Total memory usage in percentage"
+        ::= {cmmStackUnitUtilEntry 7 }
+
+    -- ### Power Supply Table
+
+   cmmSysPowerSupplyTable    OBJECT-TYPE
+     SYNTAX        SEQUENCE OF CmmSysPowerSupplyEntry
+     MAX-ACCESS    not-accessible
+     STATUS        current
+     DESCRIPTION
+         "A list of power supply resident
+         in the  chassis."
+     ::= { cmmSysObjects 5 }
+
+     cmmSysPowerSupplyEntry    OBJECT-TYPE
+       SYNTAX        CmmSysPowerSupplyEntry
+       MAX-ACCESS    not-accessible
+       STATUS        current
+       DESCRIPTION
+           "A power supply entry containing objects for a
+           particular power supply."
+       INDEX    { cmmStackUnitIndex,
+                  cmmSysPowerSupplyIndex }
+       ::= { cmmSysPowerSupplyTable 1 }
+
+     CmmSysPowerSupplyEntry    ::=
+       SEQUENCE {
+          cmmSysPowerSupplyIndex      INTEGER,
+          cmmSysPOWERVDDR            DisplayString,
+          cmmSysPOWERCORE            DisplayString,
+          cmmSysV1P1POWERRAIL       DisplayString,
+          cmmSysMAINBOARDPOWERRAIL DisplayString,
+          cmmSysVCC5V                DisplayString,
+          cmmSysVCC33V             DisplayString,
+          cmmSysVCCMAC1V            DisplayString,
+          cmmSysVCCMACAVS1V        DisplayString,
+          cmmSysVCCV1P05             DisplayString,
+          cmmSysVCCV1P5              DisplayString,
+          cmmSysVCCV1P8              DisplayString,
+          cmmSysV1P05POWERRAIL      DisplayString,
+          cmmSysV1P5POWERRAIL       DisplayString,  
+          cmmSysVCCPOWERRAIL        DisplayString,
+          cmmSysSBV1P5POWERRAIL     DisplayString,
+          cmmSysV1P0POWERRAIL       DisplayString,
+          cmmSysV3P3POWERRAIL       DisplayString,
+          cmmSysV1P8POWERRAIL       DisplayString,
+          cmmSysV1P35POWERRAIL      DisplayString,
+          cmmSysDDRVTT              DisplayString,
+          cmmSysPowerSupplyOperStatus DisplayString,
+          cmmSysPowerSupplyType      DisplayString,
+          cmmSysHotSwapStat          DisplayString,
+          cmmSysPSConsumption        DisplayString
+          
+       }
+
+        cmmSysPowerSupplyIndex    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unique index of the power supply."
+        ::= { cmmSysPowerSupplyEntry 1 }
+ 
+        cmmSysPOWERVDDR    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power statistics for VCC 3.3v on Main board"
+        ::= { cmmSysPowerSupplyEntry 2 }
+
+       cmmSysPOWERCORE    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power statistics for Mac 1v on Main board"
+        ::= { cmmSysPowerSupplyEntry 3 }
+
+       cmmSysV1P1POWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power statistics for Mac AVS 1v on Main board"
+        ::= { cmmSysPowerSupplyEntry 4 }
+
+       cmmSysMAINBOARDPOWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status  for Main Board"
+        ::= { cmmSysPowerSupplyEntry 5 }
+
+       cmmSysVCC5V    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status of VCC 5V"
+        ::= { cmmSysPowerSupplyEntry 6 }
+
+       cmmSysVCC33V    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status of VCC 33 V"
+        ::= { cmmSysPowerSupplyEntry 7 }
+
+       cmmSysVCCMAC1V    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status of VCCMAC1V"
+        ::= { cmmSysPowerSupplyEntry 8 }
+
+       cmmSysVCCMACAVS1V    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status of VCCMACAVS1V"
+        ::= { cmmSysPowerSupplyEntry 9 }
+
+       cmmSysVCCV1P05    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power Status of VCCV1P05"
+        ::= { cmmSysPowerSupplyEntry 10 }
+
+       cmmSysVCCV1P5    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power Status of VCCV1P5"
+        ::= { cmmSysPowerSupplyEntry 11 }
+
+       cmmSysVCCV1P8    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status of VCCV1P8"
+        ::= { cmmSysPowerSupplyEntry 12 }
+
+
+       cmmSysV1P05POWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status of V1P05POWERRAIL"
+        ::= { cmmSysPowerSupplyEntry 13 }
+
+       cmmSysV1P5POWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status of V1P5POWERRAIL"
+        ::= { cmmSysPowerSupplyEntry 14 }
+
+       cmmSysVCCPOWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status of VCCPOWERRAIL"
+        ::= { cmmSysPowerSupplyEntry 15 }
+
+       cmmSysSBV1P5POWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status of SBV1P5POWERRAIL"
+        ::= { cmmSysPowerSupplyEntry 16 }
+
+       cmmSysV1P0POWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power rail 1.0V Status"
+        ::= { cmmSysPowerSupplyEntry 17 }
+
+       cmmSysV3P3POWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power rail 3.3V Status"
+        ::= { cmmSysPowerSupplyEntry 18 }
+
+       cmmSysV1P8POWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power rail 1.8V Status"
+        ::= { cmmSysPowerSupplyEntry 19 }
+
+       cmmSysV1P35POWERRAIL    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power Rail 1.35 Status"
+        ::= { cmmSysPowerSupplyEntry 20 }
+
+        cmmSysDDRVTT   OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power statistics for VCC 5v on Main board."
+        ::= { cmmSysPowerSupplyEntry 21 }
+
+       cmmSysPowerSupplyOperStatus    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The status of the power supply."
+        ::= { cmmSysPowerSupplyEntry 22 }
+
+       cmmSysPowerSupplyType    OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The type of the power supply."
+        ::= { cmmSysPowerSupplyEntry 23 }
+
+
+       cmmSysHotSwapStat    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Power status  for HOT SWAP"
+        ::= { cmmSysPowerSupplyEntry 24 }
+
+        cmmSysPSConsumption    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+        "Output Power of Power supply"
+        ::= { cmmSysPowerSupplyEntry 25 }
+
+    -- ## Fan Tray Table
+
+       cmmSysFanTable    OBJECT-TYPE
+        SYNTAX        SEQUENCE OF CmmSysFanEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A list of fan tray resident in the M-series chassis."
+        ::= { cmmSysObjects 6 }
+
+      cmmSysFanEntry    OBJECT-TYPE
+        SYNTAX        CmmSysFanEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A fan entry containing objects for a
+            particular fan tray."
+        INDEX    { cmmStackUnitIndex,
+                   cmmSysFanIndex }
+        ::= { cmmSysFanTable 1 }
+
+      CmmSysFanEntry    ::=
+        SEQUENCE {
+           cmmSysFanIndex            INTEGER,
+           cmmSysFanControllerNum    INTEGER,
+           cmmSysFanTrayNumber       INTEGER,
+           cmmSysFanRpm              INTEGER,
+           cmmSysFanLowRpm           INTEGER,
+           cmmSysFanMidRpm           INTEGER,
+           cmmSysFanHighRpm          INTEGER,
+           cmmSysFanTrayOperStatus   DisplayString,
+           cmmSysFanTrayLed          DisplayString
+        }
+
+       cmmSysFanIndex    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unique index of the fan."
+        ::= { cmmSysFanEntry 1 }
+
+
+       cmmSysFanControllerNum    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents the fan controller number."
+        ::= { cmmSysFanEntry 2 }
+
+       cmmSysFanTrayNumber    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents the fan tray Number."
+        ::= { cmmSysFanEntry 3 }
+
+
+       cmmSysFanRpm    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents the fan rpm ."
+        ::= { cmmSysFanEntry 4 }
+
+       cmmSysFanLowRpm    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents the low RPM of fan."
+        ::= { cmmSysFanEntry 5 }
+
+       cmmSysFanMidRpm    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents the  mid RPM of fan."
+        ::= { cmmSysFanEntry 6 }
+
+
+       cmmSysFanHighRpm    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents the  high RPM of fan."
+        ::= { cmmSysFanEntry 7 }
+
+       
+       cmmSysFanTrayOperStatus    OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The status of the fan tray."
+        ::= { cmmSysFanEntry 8 }
+
+        cmmSysFanTrayLed    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents the fan led status."
+        ::= { cmmSysFanEntry 9 }
+
+
+-- ## Stack Temperature Table
+        cmmSysTemperatureTable OBJECT-TYPE
+        SYNTAX        SEQUENCE OF CmmSysTemperatureEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A list of Temperature Entities on board" 
+        ::= { cmmSysObjects 7 }
+
+      cmmSysTemperatureEntry  OBJECT-TYPE 
+        SYNTAX        CmmSysTemperatureEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A temperature entry containing objects related to particular temperature sensor"
+        INDEX    { cmmStackUnitIndex,
+                   cmmSysTemperatureSensorIndex }
+        ::= { cmmSysTemperatureTable 1 }
+
+      CmmSysTemperatureEntry    ::=
+        SEQUENCE {
+          cmmSysTemperatureSensorIndex  INTEGER,
+          cmmSysTemperatureValue        DisplayString,
+          cmmSysTempLowThreshold        DisplayString,
+          cmmSysTempHighThreshold       DisplayString
+        }
+
+        cmmSysTemperatureSensorIndex    OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents Temperature Sensor Index"
+        ::= { cmmSysTemperatureEntry 1 }
+
+        cmmSysTemperatureValue    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents Temperature Sensor value"
+        ::= { cmmSysTemperatureEntry 2 }
+
+        cmmSysTempLowThreshold    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents Temperature Sensor lower threshold"
+        ::= { cmmSysTemperatureEntry 3 }
+
+        cmmSysTempHighThreshold    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents Temperature Sensor high threshold"
+        ::= { cmmSysTemperatureEntry 4 }
+ 
+
+-- ## Stack LED Table
+        cmmSysLedTable OBJECT-TYPE
+        SYNTAX        SEQUENCE OF CmmSysLedEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "Sequence of cmmSysLedEntry" 
+        ::= { cmmSysObjects 8 }
+
+      cmmSysLedEntry  OBJECT-TYPE 
+        SYNTAX        CmmSysLedEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "OBJECT to hold elements related to LED information"
+        INDEX    { cmmStackUnitIndex }
+        ::= { cmmSysLedTable 1 }
+
+      CmmSysLedEntry    ::=
+        SEQUENCE {
+          cmmSysPowerLed     DisplayString,
+          cmmSysLocatorLed   DisplayString,
+          cmmSysMasterLed    DisplayString,
+          cmmSysSystemLed    DisplayString,
+          cmmSysFrontFanLed  DisplayString
+
+        }
+
+        cmmSysPowerLed    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Status of Power led "
+        ::= { cmmSysLedEntry 1 }
+
+        cmmSysLocatorLed    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Status of Power led "
+        ::= { cmmSysLedEntry 2 }
+
+        cmmSysMasterLed    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Status of Locator led "
+        ::= { cmmSysLedEntry 3 }
+
+        cmmSysSystemLed    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Status of System led "
+        ::= { cmmSysLedEntry 4 }
+
+        cmmSysFrontFanLed    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Status of FrontFan led "
+        ::= { cmmSysLedEntry 5 }
+
+
+
+
+    -- ## Software Module Table 
+
+       cmmSysSwModuleTable    OBJECT-TYPE
+        SYNTAX        SEQUENCE OF CmmSysSwModuleEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A list of software version information in 
+            a processor."
+        ::= { cmmSysObjects 9 }
+
+      cmmSysSwModuleEntry    OBJECT-TYPE 
+        SYNTAX        CmmSysSwModuleEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A software module entry containing version 
+            number information for a particular processor."
+        INDEX    { cmmStackUnitIndex }
+        ::= { cmmSysSwModuleTable 1 }
+
+      CmmSysSwModuleEntry    ::=
+        SEQUENCE {
+           cmmSysSwRuntimeImgVersion     DisplayString,
+           cmmSysSwRuntimeImgDate        OCTET STRING,
+        }
+
+       cmmSysSwRuntimeImgVersion    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "This variable indicates the software 
+            module version that is currently
+            running on the processor.  
+            The software release version is in 
+            the format as follow:
+            <major version>.<minor version>.<minor 
+            version>......
+            '1.2' indicate major version of 1 and
+            minor release of 2."    
+        ::= { cmmSysSwModuleEntry 1 }
+
+       cmmSysSwRuntimeImgDate    OBJECT-TYPE
+        SYNTAX        OCTET STRING
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The release date of this software
+            module."
+        ::= { cmmSysSwModuleEntry 2 }
+
+    --
+    -- ## Notifications 
+    --
+    
+    cmmAlarmVariable             OBJECT IDENTIFIER ::= { cmmAlarmObjects 0 } 
+    cmmAlarmMibNotifications     OBJECT IDENTIFIER ::= { cmmAlarmObjects 1 }  
+
+    cmmAlarmVarInteger OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   accessible-for-notify
+    STATUS       current
+    DESCRIPTION
+        "An generic integer value in the TRAP object"
+    ::= { cmmAlarmVariable 1 }
+   
+    cmmAlarmVarString OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   accessible-for-notify
+    STATUS       current
+    DESCRIPTION
+        "An generic string value in the TRAP object"
+    ::= { cmmAlarmVariable 2 }
+    --
+    -- TRAPS
+    --
+
+
+    cmmAlarmCpuRisingThreshold   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysCpuThresholdInterval,
+                      cmmSysCpuThreshold,
+                     cmmStackUnitCpuUtilization
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information for Rising threshold, threshold interval and 
+             CPU Utilisation
+            "
+        ::= { cmmAlarmMibNotifications 1 }
+
+    cmmAlarmFreeMemBlwThreshold   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysRamFreeMem,
+                      cmmSysRamThreshold
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information for Free Memory and Free Memory Threshold
+            "
+        ::= { cmmAlarmMibNotifications 2 }
+
+    cmmAlarmTempHigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysTemperature,
+                      cmmAlarmVarInteger
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when internal temperature exceeds high alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 3 }
+
+    cmmAlarmTempLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysTemperature,
+                      cmmAlarmVarInteger
+                     }
+                STATUS       current
+        DESCRIPTION
+            "Set when internal temperature is below low alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 4 }
+
+      cmmWarningTempHigh  NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysTemperature,
+                      cmmAlarmVarInteger
+                     }
+
+             STATUS       current
+        DESCRIPTION
+            "Set when internal temperature exceeds high warning level.
+            "
+        ::= { cmmAlarmMibNotifications 5 }
+
+    cmmWarningTempLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysTemperature,
+                      cmmAlarmVarInteger
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when internal temperature is below low warning level
+            "
+        ::= { cmmAlarmMibNotifications 6 }
+
+    cmmAlarmVoltageHigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysVoltage,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when internal supply voltage exceeds high alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 7 }
+
+    cmmAlarmVoltageLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysVoltage,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when internal supply voltage is below low alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 8 }
+
+    cmmWarningVoltageHigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysVoltage,
+                      cmmAlarmVarString
+                     }
+
+        STATUS       current
+        DESCRIPTION
+            "Set when internal supply voltage exceeds high warning level.
+            "
+        ::= { cmmAlarmMibNotifications 9 }
+
+    cmmWarningVoltageLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysVoltage,
+                      cmmAlarmVarString
+                     }
+
+        STATUS       current
+        DESCRIPTION
+            "Set when internal supply voltage is below low warning level
+            "
+        ::= { cmmAlarmMibNotifications 10 }
+
+    cmmAlarmBiasHigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysLaserBiasCurrent,
+                      cmmAlarmVarString
+                     }
+
+        STATUS       current
+        DESCRIPTION
+            "Set when TX Bias current exceeds high alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 11 }
+
+    cmmAlarmBiasLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysLaserBiasCurrent,
+                      cmmAlarmVarString
+                     }
+
+        STATUS       current
+        DESCRIPTION
+            "Set when TX Bias current is below low alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 12 }
+
+    cmmWarningBiashigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysLaserBiasCurrent,
+                      cmmAlarmVarString
+                     }
+
+        STATUS       current
+        DESCRIPTION
+            "Set when TX Bias current exceeds high warning level.
+            "
+        ::= { cmmAlarmMibNotifications 13 }
+
+    cmmWarningBiasLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysLaserBiasCurrent,
+                      cmmAlarmVarString
+                     }
+
+        STATUS       current
+        DESCRIPTION
+            "Set when TX Bias current is below low warning level.
+            "
+        ::= { cmmAlarmMibNotifications 14 }
+
+
+    cmmAlarmRxPowerHigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysRxInputPower,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Received Power exceeds high alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 15 }
+
+    cmmAlarmRxPowerLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysRxInputPower,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Received Power is below low alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 16 }
+
+    cmmWarningRxPowerHigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysRxInputPower,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Received Power exceeds high warning level.
+            "
+        ::= { cmmAlarmMibNotifications 17 }
+
+    cmmWarningRxPowerLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysRxInputPower,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Received Power is below low warning level.
+            "
+        ::= { cmmAlarmMibNotifications 18 }
+
+    cmmAlarmTemperatureTooHigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysTemperatureSensorIndex,
+                      cmmAlarmVarInteger,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Temperature will be above threshold for sensor"
+        ::= { cmmAlarmMibNotifications 19 }
+
+    cmmWarningPsuInserted   NOTIFICATION-TYPE
+        OBJECTS      {
+		              cmmSysPowerSupplyIndex,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Power supply unit is inserted"
+        ::= { cmmAlarmMibNotifications 20 }   
+
+    cmmWarningPsuRemoved   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmSysPowerSupplyIndex,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Power supply unit is Removed"
+        ::= { cmmAlarmMibNotifications 21 }  		
+
+    cmmWarningPsuFaulty   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmSysPowerSupplyIndex,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Power supply unit is Faulty"
+        ::= { cmmAlarmMibNotifications 22 }
+
+     cmmWarningFanTrayInserted   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmSysFanTrayNumber,
+					  cmmSysFanRpm,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when fan tray is inserted"
+        ::= { cmmAlarmMibNotifications 23 } 		
+ 
+     cmmWarningFanTrayRemoved   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmSysFanTrayNumber,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when fan tray is Removed"
+        ::= { cmmAlarmMibNotifications 24 } 	
+		
+
+     cmmAlarmPowerExceed   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmSysPSConsumption,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Power will be above threshold"
+        ::= { cmmAlarmMibNotifications 25 }
+
+
+    cmmAlarmTxPowerHigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysTxOutputPower,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Transferred Power exceeds high alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 26 }
+
+    cmmAlarmTxPowerLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysTxOutputPower,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Transferred Power is below low alarm level.
+            "
+        ::= { cmmAlarmMibNotifications 27 }
+
+    cmmWarningTxPowerHigh   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysTxOutputPower,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Transferred Power exceeds high warning level.
+            "
+        ::= { cmmAlarmMibNotifications 28 }
+
+    cmmWarningTxPowerLow   NOTIFICATION-TYPE
+        OBJECTS      {cmmSysPortIndex,
+                      cmmSysPortType,
+                      cmmSysTxOutputPower,
+                      cmmAlarmVarString
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Transferred Power is below low warning level.
+            "
+        ::= { cmmAlarmMibNotifications 29 }
+   
+    cmmWarningFanTrayFaulty  NOTIFICATION-TYPE
+       OBJECTS      {cmmSysFanTrayNumber,
+                     cmmSysFanIndex,
+                     cmmAlarmVarString
+                    }
+        STATUS       current
+        DESCRIPTION
+            "Set when Given Fan Tray Faulty.
+            "
+        ::= { cmmAlarmMibNotifications 30 }
+
+    cmmWarningFanTrayRecovered  NOTIFICATION-TYPE
+       OBJECTS      {cmmSysFanTrayNumber,
+                     cmmSysFanIndex,
+                     cmmAlarmVarString
+                    }
+        STATUS       current
+        DESCRIPTION
+            "Set when Given Fan Tray is recovered.
+            "
+        ::= { cmmAlarmMibNotifications 31 }
+
+   END
+  
