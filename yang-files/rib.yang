@@ -16,323 +16,895 @@
 submodule rib {
 
     belongs-to  ZebOS { prefix ZebOS; }
+    include interface;
     include vrf;
+    include vr;
 
 
     import cml_data_types {
         prefix cml_data_types;
     }
 
+    import feature_list {
+        prefix feature_list;
+    }
+
+
     revision "2016-09-15" {
-        description "Revisied on 2016-09-15.";    }
+        description "Revisied on 2016-09-15.";
+    }
 
 
 
     grouping rib-grouping {
         list rib {
              
-
             description
-                "static route with ifname";
+                "rib";
 
             config true;
-            key "ipv4DestinationPrefixAddr";
+            key "vrId";
 
             
             leaf vrId  {
-                mandatory true;                
-                type  cml_data_types:CML_INT32_T;  
+                type  cml_data_types:CML_UINT32_T;  
                 config true;
             } // END of vrId definition.
 
-            leaf ipv4DestinationPrefixAddr  {
-                
-                type  cml_data_types:CML_STRING_T;  
+            leaf fibRetain  {
+                type  cml_data_types:CML_BOOL_T;  
                 config true;
-            } // END of ipv4DestinationPrefixAddr definition.
+            } // END of fibRetain definition.
+
+            leaf multipathNum  {
+                type  cml_data_types:CML_UINT8_T {
+                     range "1..64";
+                }
+                default "1";
+                config true;
+            } // END of multipathNum definition.
+
+            leaf maxStaticRoutes  {
+                type  cml_data_types:CML_UINT32_T {
+                     range "1..4294967294";
+                }
+                default "4294967294";
+                config true;
+            } // END of maxStaticRoutes definition.
+
+            leaf maxFibRoutes  {
+                type  cml_data_types:CML_UINT32_T {
+                     range "1..16384";
+                }
+                config true;
+            } // END of maxFibRoutes definition.
+
+            leaf debugType  {
+                type  cml_data_types:CML_RIB_DEBUG_TYPE_T;  
+                default "all";
+                config true;
+            } // END of debugType definition.
+
+            leaf debugIpv6  {
+                type  cml_data_types:CML_RIB_DEBUG_IPV6_TYPE_T;  
+                config true;
+            } // END of debugIpv6 definition.
+
+            leaf unDebug  {
+                type  cml_data_types:CML_RIB_DEBUG_TYPE_T;  
+                default "all";
+                config true;
+            } // END of unDebug definition.
 
 
-            list ribGateway {
+            list ribIpv4 {
                  
-
                 description
-                    "static route with gateway";
+                    "ribIpv4";
 
                 config true;
-                key "ipGatewayStr";
+                key "destPrefix";
 
                 
-                leaf ipGatewayStr  {
+                leaf destPrefix  {
+                    type  cml_data_types:CML_IPV4_PREFIX_T;  
+                    config true;
+                } // END of destPrefix definition.
+
+
+                list ribIpv4Mask {
+                     
+                    description
+                        "ribIpv4Mask";
+
+                    config true;
+                    key "destAddrMask";
+
                     
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of ipGatewayStr definition.
+                    leaf destAddrMask  {
+                        type  cml_data_types:CML_INT32_T;  
+                        config true;
+                    } // END of destAddrMask definition.
 
-                leaf distanceValue  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_INT32_T {
-                         range "1..255";
-                    }
-                    config true;
-                } // END of distanceValue definition.
 
-                leaf tagValue  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_UINT32_T {
-                         range "1..4294967295";
-                    }
-                    config true;
-                } // END of tagValue definition.
+                    list ribStaticGwAddr {
+                         
+                        description
+                            "ribStaticGwAddr";
 
-                leaf staticRouteDescription  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of staticRouteDescription definition.
+                        config true;
+                        key "gwAddr";
 
-            } // End of ribGateway-list
+                        
+                        leaf gwAddr  {
+                            type  cml_data_types:CML_IPV4_ADDR_T;  
+                            config true;
+                        } // END of gwAddr definition.
 
-            list ribGatewayIfname {
+                        leaf ribStaticBfd  {
+                            type  cml_data_types:CML_BOOL_T;  
+                            config true;
+                        } // END of ribStaticBfd definition.
+
+                        leaf ribStaticBfdDisable  {
+                            type  cml_data_types:CML_BOOL_T;  
+                            config true;
+                        } // END of ribStaticBfdDisable definition.
+
+                        container ribAttr {
+                                                        config true;
+
+                            description
+                                "ribAttr";
+
+                            uses ribAttr;
+                        } // END of ribAttr-container definition.
+                    } // End of ribStaticGwAddr-list
+
+                    list ribStaticIfName {
+                         
+                        description
+                            "ribStaticIfName";
+
+                        config true;
+                        key "gwIfName";
+
+                        
+                        leaf gwIfName  {
+                            type  cml_data_types:CML_STRING_T;  
+                            config true;
+                        } // END of gwIfName definition.
+
+                        uses ribAttr;
+                    } // End of ribStaticIfName-list
+                } // End of ribIpv4Mask-list
+
+                list ribRuntime {
+                     
+                    description
+                        "ribRuntime";
+
+                    config false;
+                    key "type";
+
+                    
+                    leaf type  {
+                        type  cml_data_types:CML_STRING_T;  
+                        config false;
+                    } // END of type definition.
+
+                    uses ribRuntimeGrp;
+                } // End of ribRuntime-list
+            } // End of ribIpv4-list
+
+            list ribIpv4Vrf {
                  
-
                 description
-                    "static route with gateway and ifname";
+                    "ribIpv4Vrf";
+
+                config true;
+                key "vrfName";
+
+                
+                leaf vrfName  {
+                    type  cml_data_types:CML_STRING_T;  
+                    config true;
+                } // END of vrfName definition.
+
+
+                list vrfDestPrefix {
+                     
+                    description
+                        "vrfDestPrefix";
+
+                    config true;
+                    key "destVrfPrefix";
+
+                    
+                    leaf destVrfPrefix  {
+                        type  cml_data_types:CML_IPV4_PREFIX_T;  
+                        config true;
+                    } // END of destVrfPrefix definition.
+
+
+                    list vrfIfName {
+                         
+                        description
+                            "vrfIfName";
+
+                        config true;
+                        key "gwVrfIfName";
+
+                        
+                        leaf gwVrfIfName  {
+                            type  cml_data_types:CML_STRING_T;  
+                            config true;
+                        } // END of gwVrfIfName definition.
+
+                        uses ribAttr;
+                    } // End of vrfIfName-list
+
+                    list vrfGwAddr {
+                         
+                        description
+                            "vrfGwAddr";
+
+                        config true;
+                        key "vrfGwAddr";
+
+                        
+                        leaf vrfGwAddr  {
+                            type  cml_data_types:CML_IPV4_ADDR_T;  
+                            config true;
+                        } // END of vrfGwAddr definition.
+
+
+                        list vrfGwAddrIfName {
+                             
+                            description
+                                "vrfGwAddrIfName";
+
+                            config true;
+                            key "gwVrfIfNameAddr";
+
+                            
+                            leaf gwVrfIfNameAddr  {
+                                type  cml_data_types:CML_STRING_T;  
+                                config true;
+                            } // END of gwVrfIfNameAddr definition.
+
+                            uses ribAttr;
+                        } // End of vrfGwAddrIfName-list
+                    } // End of vrfGwAddr-list
+
+                    list ribRuntime {
+                         
+                        description
+                            "ribRuntime";
+
+                        config false;
+                        key "type";
+
+                        
+                        leaf type  {
+                            type  cml_data_types:CML_STRING_T;  
+                            config false;
+                        } // END of type definition.
+
+                        uses ribRuntimeGrp;
+                    } // End of ribRuntime-list
+                } // End of vrfDestPrefix-list
+                container ribIpv4VrfAfi {
+                                        config false;
+
+                    description
+                        "ribIpv4VrfAfi";
+
+                    uses ribVrfAfiGrp;
+                } // END of ribIpv4VrfAfi-container definition.
+            } // End of ribIpv4Vrf-list
+
+            list ribIpv6 {
+                 
+                description
+                    "ribIpv6";
+
+                config true;
+                key "ipv6DestPrefix";
+
+                
+                leaf ipv6DestPrefix  {
+                    type  cml_data_types:CML_IPV6_PREFIX_T;  
+                    config true;
+                } // END of ipv6DestPrefix definition.
+
+
+                list ribIpv6GwAddr {
+                     
+                    description
+                        "ribIpv6GwAddr";
+
+                    config true;
+                    key "ipv6GwAddr";
+
+                    
+                    leaf ipv6GwAddr  {
+                        type  cml_data_types:CML_IPV6_ADDR_T;  
+                        config true;
+                    } // END of ipv6GwAddr definition.
+
+                    leaf ipv6DistVal  {
+                        type  cml_data_types:CML_INT32_T {
+                             range "1..255";
+                        }
+                        default "1";
+                        config true;
+                    } // END of ipv6DistVal definition.
+
+                    leaf ribIpv6StaticBfd  {
+                        type  cml_data_types:CML_BOOL_T;  
+                        config true;
+                    } // END of ribIpv6StaticBfd definition.
+
+                    leaf ribIpv6StaticBfdDisable  {
+                        type  cml_data_types:CML_BOOL_T;  
+                        config true;
+                    } // END of ribIpv6StaticBfdDisable definition.
+
+                } // End of ribIpv6GwAddr-list
+
+                list ribIpv6GwIfName {
+                     
+                    description
+                        "ribIpv6GwIfName";
+
+                    config true;
+                    key "ipv6GwIfName";
+
+                    
+                    leaf ipv6GwIfName  {
+                        type  cml_data_types:CML_STRING_T;  
+                        config true;
+                    } // END of ipv6GwIfName definition.
+
+                    leaf ipv6DistVal  {
+                        type  cml_data_types:CML_INT32_T {
+                             range "1..255";
+                        }
+                        default "1";
+                        config true;
+                    } // END of ipv6DistVal definition.
+
+                } // End of ribIpv6GwIfName-list
+
+                list ribIpv6GwAddrIfName {
+                     
+                    description
+                        "ribIpv6GwAddrIfName";
+
+                    config true;
+                    key "ipv6GateWayAddr";
+
+                    
+                    leaf ipv6GateWayAddr  {
+                        type  cml_data_types:CML_IPV6_ADDR_T;  
+                        config true;
+                    } // END of ipv6GateWayAddr definition.
+
+
+                    list ribIpv6GwIfName {
+                         
+                        description
+                            "ribIpv6GwIfName";
+
+                        config true;
+                        key "ipv6GateWayIfName";
+
+                        
+                        leaf ipv6GateWayIfName  {
+                            type  cml_data_types:CML_STRING_T;  
+                            config true;
+                        } // END of ipv6GateWayIfName definition.
+
+                        leaf distValgwAddr  {
+                            type  cml_data_types:CML_INT32_T {
+                                 range "1..255";
+                            }
+                            default "1";
+                            config true;
+                        } // END of distValgwAddr definition.
+
+                    } // End of ribIpv6GwIfName-list
+                } // End of ribIpv6GwAddrIfName-list
+
+                list ribRuntime {
+                     
+                    description
+                        "ribRuntime";
+
+                    config false;
+                    key "type";
+
+                    
+                    leaf type  {
+                        type  cml_data_types:CML_STRING_T;  
+                        config false;
+                    } // END of type definition.
+
+                    uses ribRuntimeGrp;
+                } // End of ribRuntime-list
+            } // End of ribIpv6-list
+
+            list ribIpv6Vrf {
+                 
+                description
+                    "ribIpv6Vrf";
+
+                config true;
+                key "vrfName";
+
+                
+                leaf vrfName  {
+                    type  cml_data_types:CML_STRING_T;  
+                    config true;
+                } // END of vrfName definition.
+
+
+                list vrfDestPrefix {
+                     
+                    description
+                        "vrfDestPrefix";
+
+                    config true;
+                    key "ipv6VrfDestPrefix";
+
+                    
+                    leaf ipv6VrfDestPrefix  {
+                        type  cml_data_types:CML_IPV6_PREFIX_T;  
+                        config true;
+                    } // END of ipv6VrfDestPrefix definition.
+
+
+                    list vrfIpv6GwAddr {
+                         
+                        description
+                            "vrfIpv6GwAddr";
+
+                        config true;
+                        key "ipv6VrfGwAddr";
+
+                        
+                        leaf ipv6VrfGwAddr  {
+                            type  cml_data_types:CML_IPV6_ADDR_T;  
+                            config true;
+                        } // END of ipv6VrfGwAddr definition.
+
+
+                        list vrfGwAddrIfName {
+                             
+                            description
+                                "vrfGwAddrIfName";
+
+                            config true;
+                            key "ipv6VrfgwIfName";
+
+                            
+                            leaf ipv6VrfgwIfName  {
+                                type  cml_data_types:CML_STRING_T;  
+                                config true;
+                            } // END of ipv6VrfgwIfName definition.
+
+                        } // End of vrfGwAddrIfName-list
+                    } // End of vrfIpv6GwAddr-list
+
+                    list ribRuntime {
+                         
+                        description
+                            "ribRuntime";
+
+                        config false;
+                        key "type";
+
+                        
+                        leaf type  {
+                            type  cml_data_types:CML_STRING_T;  
+                            config false;
+                        } // END of type definition.
+
+                        uses ribRuntimeGrp;
+                    } // End of ribRuntime-list
+                } // End of vrfDestPrefix-list
+                container ribIpv6VrfAfi {
+                                        config false;
+
+                    description
+                        "ribIpv6VrfAfi";
+
+                    uses ribVrfAfiGrp;
+                } // END of ribIpv6VrfAfi-container definition.
+            } // End of ribIpv6Vrf-list
+
+            list ribMrouteVRF {
+                 
+                description
+                    "ribMrouteVRF";
+
+                config true;
+                key "vrfName";
+
+                
+                leaf vrfName  {
+                    type  cml_data_types:CML_STRING_T;  
+                    config true;
+                } // END of vrfName definition.
+
+
+                list ribMroute {
+                     
+                    description
+                        "ribMroute";
+
+                    config true;
+                    key "srcPrfix";
+
+                    
+                    leaf srcPrfix  {
+                        type  cml_data_types:CML_IPV4_PREFIX_T;  
+                        config true;
+                    } // END of srcPrfix definition.
+
+
+                    list mrouteProtoType {
+                         
+                        description
+                            "mrouteProtoType";
+
+                        config true;
+                        key "mrouteIpv4Proto";
+
+                        
+                        leaf mrouteIpv4Proto  {
+                            type  cml_data_types:CML_MROUTE_ROUTETYPE_T;  
+                            config true;
+                        } // END of mrouteIpv4Proto definition.
+
+                        leaf rpfRoute  {
+                            type  cml_data_types:CML_IPV4_ADDR_T;  
+                            config true;
+                        } // END of rpfRoute definition.
+
+                        leaf adminDist  {
+                            type  cml_data_types:CML_INT32_T {
+                                 range "1..255";
+                            }
+                            config true;
+                        } // END of adminDist definition.
+
+                    } // End of mrouteProtoType-list
+                } // End of ribMroute-list
+            } // End of ribMrouteVRF-list
+
+            list ribIpv6MrouteVRF {
+                 
+                description
+                    "ribIpv6MrouteVRF";
+
+                config true;
+                key "vrfName";
+
+                
+                leaf vrfName  {
+                    type  cml_data_types:CML_STRING_T;  
+                    config true;
+                } // END of vrfName definition.
+
+
+                list ribMrouteIpv6 {
+                     
+                    description
+                        "ribMrouteIpv6";
+
+                    config true;
+                    key "srcPrfixIpv6";
+
+                    
+                    leaf srcPrfixIpv6  {
+                        type  cml_data_types:CML_IPV6_PREFIX_T;  
+                        config true;
+                    } // END of srcPrfixIpv6 definition.
+
+
+                    list mrouteIpv6ProtoType {
+                         
+                        description
+                            "mrouteIpv6ProtoType";
+
+                        config true;
+                        key "mrouteIpv6Proto";
+
+                        
+                        leaf mrouteIpv6Proto  {
+                            type  cml_data_types:CML_MROUTE_ROUTETYPE_T;  
+                            config true;
+                        } // END of mrouteIpv6Proto definition.
+
+                        leaf gwIpv6Mroute  {
+                            type  cml_data_types:CML_MROUTE_GW_ADDR_T;  
+                            config true;
+                        } // END of gwIpv6Mroute definition.
+
+                        leaf adminDist  {
+                            type  cml_data_types:CML_INT32_T {
+                                 range "1..255";
+                            }
+                            config true;
+                        } // END of adminDist definition.
+
+
+                        list ipv6MrouteGwAddr {
+                             
+                            description
+                                "ipv6MrouteGwAddr";
+
+                            config true;
+                            key "mrouteIpv6gwAddr";
+
+                            
+                            leaf mrouteIpv6gwAddr  {
+                                type  cml_data_types:CML_IPV6_ADDR_T;  
+                                config true;
+                            } // END of mrouteIpv6gwAddr definition.
+
+
+                            list ipv6MrouteGwIfName {
+                                 
+                                description
+                                    "ipv6MrouteGwIfName";
+
+                                config true;
+                                key "mrouteIpv6gwIfName";
+
+                                
+                                leaf mrouteIpv6gwIfName  {
+                                    type  cml_data_types:CML_STRING_T;  
+                                    config true;
+                                } // END of mrouteIpv6gwIfName definition.
+
+                                leaf adminDist  {
+                                    type  cml_data_types:CML_INT32_T {
+                                         range "1..255";
+                                    }
+                                    config true;
+                                } // END of adminDist definition.
+
+                            } // End of ipv6MrouteGwIfName-list
+                        } // End of ipv6MrouteGwAddr-list
+                    } // End of mrouteIpv6ProtoType-list
+                } // End of ribMrouteIpv6-list
+            } // End of ribIpv6MrouteVRF-list
+
+            list ribInterface {
+                 
+                description
+                    "RIB BFD interface related operations";
 
                 config true;
                 key "ifName";
 
                 
                 leaf ifName  {
-                    
                     type  cml_data_types:CML_STRING_T;  
                     config true;
                 } // END of ifName definition.
 
-                leaf ifdistanceValue  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_INT32_T {
-                         range "1..255";
-                    }
+                leaf staticBfd  {
+                    type  cml_data_types:CML_BOOL_T;  
                     config true;
-                } // END of ifdistanceValue definition.
+                } // END of staticBfd definition.
 
-                leaf iftagValue  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_UINT32_T {
-                         range "1..4294967295";
-                    }
+                leaf staticBfdDisable  {
+                    type  cml_data_types:CML_BOOL_T;  
                     config true;
-                } // END of iftagValue definition.
+                } // END of staticBfdDisable definition.
 
-                leaf ifstaticRouteDescription  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_STRING_T;  
+                leaf ipv6StaticBfd  {
+                    type  cml_data_types:CML_BOOL_T;  
                     config true;
-                } // END of ifstaticRouteDescription definition.
+                } // END of ipv6StaticBfd definition.
 
-            } // End of ribGatewayIfname-list
+                leaf ipv6StaticBfdDisable  {
+                    type  cml_data_types:CML_BOOL_T;  
+                    config true;
+                } // END of ipv6StaticBfdDisable definition.
+
+            } // End of ribInterface-list
+            container fib {
+                                config true;
+
+                description
+                    "fib";
+
+                container retain {
+                                        config true;
+
+                    description
+                        "retain";
+
+                    leaf fibRetainTime  {
+                        type  cml_data_types:CML_UINT16_T {
+                             range "1..65535";
+                        }
+                        default "60";
+                        config true;
+                    } // END of fibRetainTime definition.
+
+                } // END of retain-container definition.
+            } // END of fib-container definition.
+            container ribAfi {
+                                config false;
+
+                description
+                    "ribAfi";
+
+                uses ribVrfAfiGrp;
+            } // END of ribAfi-container definition.
+            container ribIpv6Afi {
+                                config false;
+
+                description
+                    "ribIpv6Afi";
+
+                uses ribVrfAfiGrp;
+            } // END of ribIpv6Afi-container definition.
+            container ribVrf {
+                                config true;
+
+                description
+                    "ribVrf";
+
+                leaf ribVrfConfBfdIpv4  {
+                    type  cml_data_types:CML_BOOL_T;  
+                    config true;
+                } // END of ribVrfConfBfdIpv4 definition.
+
+                leaf ribVrfConfBfdIpv6  {
+                    type  cml_data_types:CML_BOOL_T;  
+                    config true;
+                } // END of ribVrfConfBfdIpv6 definition.
+
+            } // END of ribVrf-container definition.
         } // End of rib-list
     } // END of rib-grouping definition.
+    grouping ribRuntimeGrp {
+                leaf subType  {
+            type  cml_data_types:CML_STRING_T;  
+            config false;
+        } // END of subType definition.
+
+        leaf metric  {
+            type  cml_data_types:CML_UINT8_T;  
+            config false;
+        } // END of metric definition.
+
+        leaf blackHole  {
+            type  cml_data_types:CML_STRING_T;  
+            config false;
+        } // END of blackHole definition.
 
 
-    grouping ribipv6-grouping {
-        list ribipv6 {
+        list nextHopRunTime {
              
-
             description
-                "ribipv6";
+                "nextHopRunTime";
 
-            config true;
-            key "ipv6DestinationPrefixAddr";
+            config false;
+            key "gwAddrRuntime";
 
             
-            leaf vrId  {
-                mandatory true;                
-                type  cml_data_types:CML_INT32_T;  
-                config true;
-            } // END of vrId definition.
+            leaf gwAddrRuntime  {
+                type  cml_data_types:CML_IPV4_ADDR_T;  
+                config false;
+            } // END of gwAddrRuntime definition.
 
-            leaf ipv6DestinationPrefixAddr  {
-                
+            leaf gwLastResort  {
+                type  cml_data_types:CML_IPV4_ADDR_T;  
+                config false;
+            } // END of gwLastResort definition.
+
+            leaf nexthopIfName  {
                 type  cml_data_types:CML_STRING_T;  
-                config true;
-            } // END of ipv6DestinationPrefixAddr definition.
+                config false;
+            } // END of nexthopIfName definition.
+
+            leaf nexthopIfIndex  {
+                type  cml_data_types:CML_STRING_T;  
+                config false;
+            } // END of nexthopIfIndex definition.
+
+            leaf nexthopFlagActive  {
+                type  cml_data_types:CML_STRING_T;  
+                config false;
+            } // END of nexthopFlagActive definition.
+
+        } // End of nextHopRunTime-list
+    } // END of ribRuntimeGrp definition.
+    grouping ribVrfAfiGrp {
+                leaf totalRoutes  {
+            type  cml_data_types:CML_UINT32_T;  
+            config false;
+        } // END of totalRoutes definition.
+
+        leaf totalPaths  {
+            type  cml_data_types:CML_UINT32_T;  
+            config false;
+        } // END of totalPaths definition.
+
+        leaf countFib  {
+            type  cml_data_types:CML_UINT32_T;  
+            config false;
+        } // END of countFib definition.
+
+        leaf ecmpRoutes  {
+            type  cml_data_types:CML_UINT32_T;  
+            config false;
+        } // END of ecmpRoutes definition.
+
+        leaf ecmpPaths  {
+            type  cml_data_types:CML_UINT32_T;  
+            config false;
+        } // END of ecmpPaths definition.
+
+        leaf ecmpPathCntr  {
+            type  cml_data_types:CML_STRING_T;  
+            config false;
+        } // END of ecmpPathCntr definition.
 
 
-            list ribipv6Gateway {
-                 
-
-                description
-                    "ribipv6Gateway";
-
-                config true;
-                key "ipv6GatewayStr";
-
-                
-                leaf ipv6GatewayStr  {
-                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of ipv6GatewayStr definition.
-
-                leaf distance  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_INT32_T {
-                         range "1..255";
-                    }
-                    config true;
-                } // END of distance definition.
-
-            } // End of ribipv6Gateway-list
-
-            list ribipv6Ifname {
-                 
-
-                description
-                    "ribipv6Ifname";
-
-                config true;
-                key "ifName";
-
-                
-                leaf ifName  {
-                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of ifName definition.
-
-                leaf distance  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_INT32_T {
-                         range "1..255";
-                    }
-                    config true;
-                } // END of distance definition.
-
-            } // End of ribipv6Ifname-list
-        } // End of ribipv6-list
-    } // END of ribipv6-grouping definition.
-
-
-    grouping mroute-grouping {
-        list mroute {
+        list routeSource {
              
-
             description
-                "mroute";
+                "routeSource";
 
-            config true;
-            key "vrfName";
+            config false;
+            key "routeType";
 
             
-            leaf vrId  {
-                mandatory true;                
-                type  cml_data_types:CML_INT32_T;  
-                config true;
-            } // END of vrId definition.
-
-            leaf vrfName  {
-                
+            leaf routeType  {
                 type  cml_data_types:CML_STRING_T;  
-                config true;
-            } // END of vrfName definition.
+                config false;
+            } // END of routeType definition.
 
-            leaf mrouteIfIndex  {
-                
+            leaf routeTypeCount  {
                 type  cml_data_types:CML_UINT32_T;  
                 config false;
-            } // END of mrouteIfIndex definition.
+            } // END of routeTypeCount definition.
 
+        } // End of routeSource-list
+    } // END of ribVrfAfiGrp definition.
+    grouping ribAttr {
+                leaf distValue  {
+            mandatory true;
+            type  cml_data_types:CML_INT32_T {
+                 range "1..255";
+            }
+            config true;
+        } // END of distValue definition.
 
-            list mroutePrefix {
-                 
+        leaf tagVal  {
+            mandatory true;
+            type  cml_data_types:CML_UINT32_T {
+                 range "0..4294967295";
+            }
+            config true;
+        } // END of tagVal definition.
 
-                description
-                    "mroutePrefix";
+        leaf description  {
+            mandatory true;
+            type  cml_data_types:CML_STRING_T;  
+            config true;
+        } // END of description definition.
 
-                config true;
-                key "mrouteIpv4Prefix";
-
-                
-                leaf mrouteIpv4Prefix  {
-                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of mrouteIpv4Prefix definition.
-
-                leaf mrouteGateStr  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of mrouteGateStr definition.
-
-                leaf mrouteifname  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of mrouteifname definition.
-
-                leaf routeType  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of routeType definition.
-
-                leaf mrouteDistance  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_INT32_T {
-                         range "1..255";
-                    }
-                    config true;
-                } // END of mrouteDistance definition.
-
-            } // End of mroutePrefix-list
-
-            list mrouteIpv6Prefix {
-                 
-
-                description
-                    "mrouteIpv6Prefix";
-
-                config true;
-                key "mrouteIpv6Prefix";
-
-                
-                leaf mrouteIpv6Prefix  {
-                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of mrouteIpv6Prefix definition.
-
-                leaf mrouteIpv6GateStr  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of mrouteIpv6GateStr definition.
-
-                leaf mrouteIpv6ifname  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of mrouteIpv6ifname definition.
-
-                leaf ipv6RouteType  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_STRING_T;  
-                    config true;
-                } // END of ipv6RouteType definition.
-
-                leaf mrouteIpv6Distance  {
-                    mandatory true;                    
-                    type  cml_data_types:CML_INT32_T {
-                         range "1..255";
-                    }
-                    config true;
-                } // END of mrouteIpv6Distance definition.
-
-            } // End of mrouteIpv6Prefix-list
-        } // End of mroute-list
-    } // END of mroute-grouping definition.
+    } // END of ribAttr definition.
 
 
 }
