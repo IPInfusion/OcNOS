@@ -38,6 +38,14 @@ submodule zebos-switchportinterface {
         "switchport configuration";
 
 
+    revision "2017-11-02" {
+        description "Cvlan and Svlan Translation at provider network port.";
+    }
+
+    revision "2017-10-10" {
+        description "fix for vlan stack command.";
+    }
+
     revision "2017-09-18" {
         description "added delete wrapper for allowed vlan none.";
     }
@@ -166,15 +174,16 @@ submodule zebos-switchportinterface {
 
         leaf vlanStackEnable  {
             if-feature feature_list:HAVE_PROVIDER_BRIDGE;
+            if-feature feature_list:HAVE_SWFWDR;
             type  cml_data_types:CML_VLANSTACK_T;
             description "vlan stack for port";
         } // END of vlanStackEnable definition.
 
         leaf etherType  {
+            if-feature feature_list:HAVE_SWFWDR;
             type  cml_data_types:CML_STRING_T {
                 length "0..255";
             }
-            default "0x8100";
             description "";
         } // END of etherType definition.
 
@@ -265,6 +274,14 @@ submodule zebos-switchportinterface {
                 description "Native Vlan Id";
             } // END of nativeVlanId definition.
 
+            leaf etype  {
+                if-feature feature_list:NOT_HAVE_SWFWDR;
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of etype definition.
+
             leaf defaultsvlanId  {
                 if-feature feature_list:HAVE_PROVIDER_BRIDGE;
                 type  cml_data_types:CML_UINT16_T;
@@ -301,28 +318,66 @@ submodule zebos-switchportinterface {
             } // END of frameType definition.
 
 
-            list svlanTranslation {
-                key "transVid";
+            list servicevlanTranslation {
+                if-feature feature_list:HAVE_SWFWDR;
+                key "tsvlan";
                 description
-                    "svlanTranslation";
-                leaf transVid  {
+                    "servicevlanTranslation";
+                leaf tsvlan  {
                     type  cml_data_types:CML_UINT16_T;
-                    description "translation Vlan Id";
-                } // END of transVid definition.
+                    description "translated SVlan Id";
+                } // END of tsvlan definition.
 
-                leaf svId  {
+                leaf svlan  {
+                    if-feature feature_list:HAVE_SWFWDR;
+                    type  cml_data_types:CML_UINT16_T;
+                    description "original sVlan Id";
+                } // END of svlan definition.
+
+            } // End of servicevlanTranslation-list
+
+            list cvlanTranslation {
+                key "cvId";
+                description
+                    "cvlanTranslation";
+                leaf cvId  {
                     type  cml_data_types:CML_UINT16_T;
                     description "default sVlan Id";
-                } // END of svId definition.
+                } // END of cvId definition.
 
-            } // End of svlanTranslation-list
+
+                list svlanTranslation {
+                    key "svId";
+                    description
+                        "svlanTranslation";
+                    leaf svId  {
+                        type  cml_data_types:CML_UINT16_T;
+                        description "default sVlan Id";
+                    } // END of svId definition.
+
+                    leaf TcVlanId  {
+                        if-feature feature_list:NOT_HAVE_SWFWDR;
+                        type  cml_data_types:CML_UINT16_T;
+                        mandatory true;
+                        description "default sVlan Id";
+                    } // END of TcVlanId definition.
+
+                    leaf TsVlanId  {
+                        if-feature feature_list:NOT_HAVE_SWFWDR;
+                        type  cml_data_types:CML_UINT16_T;
+                        mandatory true;
+                        description "default sVlan Id";
+                    } // END of TsVlanId definition.
+
+                } // End of svlanTranslation-list
+            } // End of cvlanTranslation-list
 
             list allowedVlan {
                 key "vlanRange";
                 description
                     "allowedVlan";
                 leaf vlanRange  {
-                    type  cml_data_types:CML_STRING_T;
+                    type  cml_data_types:CML_RANGE_T;
                     description "VLAN range";
                 } // END of vlanRange definition.
 
@@ -340,6 +395,8 @@ submodule zebos-switchportinterface {
         } // End of nsmVlanPort-list
 
         list vlanUserTable {
+            if-feature feature_list:HAVE_QOS;
+            if-feature feature_list:NOT_HAVE_HQOS;
             key "userPriority";
             description
                 "vlanUserTable";
@@ -361,6 +418,8 @@ submodule zebos-switchportinterface {
         } // End of vlanUserTable-list
 
         list vlanTraffic {
+            if-feature feature_list:HAVE_QOS;
+            if-feature feature_list:NOT_HAVE_HQOS;
             key "userPriority";
             description
                 "vlanTraffic";
@@ -444,7 +503,7 @@ submodule zebos-switchportinterface {
                 } // END of pvlanAssociate definition.
 
                 leaf pvlanMapVid  {
-                    type  cml_data_types:CML_STRING_T;
+                    type  cml_data_types:CML_RANGE_T;
                     description "private-vlan Mapping";
                 } // END of pvlanMapVid definition.
 
