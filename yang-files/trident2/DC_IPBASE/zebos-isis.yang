@@ -40,6 +40,10 @@ submodule zebos-isis {
         "Intermediate System - Intermediate System (IS-IS)";
 
 
+    revision "2017-10-05" {
+        description "added custom db trigger to remove passive interface when ip router isis is configured.";
+    }
+
     revision "2017-10-03" {
         description "added implicit_delete for isismaster in some places.";
     }
@@ -108,6 +112,38 @@ submodule zebos-isis {
         description "Initial version of ISIS datamodel.";
     }
 
+    grouping redistgrp {
+        description
+            "redistgrp";
+        leaf redistlevel  {
+            type  cml_data_types:CML_IS_TYPE3_T;
+            default "level-2";
+            description "";
+        } // END of redistlevel definition.
+
+        leaf redistmetric  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "0..4261412864";
+            }
+            default "0";
+            description "IS-IS metric";
+        } // END of redistmetric definition.
+
+        leaf redistmetrictype  {
+            type  cml_data_types:CML_ISIS_METRIC_T;
+            default "internal";
+            description "External metric type, (Internal|External)";
+        } // END of redistmetrictype definition.
+
+        leaf redistroute  {
+            type  cml_data_types:CML_STRING_T {
+                length "0..255";
+            }
+            default "";
+            description "Name of route-map";
+        } // END of redistroute definition.
+
+    } // END of redistgrp definition.
     grouping neighborattributes {
         description
             "neighborattributes";
@@ -1424,40 +1460,7 @@ submodule zebos-isis {
                     container redistconf {
                         description
                             "redistconf";
-                        leaf flags  {
-                            type  cml_data_types:CML_UINT8_T;
-                            config false;
-                            description "isis_redist_conf - flags";
-                        } // END of flags definition.
-
-                        leaf redistmetric  {
-                            type  cml_data_types:CML_UINT32_T {
-                                 range "0..4261412864";
-                            }
-                            default "0";
-                            description "";
-                        } // END of redistmetric definition.
-
-                        leaf redistmetrictype  {
-                            type  cml_data_types:CML_ISIS_METRIC_T;
-                            default "internal";
-                            description "";
-                        } // END of redistmetrictype definition.
-
-                        leaf redistroute  {
-                            type  cml_data_types:CML_STRING_T {
-                                length "0..255";
-                            }
-                            default "";
-                            description "";
-                        } // END of redistroute definition.
-
-                        leaf redistlevel  {
-                            type  cml_data_types:CML_IS_TYPE3_T;
-                            default "level-2";
-                            description "";
-                        } // END of redistlevel definition.
-
+                        uses redistgrp;
                     } // END of redistconf-container definition.
                 } // End of redistributeisis-list
 
@@ -1536,6 +1539,20 @@ submodule zebos-isis {
                     } // END of rmtag definition.
 
                 } // End of redistmap-list
+                container redistisis {
+                    presence "yes";
+                    description
+                        "redistisis";
+                    leaf isisInstanceId  {
+                        type  cml_data_types:CML_STRING_T {
+                            length "0..255";
+                        }
+                        mandatory true;
+                        description "";
+                    } // END of isisInstanceId definition.
+
+                    uses redistgrp;
+                } // END of redistisis-container definition.
                 uses path;
             } // END of protoipv4-container definition.
             container cspf {

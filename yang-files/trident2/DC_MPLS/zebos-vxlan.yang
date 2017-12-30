@@ -39,116 +39,8 @@ submodule zebos-vxlan {
         "Network Virtualization Overlay functionality";
 
 
-    revision "2017-09-18" {
-        description "Fix for JIRA-18634.";
-    }
-
-    revision "2017-08-28" {
-        description "UT fixes for SNMP.";
-    }
-
-    revision "2017-08-22" {
-        description "JIRA-18348.";
-    }
-
-    revision "2017-08-11" {
-        description "Changes done for ARP-ND cahce disable .";
-    }
-
-    revision "2017-08-10" {
-        description "SNMP chnages done for JIRA-18238.";
-    }
-
-    revision "2017-08-01" {
-        description "Changes done for Static MAC only route.";
-    }
-
-    revision "2017-07-27" {
-        description "Added description to attributes.";
-    }
-
-    revision "2017-07-26" {
-        description "Added support for more than one format of MAC address.";
-    }
-
-    revision "2017-07-05" {
-        description "Changes done for hold timer for MAC removal.";
-    }
-
-    revision "2017-06-30" {
-        description "Changes done for vxlan/evpn statistics as JIRA-16129.";
-    }
-
-    revision "2017-05-29" {
-        description "Data model chnages done for JIRA-160754.";
-    }
-
-    revision "2017-05-19" {
-        description "Data model chnages done for JIRA-15684.";
-    }
-
-    revision "2017-05-18" {
-        description "Changes done for JIRA-15803,15881,15882.";
-    }
-
-    revision "2017-05-10" {
-        description "Data model chnages done for JIRA-15643.";
-    }
-
-    revision "2017-05-04" {
-        description "Added importFrom tag for ifName attribute.";
-    }
-
-    revision "2017-04-29" {
-        description "changes for JIRA-15182 and JIRA-15068.";
-    }
-
-    revision "2017-04-28" {
-        description "changes for mac ageing timeout..";
-    }
-
-    revision "2017-04-25" {
-        description "changes for JIRA-15182.";
-    }
-
-    revision "2017-04-20" {
-        description "changes for JIRA-15189.";
-    }
-
-    revision "2017-04-13" {
-        description "changes for mac and arp learning disable..";
-    }
-
-    revision "2017-04-09" {
-        description "changes for JIRA-14761.";
-    }
-
-    revision "2017-04-06" {
-        description "changes for JIRA-14587.";
-    }
-
-    revision "2017-04-05" {
-        description "changes for access-if shut/no shut.";
-    }
-
-    revision "2016-12-28" {
-        description "Added extra commands in vxlan .";
-    }
-
-    revision "2016-03-05" {
-        description "changes for Jira-13917.";
-    }
-
-    revision "2016-02-20" {
-        description "changes for bug fixes.";
-    }
-
-    revision "2016-02-10" {
-        description "Added Get APIs  in vxlan.";
-    }
-
-    revision "2015-10-22" {
-        description "Initial draft version.";
+    revision "2017-08-09" {
+        description " Intial Version.";
     }
 
 
@@ -164,6 +56,13 @@ submodule zebos-vxlan {
                 }
                 description "";
             } // END of vlanId definition.
+
+            leaf tpid  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of tpid definition.
 
             leaf arpCacheDisable  {
                 type  cml_data_types:CML_BOOL_T;
@@ -181,6 +80,55 @@ submodule zebos-vxlan {
             uses vxlan-counters;
         } // End of nvoAccessIfVlanInfo-list
     } // END of nvoAccessIfVlanInfo-grouping definition.
+
+
+    grouping nvoAccessIfOuterVlanInfo-grouping {
+        list nvoAccessIfOuterVlanInfo {
+            key "outerVlanId";
+            description
+                "VxLAN acess side stacked-vlan configurations";
+            leaf outerVlanId  {
+                type  cml_data_types:CML_UINT32_T {
+                     range "2..4094";
+                }
+                description "";
+            } // END of outerVlanId definition.
+
+
+            list nvoAccessIfInnerVlanInfo {
+                key "innerVlanId";
+                description
+                    "VxLAN acess side inner-vlan configurations";
+                leaf innerVlanId  {
+                    type  cml_data_types:CML_UINT32_T {
+                         range "2..4094";
+                    }
+                    description "";
+                } // END of innerVlanId definition.
+
+                leaf tpid  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "";
+                } // END of tpid definition.
+
+                leaf arpCacheDisable  {
+                    type  cml_data_types:CML_BOOL_T;
+                    default false;
+                    description "Disable arp cache on access interface";
+                } // END of arpCacheDisable definition.
+
+                leaf ndCacheDisable  {
+                    type  cml_data_types:CML_BOOL_T;
+                    default false;
+                    description "Disable ND cache on access interface";
+                } // END of ndCacheDisable definition.
+
+                uses access-info;
+            } // End of nvoAccessIfInnerVlanInfo-list
+        } // End of nvoAccessIfOuterVlanInfo-list
+    } // END of nvoAccessIfOuterVlanInfo-grouping definition.
     grouping access-info {
         description
             "accessCMLSEPinfo";
@@ -198,9 +146,7 @@ submodule zebos-vxlan {
         } // END of shutdownInterface definition.
 
         leaf description  {
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
+            type  cml_data_types:CML_LINE_T;
             description "";
         } // END of description definition.
 
@@ -215,6 +161,48 @@ submodule zebos-vxlan {
             default false;
             description "";
         } // END of arpFloodSuppress definition.
+
+        leaf cos  {
+            if-feature feature_list:HAVE_QOS;
+            type  cml_data_types:CML_UINT8_T {
+                 range "0..7";
+            }
+            description "";
+        } // END of cos definition.
+
+        leaf cosDir  {
+            if-feature feature_list:HAVE_QOS;
+            type  cml_data_types:CML_VXLAN_QOS_DIR_T;
+            description "";
+        } // END of cosDir definition.
+
+        leaf dscp  {
+            if-feature feature_list:HAVE_QOS;
+            type  cml_data_types:CML_UINT8_T {
+                 range "0..63";
+            }
+            description "";
+        } // END of dscp definition.
+
+        leaf dscpDir  {
+            if-feature feature_list:HAVE_QOS;
+            type  cml_data_types:CML_VXLAN_QOS_DIR_T;
+            description "";
+        } // END of dscpDir definition.
+
+        leaf profileDir  {
+            if-feature feature_list:HAVE_QOS;
+            type  cml_data_types:CML_VXLAN_QOS_DIR_T;
+            description "";
+        } // END of profileDir definition.
+
+        leaf profileId  {
+            if-feature feature_list:HAVE_QOS;
+            type  cml_data_types:CML_UINT8_T {
+                 range "1..128";
+            }
+            description "";
+        } // END of profileId definition.
 
         leaf-list macAddrOnly  {
             type  cml_data_types:CML_MAC_ADDR_T;
@@ -284,6 +272,26 @@ submodule zebos-vxlan {
             description "";
         } // END of vtepIpv4 definition.
 
+        leaf vxlanQoSMode  {
+            if-feature feature_list:HAVE_QOS;
+            type  cml_data_types:CML_VXLAN_QOS_GLOBAL_MODE_T;
+            description "";
+        } // END of vxlanQoSMode definition.
+
+        leaf globalDir  {
+            if-feature feature_list:HAVE_QOS;
+            type  cml_data_types:CML_VXLAN_QOS_DIR_T;
+            description "";
+        } // END of globalDir definition.
+
+        leaf globalProfileId  {
+            if-feature feature_list:HAVE_QOS;
+            type  cml_data_types:CML_UINT8_T {
+                 range "65..128";
+            }
+            description "";
+        } // END of globalProfileId definition.
+
         leaf macAgeing  {
             type  cml_data_types:CML_UINT32_T {
                  range "10..1000000";
@@ -296,19 +304,24 @@ submodule zebos-vxlan {
             type  cml_data_types:CML_UINT16_T {
                  range "1..200";
             }
-            description "Max number of ARP/ND cache disable allowed";
+            description "Max number of ARP/ND cache disable allowed for port-vlan access-ports";
         } // END of maxCacheDisableCount definition.
 
 
         list nvoTunnelStats {
-            key "index";
+            key "dest-ip";
             config false;
             description
                 "Tunnel Stats";
-            leaf index  {
-                type  cml_data_types:CML_UINT8_T;
-                description "INDEX";
-            } // END of index definition.
+            leaf dest-ip  {
+                type  cml_data_types:CML_IPV4_ADDR_T;
+                description "Tunnel destination IP";
+            } // END of dest-ip definition.
+
+            leaf source-ip  {
+                type  cml_data_types:CML_IPV4_ADDR_T;
+                description "Tunnel source IP";
+            } // END of source-ip definition.
 
             leaf out_bytes  {
                 type  cml_data_types:CML_UINT64_T;
@@ -331,33 +344,19 @@ submodule zebos-vxlan {
             } // END of in_packets definition.
 
             leaf updatetime  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
-                description "time which will be updated if next-hop changes";
+                type  cml_data_types:CML_UINT32_T;
+                description "This indicates the last updated time of a tunnel nexthop";
             } // END of updatetime definition.
 
             leaf up-downtime  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
-                description "This indicates tunnel up/dowm time";
+                type  cml_data_types:CML_UINT32_T;
+                description "This indicates tunnel up/down time";
             } // END of up-downtime definition.
 
             leaf status  {
                 type  cml_data_types:CML_TUNNEL_STATUS_T;
                 description "Status of tunnel";
             } // END of status definition.
-
-            leaf dest-ip  {
-                type  cml_data_types:CML_IPV4_ADDR_T;
-                description "Tunnel destination IP";
-            } // END of dest-ip definition.
-
-            leaf source-ip  {
-                type  cml_data_types:CML_IPV4_ADDR_T;
-                description "Tunnel source IP";
-            } // END of source-ip definition.
 
         } // End of nvoTunnelStats-list
 
@@ -402,6 +401,13 @@ submodule zebos-vxlan {
                 description "";
             } // END of vrfName definition.
 
+            leaf map-network  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of map-network definition.
+
             leaf macHoldTime  {
                 type  cml_data_types:CML_INT32_T {
                      range "-1..300";
@@ -409,6 +415,22 @@ submodule zebos-vxlan {
                 description "";
             } // END of macHoldTime definition.
 
+
+            list nvoStatic {
+                key "macAddr";
+                description
+                    "Tunnel Side Configurations including tenant information";
+                leaf macAddr  {
+                    type  cml_data_types:CML_MAC_ADDR_T;
+                    description "Mac Adress of the host";
+                } // END of macAddr definition.
+
+                leaf remoteVtepIp  {
+                    type  cml_data_types:CML_IPV4_ADDR_T;
+                    description "";
+                } // END of remoteVtepIp definition.
+
+            } // End of nvoStatic-list
 
             list nvoArpCacheInfo {
                 key "hostIp";

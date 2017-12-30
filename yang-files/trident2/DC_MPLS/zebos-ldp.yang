@@ -1104,12 +1104,6 @@ submodule zebos-ldp {
             description "";
         } // END of enableInterfaceIpv6 definition.
 
-        leaf igpSync  {
-            type  cml_data_types:CML_LDP_IGP_SYNC_T;
-            default "igp-sync";
-            description "";
-        } // END of igpSync definition.
-
         leaf enableFamily  {
             type  cml_data_types:CML_UINT8_T;
             config false;
@@ -1183,7 +1177,6 @@ submodule zebos-ldp {
             "ldpMaster";
         leaf termDebugLdp  {
             type  cml_data_types:CML_LDP_DEBUG_T;
-            default "inter-area";
             description "";
         } // END of termDebugLdp definition.
 
@@ -1194,7 +1187,6 @@ submodule zebos-ldp {
 
         leaf confDebugLdp  {
             type  cml_data_types:CML_LDP_DEBUG_T;
-            default "inter-area";
             description "";
         } // END of confDebugLdp definition.
 
@@ -1203,33 +1195,17 @@ submodule zebos-ldp {
             description "";
         } // END of confDebugLdpPacket definition.
 
-        leaf rgId  {
-            type  cml_data_types:CML_UINT32_T;
-            config false;
-            description "";
-        } // END of rgId definition.
-
-        leaf memberIp  {
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
-            config false;
-            description "";
-        } // END of memberIp definition.
-
-        leaf sourceIp  {
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
-            config false;
-            description "";
-        } // END of sourceIp definition.
-
         leaf debugIccp  {
-            type  cml_data_types:CML_UINT8_T;
-            config false;
+            if-feature feature_list:HAVE_ICCP;
+            type  cml_data_types:CML_LDP_ICCP_DEBUG_T;
             description "";
         } // END of debugIccp definition.
+
+        leaf debugConfIccp  {
+            if-feature feature_list:HAVE_ICCP;
+            type  cml_data_types:CML_LDP_ICCP_DEBUG_T;
+            description "";
+        } // END of debugConfIccp definition.
 
 
         list adminGroupArray {
@@ -1764,43 +1740,12 @@ submodule zebos-ldp {
                 description "";
             } // END of explicitNull definition.
 
-            leaf gracefulRestart  {
-                if-feature feature_list:HAVE_RESTART;
-                type  cml_data_types:CML_LDP_HELPER_MODE_T;
-                description "";
-            } // END of gracefulRestart definition.
-
-            leaf helperMode  {
-                if-feature feature_list:HAVE_RESTART;
-                type  cml_data_types:CML_BOOL_T;
-                default false;
-                description "";
-            } // END of helperMode definition.
-
             leaf restartReason  {
                 if-feature feature_list:HAVE_RESTART;
                 type  cml_data_types:CML_UINT8_T;
                 config false;
                 description "";
             } // END of restartReason definition.
-
-            leaf nbrLivenessPeriod  {
-                if-feature feature_list:HAVE_RESTART;
-                type  cml_data_types:CML_INT32_T {
-                     range "5..300";
-                }
-                default "120";
-                description "";
-            } // END of nbrLivenessPeriod definition.
-
-            leaf maxRecoveryPeriod  {
-                if-feature feature_list:HAVE_RESTART;
-                type  cml_data_types:CML_INT32_T {
-                     range "15..600";
-                }
-                default "120";
-                description "";
-            } // END of maxRecoveryPeriod definition.
 
             leaf restartCount  {
                 type  cml_data_types:CML_INT32_T;
@@ -2699,6 +2644,38 @@ submodule zebos-ldp {
             } // END of loopDetection-container definition.
             uses ldpVcGrouping;
         } // END of ldpInstance-container definition.
+        container iccp {
+            if-feature feature_list:HAVE_ICCP;
+            presence "yes";
+            description
+                "iccp";
+            leaf rgId  {
+                type  cml_data_types:CML_UINT32_T {
+                     range "0..65535";
+                }
+                mandatory true;
+                description "";
+            } // END of rgId definition.
+
+            leaf memberIp  {
+                type  cml_data_types:CML_IPV4_ADDR_T;
+                description "";
+            } // END of memberIp definition.
+
+            leaf iccpStartupDelayTimer  {
+                type  cml_data_types:CML_UINT32_T {
+                     range "0..180";
+                }
+                description "";
+            } // END of iccpStartupDelayTimer definition.
+
+            leaf sourceIp  {
+                if-feature feature_list:HAVE_BFD;
+                type  cml_data_types:CML_IPV4_ADDR_T;
+                description "";
+            } // END of sourceIp definition.
+
+        } // END of iccp-container definition.
     } // END of ldpMaster-container definition.
     } // END of ldpMaster-container definition.
 
