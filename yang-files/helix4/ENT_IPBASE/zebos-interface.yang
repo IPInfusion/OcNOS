@@ -29,10 +29,15 @@ submodule zebos-interface {
     include zebos-switchportinterface;
     include zebos-lacp;
     include zebos-lag;
+    include zebos-lldpv2;
     include zebos-ospf;
     include zebos-sflow;
+    include zebos-igmpsnooping;
     include zebos-mlag;
+    include zebos-hqos;
+    include zebos-cmm;
     include zebos-aclinterface;
+    include zebos-ndd;
     organization
         "IP Infusion Inc.";
 
@@ -45,6 +50,14 @@ submodule zebos-interface {
     description
         "Datamodel for interface object";
 
+
+    revision "2017-10-10" {
+        description "added if-feature support in autoPopulate custom.";
+    }
+
+    revision "2017-10-06" {
+        description "added flag for clear ipv6 neighbour and SKU build.";
+    }
 
     revision "2017-09-27" {
         description "added flag for clear arp command.";
@@ -253,6 +266,7 @@ submodule zebos-interface {
             } // END of mdix definition.
 
             leaf arpAgeingTimeout  {
+                if-feature feature_list:NOT_HAVE_NDD;
                 type  cml_data_types:CML_UINT32_T {
                      range "1..3000";
                 }
@@ -318,6 +332,7 @@ submodule zebos-interface {
 
             leaf bandwidth  {
                 if-feature feature_list:HAVE_TE;
+                if-feature feature_list:NOT_IF_BANDWIDTH_INFO;
                 type  cml_data_types:CML_STRING_T {
                     length "0..255";
                 }
@@ -366,9 +381,7 @@ submodule zebos-interface {
             } // END of bandwidthConfFlags definition.
 
             leaf description  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type  cml_data_types:CML_LINE_T;
                 description "";
             } // END of description definition.
 
@@ -421,9 +434,7 @@ submodule zebos-interface {
             } // END of prefixlen definition.
 
             leaf ipLabel  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type  cml_data_types:CML_LINE_T;
                 default "NULL";
                 description "";
             } // END of ipLabel definition.
@@ -647,6 +658,7 @@ submodule zebos-interface {
 
             leaf portBundle  {
                 if-feature feature_list:HAVE_FLEXPORT;
+                if-feature feature_list:NOT_HAVE_TOMAHAWK;
                 type  cml_data_types:CML_BOOL_T;
                 default false;
                 description "";
@@ -665,9 +677,7 @@ submodule zebos-interface {
                 } // END of secIpAddr definition.
 
                 leaf ipLabel  {
-                    type  cml_data_types:CML_STRING_T {
-                        length "0..255";
-                    }
+                    type  cml_data_types:CML_LINE_T;
                     default "NULL";
                     description "";
                 } // END of ipLabel definition.
@@ -833,7 +843,7 @@ submodule zebos-interface {
                     description "";
                 } // END of mpls definition.
 
-                leaf ethertypeValue  {
+                leaf-list ethertypeValue  {
                     type  cml_data_types:CML_STRING_T {
                         length "0..255";
                     }
@@ -973,6 +983,7 @@ submodule zebos-interface {
                 leaf outErrors  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of outErrors definition.
@@ -980,6 +991,7 @@ submodule zebos-interface {
                 leaf outDiscards  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of outDiscards definition.
@@ -987,6 +999,7 @@ submodule zebos-interface {
                 leaf outMcPkts  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of outMcPkts definition.
@@ -994,6 +1007,7 @@ submodule zebos-interface {
                 leaf outUcPkts  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of outUcPkts definition.
@@ -1001,6 +1015,7 @@ submodule zebos-interface {
                 leaf inUcPkts  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of inUcPkts definition.
@@ -1008,6 +1023,7 @@ submodule zebos-interface {
                 leaf inDiscards  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of inDiscards definition.
@@ -1015,6 +1031,7 @@ submodule zebos-interface {
                 leaf goodOctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of goodOctetsRcv definition.
@@ -1022,6 +1039,7 @@ submodule zebos-interface {
                 leaf badOctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of badOctetsRcv definition.
@@ -1029,6 +1047,7 @@ submodule zebos-interface {
                 leaf macTransmitErr  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of macTransmitErr definition.
@@ -1036,6 +1055,7 @@ submodule zebos-interface {
                 leaf goodPktsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of goodPktsRcv definition.
@@ -1043,6 +1063,7 @@ submodule zebos-interface {
                 leaf badPktsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of badPktsRcv definition.
@@ -1050,6 +1071,7 @@ submodule zebos-interface {
                 leaf pktsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pktsRcv definition.
@@ -1057,6 +1079,7 @@ submodule zebos-interface {
                 leaf brdcPktsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of brdcPktsRcv definition.
@@ -1064,6 +1087,7 @@ submodule zebos-interface {
                 leaf mcPktsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of mcPktsRcv definition.
@@ -1071,6 +1095,7 @@ submodule zebos-interface {
                 leaf pkts64OctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts64OctetsRcv definition.
@@ -1078,6 +1103,7 @@ submodule zebos-interface {
                 leaf pkts65127OctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts65127OctetsRcv definition.
@@ -1085,6 +1111,7 @@ submodule zebos-interface {
                 leaf pkts128255OctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts128255OctetsRcv definition.
@@ -1092,6 +1119,7 @@ submodule zebos-interface {
                 leaf pkts256511OctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts256511OctetsRcv definition.
@@ -1099,6 +1127,7 @@ submodule zebos-interface {
                 leaf pkts5121023OctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts5121023OctetsRcv definition.
@@ -1106,6 +1135,7 @@ submodule zebos-interface {
                 leaf pkts10241518OctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts10241518OctetsRcv definition.
@@ -1113,6 +1143,7 @@ submodule zebos-interface {
                 leaf pkts15192047OctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts15192047OctetsRcv definition.
@@ -1120,6 +1151,7 @@ submodule zebos-interface {
                 leaf pkts20484095OctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts20484095OctetsRcv definition.
@@ -1127,6 +1159,7 @@ submodule zebos-interface {
                 leaf pkts40969216OctetsRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts40969216OctetsRcv definition.
@@ -1134,6 +1167,7 @@ submodule zebos-interface {
                 leaf pkts64Octets  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts64Octets definition.
@@ -1141,6 +1175,7 @@ submodule zebos-interface {
                 leaf pkts65127Octets  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts65127Octets definition.
@@ -1148,6 +1183,7 @@ submodule zebos-interface {
                 leaf pkts128255Octets  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts128255Octets definition.
@@ -1155,6 +1191,7 @@ submodule zebos-interface {
                 leaf pkts256511Octets  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts256511Octets definition.
@@ -1162,6 +1199,7 @@ submodule zebos-interface {
                 leaf pkts5121023Octets  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts5121023Octets definition.
@@ -1169,6 +1207,7 @@ submodule zebos-interface {
                 leaf pkts1024maxOctets  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts1024maxOctets definition.
@@ -1176,6 +1215,7 @@ submodule zebos-interface {
                 leaf pkts15192047Octets  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts15192047Octets definition.
@@ -1183,6 +1223,7 @@ submodule zebos-interface {
                 leaf pkts20484095Octets  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts20484095Octets definition.
@@ -1190,6 +1231,7 @@ submodule zebos-interface {
                 leaf pkts40969216Octets  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of pkts40969216Octets definition.
@@ -1197,6 +1239,7 @@ submodule zebos-interface {
                 leaf goodOctetsSent  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of goodOctetsSent definition.
@@ -1204,6 +1247,7 @@ submodule zebos-interface {
                 leaf goodPktsSent  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of goodPktsSent definition.
@@ -1211,6 +1255,7 @@ submodule zebos-interface {
                 leaf excessiveCollisions  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of excessiveCollisions definition.
@@ -1218,6 +1263,7 @@ submodule zebos-interface {
                 leaf mcPktsSent  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of mcPktsSent definition.
@@ -1225,6 +1271,7 @@ submodule zebos-interface {
                 leaf brdcPktsSent  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of brdcPktsSent definition.
@@ -1232,6 +1279,7 @@ submodule zebos-interface {
                 leaf unrecogMacCntrRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of unrecogMacCntrRcv definition.
@@ -1239,6 +1287,7 @@ submodule zebos-interface {
                 leaf fcSent  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of fcSent definition.
@@ -1246,6 +1295,7 @@ submodule zebos-interface {
                 leaf goodFcRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of goodFcRcv definition.
@@ -1253,6 +1303,7 @@ submodule zebos-interface {
                 leaf dropEvents  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of dropEvents definition.
@@ -1260,6 +1311,7 @@ submodule zebos-interface {
                 leaf undersizePkts  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of undersizePkts definition.
@@ -1267,6 +1319,7 @@ submodule zebos-interface {
                 leaf fragmentsPkts  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of fragmentsPkts definition.
@@ -1274,6 +1327,7 @@ submodule zebos-interface {
                 leaf oversizePkts  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of oversizePkts definition.
@@ -1281,6 +1335,7 @@ submodule zebos-interface {
                 leaf jabberPkts  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of jabberPkts definition.
@@ -1288,6 +1343,7 @@ submodule zebos-interface {
                 leaf macRcvError  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of macRcvError definition.
@@ -1295,6 +1351,7 @@ submodule zebos-interface {
                 leaf badCrc  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of badCrc definition.
@@ -1302,6 +1359,7 @@ submodule zebos-interface {
                 leaf dribble  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of dribble definition.
@@ -1309,6 +1367,7 @@ submodule zebos-interface {
                 leaf collisionsState  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of collisionsState definition.
@@ -1316,6 +1375,7 @@ submodule zebos-interface {
                 leaf lateCollisions  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of lateCollisions definition.
@@ -1323,6 +1383,7 @@ submodule zebos-interface {
                 leaf deferredTx  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of deferredTx definition.
@@ -1330,6 +1391,7 @@ submodule zebos-interface {
                 leaf badFcRcv  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of badFcRcv definition.
@@ -1337,6 +1399,7 @@ submodule zebos-interface {
                 leaf portInoverflowFrames  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of portInoverflowFrames definition.
@@ -1344,6 +1407,7 @@ submodule zebos-interface {
                 leaf portOutOverflowFrames  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of portOutOverflowFrames definition.
@@ -1351,6 +1415,7 @@ submodule zebos-interface {
                 leaf portInOverflowDiscards  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of portInOverflowDiscards definition.
@@ -1358,6 +1423,7 @@ submodule zebos-interface {
                 leaf inFiltered  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of inFiltered definition.
@@ -1365,6 +1431,7 @@ submodule zebos-interface {
                 leaf outFiltered  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of outFiltered definition.
@@ -1372,6 +1439,7 @@ submodule zebos-interface {
                 leaf mtuExceed  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of mtuExceed definition.
@@ -1379,6 +1447,7 @@ submodule zebos-interface {
                 leaf inJumbo  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of inJumbo definition.
@@ -1386,6 +1455,7 @@ submodule zebos-interface {
                 leaf outJumbo  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of outJumbo definition.
@@ -1393,6 +1463,7 @@ submodule zebos-interface {
                 leaf rxPktRate  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of rxPktRate definition.
@@ -1400,6 +1471,7 @@ submodule zebos-interface {
                 leaf rxBitRate  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of rxBitRate definition.
@@ -1407,6 +1479,7 @@ submodule zebos-interface {
                 leaf txPktRate  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of txPktRate definition.
@@ -1414,6 +1487,7 @@ submodule zebos-interface {
                 leaf txBitRate  {
                     if-feature feature_list:HAVE_BROADCOM;
                     if-feature feature_list:HAVE_HAL;
+                    if-feature feature_list:NOT_HAVE_SWFWDR;
                     type  cml_data_types:CML_UINT64_T;
                     description "";
                 } // END of txBitRate definition.
@@ -1443,10 +1517,16 @@ submodule zebos-interface {
             uses nsmlacpInterface-grouping;
             uses nsmportInterface-grouping;
             uses lacpInterface-grouping;
+            uses lldpv2Interface-grouping;
             uses ospfInterface-grouping;
             uses sflowInterfaceConfigs-grouping;
+            uses igmpSnoopInterface-grouping;
             uses mlagAgg-grouping;
+            uses qosInterface-grouping;
+            uses cmmInterface-grouping;
             uses aclInterface-grouping;
+            uses nd_interface-grouping;
+            uses ndipv6staticnbrentry-grouping;
         } // End of interface-list
     } // END of interface-grouping definition.
 
@@ -1496,6 +1576,7 @@ submodule zebos-interface {
         leaf hardwareProfileIngressIpv6  {
             if-feature feature_list:HAVE_ACL;
             if-feature feature_list:HAVE_BROADCOM;
+            if-feature feature_list:NOT_HAVE_DUNE;
             type  cml_data_types:CML_ENABLE_DISABLE_T;
             default "enable";
             description "";
@@ -1561,12 +1642,14 @@ submodule zebos-interface {
 
         leaf hardwareProfilePortModeBundle  {
             if-feature feature_list:HAVE_FLEXPORT;
+            if-feature feature_list:NOT_HAVE_TOMAHAWK;
             type  cml_data_types:CML_NSM_HARDWARE_PROFILE_PORTMODE_BUNDLE_T;
             description "";
         } // END of hardwareProfilePortModeBundle definition.
 
         leaf forwardingProfile  {
             if-feature feature_list:HAVE_BCM_UFT;
+            if-feature feature_list:NOT_HAVE_DUNE;
             type  cml_data_types:CML_FORWARDING_PROFILE_T;
             default "l3-profile";
             description "";
@@ -1574,6 +1657,8 @@ submodule zebos-interface {
 
         leaf forwardingProfilelpm  {
             if-feature feature_list:HAVE_BCM_UFT;
+            if-feature feature_list:NOT_HAVE_DUNE;
+            if-feature feature_list:NOT_HAVE_HELIX4;
             type  cml_data_types:CML_FORWARDING_PROFILE_LPM_T;
             description "";
         } // END of forwardingProfilelpm definition.
@@ -1706,6 +1791,7 @@ submodule zebos-interface {
             list ipv6StaticNbrTable {
                 if-feature feature_list:HAVE_L3;
                 if-feature feature_list:HAVE_IPV6;
+                if-feature feature_list:NOT_HAVE_NDD;
                 key "nbrAddr";
                 description
                     "ipv6StaticNbrTable";
@@ -1740,6 +1826,7 @@ submodule zebos-interface {
     grouping  loadBalance-grouping {
     container loadBalance {
         if-feature feature_list:HAVE_BROADCOM;
+        if-feature feature_list:NOT_HAVE_DUNE;
         presence "yes";
         description
             "Load Balancing";
