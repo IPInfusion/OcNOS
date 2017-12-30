@@ -25,8 +25,6 @@ submodule zebos-vpls {
         prefix feature_list;
     }
 
-    include zebos-interface;
-    include zebos-vlan;
     organization
         "IP Infusion Inc.";
 
@@ -37,6 +35,18 @@ submodule zebos-vpls {
         Web: http://www.ipinfusion.com/";
 
 
+    revision "2017-12-15" {
+        description "Added trigger for ac admin status.";
+    }
+
+    revision "2017-11-27" {
+        description "Modified few vpls commands.";
+    }
+
+    revision "2017-11-22" {
+        description "Added l2vpn commands.";
+    }
+
     revision "2017-10-09" {
         description "changed heirarchy object for vpls fib.";
     }
@@ -46,7 +56,7 @@ submodule zebos-vpls {
     }
 
     revision "2015-04-25" {
-        description "Revisied on 2015-04-25.";
+        description "Revised on 2015-04-25.";
     }
 
 
@@ -71,6 +81,11 @@ submodule zebos-vpls {
                 description "";
             } // END of vplsId definition.
 
+            leaf vplsSvcTpid  {
+                type  cml_data_types:CML_NSM_SVC_TPID_T;
+                description "";
+            } // END of vplsSvcTpid definition.
+
             leaf vplsMtu  {
                 type  cml_data_types:CML_UINT16_T {
                      range "576..65535";
@@ -80,20 +95,19 @@ submodule zebos-vpls {
             } // END of vplsMtu definition.
 
             leaf vplsDescLine  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type  cml_data_types:CML_LINE_T;
                 default "NULL";
                 description "";
             } // END of vplsDescLine definition.
 
             leaf learningDisable  {
                 type  cml_data_types:CML_BOOL_T;
-                default true;
                 description "";
             } // END of learningDisable definition.
 
             leaf learningLimit  {
+                if-feature feature_list:NOT_HAVE_TRIDENT2;
+                if-feature feature_list:NOT_HAVE_TRIDENT2PLUS;
                 type  cml_data_types:CML_UINT32_T {
                      range "5..32767";
                 }
@@ -123,27 +137,92 @@ submodule zebos-vpls {
                 description "";
             } // END of profileRange definition.
 
-            leaf macAddr  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
-                description "";
-            } // END of macAddr definition.
 
-            leaf vlanId  {
-                type  cml_data_types:CML_UINT16_T {
-                     range "1..4094";
-                }
-                description "";
-            } // END of vlanId definition.
+            list svcInstanceInfoList {
+                key "ifpName";
+                config false;
+                description
+                    "svcInstanceInfoList";
+                leaf ifpName  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "";
+                } // END of ifpName definition.
 
-            leaf ifName  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
-                description "";
-            } // END of ifName definition.
+                leaf svcCust  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "";
+                } // END of svcCust definition.
 
+
+                list svcMatchList {
+                    key "index";
+                    config false;
+                    description
+                        "svcMatchList";
+                    leaf index  {
+                        type  cml_data_types:CML_UINT16_T;
+                        description "";
+                    } // END of index definition.
+
+                    leaf svcAllMatch  {
+                        type  cml_data_types:CML_STRING_T {
+                            length "0..255";
+                        }
+                        description "";
+                    } // END of svcAllMatch definition.
+
+                    leaf svcOvidMatch  {
+                        type  cml_data_types:CML_UINT16_T;
+                        description "";
+                    } // END of svcOvidMatch definition.
+
+                    leaf svcIvidMatch  {
+                        type  cml_data_types:CML_UINT16_T;
+                        description "";
+                    } // END of svcIvidMatch definition.
+
+                    leaf svcOvidMatchMax  {
+                        type  cml_data_types:CML_UINT16_T;
+                        description "";
+                    } // END of svcOvidMatchMax definition.
+
+                } // End of svcMatchList-list
+
+                list svcActionList {
+                    key "index";
+                    config false;
+                    description
+                        "svcActionList";
+                    leaf index  {
+                        type  cml_data_types:CML_UINT16_T;
+                        description "";
+                    } // END of index definition.
+
+                    leaf actionType  {
+                        type  cml_data_types:CML_STRING_T {
+                            length "0..255";
+                        }
+                        description "";
+                    } // END of actionType definition.
+
+                    leaf actionVal  {
+                        type  cml_data_types:CML_UINT16_T;
+                        description "";
+                    } // END of actionVal definition.
+
+                    leaf actionTpid  {
+                        type  cml_data_types:CML_STRING_T {
+                            length "0..255";
+                        }
+                        description "";
+                    } // END of actionTpid definition.
+
+                } // End of svcActionList-list
+            } // End of svcInstanceInfoList-list
 
             list vplsVcName {
                 key "vcName";
@@ -170,6 +249,34 @@ submodule zebos-vpls {
                 } // END of tunnelName definition.
 
             } // End of vplsVcName-list
+
+            list vplsmac {
+                key "macAddr";
+                description
+                    "vplsmac";
+                leaf macAddr  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "";
+                } // END of macAddr definition.
+
+                leaf vlanId  {
+                    type  cml_data_types:CML_UINT16_T {
+                         range "1..4094";
+                    }
+                    description "";
+                } // END of vlanId definition.
+
+                leaf ifName  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    mandatory true;
+                    description "";
+                } // END of ifName definition.
+
+            } // End of vplsmac-list
 
             list vplsPeer {
                 key "peerId";
@@ -370,167 +477,344 @@ submodule zebos-vpls {
     } // END of vplsFib-grouping definition.
 
 
-    grouping vplsInterface-grouping {
-        list vplsInterface {
-            key "ifName";
+    grouping vplsSvcTemp-grouping {
+        list vplsSvcTemp {
+            key "vplsSvcTemp";
             description
-                "vplsInterface";
-            leaf ifName  {
+                "vplsSvcTemp";
+            leaf vplsSvcTemp  {
                 type  cml_data_types:CML_STRING_T {
                     length "0..255";
                 }
                 description "";
-            } // END of ifName definition.
+            } // END of vplsSvcTemp definition.
 
 
-            list vplsEther {
-                key "ifvplsName";
+            list svcTempName {
+                key "svcTempName";
                 description
-                    "vplsEther";
-                leaf ifvplsName  {
+                    "svcTempName";
+                leaf svcTempName  {
                     type  cml_data_types:CML_STRING_T {
                         length "0..255";
                     }
                     description "";
-                } // END of ifvplsName definition.
+                } // END of svcTempName definition.
 
-                leaf EtherVcType  {
-                    type  cml_data_types:CML_NSM_MPLS_IF_ETHER_VCTYPE_T;
-                    default "ethernet";
+                leaf svcAdminRole  {
+                    type  cml_data_types:CML_NSM_MPLS_ADMIN_STATUS_T;
                     description "";
-                } // END of EtherVcType definition.
+                } // END of svcAdminRole definition.
 
-                leaf svlanId  {
-                    type  cml_data_types:CML_UINT16_T {
-                         range "1..4094";
+                leaf svcAcDescription  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
                     }
                     description "";
-                } // END of svlanId definition.
+                } // END of svcAcDescription definition.
 
-                leaf etherAction  {
-                    type  cml_data_types:NSM_VPLS_ETHER_ACTION_T;
+                leaf svcVplsMacLearning  {
+                    type  cml_data_types:CML_NSM_MPLS_VPLS_LEARNING_T;
                     description "";
-                } // END of etherAction definition.
+                } // END of svcVplsMacLearning definition.
+
+                leaf svcAllowL2Bpdu  {
+                    type  cml_data_types:CML_BOOL_T;
+                    description "";
+                } // END of svcAllowL2Bpdu definition.
+
+            } // End of svcTempName-list
+        } // End of vplsSvcTemp-list
+    } // END of vplsSvcTemp-grouping definition.
+
+
+    grouping vplsEther-grouping {
+        list vplsEther {
+            key "ifvplsName";
+            description
+                "vplsEther";
+            leaf ifvplsName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of ifvplsName definition.
+
+            leaf EtherVcType  {
+                type  cml_data_types:CML_NSM_MPLS_IF_ETHER_VCTYPE_T;
+                default "ethernet";
+                description "";
+            } // END of EtherVcType definition.
+
+            leaf svlanId  {
+                type  cml_data_types:CML_UINT16_T {
+                     range "1..4095";
+                }
+                description "";
+            } // END of svlanId definition.
+
+            leaf etherAction  {
+                type  cml_data_types:NSM_VPLS_ETHER_ACTION_T;
+                description "";
+            } // END of etherAction definition.
+
+            leaf tpid  {
+                type  cml_data_types:CML_NSM_MPLS_TPID_T;
+                description "";
+            } // END of tpid definition.
+
+            leaf adminRole  {
+                type  cml_data_types:CML_NSM_MPLS_ADMIN_STATUS_T;
+                description "";
+            } // END of adminRole definition.
+
+            leaf acDescription  {
+                type  cml_data_types:CML_LINE_T;
+                description "";
+            } // END of acDescription definition.
+
+            leaf vplsMacLearning  {
+                type  cml_data_types:CML_NSM_MPLS_VPLS_LEARNING_T;
+                description "";
+            } // END of vplsMacLearning definition.
+
+            leaf allowL2Bpdu  {
+                type  cml_data_types:CML_BOOL_T;
+                description "";
+            } // END of allowL2Bpdu definition.
+
+            leaf cosProfile  {
+                if-feature feature_list:HAVE_QOS;
+                if-feature feature_list:HAVE_DIFFSERV;
+                type  cml_data_types:CML_UINT16_T {
+                     range "1..4094";
+                }
+                description "";
+            } // END of cosProfile definition.
+
+        } // End of vplsEther-list
+    } // END of vplsEther-grouping definition.
+
+
+    grouping vplsVlan-grouping {
+        list vplsVlan {
+            key "vlanIfvplsName";
+            description
+                "vplsVlan";
+            leaf vlanIfvplsName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of vlanIfvplsName definition.
+
+
+            list vlanIf {
+                key "vlanId";
+                description
+                    "vlanIf";
+                leaf vlanId  {
+                    type  cml_data_types:CML_UINT16_T {
+                         range "1..4095";
+                    }
+                    description "";
+                } // END of vlanId definition.
+
+                leaf innerVlan  {
+                    type  cml_data_types:CML_UINT16_T {
+                         range "1..4095";
+                    }
+                    description "";
+                } // END of innerVlan definition.
+
+                leaf vlanAction  {
+                    type  cml_data_types:NSM_VPLS_VLAN_ACTION_T;
+                    description "";
+                } // END of vlanAction definition.
 
                 leaf tpid  {
                     type  cml_data_types:CML_NSM_MPLS_TPID_T;
                     description "";
                 } // END of tpid definition.
 
-                leaf adminRole  {
+                leaf vlanAdminRole  {
                     type  cml_data_types:CML_NSM_MPLS_ADMIN_STATUS_T;
                     description "";
-                } // END of adminRole definition.
+                } // END of vlanAdminRole definition.
 
-                leaf acDescription  {
-                    type  cml_data_types:CML_STRING_T {
-                        length "0..255";
-                    }
+                leaf vlanAcDescription  {
+                    type  cml_data_types:CML_LINE_T;
                     description "";
-                } // END of acDescription definition.
+                } // END of vlanAcDescription definition.
 
-                leaf vplsMacLearning  {
+                leaf vlanVplsMacLearning  {
                     type  cml_data_types:CML_NSM_MPLS_VPLS_LEARNING_T;
                     description "";
-                } // END of vplsMacLearning definition.
+                } // END of vlanVplsMacLearning definition.
 
-                leaf allowL2Bpdu  {
+                leaf vlanAllowL2Bpdu  {
                     type  cml_data_types:CML_BOOL_T;
                     description "";
-                } // END of allowL2Bpdu definition.
+                } // END of vlanAllowL2Bpdu definition.
 
-                leaf cosProfile  {
+                leaf vlanCosProfile  {
                     if-feature feature_list:HAVE_QOS;
                     if-feature feature_list:HAVE_DIFFSERV;
                     type  cml_data_types:CML_UINT16_T {
                          range "1..4094";
                     }
                     description "";
-                } // END of cosProfile definition.
+                } // END of vlanCosProfile definition.
 
-            } // End of vplsEther-list
+            } // End of vlanIf-list
+        } // End of vplsVlan-list
+    } // END of vplsVlan-grouping definition.
 
-            list vplsVlan {
-                key "vlanIfvplsName";
+
+    grouping l2vpnVplsInterface-grouping {
+        list l2vpnVplsInterface {
+            if-feature feature_list:HAVE_UNI_CLI;
+            if-feature feature_list:HAVE_VPLS;
+            key "l2vpnVlanIfVplsName";
+            description
+                "l2vpn-vpls Interface";
+            leaf l2vpnVlanIfVplsName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of l2vpnVlanIfVplsName definition.
+
+
+            list vlanVpls {
+                key "vlanId";
                 description
-                    "vplsVlan";
-                leaf vlanIfvplsName  {
-                    type  cml_data_types:CML_STRING_T {
-                        length "0..255";
+                    "vlan Vpls";
+                leaf vlanId  {
+                    type  cml_data_types:CML_UINT16_T {
+                         range "1..4094";
                     }
                     description "";
-                } // END of vlanIfvplsName definition.
+                } // END of vlanId definition.
+
+            } // End of vlanVpls-list
+        } // End of l2vpnVplsInterface-list
+    } // END of l2vpnVplsInterface-grouping definition.
 
 
-                list vlanIf {
-                    key "vlanId";
-                    description
-                        "vlanIf";
-                    leaf vlanId  {
-                        type  cml_data_types:CML_UINT16_T {
-                             range "1..4094";
-                        }
-                        description "";
-                    } // END of vlanId definition.
+    grouping l2vpnVpls-grouping {
+        list l2vpnVpls {
+            if-feature feature_list:HAVE_VPLS;
+            if-feature feature_list:HAVE_UNI_CLI;
+            key "l2vpnVplsName";
+            description
+                "l2vpn VPLS";
+            leaf l2vpnVplsName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of l2vpnVplsName definition.
 
-                    leaf innerVlan  {
-                        type  cml_data_types:CML_UINT16_T {
-                             range "1..4094";
-                        }
-                        description "";
-                    } // END of innerVlan definition.
+            leaf learningDisable  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_BOOL_T;
+                description "";
+            } // END of learningDisable definition.
 
-                    leaf vlanAction  {
-                        type  cml_data_types:NSM_VPLS_VLAN_ACTION_T;
-                        description "";
-                    } // END of vlanAction definition.
+            leaf learningLimit  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_UINT32_T {
+                     range "5..32767";
+                }
+                default "32767";
+                description "";
+            } // END of learningLimit definition.
 
-                    leaf tpid  {
-                        type  cml_data_types:CML_NSM_MPLS_TPID_T;
-                        description "";
-                    } // END of tpid definition.
+            leaf protocol  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_L2VPN_PROTOCOL_T;
+                description "";
+            } // END of protocol definition.
 
-                    leaf vlanAdminRole  {
-                        type  cml_data_types:CML_NSM_MPLS_ADMIN_STATUS_T;
-                        description "";
-                    } // END of vlanAdminRole definition.
+            leaf rd  {
+                if-feature feature_list:HAVE_BGP_VPLS;
+                if-feature feature_list:HAVE_SWFWDR;
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of rd definition.
 
-                    leaf vlanAcDescription  {
-                        type  cml_data_types:CML_STRING_T {
-                            length "0..255";
-                        }
-                        description "";
-                    } // END of vlanAcDescription definition.
+            leaf routeTarget  {
+                if-feature feature_list:HAVE_BGP_VPLS;
+                if-feature feature_list:HAVE_SWFWDR;
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of routeTarget definition.
 
-                    leaf vlanVplsMacLearning  {
-                        type  cml_data_types:CML_NSM_MPLS_VPLS_LEARNING_T;
-                        description "";
-                    } // END of vlanVplsMacLearning definition.
+            leaf shut_down  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_BOOL_T;
+                default true;
+                description "";
+            } // END of shut_down definition.
 
-                    leaf vlanAllowL2Bpdu  {
-                        type  cml_data_types:CML_BOOL_T;
-                        description "";
-                    } // END of vlanAllowL2Bpdu definition.
+            leaf vplsAcGroup  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of vplsAcGroup definition.
 
-                    leaf vlanCosProfile  {
-                        if-feature feature_list:HAVE_QOS;
-                        if-feature feature_list:HAVE_DIFFSERV;
-                        type  cml_data_types:CML_UINT16_T {
-                             range "1..4094";
-                        }
-                        description "";
-                    } // END of vlanCosProfile definition.
+            leaf vplsDesc  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_LINE_T;
+                description "";
+            } // END of vplsDesc definition.
 
-                } // End of vlanIf-list
-            } // End of vplsVlan-list
-        } // End of vplsInterface-list
-    } // END of vplsInterface-grouping definition.
+            leaf vplsMtu  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_UINT32_T {
+                     range "576..65535";
+                }
+                description "";
+            } // END of vplsMtu definition.
+
+            leaf vplsVcName  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of vplsVcName definition.
+
+            leaf spokeType  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_NSM_VPLS_VC_SPOKE_TYPE_T;
+                default "ethernet";
+                description "";
+            } // END of spokeType definition.
+
+            leaf vpnId  {
+                if-feature feature_list:HAVE_VPLS;
+                type  cml_data_types:CML_UINT32_T {
+                     range "1..4294967295";
+                }
+                description "";
+            } // END of vpnId definition.
+
+        } // End of l2vpnVpls-list
+    } // END of l2vpnVpls-grouping definition.
     grouping vplsFibCommon {
         description
             "vplsFibCommon";
         leaf inLabel  {
             type  cml_data_types:CML_UINT32_T {
-                 range "16..1048575";
+                 range "16..52443";
             }
             mandatory true;
             description "";
@@ -538,7 +822,7 @@ submodule zebos-vpls {
 
         leaf outLabel  {
             type  cml_data_types:CML_UINT32_T {
-                 range "16..1048575";
+                 range "16..52443";
             }
             mandatory true;
             description "";
@@ -553,6 +837,24 @@ submodule zebos-vpls {
         } // END of outIfName definition.
 
     } // END of vplsFibCommon definition.
+
+    grouping  l2vpnEtherVplsInterface-grouping {
+    container l2vpnEtherVplsInterface {
+        if-feature feature_list:HAVE_UNI_CLI;
+        if-feature feature_list:HAVE_VPLS;
+        presence "yes";
+        description
+            "l2vpn-vpls Interface";
+        leaf l2vpnIfVplsName  {
+            type  cml_data_types:CML_STRING_T {
+                length "0..255";
+            }
+            mandatory true;
+            description "";
+        } // END of l2vpnIfVplsName definition.
+
+    } // END of l2vpnEtherVplsInterface-container definition.
+    } // END of l2vpnEtherVplsInterface-container definition.
 
 
 }

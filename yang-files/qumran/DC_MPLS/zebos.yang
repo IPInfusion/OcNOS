@@ -48,7 +48,6 @@ module zebos {
     include zebos-keychain;
     include zebos-pim;
     include zebos-pim4;
-    include zebos-tfo;
     include zebos-syslog;
     include zebos-snmp;
     include zebos-featuredhcp;
@@ -71,12 +70,12 @@ module zebos {
     include zebos-igmp;
     include zebos-igmpsnooping;
     include zebos-routemap;
+    include zebos-pbrport;
     include zebos-libsnmp;
     include zebos-ldp;
     include zebos-rsvp;
     include zebos-mpls;
     include zebos-vpls;
-    include zebos-mplsbfd;
     include zebos-hqos;
     include zebos-cmm;
     include zebos-auth;
@@ -90,6 +89,10 @@ module zebos {
     include zebos-pmirror;
     include zebos-hsl;
     include zebos-authradius;
+    include zebos-ripng;
+    include zebos-dcb;
+    include zebos-ndd;
+    include zebos-vlog;
     organization
         "IP Infusion Inc.";
 
@@ -102,6 +105,86 @@ module zebos {
     description
         "ZebOS Managed Object";
 
+
+    revision "2017-12-18" {
+        description "bridge group command fix when vxlan SKU not present.";
+    }
+
+    revision "2017-12-17" {
+        description "cvlan crash fix.";
+    }
+
+    revision "2017-12-15" {
+        description "adding update API's for vnid.";
+    }
+
+    revision "2017-12-13" {
+        description "adding callback to update nsmdcbbridge.";
+    }
+
+    revision "2017-12-11" {
+        description "Added autoPopulate custom  tag.";
+    }
+
+    revision "2017-12-07" {
+        description "adding trigger to update nsmdcbbridge.";
+    }
+
+    revision "2017-12-06" {
+        description "Disabled VXLAN commands inside Virtual Router JIRA-20703.";
+    }
+
+    revision "2017-12-04" {
+        description "adding ALLOW_ALL_OR_NONE flag in trill .";
+    }
+
+    revision "2017-11-27" {
+        description "adding utils function for bridgeId to change bridgeName,adding range support for broadcom in dcb.";
+    }
+
+    revision "2017-11-22" {
+        description "Added l2vpn commands.";
+    }
+
+    revision "2017-11-20" {
+        description "SNMP changes for VxLAN tunnel.";
+    }
+
+    revision "2017-11-10" {
+        description "adding support for ndd.";
+    }
+
+    revision "2017-11-09" {
+        description "adding support for trill and dcb command.";
+    }
+
+    revision "2017-11-07" {
+        description "Added role restriction for clear command.";
+    }
+
+    revision "2017-11-02" {
+        description "Cvlan and Svlan Translation at provider network port.";
+    }
+
+    revision "2017-10-30" {
+        description "fix for vlan stack commands.";
+    }
+
+    revision "2017-10-26" {
+        description "added dependency for switchport interface.";
+    }
+
+    revision "2017-10-23" {
+        description "fix for te-msti command.";
+    }
+
+    revision "2017-10-18" {
+        description "Do not autopopulate DB with vrf as management for x86.";
+    }
+
+    revision "2017-10-10" {
+        description "added flag for clear ipv6 neighbour and SKU build.";
+    }
 
     revision "2017-10-09" {
         description "changed heirarchy object for vpls fib.";
@@ -488,7 +571,6 @@ module zebos {
     uses lacpdebug-grouping;
     uses oamMpls-grouping;
     uses VrrpDebug-grouping;
-    uses tfo-grouping;
     uses hostpsyslog-grouping;
     uses snmp-grouping;
     uses radius-grouping;
@@ -523,9 +605,8 @@ module zebos {
     uses debugdot1x-grouping;
     uses nsmsnmp-grouping;
     uses logginghsl-grouping;
+    uses logging-grouping;
     uses vr-grouping;
-    uses lldpMaster-grouping;
-    uses ospfMaster-grouping;
     uses hashTableSize-grouping;
     uses bfdSession-grouping;
     uses confModeDebug-grouping;
@@ -1510,20 +1591,6 @@ module zebos {
         }
     }
 
-    rpc tfo-cleartfocounter {
-        if-feature feature_list:HAVE_TFO;
-    }
-
-    rpc tfo-cleartfocounterfog {
-        if-feature feature_list:HAVE_TFO;
-        input  {
-            leaf fognum  {
-                type cml_data_types:CML_INT32_T;
-                mandatory true;
-            }
-        }
-    }
-
     rpc ssh-lengthRSA {
         if-feature feature_list:HAVE_SSH_SERVER;
         input  {
@@ -1965,10 +2032,6 @@ module zebos {
         }
     }
 
-    rpc ldp-restart-ldp-graceful {
-        if-feature feature_list:HAVE_RESTART;
-    }
-
     rpc ldp-clear-ldp-adjacency-ipv4 {
         input  {
             leaf addr  {
@@ -2022,28 +2085,14 @@ module zebos {
         }
     }
 
-    rpc rsvp-restart-rsvp-graceful {
-    }
-
     rpc rsvp-clear-rsvp-session {
-    }
-
-    rpc rsvp-clear-rsvp-gmpls-session {
     }
 
     rpc rsvp-clear-rsvp-statistics {
     }
 
     rpc rsvp-rsvp-snmp-restart {
-    }
-
-    rpc rsvp-rsvp-trunk-restart {
-        input  {
-            leaf trunkName  {
-                type cml_data_types:CML_STRING_T;
-                mandatory true;
-            }
-        }
+        if-feature feature_list:HAVE_SNMP;
     }
 
     rpc rsvp-clear-rsvp-trunk {
@@ -2085,6 +2134,36 @@ module zebos {
     rpc rsvp-clear-rsvp-trunk-non-ingress {
         input  {
             leaf trunkName  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+        }
+    }
+
+    rpc rsvp-rsvp-trunk-restart {
+        input  {
+            leaf trunkName  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+        }
+    }
+
+    rpc rsvp-rsvp-session-reset-by-params {
+        input  {
+            leaf tunnelId  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+            leaf lspId  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+            leaf ingress  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+            leaf egress  {
                 type cml_data_types:CML_STRING_T;
                 mandatory true;
             }
@@ -2196,6 +2275,100 @@ module zebos {
 
     rpc ras-clear-hsl-mlag-mac-sync {
         if-feature feature_list:HAVE_MLAG;
+    }
+
+    rpc ripng-clear-ipv6-rip-route {
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+                mandatory true;
+            }
+            leaf routeCMLSEPtype  {
+                type cml_data_types:CML_UINT8_T;
+                mandatory true;
+            }
+        }
+    }
+
+    rpc ripng-clear-ipv6-rip-route-prefix {
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+                mandatory true;
+            }
+            leaf routeCMLSEPtypeCMLSEPpre  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+        }
+    }
+
+    rpc ndd-cleararp {
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+                mandatory true;
+            }
+            leaf ipAddr  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+            leaf vrfName  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+        }
+    }
+
+    rpc ndd-cleararpIfname {
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+                mandatory true;
+            }
+            leaf ifName  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+            leaf vrfName  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+        }
+    }
+
+    rpc ndd-clearipv6neigbour {
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+                mandatory true;
+            }
+            leaf ipv6Addr  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+            leaf vrfName  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+        }
+    }
+
+    rpc ndd-clearipv6neigbourifname {
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+                mandatory true;
+            }
+            leaf ifName  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+            leaf vrfName  {
+                type cml_data_types:CML_STRING_T;
+                mandatory true;
+            }
+        }
     }
 
     notification force_unlock {
