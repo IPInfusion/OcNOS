@@ -36,6 +36,14 @@ module cml_data_types {
         "YANG version of the cml_data_types";
 
 
+    revision "2017-12-14" {
+        description "add vxlan for debuging nsm.";
+    }
+
+    revision "2017-12-04" {
+        description "modified the cvlan type to bitmap.";
+    }
+
     revision "2017-10-03" {
         description "added if-feature support for bridge.";
     }
@@ -67,11 +75,27 @@ module cml_data_types {
     }
 
     typedef  CML_STRING_T{
-        type string;
+        type string
+        {pattern "[^?' =,>|]*";}
+    }
+
+    typedef  CML_NONEMPTY_STRING_T{
+        type string
+        {pattern "[^?' =,>|]+";}
+    }
+
+    typedef  CML_LINE_T{
+        type string
+        {pattern "[^?'=,>|]*";}
     }
 
     typedef  CML_HOST_STRING_T{
         type string;
+    }
+
+    typedef  CML_RANGE_T{
+        type string
+        {pattern "[^?'=>|]*";}
     }
 
     typedef  CML_UINT8_T{
@@ -156,6 +180,8 @@ module cml_data_types {
             enum type-qos { value 1;    }
             enum type-queuing { value 2;    }
             enum type-queuing-default { value 3;    }
+            enum type-vlan-queuing { value 4;    }
+            enum type-hybrid-queuing { value 6;    }
         }
     }
 
@@ -460,7 +486,7 @@ module cml_data_types {
             enum cos { value 1;    }
             enum dscp { value 2;    }
             enum precedence { value 3;    }
-            enum mpls-class { value 5;    }
+            enum mpls-class { value 4;    }
             enum qos-group { value 14;    }
         }
     }
@@ -493,6 +519,12 @@ module cml_data_types {
         }
     }
 
+    typedef  CML_QOS_CMAPDEF_TYPE_T{
+        type enumeration {
+            enum type-queuing-default { value 3;    }
+        }
+    }
+
     typedef  CML_QOS_CMAPANY_TYPE_T{
         type enumeration {
             enum type-qos { value 1;    }
@@ -503,6 +535,33 @@ module cml_data_types {
         type enumeration {
             enum type-qos { value 1;    }
             enum type-queuing { value 2;    }
+            enum type-vlan-queuing { value 4;    }
+        }
+    }
+
+    typedef  CML_VXLAN_QOS_GLOBAL_MODE_T{
+        type enumeration {
+            enum cos-dscp { value 1;    }
+            enum dscp-dscp { value 2;    }
+        }
+    }
+
+    typedef  CML_VXLAN_QOS_DIR_T{
+        type enumeration {
+            enum ingress { value 0;    }
+            enum egress { value 1;    }
+        }
+    }
+
+    typedef  CML_VXLAN_QOS_EGRESS_DIR_T{
+        type enumeration {
+            enum egress { value 1;    }
+        }
+    }
+
+    typedef  CML_VXLAN_QOS_INGRESS_DIR_T{
+        type enumeration {
+            enum ingress { value 0;    }
         }
     }
 
@@ -715,13 +774,10 @@ module cml_data_types {
             enum access { value 1;    }
             enum hybrid { value 2;    }
             enum trunk { value 3;    }
-            enum customer-edge { value 4;    }
             enum customer-network { value 5;    }
             enum provider-network { value 6;    }
-            enum cnp { value 8;    }
-            enum pip { value 10;    }
-            enum cbp { value 11;    }
-            enum pnp { value 15;    }
+            enum sbp { value 20;    }
+            enum uap { value 21;    }
             enum customer-edge-access { value 41;    }
             enum customer-edge-hybrid { value 42;    }
             enum customer-edge-trunk { value 43;    }
@@ -911,6 +967,8 @@ module cml_data_types {
             enum rpvst+ { value 8;    }
             enum provider-rpvst+ { value 9;    }
             enum trill { value 20;    }
+            enum evb { value 97;    }
+            enum svlan-evb { value 98;    }
         }
     }
 
@@ -977,8 +1035,8 @@ module cml_data_types {
 
     typedef  CML_PORTEDGE_T{
         type enumeration {
+            enum edgeport { value 0;    }
             enum portfast { value 1;    }
-            enum edgeport { value 2;    }
         }
     }
 
@@ -1563,6 +1621,12 @@ module cml_data_types {
         }
     }
 
+    typedef  CML_MPLS_VLAN_ACTIONTYPE_T{
+        type enumeration {
+            enum pop { value 0;    }
+        }
+    }
+
     typedef  CML_MPLS_MODULE_T{
         type enumeration {
             enum rsvp { value 0;    }
@@ -1613,6 +1677,14 @@ module cml_data_types {
         type enumeration {
             enum 88a8 { value 34984;    }
             enum 9100 { value 37120;    }
+        }
+    }
+
+    typedef  CML_NSM_SVC_TPID_T{
+        type enumeration {
+            enum dot1.q { value 33024;    }
+            enum dot1.ad { value 34984;    }
+            enum 0x9100 { value 37120;    }
         }
     }
 
@@ -1725,13 +1797,6 @@ module cml_data_types {
             enum no-op { value 1;    }
             enum remove { value 3;    }
             enum replace { value 4;    }
-        }
-    }
-
-    typedef  CML_DSTE_TYPE_T{
-        type enumeration {
-            enum disable { value 0;    }
-            enum enable { value 1;    }
         }
     }
 
@@ -2087,7 +2152,6 @@ module cml_data_types {
             bit protocol-errors { position 10;  }
             bit bfd { position 12;  }
             bit rib { position 14;  }
-            bit lfa { position 16;  }
             bit spf-trace { position 17;  }
         }
     }
@@ -2106,15 +2170,18 @@ module cml_data_types {
     }
 
     typedef  CML_PASSWORD_T{
-        type string;
+        type string
+        {pattern "[a-zA-Z0-9].*";}
     }
 
     typedef  CML_SYSTEM_HOSTNAME_T{
-        type string;
+        type string
+        {pattern "[a-zA-Z0-9\-].*";}
     }
 
     typedef  CML_USERNAME_T{
-        type string;
+        type string
+        {pattern "[\-a-zA-Z0-9].*";}
     }
 
     typedef  CML_WRAP_T{
@@ -2756,30 +2823,31 @@ module cml_data_types {
 
     typedef  CML_LLDP_IEEE_8023_T{
         type enumeration {
-            enum mac-phy { value 0;    }
-            enum max-mtu-size { value 1;    }
+            enum ieee-8023-org-specific-mac-phy { value 0;    }
+            enum ieee-8023-org-specific-max-mtu-size { value 1;    }
         }
     }
 
     typedef  CML_LLDP_IEEE_8021_T{
         type enumeration {
-            enum port-vlanid { value 0;    }
-            enum port-ptcl-vlanid { value 1;    }
-            enum vlan-name { value 2;    }
-            enum ptcl-identity { value 3;    }
-            enum vid-digest { value 4;    }
-            enum mgmt-vid { value 5;    }
-            enum link-agg { value 6;    }
+            enum ieee-8021-org-specific-port-vlanid { value 0;    }
+            enum ieee-8021-org-specific-port-ptcl-vlanid { value 1;    }
+            enum ieee-8021-org-specific-vlan-name { value 2;    }
+            enum ieee-8021-org-specific-ptcl-identity { value 3;    }
+            enum ieee-8021-org-specific-vid-digest { value 4;    }
+            enum ieee-8021-org-specific-mgmt-vid { value 5;    }
+            enum ieee-8021-org-specific-link-agg { value 6;    }
+            enum ieee-8021-org-specific-data-center-bridging { value 7;    }
         }
     }
 
     typedef  CML_LLDP_BASIC_T{
         type enumeration {
-            enum port-description { value 0;    }
-            enum system-name { value 1;    }
-            enum system-description { value 2;    }
-            enum system-capabilities { value 3;    }
-            enum management-address { value 4;    }
+            enum basic-mgmt-port-description { value 0;    }
+            enum basic-mgmt-system-name { value 1;    }
+            enum basic-mgmt-system-description { value 2;    }
+            enum basic-mgmt-system-capabilities { value 3;    }
+            enum basic-mgmt-management-address { value 4;    }
         }
     }
 
@@ -2883,20 +2951,12 @@ module cml_data_types {
         }
     }
 
-    typedef  CML_NSM_MPLS_ENABLE_DISABLE_T{
-        type enumeration {
-            enum disable-all-interfaces { value 0;    }
-            enum enable-all-interfaces { value 1;    }
-        }
-    }
-
     typedef  CML_NSM_MPLS_LOG_T{
         type bits {
             bit error { position 0;  }
             bit warning { position 1;  }
             bit debug { position 2;  }
             bit notice { position 3;  }
-            bit all { position 4;  }
         }
     }
 
@@ -3255,32 +3315,29 @@ module cml_data_types {
             enum auth { value 1;    }
             enum bgp { value 2;    }
             enum cmm { value 3;    }
-            enum dvmrp { value 4;    }
             enum hostp { value 5;    }
             enum hsl { value 6;    }
             enum isis { value 7;    }
-            enum lacp { value 8;    }
-            enum ldp { value 9;    }
-            enum lagd { value 10;    }
-            enum l2mrib { value 11;    }
-            enum mstp { value 12;    }
-            enum mrib { value 13;    }
-            enum nsm { value 14;    }
-            enum onm { value 15;    }
-            enum oam { value 16;    }
-            enum ospf { value 17;    }
-            enum ospf6 { value 18;    }
-            enum ptp { value 19;    }
-            enum rip { value 20;    }
-            enum rmon { value 21;    }
-            enum pim { value 22;    }
-            enum rib { value 23;    }
-            enum vrrp { value 24;    }
-            enum sflow { value 25;    }
-            enum trill { value 26;    }
-            enum rsvp { value 27;    }
-            enum pservd { value 28;    }
-            enum cmld { value 29;    }
+            enum lag { value 9;    }
+            enum l2mrib { value 10;    }
+            enum mstp { value 11;    }
+            enum mrib { value 12;    }
+            enum nsm { value 13;    }
+            enum onm { value 14;    }
+            enum oam { value 15;    }
+            enum ospf { value 16;    }
+            enum ospf6 { value 17;    }
+            enum rip { value 19;    }
+            enum pim { value 21;    }
+            enum rib { value 22;    }
+            enum vrrp { value 23;    }
+            enum sflow { value 24;    }
+            enum trill { value 25;    }
+            enum pserv { value 27;    }
+            enum cml { value 28;    }
+            enum ndd { value 29;    }
+            enum ripng { value 30;    }
+            enum vlog { value 31;    }
         }
     }
 
@@ -3551,6 +3608,7 @@ module cml_data_types {
 
     typedef  CML_OSPF_BFD_STATE{
         type enumeration {
+            enum enable { value 0;    }
             enum disable { value 1;    }
         }
     }
@@ -3944,8 +4002,8 @@ module cml_data_types {
 
     typedef  CML_VLANSTACK_T{
         type enumeration {
-            enum provider-port { value 1;    }
-            enum customer-edge-port { value 2;    }
+            enum customer-edge-port { value 4;    }
+            enum provider-port { value 6;    }
         }
     }
 
@@ -4235,12 +4293,8 @@ module cml_data_types {
             bit qos { position 6;  }
             bit nsm { position 7;  }
             bit advertise-labels { position 8;  }
-            bit cspf { position 9;  }
-            bit vc-usm { position 10;  }
-            bit vc-dsm { position 11;  }
             bit graceful-restart { position 12;  }
             bit rib { position 13;  }
-            bit inter-area { position 15;  }
         }
     }
 
@@ -4294,6 +4348,16 @@ module cml_data_types {
         }
     }
 
+    typedef  CML_LDP_ICCP_DEBUG_T{
+        type bits {
+            bit events { position 0;  }
+            bit fsm { position 1;  }
+            bit hexdump { position 2;  }
+            bit packet { position 3;  }
+            bit bfd { position 4;  }
+        }
+    }
+
     typedef  CML_RSVP_PATH_TYPE_T{
         type enumeration {
             enum mpls { value 0;    }
@@ -4305,7 +4369,6 @@ module cml_data_types {
         type enumeration {
             enum ipv4 { value 0;    }
             enum ipv6 { value 1;    }
-            enum gmpls { value 2;    }
         }
     }
 
@@ -4395,7 +4458,6 @@ module cml_data_types {
             bit packet-out { position 3;  }
             bit hexdump { position 4;  }
             bit nsm { position 5;  }
-            bit cspf { position 6;  }
             bit fsm-egress { position 7;  }
             bit fsm-transit-downstream { position 8;  }
             bit fsm-transit-upstream { position 9;  }
@@ -4460,9 +4522,9 @@ module cml_data_types {
     }
 
     typedef  CML_CVLAN_CONFIG_T{
-        type enumeration {
-            enum untagged-pep { value 1;    }
-            enum untagged-cep { value 2;    }
+        type bits {
+            bit untagged-pep { position 1;  }
+            bit untagged-cep { position 2;  }
         }
     }
 
@@ -5388,6 +5450,7 @@ module cml_data_types {
             bit nsm-packet-recv-detail { position 10;  }
             bit nsm-packet-send { position 11;  }
             bit nsm-packet-send-detail { position 12;  }
+            bit nsm-vxlan { position 14;  }
         }
     }
 
@@ -5510,6 +5573,25 @@ module cml_data_types {
         }
     }
 
+    typedef  CML_PMIRROR_ALL_SESS_T{
+        type enumeration {
+            enum all { value 0;    }
+        }
+    }
+
+    typedef  CML_PMIRROR_SESS_T{
+        type union{
+
+            type CML_PMIRROR_ALL_SESS_T {
+
+            }
+            type uint32 {
+                range "1..18";
+
+            }
+        }
+    }
+
     typedef  CML_TUNNEL_STATUS_T{
         type enumeration {
             enum Un-Resolved { value 1;    }
@@ -5560,9 +5642,278 @@ module cml_data_types {
         }
     }
 
+    typedef  CML_RSVP_AFFINITY_T{
+        type enumeration {
+            enum no-affinity { value 0;    }
+            enum affinity { value 1;    }
+        }
+    }
+
+    typedef  CML_RSVP_RECORD_T{
+        type enumeration {
+            enum no-record { value 0;    }
+            enum record { value 1;    }
+        }
+    }
+
     typedef  CML_BFD_MULTI_HOP_TYPE_T{
         type enumeration {
             enum multihop { value 1;    }
+        }
+    }
+
+    typedef  CML_RIPNG_DEBUG_T{
+        type bits {
+            bit events { position 1;  }
+            bit packet-send { position 2;  }
+            bit packet-recv { position 3;  }
+            bit nsm { position 5;  }
+            bit rib { position 6;  }
+        }
+    }
+
+    typedef  CML_RIPNG_SPLIT_HORIZON_T{
+        type enumeration {
+            enum split-horizon { value 0;    }
+            enum split-horizon-poisoned { value 1;    }
+        }
+    }
+
+    typedef  CML_RIPNG_INSTANCE_T{
+        type enumeration {
+            enum rip { value 1;    }
+        }
+    }
+
+    typedef  CML_RIPNG_REDIST_PROTOS_T{
+        type enumeration {
+            enum kernel { value 0;    }
+            enum connected { value 1;    }
+            enum static { value 2;    }
+            enum ospf6 { value 3;    }
+            enum isis { value 4;    }
+            enum bgp { value 5;    }
+        }
+    }
+
+    typedef  CML_RIPNG_VRF_REDIST_PROTOS_T{
+        type enumeration {
+            enum connected { value 1;    }
+            enum static { value 2;    }
+            enum ospf6 { value 3;    }
+            enum bgp { value 5;    }
+        }
+    }
+
+    typedef  CML_RIPNG_FILTERING_T{
+        type enumeration {
+            enum in { value 0;    }
+            enum out { value 1;    }
+        }
+    }
+
+    typedef  CML_RIPNG_ROUTE_T{
+        type enumeration {
+            enum kernel { value 1;    }
+            enum connected { value 2;    }
+            enum static { value 3;    }
+            enum isis { value 4;    }
+            enum ospf6 { value 5;    }
+            enum bgp { value 6;    }
+            enum rip { value 7;    }
+            enum all { value 8;    }
+        }
+    }
+
+    typedef  CML_CONFIDENCETYPE_T{
+        type enumeration {
+            enum native { value 1;    }
+            enum decap { value 2;    }
+            enum static { value 3;    }
+        }
+    }
+
+    typedef  CML_ESADI_T{
+        type enumeration {
+            enum enable { value 1;    }
+            enum disable { value 2;    }
+        }
+    }
+
+    typedef  CML_TRILL_T{
+        type enumeration {
+            enum disable { value 0;    }
+            enum enable { value 1;    }
+        }
+    }
+
+    typedef  CML_ISUNICAST_T{
+        type enumeration {
+            enum multicast { value 0;    }
+            enum unicast { value 1;    }
+        }
+    }
+
+    typedef  CML_CONFIGTYPE_T{
+        type enumeration {
+            enum broadcast { value 1;    }
+            enum point-to-point { value 2;    }
+        }
+    }
+
+    typedef  CML_VLAN_ENUM_T{
+        type enumeration {
+            enum all { value 4095;    }
+        }
+    }
+
+    typedef  CML_VLAN_RANGE_T{
+        type uint16;
+    }
+
+    typedef  CML_STARTVIDESADI_T{
+        type union{
+
+            type CML_VLAN_ENUM_T {
+
+            }
+            type CML_VLAN_RANGE_T {
+
+            }
+        }
+    }
+
+    typedef  CML_NSM_DCB_QCN_MODE_T{
+        type enumeration {
+            enum admin { value 1;    }
+            enum auto { value 2;    }
+            enum component { value 3;    }
+        }
+    }
+
+    typedef  CML_MAPPING_TYPE_T{
+        type enumeration {
+            enum admin { value 1;    }
+            enum auto { value 2;    }
+            enum component { value 3;    }
+        }
+    }
+
+    typedef  CML_ETS_MODE_T{
+        type enumeration {
+            enum on { value 1;    }
+            enum auto { value 2;    }
+        }
+    }
+
+    typedef  CML_DCBSTATE_T{
+        type enumeration {
+            enum off { value 0;    }
+            enum on { value 1;    }
+        }
+    }
+
+    typedef  CML_PRIOFLAG_T{
+        type enumeration {
+            enum remove { value 0;    }
+            enum add { value 1;    }
+        }
+    }
+
+    typedef  CML_PROTOID_T{
+        type enumeration {
+            enum tcp { value 2;    }
+            enum udp { value 3;    }
+            enum both-tcp-udp { value 4;    }
+            enum neither-tcp-udp { value 5;    }
+        }
+    }
+
+    typedef  CML_DEFENSEMODE_T{
+        type enumeration {
+            enum disabled { value 1;    }
+            enum interior { value 2;    }
+            enum interior-ready { value 3;    }
+            enum edge { value 4;    }
+        }
+    }
+
+    typedef  CML_LOADSHARE_T{
+        type string;
+    }
+
+    typedef  CML_PBR_LOADSHARE_T{
+        type union{
+
+            type CML_IPV4_ADDR_T {
+
+            }
+            type CML_LOADSHARE_T {
+
+            }
+        }
+    }
+
+    typedef  CML_PBR_V6_LOADSHARE_T{
+        type union{
+
+            type CML_IPV6_ADDR_T {
+
+            }
+            type CML_LOADSHARE_T {
+
+            }
+        }
+    }
+
+    typedef  CML_DEBUG_EVENT_T{
+        type enumeration {
+            enum event { value 1;    }
+            enum packet { value 2;    }
+        }
+    }
+
+    typedef  CML_VRF_ENUM_T{
+        type enumeration {
+            enum all { value 1;    }
+            enum default { value 2;    }
+        }
+    }
+
+    typedef  CML_VRF_STRING_T{
+        type string;
+    }
+
+    typedef  CML_VRF_NAME_T{
+        type union{
+
+            type CML_VRF_ENUM_T {
+
+            }
+            type CML_VRF_STRING_T {
+
+            }
+        }
+    }
+
+    typedef  CML_ADJNBR_T{
+        type enumeration {
+            enum adjacency { value 1;    }
+            enum neighbor { value 2;    }
+        }
+    }
+
+    typedef  CML_MPLS_VCLINKMODE_T{
+        type enumeration {
+            enum primary { value 0;    }
+            enum secondary { value 16;    }
+        }
+    }
+
+    typedef  CML_VR_CONFIG_T{
+        type enumeration {
+            enum read { value 0;    }
+            enum write { value 1;    }
         }
     }
 

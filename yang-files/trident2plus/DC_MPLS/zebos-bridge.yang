@@ -29,6 +29,8 @@ submodule zebos-bridge {
     include zebos-vlan;
     include zebos-switchportinterface;
     include zebos-mstp;
+    include zebos-lldpv2;
+    include zebos-dcb;
     organization
         "IP Infusion Inc.";
 
@@ -41,6 +43,26 @@ submodule zebos-bridge {
     description
         "Layer-2 bridge configurations";
 
+
+    revision "2017-12-17" {
+        description "cvlan fix.";
+    }
+
+    revision "2017-12-13" {
+        description "adding callback to update nsmdcbbridge.";
+    }
+
+    revision "2017-12-11" {
+        description "adding range tag and flag for cvlan issue.";
+    }
+
+    revision "2017-12-06" {
+        description "adding trigger to update nsmdcbbridge.";
+    }
+
+    revision "2017-11-03" {
+        description "adding utils function for bridgeId to change bridgeName.";
+    }
 
     revision "2017-10-05" {
         description "sequence changed for staticfdb objectlist fo rreplace operation.";
@@ -292,21 +314,17 @@ submodule zebos-bridge {
                     description
                         "svlanReg";
                     leaf svlanRegId  {
-                        if-feature feature_list:HAVE_PROVIDER_BRIDGE;
                         type  cml_data_types:CML_UINT16_T;
                         description "";
                     } // END of svlanRegId definition.
 
 
                     list cvlanReg {
-                        if-feature feature_list:HAVE_PROVIDER_BRIDGE;
                         key "cvlanRegId";
                         description
                             "cvlanReg";
                         leaf cvlanRegId  {
-                            type  cml_data_types:CML_STRING_T {
-                                length "0..255";
-                            }
+                            type  cml_data_types:CML_RANGE_T;
                             description "";
                         } // END of cvlanRegId definition.
 
@@ -327,6 +345,8 @@ submodule zebos-bridge {
             uses backboneBridgeInstance-grouping;
             uses mstpbridge-grouping;
             uses backboneBridge-grouping;
+            uses evbbridge-grouping;
+            uses nsmDcbBridge-grouping;
         } // End of bridge-list
     } // END of bridge-grouping definition.
 
@@ -440,6 +460,7 @@ submodule zebos-bridge {
             } // End of spanningTreeinterface-list
             uses bridgeRuntimeAttrs;
             uses mstpSpanningTree-grouping;
+            uses nsmDcbDefaultBridge-grouping;
         } // End of spanningTree-list
     } // END of spanningTree-grouping definition.
     grouping bridgeRuntimeAttrs {
