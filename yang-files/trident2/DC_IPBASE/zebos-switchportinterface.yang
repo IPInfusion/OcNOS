@@ -341,7 +341,9 @@ submodule zebos-switchportinterface {
                 description
                     "cvlanTranslation";
                 leaf cvId  {
-                    type  cml_data_types:CML_UINT16_T;
+                    type  cml_data_types:CML_UINT16_T {
+                         range "2..4094";
+                    }
                     description "default sVlan Id";
                 } // END of cvId definition.
 
@@ -351,23 +353,57 @@ submodule zebos-switchportinterface {
                     description
                         "svlanTranslation";
                     leaf svId  {
-                        type  cml_data_types:CML_UINT16_T;
+                        type  cml_data_types:CML_UINT16_T {
+                             range "2..4094";
+                        }
                         description "default sVlan Id";
                     } // END of svId definition.
 
                     leaf TcVlanId  {
                         if-feature feature_list:NOT_HAVE_SWFWDR;
-                        type  cml_data_types:CML_UINT16_T;
+                        type  cml_data_types:CML_UINT16_T {
+                             range "2..4094";
+                        }
                         mandatory true;
                         description "default sVlan Id";
                     } // END of TcVlanId definition.
 
                     leaf TsVlanId  {
                         if-feature feature_list:NOT_HAVE_SWFWDR;
-                        type  cml_data_types:CML_UINT16_T;
+                        type  cml_data_types:CML_UINT16_T {
+                             range "2..4094";
+                        }
                         mandatory true;
                         description "default sVlan Id";
                     } // END of TsVlanId definition.
+
+                    leaf svlanCos  {
+                        type  cml_data_types:CML_INT8_T {
+                             range "0..7";
+                        }
+                        description "";
+                    } // END of svlanCos definition.
+
+                    leaf svlanCfi  {
+                        type  cml_data_types:CML_INT8_T {
+                             range "0..1";
+                        }
+                        description "";
+                    } // END of svlanCfi definition.
+
+                    leaf cvlanCos  {
+                        type  cml_data_types:CML_INT8_T {
+                             range "0..7";
+                        }
+                        description "";
+                    } // END of cvlanCos definition.
+
+                    leaf cvlanCfi  {
+                        type  cml_data_types:CML_INT8_T {
+                             range "0..1";
+                        }
+                        description "";
+                    } // END of cvlanCfi definition.
 
                 } // End of svlanTranslation-list
             } // End of cvlanTranslation-list
@@ -469,6 +505,58 @@ submodule zebos-switchportinterface {
             } // END of tunnelVlan definition.
 
         } // End of l2protocol-list
+        container portSecurity {
+            if-feature feature_list:HAVE_HELIX4;
+            description
+                "portSecurity";
+            leaf portSecurityMode  {
+                type  cml_data_types:CML_UINT16_T;
+                description "port security type";
+            } // END of portSecurityMode definition.
+
+            leaf portSecurityMaxLimt  {
+                type  cml_data_types:CML_UINT32_T;
+                default "1";
+                description "port-security";
+            } // END of portSecurityMaxLimt definition.
+
+
+            list portSecurityMacAddrList {
+                key "portSecurityMacAddr";
+                description
+                    "nsm port security Mac address list";
+                leaf portSecurityMacAddr  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "";
+                } // END of portSecurityMacAddr definition.
+
+
+                list PortSecurityMacVlanList {
+                    key "portSecurityVlanId";
+                    description
+                        "nsm port security Mac and vlan list";
+                    leaf portSecurityVlanId  {
+                        type  cml_data_types:CML_UINT16_T;
+                        description "secured vlan Id";
+                    } // END of portSecurityVlanId definition.
+
+
+                    list PortSecurityMacSvlanList {
+                        if-feature feature_list:HAVE_PROVIDER_BRIDGE;
+                        key "portSecuritySvlanId";
+                        description
+                            "nsm port security Mac and svlan list";
+                        leaf portSecuritySvlanId  {
+                            type  cml_data_types:CML_UINT16_T;
+                            description "secured vlan Id";
+                        } // END of portSecuritySvlanId definition.
+
+                    } // End of PortSecurityMacSvlanList-list
+                } // End of PortSecurityMacVlanList-list
+            } // End of portSecurityMacAddrList-list
+        } // END of portSecurity-container definition.
         container pVlanConfig {
             presence "yes";
             description
