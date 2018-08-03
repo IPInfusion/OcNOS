@@ -1,0 +1,268 @@
+OCNOS-VXLAN-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+      OBJECT-TYPE,
+      Gauge32, Counter32, INTEGER, Unsigned32,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB    
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC,
+      ipi  FROM OCNOS-IPI-MODULE-MIB,
+      ifName  FROM IF-MIB
+        vrVrId,
+                FROM OCNOS-VR-MIB;
+
+vxlan MODULE-IDENTITY
+   LAST-UPDATED "201708090000Z"
+   ORGANIZATION "IP Infusion Inc."
+   CONTACT-INFO 
+       "postal: 3965 Freedom Circle, Suite 200, Santa Clara, CA 95054
+
+        email: support@ipinfusion.com
+
+        telephone: +1 408-400-1900
+        website: http://www.ipinfusion.com/"
+   DESCRIPTION 
+      "This MIB module is for managing Network Virtualization Overlay functionality"
+
+   REVISION      "201708090000Z"
+   DESCRIPTION 
+      "Intial Version"
+   ::= { ipi 87 } 
+
+
+vxlanNvoTunnelStatsTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF VxlanNvoTunnelStatsEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION 
+		"This table provides information for Tunnel Stats"
+	::= { vxlan 1 }
+
+vxlanNvoTunnelStatsEntry OBJECT-TYPE
+	SYNTAX VxlanNvoTunnelStatsEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION 
+		"An entry containing information for Tunnel Stats"
+	INDEX { vrVrId,vxlanDestip }
+	::= { vxlanNvoTunnelStatsTable 1 }
+
+VxlanNvoTunnelStatsEntry::= SEQUENCE {
+	vxlanDestip IpAddress,
+	vxlanSourceip IpAddress,
+	vxlanOutbytes Counter64,
+	vxlanOutpackets Counter64,
+	vxlanInbytes Counter64,
+	vxlanInpackets Counter64,
+	vxlanUpdatetime TimeTicks,
+	vxlanUpdowntime TimeTicks,
+	vxlanStatus INTEGER {Un-Resolved(1), Installed(2), Resolved(3)},
+	}
+
+vxlanDestip OBJECT-TYPE
+	SYNTAX IpAddress 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Tunnel destination IP"
+	::= { vxlanNvoTunnelStatsEntry 1 }
+
+vxlanSourceip OBJECT-TYPE
+	SYNTAX IpAddress 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Tunnel source IP"
+	::= { vxlanNvoTunnelStatsEntry 2 }
+
+vxlanOutbytes OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of bytes sent out from tunnel interface"
+	::= { vxlanNvoTunnelStatsEntry 3 }
+
+vxlanOutpackets OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of packets sent out from tunnel interface"
+	::= { vxlanNvoTunnelStatsEntry 4 }
+
+vxlanInbytes OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of bytes recieved on tunnel interface"
+	::= { vxlanNvoTunnelStatsEntry 5 }
+
+vxlanInpackets OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of packets recieved on tunnel interface"
+	::= { vxlanNvoTunnelStatsEntry 6 }
+
+vxlanUpdatetime OBJECT-TYPE
+	SYNTAX TimeTicks 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates the last updated time of a tunnel nexthop"
+	::= { vxlanNvoTunnelStatsEntry 7 }
+
+vxlanUpdowntime OBJECT-TYPE
+	SYNTAX TimeTicks 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates tunnel up/down time"
+	::= { vxlanNvoTunnelStatsEntry 8 }
+
+vxlanStatus OBJECT-TYPE
+	SYNTAX INTEGER {Un-Resolved(1), Installed(2), Resolved(3)} 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Status of tunnel"
+	::= { vxlanNvoTunnelStatsEntry 9 }
+
+
+vxlanNvoAccessIfInfoTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF VxlanNvoAccessIfInfoEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION 
+		"This table provides information for VxLAN Access side configurations "
+	::= { vxlan 2 }
+
+vxlanNvoAccessIfInfoEntry OBJECT-TYPE
+	SYNTAX VxlanNvoAccessIfInfoEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION 
+		"An entry containing information for VxLAN Access side configurations "
+	INDEX { vrVrId,ifName }
+	::= { vxlanNvoAccessIfInfoTable 1 }
+
+VxlanNvoAccessIfInfoEntry::= SEQUENCE {
+	vxlanAccessPortoutbytes Counter64,
+	vxlanAccessPortoutpackets Counter64,
+	vxlanAccessPortinbytes Counter64,
+	vxlanAccessPortinpackets Counter64,
+	}
+
+vxlanAccessPortoutbytes OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of bytes sent out from access port"
+	::= { vxlanNvoAccessIfInfoEntry 1 }
+
+vxlanAccessPortoutpackets OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of packets sent out from access port"
+	::= { vxlanNvoAccessIfInfoEntry 2 }
+
+vxlanAccessPortinbytes OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of bytes recieved on access port"
+	::= { vxlanNvoAccessIfInfoEntry 3 }
+
+vxlanAccessPortinpackets OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of packets recieved on access port"
+	::= { vxlanNvoAccessIfInfoEntry 4 }
+
+
+vxlanNvoAccessIfVlanInfoTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF VxlanNvoAccessIfVlanInfoEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION 
+		"This table provides information for VxLAN acess side port-vlan configurations"
+	::= { vxlan 3 }
+
+vxlanNvoAccessIfVlanInfoEntry OBJECT-TYPE
+	SYNTAX VxlanNvoAccessIfVlanInfoEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION 
+		"An entry containing information for VxLAN acess side port-vlan configurations"
+	INDEX { vrVrId,ifName,vxlanVlanId }
+	::= { vxlanNvoAccessIfVlanInfoTable 1 }
+
+VxlanNvoAccessIfVlanInfoEntry::= SEQUENCE {
+	vxlanVlanId Unsigned32,
+	vxlanAccessPortVlanoutbytes Counter64,
+	vxlanAccessPortVlanoutpackets Counter64,
+	vxlanAccessPortVlaninbytes Counter64,
+	vxlanAccessPortVlaninpackets Counter64,
+	}
+
+vxlanVlanId OBJECT-TYPE
+	SYNTAX Unsigned32(2..4094) 
+	ACCESS read-write
+	STATUS current 
+	DESCRIPTION 
+		"VLAN Id"
+	::= { vxlanNvoAccessIfVlanInfoEntry 1 }
+
+vxlanAccessPortVlanoutbytes OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of bytes sent out from access port"
+	::= { vxlanNvoAccessIfVlanInfoEntry 2 }
+
+vxlanAccessPortVlanoutpackets OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of packets sent out from access port"
+	::= { vxlanNvoAccessIfVlanInfoEntry 3 }
+
+vxlanAccessPortVlaninbytes OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of bytes recieved on access port"
+	::= { vxlanNvoAccessIfVlanInfoEntry 4 }
+
+vxlanAccessPortVlaninpackets OBJECT-TYPE
+	SYNTAX Counter64 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This indicates total number of packets recieved on access port"
+	::= { vxlanNvoAccessIfVlanInfoEntry 5 }
+
+
+END

@@ -1,0 +1,103 @@
+OCNOS-INTERFACE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+      OBJECT-TYPE,
+      Gauge32, Counter32, INTEGER, Unsigned32,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB    
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC,
+      ipi  FROM OCNOS-IPI-MODULE-MIB,
+      ifName  FROM IF-MIB,
+      ifIndex  FROM IF-MIB
+        vrVrId,
+                FROM OCNOS-VR-MIB;
+
+interface MODULE-IDENTITY
+   LAST-UPDATED "201710100000Z"
+   ORGANIZATION "IP Infusion Inc."
+   CONTACT-INFO 
+       "postal: 3965 Freedom Circle, Suite 200, Santa Clara, CA 95054
+
+        email: support@ipinfusion.com
+
+        telephone: +1 408-400-1900
+        website: http://www.ipinfusion.com/"
+   DESCRIPTION 
+      "This MIB module is for managing Datamodel for interface object"
+
+   REVISION      "201710100000Z"
+   DESCRIPTION 
+      "Intial Version"
+   ::= { ipi 4 } 
+
+
+interfaceIfIndexListTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF InterfaceIfIndexListEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION 
+		"This table provides information for interface index details"
+	::= { interface 1 }
+
+interfaceIfIndexListEntry OBJECT-TYPE
+	SYNTAX InterfaceIfIndexListEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION 
+		"An entry containing information for interface index details"
+	INDEX { vrVrId,ifIndex }
+	::= { interfaceIfIndexListTable 1 }
+
+InterfaceIfIndexListEntry::= SEQUENCE {
+	interfaceErrDisReason BITS {lag-mismatch(0), stp-bpdu-guard(1), link-flap(2)},
+	interfaceAggDownMinLink INTEGER { true(1), false(0) },
+	}
+
+interfaceErrDisReason OBJECT-TYPE
+	SYNTAX BITS {lag-mismatch(0), stp-bpdu-guard(1), link-flap(2)} 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This object specifies the event that caused the interface to be error-disabled. If interface is error-disabled because of lag-mismatch, value of this object is 1. If interface is error-disabled because of stp-bpdu-guard, value of this object is 2. If interface is error-disabled because of link-flap, value of this object is 4."
+	::= { interfaceIfIndexListEntry 1 }
+
+interfaceAggDownMinLink OBJECT-TYPE
+	SYNTAX INTEGER { true(1), false(0) } 
+	ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"aggDownMinLink Flag is set then Interface moved to Down state Min Links else move to Up state Min Links"
+	::= { interfaceIfIndexListEntry 2 }
+
+
+--
+-- Notifications
+--
+
+interfaceNotificationsPrefix OBJECT IDENTIFIER ::=
+        { interface 0 }
+
+interfaceErrdisReason NOTIFICATION-TYPE
+   OBJECTS { ifIndex, vrVrId, interfaceErrDisReason }
+   STATUS  current
+   DESCRIPTION
+           "The interfaceErrdisReason is generated when an interface is error-disabled."
+   ::= { interfaceNotificationsPrefix 1 }
+
+aggMinLink NOTIFICATION-TYPE
+   OBJECTS { ifIndex, vrVrId, interfaceAggDownMinLink }
+   STATUS  current
+   DESCRIPTION
+           "The aggMinLink is generated when a total Active (link-UP) LAG member link count becomes less than the configured min-link count."
+   ::= { interfaceNotificationsPrefix 2 }
+END
