@@ -128,34 +128,36 @@
 
       CmmStackUnitEntry    ::=
         SEQUENCE {
-           cmmStackUnitIndex               INTEGER,
-           cmmStackUnitModelName           DisplayString,
-           cmmStackUnitSerialNumber        DisplayString,
-           cmmStackUnitUpTime              TimeTicks,
-           cmmStackUnitMfgDate             DateAndTime,
-           cmmStackUnitMacAddress          MacAddress,
-           cmmStackUnitPartNum             DisplayString,
-           cmmStackLabelRevision           DisplayString,
-           cmmStackUnitCountryCode         OCTET STRING,
-           cmmStackUnitServiceTag          DisplayString,
-           cmmStackPlatformName            DisplayString,
-           cmmStackOnieVersion             DisplayString,
-           cmmStackMfgName                 DisplayString,
-           cmmStackVendorName              DisplayString,
-           cmmStackDiagVersion             DisplayString,
-           cmmStackCrc32                   OCTET STRING,
-           cmmStackUnitNumFanControllers   INTEGER,
-           cmmStackUnitNumFanTrays         INTEGER,
-           cmmStackUnitNumPowerSupplies    INTEGER,
-           cmmStackUnitNumPluggableModules INTEGER,
-           cmmStackUnitNumFastEtherPorts   INTEGER,
-           cmmStackUnitNumGigEtherPorts    INTEGER,
-           cmmStackUnitNum10GigEtherPorts  INTEGER,
-           cmmStackUnitNum25GigEtherPorts  INTEGER,
-           cmmStackUnitNum40GigEtherPorts  INTEGER,
-           cmmStackUnitNum50GigEtherPorts  INTEGER,
-           cmmStackUnitNum100GigEtherPorts INTEGER,
-           cmmStackUnitSwitchChipRev       DisplayString
+           cmmStackUnitIndex                   INTEGER,
+           cmmStackUnitModelName               DisplayString,
+           cmmStackUnitSerialNumber            DisplayString,
+           cmmStackUnitUpTime                  TimeTicks,
+           cmmStackUnitMfgDate                 DateAndTime,
+           cmmStackUnitMacAddress              MacAddress,
+           cmmStackUnitPartNum                 DisplayString,
+           cmmStackLabelRevision               DisplayString,
+           cmmStackUnitCountryCode             OCTET STRING,
+           cmmStackUnitServiceTag              DisplayString,
+           cmmStackPlatformName                DisplayString,
+           cmmStackOnieVersion                 DisplayString,
+           cmmStackMfgName                     DisplayString,
+           cmmStackVendorName                  DisplayString,
+           cmmStackDiagVersion                 DisplayString,
+           cmmStackCrc32                       OCTET STRING,
+           cmmStackUnitNumFanControllers       INTEGER,
+           cmmStackUnitNumFanTrays             INTEGER,
+           cmmStackUnitNumPowerSupplies        INTEGER,
+           cmmStackUnitNumPluggableModules     INTEGER,
+           cmmStackUnitNumFastEtherPorts       INTEGER,
+           cmmStackUnitNumGigEtherPorts        INTEGER,
+           cmmStackUnitNum10GigEtherPorts      INTEGER,
+           cmmStackUnitNum25GigEtherPorts      INTEGER,
+           cmmStackUnitNum40GigEtherPorts      INTEGER,
+           cmmStackUnitNum50GigEtherPorts      INTEGER,
+           cmmStackUnitNum100GigEtherPorts     INTEGER,
+           cmmStackUnitSwitchChipRev           DisplayString,
+           cmmStackSupportedLabelRevision      DisplayString,
+           cmmStackUnitSupportedSwitchChipRev  DisplayString
         }
 
        cmmStackUnitIndex  OBJECT-TYPE
@@ -401,8 +403,27 @@
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "The Unit's Switch Chip Revision."
+            "The Unit's Switch Chip Revision.
+             Blank indicates unavailable"
         ::= { cmmStackUnitEntry 28 }
+
+        cmmStackSupportedLabelRevision OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's supported label Revision.
+             Blank indicates unavailable"
+        ::= { cmmStackUnitEntry 29 }
+
+       cmmStackUnitSupportedSwitchChipRev  OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The Unit's Switch Supported Chip Revision.
+             Blank indicates unavailable"
+        ::= { cmmStackUnitEntry 30 }
 
 
     -- ## Transceiver EEPROM Entry
@@ -466,10 +487,7 @@
            cmmTransMaxCaseTemp            INTEGER,
            cmmTransSFPOptionsImp          BITS, 
            cmmTransQSFPOptionsImp         BITS,
-           cmmTransPresence               INTEGER,
-           cmmTransTxState                INTEGER,
-           cmmTransResetState             INTEGER,
-           cmmTransPowerMode              INTEGER
+           cmmTransPresence               INTEGER
         }
 
        cmmTransIndex   OBJECT-TYPE
@@ -1092,42 +1110,6 @@
             "Indicates Transceiver presence status."
         ::= { cmmTransEEPROMEntry 41 }
 
-       cmmTransTxState  OBJECT-TYPE
-        SYNTAX        INTEGER {
-                               enable(1),
-                               disable(2),
-                               unknown(3)
-                              }
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION
-            "Transceiver TX State (applicable only for SFP)."
-        ::= { cmmTransEEPROMEntry 42 }
-
-       cmmTransResetState  OBJECT-TYPE
-        SYNTAX        INTEGER {
-                               normal(1),
-                               reset(2),
-                               unknown(3)
-                              }
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION
-            "Transceiver Reset State (applicable only for QSFP)."
-        ::= { cmmTransEEPROMEntry 43 }
-
-       cmmTransPowerMode  OBJECT-TYPE
-        SYNTAX        INTEGER {
-                               low(1),
-                               high(2),
-                               unknown(3)
-                              }
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION
-            "Transceiver Power mode (applicable only for QSFP)."
-        ::= { cmmTransEEPROMEntry 44 }
-
     -- ## DDMChannel Entry
      cmmTransDDMTable OBJECT-TYPE
      SYNTAX        SEQUENCE OF CmmTransDDMEntry
@@ -1181,7 +1163,12 @@
            cmmTransRxPowerAlertThresholdMax           INTEGER,
            cmmTransTxPowerSupported                   INTEGER,
            cmmTransRxPowerSupported                   INTEGER,
-           cmmTransDDMStatus                          INTEGER
+           cmmTransDDMStatus                          INTEGER,
+           cmmTransTxState                            INTEGER,
+           cmmTransRxLosState                         INTEGER,
+           cmmTransTxLosState                         INTEGER,
+           cmmTransResetState                         INTEGER,
+           cmmTransPowerMode                          INTEGER
            }
 
        cmmTransChannelIndex   OBJECT-TYPE
@@ -1504,6 +1491,69 @@
         DESCRIPTION
             "Transceiver DDM Status"
         ::= { cmmTransDDMEntry 29 }
+
+        cmmTransTxState  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               enable(1),
+                               disable(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver TX State"
+        ::= { cmmTransDDMEntry 30 }
+
+        cmmTransRxLosState  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               enable(1),
+                               disable(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver RX Los State"
+        ::= { cmmTransDDMEntry 31 }
+
+        cmmTransTxLosState  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               enable(1),
+                               disable(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver TX Los State (applicable only for QSFP).
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 32 }
+
+       cmmTransResetState  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               normal(1),
+                               reset(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver Reset State (applicable only for QSFP).
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 33 }
+
+        cmmTransPowerMode  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               low(1),
+                               high(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver Power mode (applicable only for QSFP).
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 34 }
 
     -- ### Ram Table
 
@@ -3489,6 +3539,69 @@
             "Max RPM
             '-100001' indicates unavailable"
         ::= { cmmFanFruEntry 14 }
+
+-- ## Stack CPLD Table
+        cmmSysCpldTable OBJECT-TYPE
+        SYNTAX        SEQUENCE OF CmmSysCpldEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A cpld entry containing objects related to CPLD versions"
+        ::= { cmmSysObjects 19 }
+
+      cmmSysCpldEntry  OBJECT-TYPE
+        SYNTAX        CmmSysCpldEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A cpld entry containing objects related to CPLD versions"
+        INDEX    { cmmStackUnitIndex,
+                   cmmSysCpldIndex }
+        ::= { cmmSysCpldTable 1 }
+
+      CmmSysCpldEntry    ::=
+        SEQUENCE {
+          cmmSysCpldIndex              INTERGER,
+          cmmSysCpldName               DisplayString,
+          cmmSysCpldSupportedVer       DisplayString,
+          cmmSysCpldCurrentVer         DisplayString
+        }
+
+        cmmSysCpldIndex  OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+             "Value represents CPLD Index."
+        ::= { cmmSysCpldEntry 1 }
+
+        cmmSysCpldName    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "CPLD Name.
+             Blank indicates unavailable"
+        ::= { cmmSysCpldEntry 2 }
+
+        cmmSysCpldSupportedVer    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "CPLD supported version on board.
+             Blank indicates unavailable"
+        ::= { cmmSysCpldEntry 3 }
+
+        cmmSysCpldCurrentVer    OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "CPLD current version on board.
+             Blank indicates unavailable"
+        ::= { cmmSysCpldEntry 4 }
+
 
     --
     -- ## Notifications 
