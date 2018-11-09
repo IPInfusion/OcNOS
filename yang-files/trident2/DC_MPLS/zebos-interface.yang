@@ -172,7 +172,7 @@ submodule zebos-interface {
             leaf switchportStatus  {
                 type  cml_data_types:CML_BOOL_T;
                 default false;
-                description "This Object is used to set the mode of the OcNOS Hybrid Switch Router feature to switched only.All interfaces are configured routed by default";
+                description "This Object is used to set the mode of the Hybrid Switch Router feature to switched only.All interfaces are configured routed by default";
             } // END of switchportStatus definition.
 
             leaf shutdownFlag  {
@@ -180,6 +180,14 @@ submodule zebos-interface {
                 default false;
                 description "This Object is used to Set admin state of interface.The testing(3) state indicates that no operational packets can be passed. When a managed system initializes, all interfaces start with ifAdminStatus in the down(2) state. As a result of either explicit management action or per configuration information retained by the managed system, ifAdminStatus is then changed to either the up(1) or testing(3) states (or remains in the down(2) state).";
             } // END of shutdownFlag definition.
+
+            leaf noLearningFlag  {
+                if-feature feature_list:HAVE_L2;
+                if-feature feature_list:NOT_HAVE_BROADCOM;
+                type  cml_data_types:CML_BOOL_T;
+                default false;
+                description "";
+            } // END of noLearningFlag definition.
 
             leaf multicast  {
                 type  cml_data_types:CML_BOOL_T;
@@ -535,7 +543,7 @@ submodule zebos-interface {
             } // END of ifLastChange definition.
 
             leaf ifLastFlap  {
-                type  cml_data_types:CML_STRING_T {
+                type  cml_data_types:CML_DATE_TIME_T {
                     length "0..255";
                 }
                 config false;
@@ -543,7 +551,7 @@ submodule zebos-interface {
             } // END of ifLastFlap definition.
 
             leaf ifLastCounterClear  {
-                type  cml_data_types:CML_STRING_T {
+                type  cml_data_types:CML_DATE_TIME_T {
                     length "0..255";
                 }
                 config false;
@@ -857,9 +865,7 @@ submodule zebos-interface {
                     description
                         "switchport allowed ethertype statistics per ethertype";
                     leaf ethertype  {
-                        type  cml_data_types:CML_STRING_T {
-                            length "0..255";
-                        }
+                        type  cml_data_types:CML_SWITCHPORT_ETHERTYPE_T;
                         description "Packet ethertype";
                     } // END of ethertype definition.
 
@@ -1726,43 +1732,55 @@ submodule zebos-interface {
                 description
                     "Physical interface capablities";
                 leaf speedHalfDuplex  {
-                    type  cml_data_types:CML_STRING_T {
+                    type  cml_data_types:CML_RAW_STRING_T {
                         length "0..255";
+
+                        pattern "[^ ]*";
                     }
                     description "Interface Speed half duplex capability";
                 } // END of speedHalfDuplex definition.
 
                 leaf speedFullDuplex  {
-                    type  cml_data_types:CML_STRING_T {
+                    type  cml_data_types:CML_RAW_STRING_T {
                         length "0..255";
+
+                        pattern "[^ ]*";
                     }
                     description "Interface Speed full duplex capability";
                 } // END of speedFullDuplex definition.
 
                 leaf pause  {
-                    type  cml_data_types:CML_STRING_T {
+                    type  cml_data_types:CML_RAW_STRING_T {
                         length "0..255";
+
+                        pattern "[^ ]*";
                     }
                     description "Interface pause Capability";
                 } // END of pause definition.
 
                 leaf interface  {
-                    type  cml_data_types:CML_STRING_T {
+                    type  cml_data_types:CML_RAW_STRING_T {
                         length "0..255";
+
+                        pattern "[^ ]*";
                     }
                     description "Interface Capability";
                 } // END of interface definition.
 
                 leaf medium  {
-                    type  cml_data_types:CML_STRING_T {
+                    type  cml_data_types:CML_RAW_STRING_T {
                         length "0..255";
+
+                        pattern "[^ ]*";
                     }
                     description "Interface medium Capability";
                 } // END of medium definition.
 
                 leaf loopback  {
-                    type  cml_data_types:CML_STRING_T {
+                    type  cml_data_types:CML_RAW_STRING_T {
                         length "0..255";
+
+                        pattern "[^ ]*";
                     }
                     description "Interface loopback Capability";
                 } // END of loopback definition.
@@ -1789,8 +1807,10 @@ submodule zebos-interface {
                 } // END of fcmap definition.
 
                 leaf encap  {
-                    type  cml_data_types:CML_STRING_T {
+                    type  cml_data_types:CML_RAW_STRING_T {
                         length "0..255";
+
+                        pattern "[^ ]*";
                     }
                     description "Interface encap Capability";
                 } // END of encap definition.
@@ -1839,6 +1859,13 @@ submodule zebos-interface {
                     description "";
                 } // END of nsmTunnel definition.
 
+                leaf tunnelMcastInterface  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "Configure egress interface for multicast tunnel";
+                } // END of tunnelMcastInterface definition.
+
                 leaf tunneldestination  {
                     type  cml_data_types:CML_IPV4_ADDR_T;
                     description "";
@@ -1884,6 +1911,13 @@ submodule zebos-interface {
                     description "";
                 } // END of tunnelkey definition.
 
+                leaf tunnelIpv6Mode  {
+                    if-feature feature_list:HAVE_TUNNEL_IPV6;
+                    type  cml_data_types:CML_TUNNEL_IPV6_MODE_T;
+                    default "ipv6ip";
+                    description "";
+                } // END of tunnelIpv6Mode definition.
+
             } // END of nsmtunnelInterface-container definition.
             uses ifErrorDiscardCounters;
             uses portChannelLoadBalBrcm-grouping;
@@ -1898,6 +1932,7 @@ submodule zebos-interface {
             uses pim6Interface-grouping;
             uses nvoAccessIfVlanInfo-grouping;
             uses nvoAccessIfOuterVlanInfo-grouping;
+            uses ifAcastGwMac-grouping;
             uses nvoAccessIfInfo-grouping;
             uses dhcpClientInterface-grouping;
             uses sflowInterfaceConfigs-grouping;
@@ -1921,6 +1956,7 @@ submodule zebos-interface {
             uses rpfInfo-grouping;
             uses nd_interface-grouping;
             uses ndipv6staticnbrentry-grouping;
+            uses rtadvInterfaceNdPrefix-grouping;
             uses rtadvInterface-grouping;
             uses nat_interface-grouping;
         } // End of interface-list
@@ -1941,7 +1977,7 @@ submodule zebos-interface {
             } // END of ifIndex definition.
 
             leaf ifName  {
-                type  cml_data_types:CML_STRING_T {
+                type  cml_data_types:CML_LINE_T {
                     length "0..255";
                 }
                 description "The textual name of the interface. The value of this object should be
@@ -1958,7 +1994,7 @@ submodule zebos-interface {
             } // END of ifName definition.
 
             leaf errDisReason  {
-                type  cml_data_types:CML_NSM_ERR_REASON_T;
+                type  cml_data_types:CML_NSM_ERRDISABLE_STATE_T;
                 description "This object specifies the event that caused the interface to be error-disabled. If interface is error-disabled because of lag-mismatch, value of this object is 1. If interface is error-disabled because of stp-bpdu-guard, value of this object is 2. If interface is error-disabled because of link-flap, value of this object is 4.";
             } // END of errDisReason definition.
 
@@ -2530,7 +2566,30 @@ submodule zebos-interface {
             description "Hardware profile filter dedicated entries count";
         } // END of dedicatedEntries definition.
 
+        leaf sharedEntries  {
+            type  cml_data_types:CML_UINT32_T;
+            description "Hardware profile filter dedicated entries count";
+        } // END of sharedEntries definition.
+
     } // END of hwProfilefilterGrp definition.
+
+    grouping  ifArbiter-grouping {
+    description
+        "arbiter to check interface information periodically";
+    container ifArbiter {
+        if-feature feature_list:HAVE_NSM_IF_ARBITER;
+        description
+            "arbiter to check interface information periodically";
+        leaf ifArbiter  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "1..65535";
+            }
+            default "20";
+            description "";
+        } // END of ifArbiter definition.
+
+    } // END of ifArbiter-container definition.
+    } // END of ifArbiter-container definition.
 
     grouping  nsmMaster-grouping {
     description

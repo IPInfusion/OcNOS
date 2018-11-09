@@ -21,6 +21,10 @@ submodule zebos-aaa {
         prefix cml_data_types;
     }
 
+    import feature_list {
+        prefix feature_list;
+    }
+
     include zebos-vrf;
     include zebos-tacacs;
     include zebos-radius;
@@ -43,74 +47,172 @@ submodule zebos-aaa {
     }
 
 
-    grouping  aaa-grouping {
+
+    grouping aaa-grouping {
     description
         "aaa related commands";
-    container aaa {
+        list aaa {
+            key "vrfName";
+            description
+                "aaa related commands";
+            leaf vrfName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of vrfName definition.
+
+            leaf acctGroup  {
+                type  cml_data_types:CML_LINE_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of acctGroup definition.
+
+            leaf acctLocal  {
+                type  cml_data_types:CML_BOOL_T;
+                description "";
+            } // END of acctLocal definition.
+
+            leaf errorEnable  {
+                type  cml_data_types:CML_BOOL_T;
+                description "";
+            } // END of errorEnable definition.
+
+            leaf authDefaultGroup  {
+                type  cml_data_types:CML_LINE_T {
+                    length "0..255";
+                }
+                description "";
+            } // END of authDefaultGroup definition.
+
+            leaf authMaxfail  {
+                type  cml_data_types:CML_UINT8_T {
+                     range "1..25";
+                }
+                default "3";
+                description "";
+            } // END of authMaxfail definition.
+
+            leaf localUserUnlockTimeout  {
+                type  cml_data_types:CML_UINT16_T {
+                     range "1..3600";
+                }
+                default "1200";
+                description "";
+            } // END of localUserUnlockTimeout definition.
+
+            leaf authDefaultFallback  {
+                type  cml_data_types:CML_BOOL_T;
+                description "";
+            } // END of authDefaultFallback definition.
+
+            leaf authLocalDefault  {
+                type  cml_data_types:CML_BOOL_T;
+                description "";
+            } // END of authLocalDefault definition.
+
+            leaf authNoneDefault  {
+                type  cml_data_types:CML_BOOL_T;
+                description "";
+            } // END of authNoneDefault definition.
+
+
+            list aaaGroupServerNameRadius {
+                if-feature feature_list:HAVE_RADIUS_CLIENT;
+                key "groupWordRadius";
+                description
+                    "aaaGroupServerNameRadius";
+                leaf groupWordRadius  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "1..127";
+                    }
+                    description "";
+                } // END of groupWordRadius definition.
+
+
+                list aaaRadiusServer {
+                    if-feature feature_list:HAVE_RADIUS_CLIENT;
+                    key "hostAddr";
+                    description
+                        "aaaRadiusServer";
+                    leaf hostAddr  {
+                        type  cml_data_types:CML_STRING_T {
+                            length "1..63";
+                        }
+                        description "";
+                    } // END of hostAddr definition.
+
+                } // End of aaaRadiusServer-list
+            } // End of aaaGroupServerNameRadius-list
+
+            list aaaGroupServerNameTacacs {
+                if-feature feature_list:HAVE_TACACS_CLIENT;
+                key "groupWordTacacs";
+                description
+                    "aaaGroupServerNameTacacs";
+                leaf groupWordTacacs  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "1..127";
+                    }
+                    description "";
+                } // END of groupWordTacacs definition.
+
+
+                list aaaTacacsServer {
+                    if-feature feature_list:HAVE_TACACS_CLIENT;
+                    key "hostAddr";
+                    description
+                        "aaaTacacsServer";
+                    leaf hostAddr  {
+                        type  cml_data_types:CML_STRING_T {
+                            length "1..63";
+                        }
+                        description "";
+                    } // END of hostAddr definition.
+
+                } // End of aaaTacacsServer-list
+            } // End of aaaGroupServerNameTacacs-list
+        } // End of aaa-list
+    } // END of aaa-grouping definition.
+
+    grouping  console-grouping {
+    description
+        "console";
+    container console {
         description
-            "aaa related commands";
-        leaf vrfName  {
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
-            description "";
-        } // END of vrfName definition.
-
-        leaf acctGroup  {
+            "console";
+        leaf authConsoleGroup  {
             type  cml_data_types:CML_LINE_T {
                 length "0..255";
             }
             description "";
-        } // END of acctGroup definition.
+        } // END of authConsoleGroup definition.
 
-        leaf acctLocal  {
+        leaf authConsoleFallback  {
             type  cml_data_types:CML_BOOL_T;
             description "";
-        } // END of acctLocal definition.
+        } // END of authConsoleFallback definition.
 
-        leaf errorEnable  {
+        leaf authLocal  {
             type  cml_data_types:CML_BOOL_T;
             description "";
-        } // END of errorEnable definition.
+        } // END of authLocal definition.
 
-        leaf authDefaultGroup  {
-            type  cml_data_types:CML_LINE_T {
-                length "0..255";
-            }
-            description "";
-        } // END of authDefaultGroup definition.
-
-        leaf authMaxfail  {
-            type  cml_data_types:CML_UINT8_T {
-                 range "1..25";
-            }
-            default "3";
-            description "";
-        } // END of authMaxfail definition.
-
-        leaf localUserUnlockTimeout  {
-            type  cml_data_types:CML_UINT16_T {
-                 range "1..3600";
-            }
-            default "1200";
-            description "";
-        } // END of localUserUnlockTimeout definition.
-
-        leaf authDefaultFallback  {
+        leaf authNone  {
             type  cml_data_types:CML_BOOL_T;
             description "";
-        } // END of authDefaultFallback definition.
+        } // END of authNone definition.
 
-        leaf authLocalDefault  {
-            type  cml_data_types:CML_BOOL_T;
-            description "";
-        } // END of authLocalDefault definition.
+    } // END of console-container definition.
+    } // END of console-container definition.
 
-        leaf authNoneDefault  {
-            type  cml_data_types:CML_BOOL_T;
-            description "";
-        } // END of authNoneDefault definition.
-
+    grouping  debugAaa-grouping {
+    description
+        "debugAaa";
+    container debugAaa {
+        description
+            "debugAaa";
         leaf debugaaa  {
             type  cml_data_types:CML_BOOL_T;
             description "";
@@ -121,100 +223,8 @@ submodule zebos-aaa {
             description "";
         } // END of debugaaaConfig definition.
 
-
-        list aaaGroupServerNameRadius {
-            key "groupWordRadius";
-            description
-                "aaaGroupServerNameRadius";
-            leaf groupWordRadius  {
-                type  cml_data_types:CML_STRING_T {
-                    length "1..127";
-                }
-                description "";
-            } // END of groupWordRadius definition.
-
-
-            list aaaRadiusServer {
-                key "hostAddr";
-                description
-                    "aaaRadiusServer";
-                leaf vrfName  {
-                    type  cml_data_types:CML_STRING_T {
-                        length "0..255";
-                    }
-                    description "";
-                } // END of vrfName definition.
-
-                leaf hostAddr  {
-                    type  cml_data_types:CML_STRING_T {
-                        length "1..63";
-                    }
-                    description "";
-                } // END of hostAddr definition.
-
-            } // End of aaaRadiusServer-list
-        } // End of aaaGroupServerNameRadius-list
-
-        list aaaGroupServerNameTacacs {
-            key "groupWordTacacs";
-            description
-                "aaaGroupServerNameTacacs";
-            leaf groupWordTacacs  {
-                type  cml_data_types:CML_STRING_T {
-                    length "1..127";
-                }
-                description "";
-            } // END of groupWordTacacs definition.
-
-
-            list aaaTacacsServer {
-                key "hostAddr";
-                description
-                    "aaaTacacsServer";
-                leaf vrfName  {
-                    type  cml_data_types:CML_STRING_T {
-                        length "0..255";
-                    }
-                    description "";
-                } // END of vrfName definition.
-
-                leaf hostAddr  {
-                    type  cml_data_types:CML_STRING_T {
-                        length "1..63";
-                    }
-                    description "";
-                } // END of hostAddr definition.
-
-            } // End of aaaTacacsServer-list
-        } // End of aaaGroupServerNameTacacs-list
-        container console {
-            description
-                "console";
-            leaf authConsoleGroup  {
-                type  cml_data_types:CML_LINE_T {
-                    length "0..255";
-                }
-                description "";
-            } // END of authConsoleGroup definition.
-
-            leaf authConsoleFallback  {
-                type  cml_data_types:CML_BOOL_T;
-                description "";
-            } // END of authConsoleFallback definition.
-
-            leaf authLocal  {
-                type  cml_data_types:CML_BOOL_T;
-                description "";
-            } // END of authLocal definition.
-
-            leaf authNone  {
-                type  cml_data_types:CML_BOOL_T;
-                description "";
-            } // END of authNone definition.
-
-        } // END of console-container definition.
-    } // END of aaa-container definition.
-    } // END of aaa-container definition.
+    } // END of debugAaa-container definition.
+    } // END of debugAaa-container definition.
 
 
 }

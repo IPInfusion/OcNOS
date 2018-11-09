@@ -46,6 +46,86 @@ submodule zebos-vxlan {
 
 
 
+    grouping nsmipv4prefixroute-grouping {
+    description
+        "nsm ipv4 prefix route";
+        list nsmipv4prefixroute {
+            key "vrfName";
+            description
+                "nsm ipv4 prefix route";
+            leaf vrfName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "Mac vrf name";
+            } // END of vrfName definition.
+
+
+            list ipv4VrfDestPrefix {
+                key "ipv4DestVrfPrefix";
+                description
+                    "vrf Ipv4 destination prefix";
+                leaf ipv4DestVrfPrefix  {
+                    type  cml_data_types:CML_IPV4_PREFIX_T;
+                    description "IP destination prefix (e.g. 10.0.0.0/8)";
+                } // END of ipv4DestVrfPrefix definition.
+
+
+                list ipv4VrfGwAddr {
+                    key "ipv4VrfGwAddr";
+                    description
+                        "vrf Ipv4 nexthop address";
+                    leaf ipv4VrfGwAddr  {
+                        type  cml_data_types:CML_IPV4_ADDR_T;
+                        description "IP gateway address";
+                    } // END of ipv4VrfGwAddr definition.
+
+                } // End of ipv4VrfGwAddr-list
+            } // End of ipv4VrfDestPrefix-list
+        } // End of nsmipv4prefixroute-list
+    } // END of nsmipv4prefixroute-grouping definition.
+
+
+    grouping nsmipv6prefixroute-grouping {
+    description
+        "nsm ipv6 prefix route";
+        list nsmipv6prefixroute {
+            key "vrfName";
+            description
+                "nsm ipv6 prefix route";
+            leaf vrfName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "Mac vrf name";
+            } // END of vrfName definition.
+
+
+            list ipv6VrfDestPrefix {
+                key "ipv6DestVrfPrefix";
+                description
+                    "vrf Ipv6 destination prefix";
+                leaf ipv6DestVrfPrefix  {
+                    type  cml_data_types:CML_IPV6_PREFIX_T;
+                    description "IPv6 destination prefix (e.g. 3ffe:506::/32)";
+                } // END of ipv6DestVrfPrefix definition.
+
+
+                list ipv6VrfGwAddr {
+                    key "ipv6VrfGwAddr";
+                    description
+                        "vrf Ipv6 nexthop address";
+                    leaf ipv6VrfGwAddr  {
+                        type  cml_data_types:CML_IPV6_ADDR_T;
+                        description "IPv6 gateway address";
+                    } // END of ipv6VrfGwAddr definition.
+
+                } // End of ipv6VrfGwAddr-list
+            } // End of ipv6VrfDestPrefix-list
+        } // End of nsmipv6prefixroute-list
+    } // END of nsmipv6prefixroute-grouping definition.
+
+
     grouping nvoAccessIfVlanInfo-grouping {
     description
         "VxLAN acess side port-vlan configurations";
@@ -67,17 +147,23 @@ submodule zebos-vxlan {
                 description "Tpid for the outer vlan";
             } // END of tpid definition.
 
-            leaf arpCacheDisable  {
+            leaf arpCacheDisablePortVlan  {
                 type  cml_data_types:CML_BOOL_T;
                 default false;
                 description "Disable arp cache on access interface";
-            } // END of arpCacheDisable definition.
+            } // END of arpCacheDisablePortVlan definition.
 
-            leaf ndCacheDisable  {
+            leaf ndCacheDisablePortVlan  {
                 type  cml_data_types:CML_BOOL_T;
                 default false;
                 description "Disable ND cache on access interface";
-            } // END of ndCacheDisable definition.
+            } // END of ndCacheDisablePortVlan definition.
+
+            leaf DfStatus  {
+                type  cml_data_types:CML_VXLAN_DF_STATUS_T;
+                config false;
+                description "DF flag status";
+            } // END of DfStatus definition.
 
             uses access-info;
             uses vxlan-counters;
@@ -118,17 +204,17 @@ submodule zebos-vxlan {
                     description "Tpid for the outer vlan";
                 } // END of tpid definition.
 
-                leaf arpCacheDisable  {
+                leaf arpCacheDisablePortStackedVlan  {
                     type  cml_data_types:CML_BOOL_T;
                     default false;
-                    description "Disable arp cache on access interface";
-                } // END of arpCacheDisable definition.
+                    description "Disable arp cache on access interface using inner vlan id";
+                } // END of arpCacheDisablePortStackedVlan definition.
 
-                leaf ndCacheDisable  {
+                leaf ndCacheDisablePortStackedVlan  {
                     type  cml_data_types:CML_BOOL_T;
                     default false;
                     description "Disable ND cache on access interface";
-                } // END of ndCacheDisable definition.
+                } // END of ndCacheDisablePortStackedVlan definition.
 
                 uses access-info;
             } // End of nvoAccessIfInnerVlanInfo-list
@@ -271,12 +357,12 @@ submodule zebos-vxlan {
 
         leaf in_bytes  {
             type  cml_data_types:CML_UINT64_T;
-            description "This indicates total number of bytes recieved on access port";
+            description "This indicates total number of bytes received on access port";
         } // END of in_bytes definition.
 
         leaf in_packets  {
             type  cml_data_types:CML_UINT64_T;
-            description "This indicates total number of packets recieved on access port";
+            description "This indicates total number of packets received on access port";
         } // END of in_packets definition.
 
     } // END of vxlan-counters definition.
@@ -295,6 +381,37 @@ submodule zebos-vxlan {
 
     } // END of multihoming-container definition.
     } // END of multihoming-container definition.
+
+    grouping  anycastGwMac-grouping {
+    description
+        "anycast-gateway-mac";
+    container anycastGwMac {
+        description
+            "anycast-gateway-mac";
+        leaf anycastGwMacAddr  {
+            type  cml_data_types:CML_MAC_ADDR_T {
+                length "0..255";
+            }
+            description "Anycast gateway mac address";
+        } // END of anycastGwMacAddr definition.
+
+    } // END of anycastGwMac-container definition.
+    } // END of anycastGwMac-container definition.
+
+    grouping  ifAcastGwMac-grouping {
+    description
+        "IRB interface forwarding for anycast gateway mac";
+    container ifAcastGwMac {
+        description
+            "IRB interface forwarding for anycast gateway mac";
+        leaf ifAnycastGwMac  {
+            type  cml_data_types:CML_BOOL_T;
+            default false;
+            description "IRB forwarding for anycast gateway mac";
+        } // END of ifAnycastGwMac definition.
+
+    } // END of ifAcastGwMac-container definition.
+    } // END of ifAcastGwMac-container definition.
 
     grouping  esiHoldTime-grouping {
     description
@@ -325,10 +442,22 @@ submodule zebos-vxlan {
             description "Enable VXLAN module";
         } // END of vxlanEnable definition.
 
+        leaf irbEnable  {
+            type  cml_data_types:CML_BOOL_T;
+            description "Enable IRB globally";
+        } // END of irbEnable definition.
+
         leaf vtepIpv4  {
             type  cml_data_types:CML_IPV4_ADDR_T;
             description "VTEP global ip address";
         } // END of vtepIpv4 definition.
+
+        leaf arpndRefreshtimer  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "3..300000";
+            }
+            description "Refresh time for dynamic ARP/ND on vxlan access port";
+        } // END of arpndRefreshtimer definition.
 
         leaf macAgeing  {
             type  cml_data_types:CML_UINT32_T {
@@ -399,12 +528,12 @@ submodule zebos-vxlan {
 
             leaf in_bytes  {
                 type  cml_data_types:CML_UINT64_T;
-                description "This indicates total number of bytes recieved on tunnel interface";
+                description "This indicates total number of bytes received on tunnel interface";
             } // END of in_bytes definition.
 
             leaf in_packets  {
                 type  cml_data_types:CML_UINT64_T;
-                description "This indicates total number of packets recieved on tunnel interface";
+                description "This indicates total number of packets received on tunnel interface";
             } // END of in_packets definition.
 
             leaf updatetime  {
@@ -466,15 +595,10 @@ submodule zebos-vxlan {
                 description "Tenant Identifier";
             } // END of nvoId definition.
 
-            leaf type  {
+            leaf is_multicast  {
                 type  cml_data_types:CML_BOOL_T;
-                description "Tunnel Type - VXLAN or NVGRE";
-            } // END of type definition.
-
-            leaf mcastIp  {
-                type  cml_data_types:CML_IPV4_ADDR_T;
                 description "Configure multicast tunnel";
-            } // END of mcastIp definition.
+            } // END of is_multicast definition.
 
             leaf ingRepl  {
                 type  cml_data_types:CML_BOOL_T;
@@ -516,6 +640,13 @@ submodule zebos-vxlan {
                 description "VXLAN identifier name";
             } // END of vxlanName definition.
 
+            leaf ifName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "IRB interface name";
+            } // END of ifName definition.
+
 
             list nvoStatic {
                 key "macAddr";
@@ -525,7 +656,7 @@ submodule zebos-vxlan {
                     type  cml_data_types:CML_MAC_ADDR_T {
                         length "0..255";
                     }
-                    description "Mac Adress of the host";
+                    description "Mac address of the host";
                 } // END of macAddr definition.
 
                 leaf remoteVtepIp  {
@@ -542,7 +673,7 @@ submodule zebos-vxlan {
                     "ArpCache Entries";
                 leaf hostIp  {
                     type  cml_data_types:CML_IPV4_ADDR_T;
-                    description "Host IP Adress";
+                    description "Host IP address";
                 } // END of hostIp definition.
 
                 leaf hostMac  {
@@ -571,7 +702,7 @@ submodule zebos-vxlan {
                     "NdCache Entries";
                 leaf hostIp  {
                     type  cml_data_types:CML_IPV6_ADDR_T;
-                    description "Host IP Adress";
+                    description "Host IP address";
                 } // END of hostIp definition.
 
                 leaf hostMac  {
@@ -593,6 +724,63 @@ submodule zebos-vxlan {
 
             } // End of nvoNdCacheInfo-list
 
+            list nvoMacTable {
+                key "macAddr";
+                config false;
+                description
+                    "Host Mac Addresses Table";
+                leaf macAddr  {
+                    type  cml_data_types:CML_MAC_ADDR_T {
+                        length "0..255";
+                    }
+                    description "Mac Adress of the host";
+                } // END of macAddr definition.
+
+                leaf interface  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "interface name";
+                } // END of interface definition.
+
+                leaf vlanId  {
+                    type  cml_data_types:CML_UINT32_T;
+                    description "vlan id";
+                } // END of vlanId definition.
+
+                leaf innerVlanId  {
+                    type  cml_data_types:CML_UINT32_T;
+                    description "Inner vlan Id";
+                } // END of innerVlanId definition.
+
+                leaf vtepIpEsi  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "VTEP global ip address or ESI";
+                } // END of vtepIpEsi definition.
+
+                leaf hostType  {
+                    type  cml_data_types:CML_VXLAN_HOST_T;
+                    description "Host Type";
+                } // END of hostType definition.
+
+                leaf hostStatus  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "Host Status";
+                } // END of hostStatus definition.
+
+                leaf accessPortDesc  {
+                    type  cml_data_types:CML_STRING_T {
+                        length "0..255";
+                    }
+                    description "Description for the port";
+                } // END of accessPortDesc definition.
+
+            } // End of nvoMacTable-list
+
             list nvoMacMapping {
                 key "macAddr";
                 config false;
@@ -602,12 +790,12 @@ submodule zebos-vxlan {
                     type  cml_data_types:CML_MAC_ADDR_T {
                         length "0..255";
                     }
-                    description "Mac Adress of the host";
+                    description "Mac address of the host";
                 } // END of macAddr definition.
 
                 leaf prefix  {
                     type  cml_data_types:CML_IPV4_ADDR_T;
-                    description "IP Adress of the host";
+                    description "IP address of the host";
                 } // END of prefix definition.
 
                 leaf type  {
@@ -647,6 +835,40 @@ submodule zebos-vxlan {
 
             } // END of nvoRouteCount-container definition.
         } // End of nvoTenant-list
+
+        list nvoStaticHostSt {
+            key "macAddr";
+            config false;
+            description
+                "nvo vxlan static host state";
+            leaf macAddr  {
+                type  cml_data_types:CML_MAC_ADDR_T {
+                    length "0..255";
+                }
+                description "Mac Adress of the host";
+            } // END of macAddr definition.
+
+            leaf staticHostSt  {
+                type  cml_data_types:CML_VXLAN_STATIC_HOST_STATE_T;
+                description "static host state";
+            } // END of staticHostSt definition.
+
+            leaf vnId  {
+                type  cml_data_types:CML_UINT32_T;
+                description "nvo id";
+            } // END of vnId definition.
+
+            leaf hostIpv4  {
+                type  cml_data_types:CML_IPV4_ADDR_T;
+                description "Host IP Adress ipv4";
+            } // END of hostIpv4 definition.
+
+            leaf hostIpv6  {
+                type  cml_data_types:CML_IPV6_ADDR_T;
+                description "Host IP Adress ipv6";
+            } // END of hostIpv6 definition.
+
+        } // End of nvoStaticHostSt-list
     } // END of nvo-container definition.
     } // END of nvo-container definition.
 
@@ -674,6 +896,12 @@ submodule zebos-vxlan {
             default false;
             description "Disable ND cache on access interface";
         } // END of ndCacheDisable definition.
+
+        leaf DfStatus  {
+            type  cml_data_types:CML_VXLAN_DF_STATUS_T;
+            config false;
+            description "DF flag status";
+        } // END of DfStatus definition.
 
         uses access-info;
         uses vxlan-counters;
