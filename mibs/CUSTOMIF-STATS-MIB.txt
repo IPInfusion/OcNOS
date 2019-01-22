@@ -665,7 +665,7 @@ queuetype  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
           "The type of the queue in the interface either unicast/multicast/
-          priority group. 1-unicast, 2-multicast, 3-priority group."
+          priority group. 1-priority group, 2-multicast, 3-unicast."
     ::= { ifQueueStatsEntry 1 }
 
 queueId  OBJECT-TYPE
@@ -954,14 +954,17 @@ ifRateStatsEntry    OBJECT-TYPE
 
 IfRateStatsEntry  ::=
     SEQUENCE {
-             ifRxRateBps    Counter64,
-             ifRxRatePps    Counter64,
-             ifTxRateBps    Counter64,
-             ifTxRatePps    Counter64
+             ifRxRateBps         Counter64,
+             ifRxRatePps         Counter64,
+             ifTxRateBps         Counter64,
+             ifTxRatePps         Counter64,
+             ifRxAvgRatePercent  Integer32,
+             ifTxAvgRatePercent  Integer32
              }
 
 ifRxRateBps  OBJECT-TYPE
     SYNTAX      Counter64
+    UNITS       "bps"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -978,6 +981,7 @@ ifRxRatePps  OBJECT-TYPE
 
 ifTxRateBps  OBJECT-TYPE
     SYNTAX      Counter64
+    UNITS       "bps"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -991,6 +995,25 @@ ifTxRatePps  OBJECT-TYPE
     DESCRIPTION
            "Transmitted bytes in packets/sec in the port referred by the index."
     ::= { ifRateStatsEntry 4 }
+
+ifRxAvgRatePercent  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Average received traffic rate percentage on the port referred by
+            the index. Value of -1 indicates rate percentage is not applicable."
+    ::= { ifRateStatsEntry 5 }
+
+ifTxAvgRatePercent  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Average transmitted traffic rate percentage on the port referred by
+            the index. Value of -1 indicates rate percentage is not applicable."
+    ::= { ifRateStatsEntry 6 }
+
 
 ifFecStatsTable     OBJECT-TYPE
     SYNTAX      SEQUENCE OF IfFecStatsEntry
@@ -1047,6 +1070,97 @@ ifFecUncorrectedBlocks  OBJECT-TYPE
     DESCRIPTION
            "It is a count of uncorrectable FEC blocks."
     ::= { ifFecStatsEntry 3 }
+
+
+--- ##Avg Speed Stats Table####
+
+ifSpeedStatsTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF IfSpeedStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A table object containing information about current average transmit
+             and receive speed and the speed threshold values on the interface."
+    ::= { customIfTable 6 }
+
+ifSpeedStatsEntry    OBJECT-TYPE
+    SYNTAX      IfSpeedStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry with information about current average transmit and receive
+             speed and the speed threshold values on the interface.Average speed
+             is calculated by including preamble and inter-frame gap."
+    INDEX   { ifIndex }
+    ::= { ifSpeedStatsTable 1 }
+
+IfSpeedStatsEntry ::=
+    SEQUENCE {
+             ifRxCurrentAvgSpeed          Counter64,
+             ifRxCurrentAvgSpeedPercent   Integer32,
+             ifTxCurrentAvgSpeed          Counter64,
+             ifTxCurrentAvgSpeedPercent   Integer32,
+             ifSpeedWarningThreshold      Integer32,
+             ifSpeedRecoveryThreshold     Integer32
+             }
+
+ifRxCurrentAvgSpeed  OBJECT-TYPE
+    SYNTAX      Counter64
+    UNITS       "bps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Current average receive speed on the interface calculated over the
+            load interval of the interface."
+    ::= { ifSpeedStatsEntry 1 }
+
+ifRxCurrentAvgSpeedPercent  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Current average receive speed in percentage on the interface calculated
+            over the load interval of the interface. Value of -1 indicates rate
+            percentage is not applicable."
+    ::= { ifSpeedStatsEntry 2 }
+
+ifTxCurrentAvgSpeed  OBJECT-TYPE
+    SYNTAX      Counter64
+    UNITS       "bps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Current average transmit speed on the interface calculated over the load
+            interval of the interface."
+    ::= { ifSpeedStatsEntry 3 }
+
+ifTxCurrentAvgSpeedPercent  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Current average transmit speed in percentage on the interface calculated
+            over the load interval of the interface. Value of -1 indicates rate
+            percentage is not applicable."
+    ::= { ifSpeedStatsEntry 4 }
+
+ifSpeedWarningThreshold  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Threshold for receive speed in percentage for the interface referred by index.
+            Applicable only for physical interfaces. value of -1 indicates not applicable."
+    ::= { ifSpeedStatsEntry 5 }
+
+ifSpeedRecoveryThreshold  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Recovery threshold for receive speed in percentage for the interface referred by index.
+            Applicable only for physical interfaces. value of -1 indicates not applicable."
+    ::= { ifSpeedStatsEntry 6 }
 
 --- ###CPU STATISTICS GROUP ####
 
@@ -1767,6 +1881,7 @@ cpuTxPps  OBJECT-TYPE
 
     customIfTraps             OBJECT IDENTIFIER ::= { customIfAlarmObjects 1 }
     cpuQueueNotifications     OBJECT IDENTIFIER ::= { customIfAlarmObjects 2 }
+    customIfSpeedUtilTraps       OBJECT IDENTIFIER ::= { customIfAlarmObjects 3 }
 
     --
     -- INTERFACE RELATED TRAPS
@@ -1827,6 +1942,18 @@ cpuTxPps  OBJECT-TYPE
              interface."
         ::= { customIfTraps 5 }
 
+    ifQueueDrop            NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex
+                      queueId
+                      ifQueueDropPkts
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information containing drop statistics per interface
+             per queue."
+        ::= { customIfTraps 6 }
+
     cpuQueueFull     NOTIFICATION-TYPE
         OBJECTS      {
                       cpuQueueName,
@@ -1861,4 +1988,72 @@ cpuTxPps  OBJECT-TYPE
         DESCRIPTION
             "Trap to send information when CPU queue is recovered from full/high."
         ::= { cpuQueueNotifications 3 }
+
+    ifRxSpeedMax         NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      ifRxCurrentAvgSpeed
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information when current average Rx speed on
+             the interface reached maximum."
+        ::= { customIfSpeedUtilTraps 1 }
+
+    ifRxSpeedHigh     NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      ifRxAvgRatePercent,
+                      ifRxCurrentAvgSpeed
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information when current average Rx speed on the
+             interface crossed speed warning threshold."
+        ::= { customIfSpeedUtilTraps 2 }
+
+    ifRxSpeedRecovery     NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information when Rx speed utilization is recovered
+             from full/high speed utilization threshold"
+        ::= { customIfSpeedUtilTraps 3 }
+
+    ifTxSpeedMax     NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      ifTxCurrentAvgSpeed
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information when current average Tx speed on
+             the interface reached maximum."
+        ::= { customIfSpeedUtilTraps 4 }
+
+    ifTxSpeedHigh     NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      ifTxAvgRatePercent,
+                      ifTxCurrentAvgSpeed
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information when current average Tx speed on the
+             interface crossed speed warning threshold."
+        ::= { customIfSpeedUtilTraps 5 }
+
+    ifTxSpeedRecovery     NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information when Tx speed utilization is recovered
+             from full/high speed utilization threshold."
+        ::= { customIfSpeedUtilTraps 6 }
+
+
 END
