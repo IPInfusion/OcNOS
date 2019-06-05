@@ -485,10 +485,7 @@
            cmmTransMaxCaseTemp            INTEGER,
            cmmTransSFPOptionsImp          BITS, 
            cmmTransQSFPOptionsImp         BITS,
-           cmmTransPresence               INTEGER,
-           cmmTransTxState                INTEGER,
-           cmmTransResetState             INTEGER,
-           cmmTransPowerMode              INTEGER,
+           cmmTransPresence               INTEGER
            cmmTransFrontPanelPortNumber   INTEGER
         }
 
@@ -1100,7 +1097,7 @@
              Blank indicates unavailable"
         ::= { cmmTransEEPROMEntry 40 }
 
-       cmmTransPresence  OBJECT-TYPE
+        cmmTransPresence  OBJECT-TYPE
         SYNTAX        INTEGER{
                              present(1),
                              notpresent(2),
@@ -1112,49 +1109,13 @@
             "Indicates Transceiver presence status."
         ::= { cmmTransEEPROMEntry 41 }
 
-       cmmTransTxState  OBJECT-TYPE
-        SYNTAX        INTEGER {
-                               enable(1),
-                               disable(2),
-                               unknown(3)
-                              }
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION
-            "Transceiver TX State (applicable only for SFP)."
-        ::= { cmmTransEEPROMEntry 42 }
-
-       cmmTransResetState  OBJECT-TYPE
-        SYNTAX        INTEGER {
-                               normal(1),
-                               reset(2),
-                               unknown(3)
-                              }
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION
-            "Transceiver Reset State (applicable only for QSFP)."
-        ::= { cmmTransEEPROMEntry 43 }
-
-       cmmTransPowerMode  OBJECT-TYPE
-        SYNTAX        INTEGER {
-                               low(1),
-                               high(2),
-                               unknown(3)
-                              }
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION
-            "Transceiver Power mode (applicable only for QSFP)."
-        ::= { cmmTransEEPROMEntry 44 }
-
-	cmmTransFrontPanelPortNumber     OBJECT-TYPE
+        cmmTransFrontPanelPortNumber     OBJECT-TYPE
          SYNTAX        INTEGER
          MAX-ACCESS    read-only
          STATUS        current
          DESCRIPTION
              "Front panel port number"
-         ::= { cmmTransEEPROMEntry 45 }
+         ::= { cmmTransEEPROMEntry 42 }
 
     -- ## DDMChannel Entry
      cmmTransDDMTable OBJECT-TYPE
@@ -1209,7 +1170,12 @@
            cmmTransRxPowerAlertThresholdMax           INTEGER,
            cmmTransTxPowerSupported                   INTEGER,
            cmmTransRxPowerSupported                   INTEGER,
-           cmmTransDDMStatus                          INTEGER
+           cmmTransDDMStatus                          INTEGER,
+           cmmTransTxState                            INTEGER,
+           cmmTransRxLosState                         INTEGER,
+           cmmTransTxLosState                         INTEGER,
+           cmmTransResetState                         INTEGER,
+           cmmTransPowerMode                          INTEGER
            }
 
        cmmTransChannelIndex   OBJECT-TYPE
@@ -1532,6 +1498,69 @@
         DESCRIPTION
             "Transceiver DDM Status"
         ::= { cmmTransDDMEntry 29 }
+
+        cmmTransTxState  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               enable(1),
+                               disable(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver TX State"
+        ::= { cmmTransDDMEntry 30 }
+
+        cmmTransRxLosState  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               enable(1),
+                               disable(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver RX Los State"
+        ::= { cmmTransDDMEntry 31 }
+
+        cmmTransTxLosState  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               enable(1),
+                               disable(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver TX Los State (applicable only for QSFP).
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 32 }
+
+       cmmTransResetState  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               normal(1),
+                               reset(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver Reset State (applicable only for QSFP).
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 33 }
+
+        cmmTransPowerMode  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                               low(1),
+                               high(2),
+                               unknown(3)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver Power mode (applicable only for QSFP).
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 34 }
 
     -- ### Ram Table
 
@@ -3483,7 +3512,7 @@
         SYNTAX         INTEGER {
                                blow-outfan(1),
                                blow-infan(2),
-                               not-applicable(3)
+                               fan-type-unknown(3)
                                }
         MAX-ACCESS     read-only
         STATUS         current
@@ -4125,6 +4154,25 @@
             "Set when fan RPM set to its maximum value."
         ::= { cmmAlarmMibNotifications 58 }
 
+     cmmAlertIncompatibleTransceiverPresence   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmStackUnitIndex,
+                      cmmTransIndex,
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Incompatible Trasceiver is Present"
+        ::= { cmmTransMibNotifications 54}
+
+     cmmNotifyIncompatibleTransceiverRemoved   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmStackUnitIndex,
+                      cmmTransIndex,
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when Incompatible Trasceiver is Removed"
+        ::= { cmmTransMibNotifications 55}
 
     --
     -- TRANSCEIVER(DDM) RELATED TRAPS
@@ -4491,7 +4539,8 @@
                       cmmTransIndex,
                       cmmTransType,
                       cmmTransVendorName,
-                      cmmTransVendorSerialNumber
+                      cmmTransVendorSerialNumber,
+                      cmmTransconnectortype
                      }
         STATUS       current
         DESCRIPTION
@@ -4504,7 +4553,8 @@
                       cmmTransIndex,
                       cmmTransType,
                       cmmTransVendorName,
-                      cmmTransVendorSerialNumber
+                      cmmTransVendorSerialNumber,
+                      cmmTransconnectortype
                      }
         STATUS       current
         DESCRIPTION
