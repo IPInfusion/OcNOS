@@ -96,8 +96,12 @@ module zebos {
     include zebos-vlog;
     include zebos-imi;
     include zebos-rtadv;
-    include zebos-imiLoggging;
+    include zebos-imiLogging;
     include zebos-nat;
+    include zebos-rbac;
+    include zebos-vm;
+    include zebos-sysupdate;
+    include zebos-customstats;
     organization
         "IP Infusion Inc.";
 
@@ -111,7 +115,22 @@ module zebos {
         "ZebOS Managed Object";
 
 
-    revision "2018-06-21" {
+    revision "2019-05-06" {
+        description " Port Group Speed Support.";
+        reference "";
+    }
+
+    revision "2019-04-08" {
+        description " Adding support for VLAN Cross Connect.";
+        reference "";
+    }
+
+    revision "2018-10-24" {
+        description " Adding support for Guest-VM feature.";
+        reference "";
+    }
+
+    revision "2018-09-18" {
         description " Initial Version.";
         reference "";
     }
@@ -119,12 +138,11 @@ module zebos {
 
     uses ifArbiter-grouping;
     uses cpuInterface-grouping;
-    uses TCAMgroups-grouping;
+    uses hwTCAMutilization-grouping;
     uses lacpMaster-grouping;
     uses lacpdebug-grouping;
     uses lldpDebug-grouping;
     uses oamMpls-grouping;
-    uses VrrpDebug-grouping;
     uses tfo-grouping;
     uses hostpSyslog-grouping;
     uses snmp-grouping;
@@ -135,6 +153,7 @@ module zebos {
     uses debugTELNETconfig-grouping;
     uses sourceNTP-grouping;
     uses debugNTP-grouping;
+    uses AAAUserConfigs-grouping;
     uses console-grouping;
     uses debugAaa-grouping;
     uses dhcprelay-grouping;
@@ -147,15 +166,14 @@ module zebos {
     uses pservd-grouping;
     uses cmmSoftwareProcessMgmt-grouping;
     uses igmpConfig-grouping;
-    uses snmpVrfName-grouping;
+    uses snmpTrap-grouping;
     uses debugAgentx-grouping;
     uses mcecMaster-grouping;
     uses nsmMlag-grouping;
+    uses matchLayer-grouping;
     uses cmmGlobals-grouping;
     uses cmmDdm-grouping;
-    uses cmmCpuLoad1MinThresh-grouping;
-    uses cmmCpuLoad5MinThresh-grouping;
-    uses cmmCpuLoad15MinThresh-grouping;
+    uses cmmCpuLoadThresh-grouping;
     uses cmmCpuCoreThresh-grouping;
     uses cmmAlarmVariable-grouping;
     uses debugdot1x-grouping;
@@ -166,6 +184,7 @@ module zebos {
     uses memInfo-grouping;
     uses loggingcli-grouping;
     uses imiNatTimeouts-grouping;
+    uses installers-grouping;
     uses vr-grouping;
     uses bfdSession-grouping;
     uses confModeDebug-grouping;
@@ -178,11 +197,11 @@ module zebos {
     uses telnetVrfInstance-grouping;
     uses ntp-grouping;
     uses aaa-grouping;
-    uses dhcprelayinterface-grouping;
-    uses dhcp6nterface-grouping;
+    uses aaaAuthOptions-grouping;
     uses dns-grouping;
     uses logginglevel-grouping;
     uses cmmSoftwareProcessObjects-grouping;
+    uses mlagInterfaceConfig-grouping;
     uses cmmStackUnitTable-grouping;
     uses nsmsnmp-grouping;
     uses dhcpSnooping-grouping;
@@ -226,9 +245,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -276,9 +293,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -311,9 +326,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -332,9 +345,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -353,9 +364,7 @@ module zebos {
     reference "";
         input  {
             leaf address  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -368,17 +377,13 @@ module zebos {
     reference "";
         input  {
             leaf setAddress  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf value  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -397,9 +402,7 @@ module zebos {
                 description "";
             }
             leaf accessMapName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -408,6 +411,7 @@ module zebos {
     }
 
     rpc bridge-clearcvlan {
+        if-feature feature_list:HAVE_SWFWDR;
     description "";
     reference "";
         input  {
@@ -418,21 +422,23 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf cvlanId  {
-                type cml_data_types:CML_INT32_T;
+                type cml_data_types:CML_INT32_T {
+                    range "2..4094";
+                }
 
                 mandatory true;
                 description "";
             }
             leaf sVlanId  {
-                type cml_data_types:CML_INT32_T;
+                type cml_data_types:CML_INT32_T {
+                    range "2..4094";
+                }
 
                 mandatory true;
                 description "";
@@ -441,25 +447,28 @@ module zebos {
     }
 
     rpc bridge-cleardynamiccvlan {
+        if-feature feature_list:HAVE_SWFWDR;
     description "";
     reference "";
         input  {
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf cvlanId  {
-                type cml_data_types:CML_INT32_T;
+                type cml_data_types:CML_INT32_T {
+                    range "2..4094";
+                }
 
                 mandatory true;
                 description "";
             }
             leaf sVlanId  {
-                type cml_data_types:CML_INT32_T;
+                type cml_data_types:CML_INT32_T {
+                    range "2..4094";
+                }
 
                 mandatory true;
                 description "";
@@ -478,9 +487,7 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -499,17 +506,13 @@ module zebos {
                 description "";
             }
             leaf macAddr  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -528,17 +531,13 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -557,15 +556,15 @@ module zebos {
                 description "";
             }
             leaf vlanId  {
-                type cml_data_types:CML_UINT32_T;
+                type cml_data_types:CML_UINT32_T {
+                    range "2..4094";
+                }
 
                 mandatory true;
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -592,6 +591,37 @@ module zebos {
         }
     }
 
+    rpc bridge-clearvxlanmac {
+    description "";
+    reference "";
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf vxlan  {
+                type cml_data_types:CML_BOOL_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf macCMLSEPaddr  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf vnid  {
+                type cml_data_types:CML_UINT32_T;
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
     rpc bridge-clearbridge {
     description "";
     reference "";
@@ -603,9 +633,7 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -624,17 +652,13 @@ module zebos {
                 description "";
             }
             leaf macAddr  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -653,17 +677,13 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -682,9 +702,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -696,9 +714,7 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -717,15 +733,15 @@ module zebos {
                 description "";
             }
             leaf vlanId  {
-                type cml_data_types:CML_INT32_T;
+                type cml_data_types:CML_INT32_T {
+                    range "2..4094";
+                }
 
                 mandatory true;
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -771,9 +787,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -799,9 +813,7 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -821,17 +833,13 @@ module zebos {
                 description "";
             }
             leaf egressNickname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -851,9 +859,7 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -872,9 +878,7 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -893,9 +897,7 @@ module zebos {
                 description "";
             }
             leaf interface  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -917,9 +919,7 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -933,7 +933,7 @@ module zebos {
         }
     }
 
-    rpc mstp-clear-spanning-tree-statistics-interface-vlan-vlanId-bridge-bridgeId {
+    rpc mstp-clear-spanning-tree-statistics-interface-vlan-bridge {
         if-feature feature_list:HAVE_MSTPD;
         if-feature feature_list:HAVE_PROVIDER_BRIDGE;
         if-feature feature_list:HAVE_B_BEB;
@@ -947,17 +947,13 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -984,17 +980,13 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1013,9 +1005,7 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1034,9 +1024,7 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1063,17 +1051,13 @@ module zebos {
                 description "";
             }
             leaf bridgeId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1203,9 +1187,7 @@ module zebos {
                 description "";
             }
             leaf starPrint  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1243,9 +1225,7 @@ module zebos {
                 description "";
             }
             leaf starPrint  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1284,9 +1264,7 @@ module zebos {
                 description "";
             }
             leaf starPrint  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1325,17 +1303,13 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf starPrint  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1355,9 +1329,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1383,17 +1355,13 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf starPrint  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1413,9 +1381,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1442,17 +1408,13 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf starPrint  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1471,9 +1433,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1582,9 +1542,7 @@ module zebos {
                 description "";
             }
             leaf ospfProcess  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1646,20 +1604,151 @@ module zebos {
     reference "";
     }
 
-    rpc bgp-clearBgp {
+    rpc bgp-clearBgpStatistics {
+    description "";
+    reference "";
+    }
+
+    rpc bgp-clearIpBgpAll {
     description "";
     reference "";
         input  {
+            leaf view  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf afi  {
+                type cml_data_types:CML_AFI_TYPE_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf safi  {
+                type cml_data_types:CML_SAFI_TYPE_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf clearType  {
+                type cml_data_types:CML_CLEAR_TYPE_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf clearSoft  {
+                type cml_data_types:CML_CLEAR_SOFT_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf arg  {
+                type cml_data_types:CML_HOSTNAME_T;
+
+                mandatory true;
+                description "";
+            }
             leaf vrId  {
                 type cml_data_types:CML_UINT32_T;
 
                 mandatory true;
                 description "";
             }
-            leaf clearAll  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+        }
+    }
+
+    rpc bgp-clearIpBgpAllPeerVrf {
+    description "";
+    reference "";
+        input  {
+            leaf vrfName  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf afi  {
+                type cml_data_types:CML_AFI_TYPE_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf safi  {
+                type cml_data_types:CML_SAFI_TYPE_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf clearType  {
+                type cml_data_types:CML_CLEAR_TYPE_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf clearSoft  {
+                type cml_data_types:CML_CLEAR_SOFT_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf arg  {
+                type cml_data_types:CML_IP_PREFIX_ADDR_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc bgp-clearIpBgpAllVrf {
+    description "";
+    reference "";
+        input  {
+            leaf vrfName  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf afi  {
+                type cml_data_types:CML_AFI_TYPE_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf safi  {
+                type cml_data_types:CML_SAFI_TYPE_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf clearType  {
+                type cml_data_types:CML_CLEAR_TYPE_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf clearSoft  {
+                type cml_data_types:CML_CLEAR_SOFT_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf arg  {
+                type cml_data_types:CML_IP_PREFIX_ADDR_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
 
                 mandatory true;
                 description "";
@@ -1677,6 +1766,65 @@ module zebos {
         if-feature feature_list:HAVE_SNMP;
     description "snmp restart vrrp";
     reference "";
+    }
+
+    rpc vrrp-clear-vrrp-statistics {
+    description "clear vrrp statistics";
+    reference "";
+    }
+
+    rpc vrrp-clear-vrrp-ipv4-statistics {
+    description "clear vrrp ipv4 statistics";
+    reference "";
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf vrrpid  {
+                type cml_data_types:CML_INT32_T {
+                    range "1..255";
+                }
+
+                mandatory true;
+                description "";
+            }
+            leaf ifName  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc vrrp-clear-vrrp-ipv6-statistics {
+    description "clear vrrp ipv6 statistics";
+    reference "";
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf vrrp6id  {
+                type cml_data_types:CML_INT32_T {
+                    range "1..255";
+                }
+
+                mandatory true;
+                description "";
+            }
+            leaf ifName  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+        }
     }
 
     rpc plist-clear-ip-prefix {
@@ -1703,9 +1851,7 @@ module zebos {
                 description "";
             }
             leaf name  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1724,9 +1870,7 @@ module zebos {
                 description "";
             }
             leaf name  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1764,9 +1908,7 @@ module zebos {
                 description "";
             }
             leaf name  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1785,9 +1927,7 @@ module zebos {
                 description "";
             }
             leaf name  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1834,9 +1974,7 @@ module zebos {
                 description "";
             }
             leaf SystemID  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1868,9 +2006,7 @@ module zebos {
                 description "";
             }
             leaf isisInstanceTag  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1895,9 +2031,7 @@ module zebos {
                 description "";
             }
             leaf isisInstanceTag  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1922,9 +2056,7 @@ module zebos {
                 description "";
             }
             leaf isisInstanceTag  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1956,9 +2088,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -1983,9 +2113,7 @@ module zebos {
                 description "";
             }
             leaf adjvrfname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2004,9 +2132,7 @@ module zebos {
                 description "";
             }
             leaf tagname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2018,9 +2144,7 @@ module zebos {
                 description "";
             }
             leaf adjvrfname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2039,25 +2163,19 @@ module zebos {
                 description "";
             }
             leaf tagname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf tagifname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf adjvrfname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2076,17 +2194,13 @@ module zebos {
                 description "";
             }
             leaf adjifname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf adjvrfname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2105,25 +2219,19 @@ module zebos {
                 description "";
             }
             leaf tagname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf tagsystemid  {
-                type cml_data_types:CML_ISIS_SYSTEMID_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_ISIS_SYSTEMID_T;
 
                 mandatory true;
                 description "";
             }
             leaf tagvrfname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2142,17 +2250,13 @@ module zebos {
                 description "";
             }
             leaf adjsystemid  {
-                type cml_data_types:CML_ISIS_SYSTEMID_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_ISIS_SYSTEMID_T;
 
                 mandatory true;
                 description "";
             }
             leaf adjvrfname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2183,9 +2287,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2216,9 +2318,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2243,9 +2343,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2283,9 +2381,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2311,9 +2407,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2339,9 +2433,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2381,9 +2473,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2403,9 +2493,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2479,9 +2567,7 @@ module zebos {
                 description "";
             }
             leaf destIpv4  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2543,9 +2629,7 @@ module zebos {
     reference "";
         input  {
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2558,17 +2642,13 @@ module zebos {
     reference "";
         input  {
             leaf hostname  {
-                type cml_data_types:CML_HOSTPNAME_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_HOSTPNAME_T;
 
                 mandatory true;
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2582,9 +2662,7 @@ module zebos {
     reference "";
         input  {
             leaf user  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2598,9 +2676,7 @@ module zebos {
     reference "";
         input  {
             leaf usernameRSA  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2634,9 +2710,7 @@ module zebos {
     reference "";
         input  {
             leaf usernameDSA  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2682,9 +2756,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2704,9 +2776,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2732,9 +2802,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2754,9 +2822,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2776,9 +2842,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2806,9 +2870,7 @@ module zebos {
     reference "";
         input  {
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2857,9 +2919,7 @@ module zebos {
     reference "";
         input  {
             leaf interface  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2883,17 +2943,13 @@ module zebos {
     reference "";
         input  {
             leaf sourceCMLSEPinterface  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf url  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2913,9 +2969,7 @@ module zebos {
     reference "";
         input  {
             leaf clearCore  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2958,9 +3012,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -2985,9 +3037,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3012,9 +3062,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3045,9 +3093,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3072,9 +3118,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3099,9 +3143,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3126,9 +3168,7 @@ module zebos {
     reference "";
         input  {
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3140,9 +3180,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3155,17 +3193,13 @@ module zebos {
     reference "";
         input  {
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3178,9 +3212,7 @@ module zebos {
     reference "";
         input  {
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3193,9 +3225,7 @@ module zebos {
     reference "";
         input  {
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3214,9 +3244,7 @@ module zebos {
     reference "";
         input  {
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3241,9 +3269,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3256,9 +3282,7 @@ module zebos {
     reference "";
         input  {
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3305,9 +3329,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3326,9 +3348,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3347,9 +3367,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3374,9 +3392,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3406,9 +3422,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3495,9 +3509,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3517,9 +3529,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3544,9 +3554,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3572,9 +3580,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3600,9 +3606,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3634,9 +3638,7 @@ module zebos {
                 description "";
             }
             leaf aclName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3668,9 +3670,7 @@ module zebos {
                 description "";
             }
             leaf aclName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3702,9 +3702,7 @@ module zebos {
                 description "";
             }
             leaf aclName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3736,9 +3734,41 @@ module zebos {
                 description "";
             }
             leaf aclName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc aclinterface-clear-arp-access-list-counters {
+        if-feature feature_list:HAVE_CUSTOM2_ACL;
+    description "clear arp access-list counters";
+    reference "";
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc aclinterface-clear-arp-access-list-name-counters {
+        if-feature feature_list:HAVE_CUSTOM2_ACL;
+    description "clear arp access-list name counters";
+    reference "";
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf aclName  {
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3900,9 +3930,7 @@ module zebos {
                 description "";
             }
             leaf trillId  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3934,9 +3962,7 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3956,9 +3982,7 @@ module zebos {
                 description "";
             }
             leaf pingname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -3978,9 +4002,7 @@ module zebos {
                 description "";
             }
             leaf pingname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -4006,9 +4028,7 @@ module zebos {
                 description "";
             }
             leaf pingname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -4040,9 +4060,7 @@ module zebos {
                 description "";
             }
             leaf pingname  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -4059,7 +4077,7 @@ module zebos {
                 mandatory true;
                 description "";
             }
-            leaf pingtimeout  {
+            leaf pingTimeout  {
                 type cml_data_types:CML_UINT32_T;
 
                 mandatory true;
@@ -4080,9 +4098,7 @@ module zebos {
                 description "";
             }
             leaf traceRoute  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -4102,9 +4118,7 @@ module zebos {
                 description "";
             }
             leaf traceRoute  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -4130,17 +4144,13 @@ module zebos {
                 description "";
             }
             leaf traceRoute  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf vlanVal  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -4160,17 +4170,13 @@ module zebos {
                 description "";
             }
             leaf traceRoute  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf multicastName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
@@ -4201,9 +4207,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_VRF_NAME_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_VRF_NAME_T;
 
                 mandatory true;
                 description "";
@@ -4222,17 +4226,13 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_VRF_NAME_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_VRF_NAME_T;
 
                 mandatory true;
                 description "";
@@ -4257,9 +4257,7 @@ module zebos {
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_VRF_NAME_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_VRF_NAME_T;
 
                 mandatory true;
                 description "";
@@ -4278,17 +4276,13 @@ module zebos {
                 description "";
             }
             leaf ifName  {
-                type cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_STRING_T;
 
                 mandatory true;
                 description "";
             }
             leaf vrfName  {
-                type cml_data_types:CML_VRF_NAME_T {
-                    length "0..255";
-                }
+                type cml_data_types:CML_VRF_NAME_T;
 
                 mandatory true;
                 description "";
@@ -4341,6 +4335,120 @@ module zebos {
     }
 
     rpc nat-clear {
+    description "";
+    reference "";
+    }
+
+    rpc vm-reloadvm {
+        if-feature feature_list:HAVE_GUEST_VM;
+    description "";
+    reference "";
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf vmTemplateName  {
+                type cml_data_types:CML_STRING_T {
+                    length "1..16";
+                }
+
+                mandatory true;
+                description "";
+            }
+            leaf reloadvm  {
+                type cml_data_types:CML_BOOL_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf vmName  {
+                type cml_data_types:CML_STRING_T {
+                    length "1..16";
+                }
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc vm-stopvm {
+        if-feature feature_list:HAVE_GUEST_VM;
+    description "";
+    reference "";
+        input  {
+            leaf vrId  {
+                type cml_data_types:CML_UINT32_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf stopvm  {
+                type cml_data_types:CML_BOOL_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf vmName  {
+                type cml_data_types:CML_STRING_T {
+                    length "1..16";
+                }
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc sysupdate-install {
+    description "";
+    reference "";
+        input  {
+            leaf installerName  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc sysupdate-get {
+    description "";
+    reference "";
+        input  {
+            leaf sourceInterface  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+            leaf url  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc sysupdate-remove {
+    description "";
+    reference "";
+        input  {
+            leaf imageName  {
+                type cml_data_types:CML_STRING_T;
+
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc sysupdate-cancel-download {
     description "";
     reference "";
     }
@@ -4437,13 +4545,87 @@ module zebos {
         }
     }
 
+    notification warning-TCAM-Util-Notif {
+
+        description "The warningTCAMUtilNotif is generated         when number of entries in TCAM group crosses the warning threshold limit..";
+
+        leaf groupId {
+            type string;
+    description "A unique number corresponding to each TCAM group.";
+        }
+
+        leaf groupName {
+            type string;
+    description "TCAM group name.";
+        }
+
+        leaf usedPercent {
+            type string;
+    description "Percentage of entries used in the TCAM group.
+              Value of -1 means the field is not applicable.";
+        }
+
+        leaf freeEntries {
+            type string;
+    description "Count of free entries in the TCAM group.
+              Value of -1 means the field is not applicable.";
+        }
+    }
+
+    notification critical-TCAM-Util-Notif {
+
+        description "The criticalTCAMUtilNotif is generated         when number of entries in TCAM group crosses the critical threshold limit..";
+
+        leaf groupId {
+            type string;
+    description "A unique number corresponding to each TCAM group.";
+        }
+
+        leaf groupName {
+            type string;
+    description "TCAM group name.";
+        }
+
+        leaf usedPercent {
+            type string;
+    description "Percentage of entries used in the TCAM group.
+              Value of -1 means the field is not applicable.";
+        }
+
+        leaf freeEntries {
+            type string;
+    description "Count of free entries in the TCAM group.
+              Value of -1 means the field is not applicable.";
+        }
+    }
+
+    notification topologyChange {
+
+        description "A topologyChange trap is sent by a bridge when any of its configured ports transitions from the Learning state to the Forwarding state, or from the Forwarding state to the Blocking state..";
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
+    notification newRoot {
+
+        description "The newRoot trap indicates that the sending agent has become the new root of the Spanning Tree..";
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
     notification bgp-peer-state {
 
         description "bgp Peer State..";
 
         leaf peerAddr {
             type string;
-    description "The peer address or Tag";
+    description "The peer address or Tag or Interface Name";
         }
 
         leaf bgpAs {
@@ -4478,7 +4660,7 @@ module zebos {
 
         leaf peerAddr {
             type string;
-    description "The peer address or Tag";
+    description "The peer address or Tag or Interface Name";
         }
 
         leaf bgpAs {
@@ -4499,6 +4681,36 @@ module zebos {
         leaf maxPrefixes {
             type string;
     description "Maximum number of prefixes <1-4294967295>";
+        }
+    }
+
+    notification extended-nexthop-encoding {
+
+        description "Extended-Nexthop-Encoding Toggle.";
+
+        leaf peerAddr {
+            type string;
+    description "The peer address or Tag or Interface Name";
+        }
+
+        leaf bgpAs {
+            type string;
+    description "AS number";
+        }
+
+        leaf vrId {
+            type string;
+    description "Virtual router id";
+        }
+
+        leaf vrfName {
+            type string;
+    description "vrf name";
+        }
+
+        leaf extendedNexthopEncodingCapability {
+            type string;
+    description "";
         }
     }
 
@@ -6565,6 +6777,11 @@ module zebos {
             type string;
     description "Serial number provided by vendor. Blank indicates unavailable.";
         }
+
+        leaf cmmTransconnectortype {
+            type string;
+    description "Connector type for the transceiver.";
+        }
     }
 
     notification cmmTransAlertTransceiverRemoved {
@@ -6595,6 +6812,11 @@ module zebos {
             type string;
     description "Serial number provided by vendor. Blank indicates unavailable.";
         }
+
+        leaf cmmTransconnectortype {
+            type string;
+    description "Connector type for the transceiver.";
+        }
     }
 
     notification cmmTransAlertFaultyTransceiverInserted {
@@ -6614,6 +6836,1641 @@ module zebos {
         leaf cmmTransType {
             type string;
     description "Type of the transceiver SFP/QSFP.";
+        }
+    }
+
+    notification cmmAlertIncompatibleTransceiverPresence {
+
+        description "Set when Incompatible Trasceiver is Present..";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+    }
+
+    notification cmmNotifyIncompatibleTransceiverRemoved {
+
+        description "Set when Incompatible Trasceiver is Removed..";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+    }
+
+    notification cmmTransAlertPreFecBerErrHigh {
+
+        description "Notification sent when FEC bit error rate falls above alert max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransPreFecBerVal {
+            type string;
+    description "Forward error correction bit error rate value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransPreFecBerAlertMax {
+            type string;
+    description "Max alert value for pre-forward error correction ber, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransPreFecBerAlertMin {
+            type string;
+    description "Min alert value for pre-forward error correction ber, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertPreFecBerErrLow {
+
+        description "Notification sent when FEC bit error rate falls below alert min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransPreFecBerVal {
+            type string;
+    description "Forward error correction bit error rate value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransPreFecBerAlertMax {
+            type string;
+    description "Max alert value for pre-forward error correction ber, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransPreFecBerAlertMin {
+            type string;
+    description "Min alert value for pre-forward error correction ber, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalPreFecBerErrHigh {
+
+        description "Notification sent when FEC bit error rate falls above critical max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransPreFecBerVal {
+            type string;
+    description "Forward error correction bit error rate value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransPreFecBerCriticMax {
+            type string;
+    description "Max critical value for pre-forward error correction ber, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransPreFecBerCriticMin {
+            type string;
+    description "Min critical value for pre-forward error correction ber, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalPreFecBerErrLow {
+
+        description "Notification sent when FEC bit error rate falls below critical min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransPreFecBerVal {
+            type string;
+    description "Forward error correction bit error rate value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransPreFecBerCriticMax {
+            type string;
+    description "Max critical value for pre-forward error correction ber, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransPreFecBerCriticMin {
+            type string;
+    description "Min critical value for pre-forward error correction ber, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransNotifyTransceiverPreFecBerRecovered {
+
+        description "Set when FEC bit error rate of transceiver is recovered from BER fault.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransPreFecBerVal {
+            type string;
+    description "Forward error correction bit error rate value, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertFerHigh {
+
+        description "Notification sent when Frame Error Rate falls above alert max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransFerVal {
+            type string;
+    description "Frame error rate value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransFerValAlertMax {
+            type string;
+    description "Max alert value for Frame error rate, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransFerValAlertMin {
+            type string;
+    description "Min alert value for Frame error rate, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertFerLow {
+
+        description "Notification sent when Frame Error Rate falls below alert min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransFerVal {
+            type string;
+    description "Frame error rate value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransFerValAlertMax {
+            type string;
+    description "Max alert value for Frame error rate, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransFerValAlertMin {
+            type string;
+    description "Min alert value for Frame error rate, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalFerHigh {
+
+        description "Notification sent when Frame Error Rate falls above critical max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransFerVal {
+            type string;
+    description "Frame error rate value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransFerValCriticMax {
+            type string;
+    description "Max critical value for Frame error rate, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransFerValCriticMin {
+            type string;
+    description "Min critical value for Frame error rate, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalFerLow {
+
+        description "Notification sent when Frame Error Rate falls below critical min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransFerVal {
+            type string;
+    description "Frame error rate value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransFerValCriticMax {
+            type string;
+    description "Max critical value for Frame error rate, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransFerValCriticMin {
+            type string;
+    description "Min critical value for Frame error rate, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransNotifyTransceiverFerrecovered {
+
+        description "Set when Frame Error Rate transceiver is recovered from BER fault.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransFerVal {
+            type string;
+    description "Frame error rate value, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertSnrHigh {
+
+        description "Notification sent when SNR falls above alert max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransSnrVal {
+            type string;
+    description "Signal to noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransSnrAlertMax {
+            type string;
+    description "Max alert value for signal-to-noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransSnrAlertMin {
+            type string;
+    description "Min alert value for signal-to-noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertSnrLow {
+
+        description "Notification sent when SNR falls below alert min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransSnrVal {
+            type string;
+    description "Signal to noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransSnrAlertMax {
+            type string;
+    description "Max alert value for signal-to-noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransSnrAlertMin {
+            type string;
+    description "Min alert value for signal-to-noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalSnrHigh {
+
+        description "Notification sent when SNR falls above critical max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransSnrVal {
+            type string;
+    description "Signal to noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransSnrCriticMax {
+            type string;
+    description "Max critical value for signal-to-noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransSnrCriticMin {
+            type string;
+    description "Min critical value for signal-to-noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalSnrLow {
+
+        description "Notification sent when SNR falls below critical min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransSnrVal {
+            type string;
+    description "Signal to noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransSnrCriticMax {
+            type string;
+    description "Max critical value for signal-to-noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransSnrCriticMin {
+            type string;
+    description "Min critical value for signal-to-noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransNotifyTransceiverSnrRecovered {
+
+        description "Set when SNR of transceiver is recovered from SNR fault.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransSnrVal {
+            type string;
+    description "Signal to noise ratio on ingress lane, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertResIsiHigh {
+
+        description "Notification sent when residual-isi falls above alert max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransResIsiVal {
+            type string;
+    description "Residual-isi value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransResIsiAlertMax {
+            type string;
+    description "Max alert value for residual-isi, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransResIsiAlertMin {
+            type string;
+    description "Min alert value for residual-isi, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertResIsiLow {
+
+        description "Notification sent when residual-isi falls below alert min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransResIsiVal {
+            type string;
+    description "Residual-isi value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransResIsiAlertMax {
+            type string;
+    description "Max alert value for residual-isi, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransResIsiAlertMin {
+            type string;
+    description "Min alert value for residual-isi, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalresIsiHigh {
+
+        description "Notification sent when residual-isi falls above critical max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransResIsiVal {
+            type string;
+    description "Residual-isi value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransResIsiCriticMax {
+            type string;
+    description "Max critical value for residual-isi, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransResIsiCriticMin {
+            type string;
+    description "Min critical value for residual-isi, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalresIsiLow {
+
+        description "Notification sent when residual-isi falls below critical min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransResIsiVal {
+            type string;
+    description "Residual-isi value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransResIsiCriticMax {
+            type string;
+    description "Max critical value for residual-isi, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransResIsiCriticMin {
+            type string;
+    description "Min critical value for residual-isi, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransNotifyTransceiverResIsiRecovered {
+
+        description "Set when residual-isi of transceiver is recovered from residual-isi fault.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransResIsiVal {
+            type string;
+    description "Residual-isi value, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertLvlTranHigh {
+
+        description "Notification sent when level transition falls above alert max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLvlTransVal {
+            type string;
+    description "Level transition value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLvlTransAlertMax {
+            type string;
+    description "Max alert value for level transition, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLvlTransAlertMin {
+            type string;
+    description "Min alert value for level transition, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertLvlTranLow {
+
+        description "Notification sent when level transition falls below alert min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLvlTransVal {
+            type string;
+    description "Level transition value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLvlTransAlertMax {
+            type string;
+    description "Max alert value for level transition, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLvlTransAlertMin {
+            type string;
+    description "Min alert value for level transition, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalLvlTranHigh {
+
+        description "Notification sent when level transition falls above critical max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLvlTransVal {
+            type string;
+    description "Level transition value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLvlTransCriticMax {
+            type string;
+    description "Max critical value for level transition, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLvlTransCriticMin {
+            type string;
+    description "Min critical value for level transition, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalLvlTranLow {
+
+        description "Notification sent when level transition falls below critical min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLvlTransVal {
+            type string;
+    description "Level transition value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLvlTransCriticMax {
+            type string;
+    description "Max critical value for level transition, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLvlTransCriticMin {
+            type string;
+    description "Min critical value for level transition, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransNotifyTransceiverLvlTranRecovered {
+
+        description "Set when level transition of transceiver is recovered from level transition fault.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLvlTransVal {
+            type string;
+    description "Level transition value, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertTecCurrErrHigh {
+
+        description "Notification sent when thermo-electric cooler current falls above alert max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransTecCurrErrVal {
+            type string;
+    description "Thermo-elecrical cooler current value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransTecCurrErrAlertMax {
+            type string;
+    description "Max alert value for thermo-elecrical cooler current, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransTecCurrErrAlertMin {
+            type string;
+    description "Min alert value for thermo-elecrical cooler current, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertTecCurrErrLow {
+
+        description "Notification sent when thermo-electric cooler current falls below alert min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransTecCurrErrVal {
+            type string;
+    description "Thermo-elecrical cooler current value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransTecCurrErrAlertMax {
+            type string;
+    description "Max alert value for thermo-elecrical cooler current, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransTecCurrErrAlertMin {
+            type string;
+    description "Min alert value for thermo-elecrical cooler current, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalTecCurrErrHigh {
+
+        description "Notification sent when thermo-electric cooler current falls above critical max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransTecCurrErrVal {
+            type string;
+    description "Thermo-elecrical cooler current value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransTecCurrErrCriticMax {
+            type string;
+    description "Max critical value for thermo-elecrical cooler current, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransTecCurrErrCriticMin {
+            type string;
+    description "Min critical value for thermo-elecrical cooler current, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalTecCurrErrLow {
+
+        description "Notification sent when thermo-electric cooler current falls below critical min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransTecCurrErrVal {
+            type string;
+    description "Thermo-elecrical cooler current value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransTecCurrErrCriticMax {
+            type string;
+    description "Max critical value for thermo-elecrical cooler current, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransTecCurrErrCriticMin {
+            type string;
+    description "Min critical value for thermo-elecrical cooler current, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransNotifyTransceiverTecCurrErrRecovered {
+
+        description "Set when thermo-electric cooler current of transceiver is recovered thermo-electric cooler current fault.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransTecCurrErrVal {
+            type string;
+    description "Thermo-elecrical cooler current value, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertLaserTempValHigh {
+
+        description "Notification sent when laser temperature falls above alert max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLaserTempVal {
+            type string;
+    description "Laser Temparature value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLaserTempAlertMax {
+            type string;
+    description "Max alert value for Laser Temperature, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLaserTempAlertMin {
+            type string;
+    description "Min alert value for Laser Temperature, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransAlertLaserTempValLow {
+
+        description "Notification sent when laser temperature falls below alert min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLaserTempVal {
+            type string;
+    description "Laser Temparature value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLaserTempAlertMax {
+            type string;
+    description "Max alert value for Laser Temperature, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLaserTempAlertMin {
+            type string;
+    description "Min alert value for Laser Temperature, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalLaserTempValHigh {
+
+        description "Notification sent when laser temperature falls above crictical max value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLaserTempVal {
+            type string;
+    description "Laser Temparature value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLaserTempCriticMax {
+            type string;
+    description "Max critical value for Laser Temperature, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLaserTempCriticMin {
+            type string;
+    description "Min critical value for Laser Temperature, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransCriticalLaserTempValLow {
+
+        description "Notification sent when laser temperature falls below critical min value.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLaserTempVal {
+            type string;
+    description "Laser Temparature value, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLaserTempCriticMax {
+            type string;
+    description "Max critical value for Laser Temperature, -100002' indicates not-applicable";
+        }
+
+        leaf cmmTransLaserTempCriticMin {
+            type string;
+    description "Min critical value for Laser Temperature, -100002' indicates not-applicable";
+        }
+    }
+
+    notification cmmTransNotifyTransceiverLaserTempRecovered {
+
+        description "Set when laser temperature of transceiver is recovered from temperature fault.";
+
+        leaf cmmTransIndex {
+            type string;
+    description "A unique index for each slot within the unit.";
+        }
+
+        leaf cmmStackUnitIndex {
+            type string;
+    description "The unique index for this entry.Refer to the object cmmStackUnitIndexNext.";
+        }
+
+        leaf cmmTransType {
+            type string;
+    description "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf cmmTransChannelIndex {
+            type string;
+    description "A unique value, greater than zero, for each channel in the transceiver within the unit.For SFP transceivers, only channel '1' is applicable.";
+        }
+
+        leaf cmmTransLaserTempVal {
+            type string;
+    description "Laser Temparature value, -100002' indicates not-applicable";
+        }
+    }
+
+    notification SysUpdateInstallation {
+
+        description "This system update event is generated when the software installation starts and ends..";
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
+    notification SysUpdateDownloadStatus {
+
+        description "This software installer download status event is generated when the download operation is complete..";
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
+    notification cpuQueueFull {
+
+        description "notification to send information when CPU queue is full..";
+
+        leaf queueId {
+            type string;
+    description "cpuqueueId is a unique number representing each queue in CPU";
+        }
+
+        leaf queueName {
+            type string;
+    description "Queue Name corresponding to the QueueId.";
+        }
+
+        leaf ratePercent {
+            type string;
+    description "Percentage of control packets transmitted in the CPU queue.
+            Value of -1 indicates rate percentage is not applicable.";
+        }
+
+        leaf txPktRate {
+            type string;
+    description "The number of Tx Pkts transmitted from the corresponding CPU queue.";
+        }
+
+        leaf lastIncrementCnt {
+            type string;
+    description "The number of Last Dropped Pkts in the corresponding CPU queue.
+            This is Updated at every 5sec interval.";
+        }
+
+        leaf lastIncrementTime {
+            type string;
+    description "Last increment time of Tx Dropped Packets in CPU Queue.
+             This is Updated at every 5sec interval.";
+        }
+    }
+
+    notification cpuQueueHigh {
+
+        description "notification to send information when CPU queue is high crossing threshold of 90%..";
+
+        leaf queueId {
+            type string;
+    description "cpuqueueId is a unique number representing each queue in CPU";
+        }
+
+        leaf queueName {
+            type string;
+    description "Queue Name corresponding to the QueueId.";
+        }
+
+        leaf ratePercent {
+            type string;
+    description "Percentage of control packets transmitted in the CPU queue.
+            Value of -1 indicates rate percentage is not applicable.";
+        }
+
+        leaf txPktRate {
+            type string;
+    description "The number of Tx Pkts transmitted from the corresponding CPU queue.";
+        }
+    }
+
+    notification cpuQueueRecovery {
+
+        description "notification to send information when CPU queue is recovered from full/high..";
+
+        leaf queueId {
+            type string;
+    description "cpuqueueId is a unique number representing each queue in CPU";
+        }
+
+        leaf queueName {
+            type string;
+    description "Queue Name corresponding to the QueueId.";
+        }
+
+        leaf ratePercent {
+            type string;
+    description "Percentage of control packets transmitted in the CPU queue.
+            Value of -1 indicates rate percentage is not applicable.";
+        }
+    }
+
+    notification cpuCRCErrorPkts {
+
+        description "notification to send information for CRC error packets received on the cpu interface..";
+
+        leaf badCrc {
+            type string;
+    description "Last increment time of Bad CRC packets.
+             This is Updated at every 5sec interval.";
+        }
+    }
+
+    notification cpuUndersizeErrorPkts {
+
+        description "notification to send information for undersize error packets received on the cpu interface..";
+
+        leaf undersizePkts {
+            type string;
+    description "Last inbound packets discarded whose size are less than
+             64 octets (which exclude framing bits, but include the FCS)
+             and have a good FCS value.
+             This is Updated at every 5sec interval.";
+        }
+    }
+
+    notification cpuOversizeErrorPkts {
+
+        description "notification to send information for oversize error packets received on the cpu interface..";
+
+        leaf mtuExceed {
+            type string;
+    description "Rx Oversize Packets";
+        }
+    }
+
+    notification cpuFragementErrorPkts {
+
+        description "notification to send information for fragment error packets received on the cpu interface..";
+
+        leaf fragmentsPkts {
+            type string;
+    description "Last inbound packets discarded whose size are less than
+             64 octets (which exclude framing bits, but include the FCS)
+             and have a bad FCS value.
+             This is Updated at every 5sec interval.";
+        }
+    }
+
+    notification cpuJabberErrorPkts {
+
+        description "notification to send information for jabber error packets received on the cpu interface..";
+
+        leaf jabberPkts {
+            type string;
+    description "Last inbound packets whose size are more than maximum
+            transmission unit size (which excludes framing bits, but include
+            FCS) and have a bad FCS value.
+            This is Updated at every 5sec interval.";
+        }
+    }
+
+    notification ifCRCErrorPkts {
+
+        description "notification to send information for CRC error packets received on the interface..";
+
+        leaf ifName {
+            type string;
+    description "The textual name of the interface. The value of this object should be the name of the interface as assigned by the local device and should be suitable for use in commands entered at the device's `console'. This might be a text name, such as `le0' or a simple port number, such as `1', depending on the interface naming syntax of the device. If several entries in the ifTable together represent a single interface as named by the device, then each will have the same value of ifName. Note that for an agent which responds to SNMP queries concerning an interface on some other (proxied) device, then the value of ifName for such an interface is the proxied device's local name for it. If there is no local name, or this object is otherwise not applicable, then this object contains a zero-length string.";
+        }
+
+        leaf vrId {
+            type string;
+    description "Virtual router id";
+        }
+
+        leaf badCrc {
+            type string;
+    description "Last increment time of Bad CRC packets.
+             This is Updated at every 5sec interval.";
+        }
+    }
+
+    notification ifUndersizeErrorPkts {
+
+        description "notification to send information for undersize error packets received on the interface..";
+
+        leaf ifName {
+            type string;
+    description "The textual name of the interface. The value of this object should be the name of the interface as assigned by the local device and should be suitable for use in commands entered at the device's `console'. This might be a text name, such as `le0' or a simple port number, such as `1', depending on the interface naming syntax of the device. If several entries in the ifTable together represent a single interface as named by the device, then each will have the same value of ifName. Note that for an agent which responds to SNMP queries concerning an interface on some other (proxied) device, then the value of ifName for such an interface is the proxied device's local name for it. If there is no local name, or this object is otherwise not applicable, then this object contains a zero-length string.";
+        }
+
+        leaf vrId {
+            type string;
+    description "Virtual router id";
+        }
+
+        leaf undersizePkts {
+            type string;
+    description "Last inbound packets discarded whose size are less than
+             64 octets (which exclude framing bits, but include the FCS)
+             and have a good FCS value.
+             This is Updated at every 5sec interval.";
+        }
+    }
+
+    notification ifOversizeErrorPkts {
+
+        description "notification to send information for oversize error packets received on the interface..";
+
+        leaf ifName {
+            type string;
+    description "The textual name of the interface. The value of this object should be the name of the interface as assigned by the local device and should be suitable for use in commands entered at the device's `console'. This might be a text name, such as `le0' or a simple port number, such as `1', depending on the interface naming syntax of the device. If several entries in the ifTable together represent a single interface as named by the device, then each will have the same value of ifName. Note that for an agent which responds to SNMP queries concerning an interface on some other (proxied) device, then the value of ifName for such an interface is the proxied device's local name for it. If there is no local name, or this object is otherwise not applicable, then this object contains a zero-length string.";
+        }
+
+        leaf vrId {
+            type string;
+    description "Virtual router id";
+        }
+
+        leaf mtuExceed {
+            type string;
+    description "Rx Oversize Packets";
+        }
+    }
+
+    notification ifFragementErrorPkts {
+
+        description "notification to send information for fragment error packets received on the interface..";
+
+        leaf ifName {
+            type string;
+    description "The textual name of the interface. The value of this object should be the name of the interface as assigned by the local device and should be suitable for use in commands entered at the device's `console'. This might be a text name, such as `le0' or a simple port number, such as `1', depending on the interface naming syntax of the device. If several entries in the ifTable together represent a single interface as named by the device, then each will have the same value of ifName. Note that for an agent which responds to SNMP queries concerning an interface on some other (proxied) device, then the value of ifName for such an interface is the proxied device's local name for it. If there is no local name, or this object is otherwise not applicable, then this object contains a zero-length string.";
+        }
+
+        leaf vrId {
+            type string;
+    description "Virtual router id";
+        }
+
+        leaf fragmentsPkts {
+            type string;
+    description "Last inbound packets discarded whose size are less than
+             64 octets (which exclude framing bits, but include the FCS)
+             and have a bad FCS value.
+             This is Updated at every 5sec interval.";
+        }
+    }
+
+    notification ifJabberErrorPkts {
+
+        description "notification to send information for jabber error packets received on the interface..";
+
+        leaf ifName {
+            type string;
+    description "The textual name of the interface. The value of this object should be the name of the interface as assigned by the local device and should be suitable for use in commands entered at the device's `console'. This might be a text name, such as `le0' or a simple port number, such as `1', depending on the interface naming syntax of the device. If several entries in the ifTable together represent a single interface as named by the device, then each will have the same value of ifName. Note that for an agent which responds to SNMP queries concerning an interface on some other (proxied) device, then the value of ifName for such an interface is the proxied device's local name for it. If there is no local name, or this object is otherwise not applicable, then this object contains a zero-length string.";
+        }
+
+        leaf vrId {
+            type string;
+    description "Virtual router id";
+        }
+
+        leaf jabberPkts {
+            type string;
+    description "Last inbound packets whose size are more than maximum
+            transmission unit size (which excludes framing bits, but include
+            FCS) and have a bad FCS value.
+            This is Updated at every 5sec interval.";
         }
     }
 
