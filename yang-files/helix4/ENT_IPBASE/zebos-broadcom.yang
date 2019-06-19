@@ -76,18 +76,6 @@ submodule zebos-broadcom {
                 value 6;
                 description "Source and Destination IP address based load balancing";
             }
-            enum src-port {
-                value 7;
-                description "Source TCP/UDP port based load balancing";
-            }
-            enum dst-port {
-                value 8;
-                description "Destination TCP/UDP port based load balancing";
-            }
-            enum src-dst-port {
-                value 9;
-                description "Source and Destination TCP/UDP port based load balancing";
-            }
             enum rtag7 {
                 value 12;
                 description "rtag7 hashing based on pkt type";
@@ -95,7 +83,57 @@ submodule zebos-broadcom {
         }
         description "";
         reference "";
-    }
+    }    grouping customProfileL2L3 {
+        description
+            "Attributes for configuring custom profile for tmh or tmh2";
+        leaf customL2Bank  {
+            type  cml_data_types:CML_UINT8_T {
+                 range "1..24";
+            }
+            description "";
+        } // END of customL2Bank definition.
+
+        leaf customL3Bank  {
+            type  cml_data_types:CML_UINT8_T {
+                 range "1..23";
+            }
+            description "";
+        } // END of customL3Bank definition.
+
+        leaf customDefault  {
+            type  cml_data_types:CML_BOOL_T;
+            description "";
+        } // END of customDefault definition.
+
+    } // END of customProfileL2L3 definition.
+    grouping customProfileLpmDefault {
+        description
+            "Attributes for configuring custom profile for tmh or tmh2";
+        leaf customLpmBank  {
+            type  cml_data_types:CML_FORWARDING_CUSTOM_PROFILE_LPM_T;
+            description "";
+        } // END of customLpmBank definition.
+
+    } // END of customProfileLpmDefault definition.
+    grouping customProfileVlanDefault {
+        description
+            "Attributes for configuring custom profile for helix";
+        leaf customVlanXlateBank  {
+            type  cml_data_types:CML_UINT8_T {
+                 range "1..23";
+            }
+            description "";
+        } // END of customVlanXlateBank definition.
+
+        leaf customEpVlanXlateBank  {
+            type  cml_data_types:CML_UINT8_T {
+                 range "1..23";
+            }
+            description "";
+        } // END of customEpVlanXlateBank definition.
+
+    } // END of customProfileVlanDefault definition.
+
     grouping  libhwconf-grouping {
     description
         "Global configs for router";
@@ -134,24 +172,11 @@ submodule zebos-broadcom {
 
         leaf hardwareProfileEgressIpv6Acl  {
             if-feature feature_list:HAVE_ACL;
+            if-feature feature_list:NOT_HAVE_DUNE;
             type  cml_data_types:CML_ENABLE_DISABLE_T;
             default "enable";
             description "";
         } // END of hardwareProfileEgressIpv6Acl definition.
-
-        leaf hardwareProfileEgressIpv6Uft  {
-            if-feature feature_list:HAVE_BCM_UFT;
-            type  cml_data_types:CML_ENABLE_DISABLE_T;
-            default "enable";
-            description "";
-        } // END of hardwareProfileEgressIpv6Uft definition.
-
-        leaf hardwareProfileIngressIpv4Uft  {
-            if-feature feature_list:HAVE_BCM_UFT;
-            type  cml_data_types:CML_ENABLE_DISABLE_T;
-            default "enable";
-            description "";
-        } // END of hardwareProfileIngressIpv4Uft definition.
 
         leaf hardwareProfileIngressIpv4Acl  {
             if-feature feature_list:HAVE_ACL;
@@ -162,6 +187,7 @@ submodule zebos-broadcom {
 
         leaf hardwareProfileIngressArp  {
             if-feature feature_list:HAVE_ACL;
+            if-feature feature_list:NOT_HAVE_DUNE;
             type  cml_data_types:CML_ENABLE_DISABLE_T;
             default "disable";
             description "set Hardware profile,filter type,ingress arp";
@@ -177,33 +203,33 @@ submodule zebos-broadcom {
 
         leaf hardwareProfileQosGroup  {
             if-feature feature_list:HAVE_DUNE;
-            if-feature feature_list:HAVE_BCM_UFT;
+            if-feature feature_list:HAVE_ACL;
             type  cml_data_types:CML_ENABLE_DISABLE_T;
-            default "enable";
+            default "disable";
             description "";
         } // END of hardwareProfileQosGroup definition.
 
         leaf hardwareProfileEgressIpv4  {
             if-feature feature_list:HAVE_DUNE;
-            if-feature feature_list:HAVE_BCM_UFT;
+            if-feature feature_list:HAVE_ACL;
             type  cml_data_types:CML_ENABLE_DISABLE_T;
-            default "enable";
+            default "disable";
             description "";
         } // END of hardwareProfileEgressIpv4 definition.
 
         leaf hardwareProfileEgressL2Group  {
             if-feature feature_list:HAVE_DUNE;
-            if-feature feature_list:HAVE_BCM_UFT;
+            if-feature feature_list:HAVE_ACL;
             type  cml_data_types:CML_ENABLE_DISABLE_T;
-            default "enable";
+            default "disable";
             description "";
         } // END of hardwareProfileEgressL2Group definition.
 
         leaf hardwareProfileIngressL2Group  {
             if-feature feature_list:HAVE_DUNE;
-            if-feature feature_list:HAVE_BCM_UFT;
+            if-feature feature_list:HAVE_ACL;
             type  cml_data_types:CML_ENABLE_DISABLE_T;
-            default "enable";
+            default "disable";
             description "";
         } // END of hardwareProfileIngressL2Group definition.
 
@@ -214,6 +240,13 @@ submodule zebos-broadcom {
             default "enable";
             description "";
         } // END of hardwareProfilePauseGroup definition.
+
+        leaf hardwareProfileMicroBfd  {
+            if-feature feature_list:HAVE_CUSTOM1_HW_BFD;
+            type  cml_data_types:CML_ENABLE_DISABLE_T;
+            default "enable";
+            description "";
+        } // END of hardwareProfileMicroBfd definition.
 
         leaf hardwareProfileStatisticsIngAcl  {
             if-feature feature_list:HAVE_MPLS_STATS;
@@ -247,6 +280,15 @@ submodule zebos-broadcom {
             description "";
         } // END of hardwareProfileStatisticsMplsPwe definition.
 
+        container forwardingCustomProfile {
+            if-feature feature_list:HAVE_HELIX4;
+            if-feature feature_list:HAVE_BCM_UFT;
+            if-feature feature_list:NOT_HAVE_MPLS;
+            description
+                "Configures forwarding custom profile for helix4";
+            uses customProfileL2L3;
+            uses customProfileVlanDefault;
+        } // END of forwardingCustomProfile-container definition.
         container forwardingProfileTableLimit {
             if-feature feature_list:HAVE_BCM_UFT;
             config false;
@@ -393,7 +435,7 @@ submodule zebos-broadcom {
             description
                 "Load Balancing";
             leaf loadBalance  {
-                type  cml_data_types:CML_BOOL_T;
+                type  cml_data_types:CML_LIBHWCONF_LOADBALANCE;
                 mandatory true;
                 description "This Object is set loadBalance";
             } // END of loadBalance definition.
@@ -403,22 +445,22 @@ submodule zebos-broadcom {
                 description
                     "Load balancing on L2 packet";
                 leaf l2destMac  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Destination Mac address based load balancing";
                 } // END of l2destMac definition.
 
                 leaf l2srcMac  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Source Mac address based load balancing";
                 } // END of l2srcMac definition.
 
                 leaf l2etherType  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Ether-type based load balancing";
                 } // END of l2etherType definition.
 
                 leaf l2vlan  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Vlan based load balancing";
                 } // END of l2vlan definition.
 
@@ -428,29 +470,34 @@ submodule zebos-broadcom {
                 description
                     "Load balancing on L2 packet";
                 leaf l3srcIpv4  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Source IPV4 based load balancing";
                 } // END of l3srcIpv4 definition.
 
                 leaf l3destIpv4  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Destination IPV4 based load balancing";
                 } // END of l3destIpv4 definition.
 
                 leaf l3srcl4Port  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Source L4 port based load balancing";
                 } // END of l3srcl4Port definition.
 
                 leaf l3destl4Port  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Destination L4 port based load balancing";
                 } // END of l3destl4Port definition.
 
                 leaf l3protocolId  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Protocol Id based load balancing";
                 } // END of l3protocolId definition.
+
+                leaf l3symmetricIpv4  {
+                    type  cml_data_types:CML_EMPTY_T;
+                    description "Symmetric load balancing";
+                } // END of l3symmetricIpv4 definition.
 
             } // END of l3Ipv4-container definition.
             container l3Ipv6 {
@@ -458,29 +505,34 @@ submodule zebos-broadcom {
                 description
                     "Load balancing on L2 packet";
                 leaf l3srcIpv6  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Source IPV6 based load balancing";
                 } // END of l3srcIpv6 definition.
 
                 leaf l3destIpv6  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Destination IPV6 based load balancing";
                 } // END of l3destIpv6 definition.
 
                 leaf l3srcl6Port  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Source L4 port based load balancing";
                 } // END of l3srcl6Port definition.
 
                 leaf l3destl6Port  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Destination L4 port based load balancing";
                 } // END of l3destl6Port definition.
 
                 leaf l3nextHdr  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Next Header Field for IPV6";
                 } // END of l3nextHdr definition.
+
+                leaf l3symmetricIpv6  {
+                    type  cml_data_types:CML_EMPTY_T;
+                    description "Symmetric load balancing";
+                } // END of l3symmetricIpv6 definition.
 
             } // END of l3Ipv6-container definition.
             container tunnel {
@@ -488,7 +540,7 @@ submodule zebos-broadcom {
                 description
                     "Load balancing on L2 packet";
                 leaf outerl3Header  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Usedto set Load balance tunneled packets based on outer header";
                 } // END of outerl3Header definition.
 
@@ -516,7 +568,7 @@ submodule zebos-broadcom {
                 description
                     "macro-flow based dynamic hash selection";
                 leaf macroflow  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "macro-flow based dynamic hash selection";
                 } // END of macroflow definition.
 
@@ -526,12 +578,12 @@ submodule zebos-broadcom {
                 description
                     "Load balancing on vxlan L2 packet";
                 leaf vxlandestMac  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "vxlan Destination Mac address based load balancing";
                 } // END of vxlandestMac definition.
 
                 leaf vxlansrcMac  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "vxlan Source Mac address based load balancing";
                 } // END of vxlansrcMac definition.
 
@@ -541,27 +593,27 @@ submodule zebos-broadcom {
                 description
                     "Load balancing on vxlan L3 packet";
                 leaf vxlansrcIp  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "vxlan Source IP";
                 } // END of vxlansrcIp definition.
 
                 leaf vxlandestIp  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "vxlan Destination IP";
                 } // END of vxlandestIp definition.
 
                 leaf vxlansrcl4Port  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "vxlan Source l4 port";
                 } // END of vxlansrcl4Port definition.
 
                 leaf vxlandestl4Port  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "vxlan Destination l4 port";
                 } // END of vxlandestl4Port definition.
 
                 leaf vxlanprotocolId  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "vxlan Protocol Id";
                 } // END of vxlanprotocolId definition.
 
@@ -571,22 +623,22 @@ submodule zebos-broadcom {
                 description
                     "Load balancing on L2 packet";
                 leaf mplsdestMac  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "mpls destination Mac address based load balancing";
                 } // END of mplsdestMac definition.
 
                 leaf mplssrcMac  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "mpls source Mac address based load balancing";
                 } // END of mplssrcMac definition.
 
                 leaf mplsetherType  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "mpls Ether-type based load balancing";
                 } // END of mplsetherType definition.
 
                 leaf mplsvlan  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "mpls Vlan based load balancing";
                 } // END of mplsvlan definition.
 
@@ -596,27 +648,27 @@ submodule zebos-broadcom {
                 description
                     "Load balancing on L2 packet";
                 leaf mplssrcIpv6  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Source IP";
                 } // END of mplssrcIpv6 definition.
 
                 leaf mplsdestIpv6  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Destination IP";
                 } // END of mplsdestIpv6 definition.
 
                 leaf mplssrcl4Port  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Source l4 port";
                 } // END of mplssrcl4Port definition.
 
                 leaf mplsdestl4Port  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Destination l4 port";
                 } // END of mplsdestl4Port definition.
 
                 leaf mplsprotocolId  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "Protocol (IPv4)";
                 } // END of mplsprotocolId definition.
 
@@ -626,12 +678,12 @@ submodule zebos-broadcom {
                 description
                     "Load balancing for MPLS";
                 leaf mplsLabels  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "";
                 } // END of mplsLabels definition.
 
                 leaf mplsIpPayload  {
-                    type  cml_data_types:CML_BOOL_T;
+                    type  cml_data_types:CML_EMPTY_T;
                     description "";
                 } // END of mplsIpPayload definition.
 
@@ -640,10 +692,27 @@ submodule zebos-broadcom {
     } // END of libhwconf-container definition.
     } // END of libhwconf-container definition.
 
+    grouping  l2Movement-grouping {
+    description
+        "l2Movement";
+    container l2Movement {
+        description
+            "l2Movement";
+        leaf allowFirstFrame  {
+            if-feature feature_list:NOT_HAVE_DUNE;
+            type  cml_data_types:CML_BOOL_T;
+            description "This Object is used to allow or drop first frame on L2 movement actions
+          ";
+        } // END of allowFirstFrame definition.
+
+    } // END of l2Movement-container definition.
+    } // END of l2Movement-container definition.
+
     grouping  portChannelLoadBalBrcm-grouping {
     description
         "portChannelLoadBalBrcm";
     container portChannelLoadBalBrcm {
+        if-feature feature_list:NOT_HAVE_DUNE;
         description
             "portChannelLoadBalBrcm";
         leaf portChannelLoadBalBrcm  {
@@ -654,6 +723,92 @@ submodule zebos-broadcom {
 
     } // END of portChannelLoadBalBrcm-container definition.
     } // END of portChannelLoadBalBrcm-container definition.
+
+    grouping  hwTCAMutilization-grouping {
+    description
+        "TCAM Utilization information";
+    container hwTCAMutilization {
+        if-feature feature_list:HAVE_ACL;
+        config false;
+        description
+            "TCAM Utilization information";
+        leaf warningThresholdLevel  {
+            type  cml_data_types:CML_INT32_T;
+            description "Warning TCAM threshold level in percentage.
+            Value of -1 means the field is not applicable.";
+        } // END of warningThresholdLevel definition.
+
+        leaf alertThresholdLevel  {
+            type  cml_data_types:CML_INT32_T;
+            description "Alert TCAM threshold level in percentage.
+            Value of -1 means the field is not applicable.";
+        } // END of alertThresholdLevel definition.
+
+
+        list hwTCAMgroups {
+            key "groupId";
+            config false;
+            description
+                "Hardware TCAM group details";
+            leaf groupId  {
+                type  cml_data_types:CML_UINT32_T;
+                description "A unique number corresponding to each TCAM group.";
+            } // END of groupId definition.
+
+            leaf groupName  {
+                type  cml_data_types:CML_STRING_T;
+                description "TCAM group name.";
+            } // END of groupName definition.
+
+            leaf groupStatus  {
+                type  cml_data_types:CML_BOOL_T;
+                description "A flag to indicate if the TCAM group is enabled or not.
+              Value of 0 indicates TCAM group is disabled and 1 indicates 
+              TCAM group is enabled.";
+            } // END of groupStatus definition.
+
+            leaf freeEntries  {
+                type  cml_data_types:CML_INT32_T;
+                description "Count of free entries in the TCAM group.
+              Value of -1 means the field is not applicable.";
+            } // END of freeEntries definition.
+
+            leaf usedPercent  {
+                type  cml_data_types:CML_INT32_T;
+                description "Percentage of entries used in the TCAM group.
+              Value of -1 means the field is not applicable.";
+            } // END of usedPercent definition.
+
+            leaf usedEntries  {
+                type  cml_data_types:CML_INT32_T;
+                description "Count of used entries in the TCAM group.
+              Value of -1 means the field is not applicable.";
+            } // END of usedEntries definition.
+
+            leaf totalEntries  {
+                type  cml_data_types:CML_INT32_T;
+                description "Count of total entries in the TCAM group.
+              Total is summation of dedicated entries and shared entries.
+              Value of -1 means the field is not applicable.";
+            } // END of totalEntries definition.
+
+            leaf dedicatedEntries  {
+                type  cml_data_types:CML_INT32_T;
+                description "Count of total entries dedicated to TCAM group.
+              Dedicated entries are fixed to the TCAM group and are the
+              minimum guaranteed number. Value of -1 means the field
+              is not applicable.";
+            } // END of dedicatedEntries definition.
+
+            leaf sharedEntries  {
+                type  cml_data_types:CML_INT32_T;
+                description "Count of entries which are shared across TCAM groups.
+              Value of -1 means the field is not applicable.";
+            } // END of sharedEntries definition.
+
+        } // End of hwTCAMgroups-list
+    } // END of hwTCAMutilization-container definition.
+    } // END of hwTCAMutilization-container definition.
 
 
 }
