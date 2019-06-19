@@ -53,9 +53,7 @@ submodule zebos-switchportinterface {
             description
                 "staticMac";
             leaf ifName  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type  cml_data_types:CML_STRING_T;
                 description "";
             } // END of ifName definition.
 
@@ -75,9 +73,7 @@ submodule zebos-switchportinterface {
             } // END of svlanId definition.
 
             leaf macAddr  {
-                type  cml_data_types:CML_MAC_ADDR_T {
-                    length "0..255";
-                }
+                type  cml_data_types:CML_MAC_ADDR_T;
                 description "";
             } // END of macAddr definition.
 
@@ -111,25 +107,26 @@ submodule zebos-switchportinterface {
 
         leaf etherType  {
             if-feature feature_list:HAVE_SWFWDR;
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
+            type  cml_data_types:CML_STRING_T;
+            default "";
             description "";
         } // END of etherType definition.
 
+        leaf ethType  {
+            if-feature feature_list:NOT_HAVE_SWFWDR;
+            type  cml_data_types:CML_STRING_T;
+            description "This Object is used to change Ethertype value ";
+        } // END of ethType definition.
+
         leaf uniName  {
             if-feature feature_list:HAVE_PROVIDER_BRIDGE;
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
+            type  cml_data_types:CML_STRING_T;
             description "ethernet uni name";
         } // END of uniName definition.
 
         leaf enniName  {
             if-feature feature_list:HAVE_PROVIDER_BRIDGE;
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
+            type  cml_data_types:CML_STRING_T;
             description "ethernet enni name";
         } // END of enniName definition.
 
@@ -147,9 +144,7 @@ submodule zebos-switchportinterface {
 
         leaf evcId  {
             if-feature feature_list:HAVE_PROVIDER_BRIDGE;
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
+            type  cml_data_types:CML_STRING_T;
             description "";
         } // END of evcId definition.
 
@@ -174,9 +169,7 @@ submodule zebos-switchportinterface {
 
         leaf bridgeId  {
             if-feature feature_list:HAVE_PROVIDER_BRIDGE;
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
+            type  cml_data_types:CML_STRING_T;
             description "";
         } // END of bridgeId definition.
 
@@ -206,9 +199,7 @@ submodule zebos-switchportinterface {
 
             leaf etype  {
                 if-feature feature_list:NOT_HAVE_SWFWDR;
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type  cml_data_types:CML_STRING_T;
                 description "";
             } // END of etype definition.
 
@@ -272,7 +263,7 @@ submodule zebos-switchportinterface {
                     "cvlanTranslation";
                 leaf cvId  {
                     type  cml_data_types:CML_UINT16_T {
-                         range "2..4094";
+                         range "1..4094";
                     }
                     description "default sVlan Id";
                 } // END of cvId definition.
@@ -284,7 +275,7 @@ submodule zebos-switchportinterface {
                         "svlanTranslation";
                     leaf svId  {
                         type  cml_data_types:CML_UINT16_T {
-                             range "2..4094";
+                             range "1..4094";
                         }
                         description "default sVlan Id";
                     } // END of svId definition.
@@ -292,7 +283,7 @@ submodule zebos-switchportinterface {
                     leaf TcVlanId  {
                         if-feature feature_list:NOT_HAVE_SWFWDR;
                         type  cml_data_types:CML_UINT16_T {
-                             range "2..4094";
+                             range "1..4094";
                         }
                         mandatory true;
                         description "default sVlan Id";
@@ -301,7 +292,7 @@ submodule zebos-switchportinterface {
                     leaf TsVlanId  {
                         if-feature feature_list:NOT_HAVE_SWFWDR;
                         type  cml_data_types:CML_UINT16_T {
-                             range "2..4094";
+                             range "1..4094";
                         }
                         mandatory true;
                         description "default sVlan Id";
@@ -343,9 +334,7 @@ submodule zebos-switchportinterface {
                 description
                     "allowedVlan";
                 leaf vlanRange  {
-                    type  cml_data_types:CML_RANGE_T {
-                        length "1..255";
-                    }
+                    type  cml_data_types:CML_RANGE_T;
                     description "VLAN range";
                 } // END of vlanRange definition.
 
@@ -360,6 +349,18 @@ submodule zebos-switchportinterface {
                 } // END of swVlanOper definition.
 
             } // End of allowedVlan-list
+
+            list addDtagToInterface {
+                if-feature feature_list:HAVE_SUBSCRIBER_INTERFACE;
+                key "dtagValue";
+                description
+                    "This object list is used to add Vlan DTag's to the interface list";
+                leaf dtagValue  {
+                    type  cml_data_types:CML_STRING_T;
+                    description "";
+                } // END of dtagValue definition.
+
+            } // End of addDtagToInterface-list
         } // End of nsmVlanPort-list
 
         list vlanUserTable {
@@ -417,6 +418,7 @@ submodule zebos-switchportinterface {
 
         list l2protocol {
             if-feature feature_list:HAVE_PROVIDER_BRIDGE;
+            if-feature feature_list:HAVE_SWFWDR;
             key "l2protocolType";
             description
                 "l2protocol";
@@ -437,19 +439,24 @@ submodule zebos-switchportinterface {
 
         } // End of l2protocol-list
         container portSecurity {
-            if-feature feature_list:HAVE_HELIX4;
             description
                 "portSecurity";
             leaf portSecurityMode  {
-                type  cml_data_types:CML_UINT16_T;
+                type  cml_data_types:CML_PORT_SEC_MODE_T;
                 description "port security type";
             } // END of portSecurityMode definition.
 
-            leaf portSecurityMaxLimt  {
-                type  cml_data_types:CML_UINT32_T;
-                default "1";
+            leaf portSecurityLogging  {
+                type  cml_data_types:CML_PORT_SECURITY_LOGGING_T;
+                description "port security type";
+            } // END of portSecurityLogging definition.
+
+            leaf portSecurityMaxLimit  {
+                type  cml_data_types:CML_UINT32_T {
+                     range "1..1000";
+                }
                 description "port-security";
-            } // END of portSecurityMaxLimt definition.
+            } // END of portSecurityMaxLimit definition.
 
 
             list portSecurityMacAddrList {
@@ -457,9 +464,7 @@ submodule zebos-switchportinterface {
                 description
                     "nsm port security Mac address list";
                 leaf portSecurityMacAddr  {
-                    type  cml_data_types:CML_STRING_T {
-                        length "0..255";
-                    }
+                    type  cml_data_types:CML_STRING_T;
                     description "";
                 } // END of portSecurityMacAddr definition.
 
@@ -476,6 +481,7 @@ submodule zebos-switchportinterface {
 
                     list PortSecurityMacSvlanList {
                         if-feature feature_list:HAVE_PROVIDER_BRIDGE;
+                        if-feature feature_list:HAVE_SWFWDR;
                         key "portSecuritySvlanId";
                         description
                             "nsm port security Mac and svlan list";
@@ -492,9 +498,7 @@ submodule zebos-switchportinterface {
             description
                 "cvanRegMode";
             leaf cvlanRegWord  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type  cml_data_types:CML_STRING_T;
                 description "cvlan registration table";
             } // END of cvlanRegWord definition.
 
@@ -533,9 +537,7 @@ submodule zebos-switchportinterface {
                 } // END of pvlanAssociate definition.
 
                 leaf pvlanMapVid  {
-                    type  cml_data_types:CML_RANGE_T {
-                        length "1..255";
-                    }
+                    type  cml_data_types:CML_RANGE_T;
                     description "private-vlan Mapping";
                 } // END of pvlanMapVid definition.
 
@@ -551,9 +553,7 @@ submodule zebos-switchportinterface {
             } // END of oepMapType definition.
 
             leaf oepMapName  {
-                type  cml_data_types:CML_STRING_T {
-                    length "0..255";
-                }
+                type  cml_data_types:CML_STRING_T;
                 description "oep mapping table name";
             } // END of oepMapName definition.
 
