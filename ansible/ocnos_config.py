@@ -30,7 +30,7 @@ Usage
        $ - Used to separate commands given in same line
 
 Subtasks:
-  ocnos_configs supports following three types of subtasks:
+  ocnos_config supports following three types of subtasks:
   1) config_cmds : Input for this will be executed in ocsh's config mode
   2) exec_cmd : Input for this will be executed in ocsh's exec mode
   3) module_config_cmds : Input for this will be executed as a group in ocsh's config mode
@@ -40,16 +40,16 @@ Example playbook:
 ---
 - hosts: OCNOS
   tasks:
-    - ocnos_configs:
+    - ocnos_config:
           config_cmds:
                - 'bridge ? protocol ? ? | 1, ieee; 2,mstp,ring; 3,rstp $ interface eth3'
-    - ocnos_configs:
+    - ocnos_config:
           config_cmds:
                 - 'vlan ? protocol ? ? | 1,ieee; 2,mstp,ring; 3,rstp'
                 - 'hostname {{ hostnameid }}'
           module_config_cmds:
                 - 'interface ? $ bandwidth ? | eth1; 1g; $ eth2; 10g;'
-    - ocnos_configs:
+    - ocnos_config:
              exec_cmds:
                      - 'write'
 
@@ -162,16 +162,25 @@ def main():
          ocsh_cmd += create_group_command(each_cmd)
 
     # Dump Result #
-    name=''
     (rc, out, err) = module.run_command(ocsh_cmd)
-    if rc != 0:
-        module.fail_json(msg = out)
+
+    if out != None and out != '':
+      #Suppress 'conf t' message
+      out = out.replace ('Enter configuration commands, one per line.  End with CNTL/Z.\n','')
+
+      #Format console output
+      lines = out.splitlines()
+      for line in lines:
+        #Suppress 'enable' msg
+        if 'OcNOS version ' in line and 'IPIRouter' in line:
+          lines.remove(line)
+
     else:
-        module.exit_json(changed=True, name=name,
-                     ansible_facts=dict(ansible_hostname=name.split(','),
-                                        ansible_nodename=name,
-                                        ansible_fqdn=socket.getfqdn(),
-                                        ansible_domain='.'.join(socket.getfqdn().split('.')[1:])))
+      lines = None
+
+    module.exit_json (OcNOS_Logs=lines,
+                      changed=True,
+                      rc=rc)
 
 # Entry point #
 main()
