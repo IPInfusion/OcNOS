@@ -1,0 +1,346 @@
+OCNOS-MCEC-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+      OBJECT-TYPE, MODULE-IDENTITY,
+      Gauge32, Counter32, Integer32, Unsigned32,
+      IpAddress, Counter64,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC
+      ipi  FROM OCNOS-IPI-MODULE-MIB;
+
+mcec MODULE-IDENTITY
+   LAST-UPDATED "201806210000Z"
+   ORGANIZATION "IP Infusion Inc."
+   CONTACT-INFO 
+       "postal: 3965 Freedom Circle, Suite 200, Santa Clara, CA 95054
+
+        email: support@ipinfusion.com
+
+        telephone: +1 408-400-1900
+        website: http://www.ipinfusion.com/"
+   DESCRIPTION 
+      "This MIB module is for managing Multi Chassis Ethernet Channel (MCEC)"
+
+   REVISION      "201806210000Z"
+   DESCRIPTION 
+      "Initial Version"
+   ::= { ipi  24 } 
+
+mcecHomeDomainSysNumber OBJECT-TYPE
+	SYNTAX Unsigned32(1..2) 
+	MAX-ACCESS read-write
+	STATUS current 
+	DESCRIPTION 
+		"homeDomainSysNumber"
+	::= { mcec 1 }
+
+mcecDomainAddress OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-write
+	STATUS current 
+	DESCRIPTION 
+		"domainAddress"
+	::= { mcec 2 }
+
+mcecDomainPriority OBJECT-TYPE
+	SYNTAX Unsigned32(1..65535) 
+	MAX-ACCESS read-write
+	STATUS current 
+	DESCRIPTION 
+		"domainPriority"
+	DEFVAL 	{ 32768 } 
+	::= { mcec 3 }
+
+mcecHomeHelloTimeout OBJECT-TYPE
+	SYNTAX INTEGER {long(0), short(1)} 
+	MAX-ACCESS read-write
+	STATUS current 
+	DESCRIPTION 
+		"homeHelloTimeout"
+	DEFVAL 	{ 1 } 
+	::= { mcec 4 }
+
+mcecDomainSync OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"domainSync"
+	::= { mcec 5 }
+
+mcecDomainAdjacency OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"domainAdjacency"
+	::= { mcec 6 }
+
+mcecIntraDomainLink OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-write
+	STATUS current 
+	DESCRIPTION 
+		"intraDomainLink"
+	::= { mcec 7 }
+
+mcecNeighDomainAddr OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"neighDomainAddr"
+	::= { mcec 8 }
+
+mcecNeighDomainPriority OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"neighDomainPriority"
+	::= { mcec 9 }
+
+mcecNeighDomainSysNumber OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"neighDomainSysNumber"
+	::= { mcec 10 }
+
+mcecNeighDomainSync OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"neighDomainSync"
+	::= { mcec 11 }
+
+mcecNeighHelloTimeout OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"neighHelloTimeout"
+	::= { mcec 12 }
+
+mcecMcecValidHelloPduRx OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecValidHelloPduRx"
+	::= { mcec 13 }
+
+mcecMcecValidHelloPduTx OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecValidHelloPduTx"
+	::= { mcec 14 }
+
+mcecMcecValidInfoPduRx OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecValidInfoPduRx"
+	::= { mcec 15 }
+
+mcecMcecValidInfoPduTx OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecValidInfoPduTx"
+	::= { mcec 16 }
+
+mcecMcecValidMacSyncPduRx OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecValidMacSyncPduRx"
+	::= { mcec 17 }
+
+mcecMcecValidMacSyncPduTx OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecValidMacSyncPduTx"
+	::= { mcec 18 }
+
+
+mcecPortalTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF McecPortalEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for struct mcec_portal"
+	::= { mcec 19 }
+
+mcecPortalEntry OBJECT-TYPE
+	SYNTAX McecPortalEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for struct mcec_portal"
+	INDEX { mcecMlagId1 }
+	::= { mcecPortalTable 1 }
+
+McecPortalEntry::= SEQUENCE {
+	mcecMlagId1 Unsigned32,
+	mcecIfName1 OCTET STRING,
+	mcecHomeAggKey Unsigned32,
+	mcecHomeAdminAggKey Unsigned32,
+	mcecHomeOperAggKey Unsigned32,
+	mcecHomePhyPropertiesDigest OCTET STRING,
+	mcecHomeMlagSync Unsigned32,
+	mcecNeighAdminAggKey Unsigned32,
+	mcecNeighPhyPropertiesDigest OCTET STRING,
+	mcecMlagBandwidth Counter64,
+	mcecMcecInfoRcvState Unsigned32,
+	mcecMcecInfoPeriodicTxState Unsigned32,
+	mcecMcecValidInfoPduRx1 Unsigned32,
+	mcecMcecValidInfoPduTx1 Unsigned32	}
+
+mcecMlagId1 OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mlagId1"
+	::= { mcecPortalEntry 1 }
+
+mcecIfName1 OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"ifName1"
+	::= { mcecPortalEntry 2 }
+
+mcecHomeAggKey OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"homeAggKey"
+	::= { mcecPortalEntry 3 }
+
+mcecHomeAdminAggKey OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"homeAdminAggKey"
+	::= { mcecPortalEntry 4 }
+
+mcecHomeOperAggKey OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"homeOperAggKey"
+	::= { mcecPortalEntry 5 }
+
+mcecHomePhyPropertiesDigest OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"homePhyPropertiesDigest"
+	::= { mcecPortalEntry 6 }
+
+mcecHomeMlagSync OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"homeMlagSync"
+	::= { mcecPortalEntry 7 }
+
+mcecNeighAdminAggKey OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"neighAdminAggKey"
+	::= { mcecPortalEntry 8 }
+
+mcecNeighPhyPropertiesDigest OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"neighPhyPropertiesDigest"
+	::= { mcecPortalEntry 9 }
+
+mcecMlagBandwidth OBJECT-TYPE
+	SYNTAX Counter64 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mlagBandwidth"
+	::= { mcecPortalEntry 10 }
+
+mcecMcecInfoRcvState OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecInfoRcvState"
+	::= { mcecPortalEntry 11 }
+
+mcecMcecInfoPeriodicTxState OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecInfoPeriodicTxState"
+	::= { mcecPortalEntry 12 }
+
+mcecMcecValidInfoPduRx1 OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecValidInfoPduRx1"
+	::= { mcecPortalEntry 13 }
+
+mcecMcecValidInfoPduTx1 OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"mcecValidInfoPduTx1"
+	::= { mcecPortalEntry 14 }
+
+
+--
+-- Notifications
+--
+
+mcecNotificationsPrefix OBJECT IDENTIFIER ::=
+        { mcec 0 }
+
+lagmcecupdaterevertive NOTIFICATION-TYPE
+   OBJECTS { mcecIfName, mcecRevertive }
+   STATUS  current
+   DESCRIPTION
+           "Notify to db for 'revertive' attr when 'ifMode' is active-active"
+   ::= { mcecNotificationsPrefix 1 }
+END
