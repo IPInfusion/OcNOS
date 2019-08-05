@@ -25,10 +25,6 @@ submodule zebos-vm {
         prefix inet;
     }
 
-    import feature_list {
-        prefix feature_list;
-    }
-
     organization
         "IP Infusion Inc.";
 
@@ -135,23 +131,16 @@ submodule zebos-vm {
 
     grouping vmtemplate-grouping {
     description
-        "vmtemplate";
+        "Description about VM template";
         list vmtemplate {
-            if-feature feature_list:HAVE_GUEST_VM;
             key "vmTemplateName";
             description
-                "vmtemplate";
-            leaf vrId  {
-                type  cml_data_types:CML_INT32_T;
-                default "0";
-                description "";
-            } // END of vrId definition.
-
+                "Description about VM template";
             leaf vmTemplateName  {
                 type  cml_data_types:CML_STRING_T {
                     length "1..16";
                 }
-                description "";
+                description "Name of the VM template";
             } // END of vmTemplateName definition.
 
             leaf memory  {
@@ -159,19 +148,19 @@ submodule zebos-vm {
                      range "128..8192";
                 }
                 default "128";
-                description "Used to set the Memory for Virtual Machine in MB";
+                description "Memory for Virtual Machine in MB";
             } // END of memory definition.
 
             leaf osType  {
                 type  CML_VM_OS_TYPE_T;
                 default "hvm";
-                description "Used to set the operating system type of Virtual Machine";
+                description "Set the operating system type of Virtual Machine";
             } // END of osType definition.
 
             leaf osVariant  {
                 type  CML_VM_OS_VARIANT_T;
                 default "generic";
-                description "Used to set the operating system variant of Virtual Machine";
+                description "Set the operating system variant for a virtual machine template";
             } // END of osVariant definition.
 
             leaf osVirtType  {
@@ -181,17 +170,17 @@ submodule zebos-vm {
 
             leaf diskImage  {
                 type  cml_data_types:CML_STRING_T;
-                description "Used to set the location of the disk image to boot up Virtual Machine";
+                description "Location of the disk image to boot up the VM.";
             } // END of diskImage definition.
 
             leaf secondaryDiskImage  {
                 type  cml_data_types:CML_STRING_T;
-                description "Used to set the location of the secondary disk image to boot up Virtual Machine";
+                description "Location of the secondary disk image to boot up the VM";
             } // END of secondaryDiskImage definition.
 
             leaf hostCoreAffinity  {
                 type  cml_data_types:CML_VM_AFFINITY_T;
-                description "Used to set the core affinity value";
+                description "The core affinity values between 0 and 7";
             } // END of hostCoreAffinity definition.
 
             leaf vcpu  {
@@ -199,91 +188,110 @@ submodule zebos-vm {
                      range "1..16";
                 }
                 default "1";
-                description "Used to set the virtual CPU count for Virtual Machine";
+                description "Virtual CPU count";
             } // END of vcpu definition.
 
 
             list vNICList {
-                key "vNIC";
+                key "vrfName";
                 description
-                    "vNICList";
-                leaf vNIC  {
-                    type  cml_data_types:CML_BOOL_T;
-                    description "Used to set the virtual NIC ID for Virtual Machine";
-                } // END of vNIC definition.
-
-                leaf macAddress  {
-                    type  cml_data_types:CML_MAC_ADDR_T;
-                    description "Used to set the MAC Address for Virtual Machine";
-                } // END of macAddress definition.
-
+                    "Description about Virtual NIC list";
                 leaf vrfName  {
                     type  cml_data_types:CML_STRING_T {
                         length "1..16";
                     }
-                    default "default";
-                    description "Used to set the vrf name";
+                    description "VRF Name";
                 } // END of vrfName definition.
+
+                leaf vNIC  {
+                    type  cml_data_types:CML_BOOL_T;
+                    mandatory true;
+                    description "Virtual NIC ID for Virtual Machine";
+                } // END of vNIC definition.
+
+                leaf macAddress  {
+                    type  cml_data_types:CML_MAC_ADDR_T;
+                    mandatory true;
+                    description "MAC address of the VM";
+                } // END of macAddress definition.
 
             } // End of vNICList-list
         } // End of vmtemplate-list
     } // END of vmtemplate-grouping definition.
 
 
-    grouping vmContList-grouping {
+    grouping guestVmList-grouping {
     description
-        "vmContList";
-        list vmContList {
-            if-feature feature_list:HAVE_GUEST_VM;
+        "Description about starting vm";
+        list guestVmList {
             key "vmName";
             description
-                "vmContList";
-            leaf startvm  {
-                type  cml_data_types:CML_BOOL_T;
-                description "Used to start the guest VM";
-            } // END of startvm definition.
-
+                "Description about starting vm";
             leaf vmName  {
                 type  cml_data_types:CML_STRING_T {
                     length "1..16";
                 }
-                description "Used to set the vrf name";
+                description "Name of the VM";
             } // END of vmName definition.
+
+            leaf startvm  {
+                type  cml_data_types:CML_BOOL_T;
+                mandatory true;
+                description "Start guest VM";
+            } // END of startvm definition.
 
             leaf vmTemplateName  {
                 type  cml_data_types:CML_STRING_T {
                     length "1..16";
                 }
-                description "Used to set the VM template";
+                mandatory true;
+                description "Name of the VM template";
             } // END of vmTemplateName definition.
 
-        } // End of vmContList-list
-    } // END of vmContList-grouping definition.
+            leaf vmStatus  {
+                type  cml_data_types:CML_VM_STATUS_T;
+                config false;
+                description "Used to get status(UP/DOWN) of VM";
+            } // END of vmStatus definition.
+
+            leaf vmStartTime  {
+                type  cml_data_types:CML_DATE_TIME_T;
+                config false;
+                description "start time of VM";
+            } // END of vmStartTime definition.
+
+            leaf vmIP  {
+                type  cml_data_types:CML_IPV4_ADDR_T;
+                config false;
+                description "Assigned IP to VM";
+            } // END of vmIP definition.
+
+        } // End of guestVmList-list
+    } // END of guestVmList-grouping definition.
 
 
     grouping iptable-grouping {
     description
-        "iptable";
+        "Description about Iptables Rules template";
         list iptable {
-            if-feature feature_list:HAVE_GUEST_VM;
             key "ipTabTempName";
             description
-                "iptable";
+                "Description about Iptables Rules template";
             leaf ipTabTempName  {
                 type  cml_data_types:CML_STRING_T {
                     length "1..16";
                 }
-                description "";
+                description "Name of the IP tables template";
             } // END of ipTabTempName definition.
 
 
             list ipTabRuleStrList {
                 key "ipTabRuleStr";
                 description
-                    "ipTabRuleStrList";
+                    "Description about iptables rules";
                 leaf ipTabRuleStr  {
                     type  cml_data_types:CML_LINE_T;
-                    description "Used to set the rules for iptables";
+                    description "Rule string in double quotes";
                 } // END of ipTabRuleStr definition.
 
                 leaf ipTabrulePos  {
@@ -291,7 +299,7 @@ submodule zebos-vm {
                          range "-1..65535";
                     }
                     mandatory true;
-                    description "Used to set the position of the ip-tables rules";
+                    description "Position to insert the rule string (1-65535)";
                 } // END of ipTabrulePos definition.
 
             } // End of ipTabRuleStrList-list
@@ -301,229 +309,248 @@ submodule zebos-vm {
 
     grouping restoreList-grouping {
     description
-        "restoreList";
+        "Description about restoring iptables rules";
         list restoreList {
-            if-feature feature_list:HAVE_GUEST_VM;
-            key "vrfName";
+            key "ipTabTempName";
             description
-                "restoreList";
+                "Description about restoring iptables rules";
+            leaf ipTabTempName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "1..16";
+                }
+                description "Name of the IP tables template";
+            } // END of ipTabTempName definition.
+
             leaf vrfName  {
                 type  cml_data_types:CML_STRING_T;
-                description "Used to set the vrf name";
+                mandatory true;
+                description "Vrf namespace name in which rule string is configured";
             } // END of vrfName definition.
 
+            leaf iptables  {
+                type  cml_data_types:CML_BOOL_T;
+                mandatory true;
+                description "Iptables restore";
+            } // END of iptables definition.
 
-            list restoreList {
-                key "ipTabTempName";
-                description
-                    "restoreList";
-                leaf ipTabTempName  {
-                    type  cml_data_types:CML_STRING_T {
-                        length "1..16";
-                    }
-                    description "Used to set the iptables template";
-                } // END of ipTabTempName definition.
-
-                leaf iptables  {
-                    type  cml_data_types:CML_BOOL_T;
-                    description "This is string not an input";
-                } // END of iptables definition.
-
-            } // End of restoreList-list
         } // End of restoreList-list
     } // END of restoreList-grouping definition.
 
 
     grouping srcNatList-grouping {
     description
-        "srcNatList";
+        "Describes Source NAT configurations";
         list srcNatList {
-            if-feature feature_list:HAVE_GUEST_VM;
             key "sFromIpAddr";
             description
-                "srcNatList";
+                "Describes Source NAT configurations";
             leaf sFromIpAddr  {
-                type  cml_data_types:CML_STRING_T;
-                description "Used to set the from ip address of SNAT";
+                type  cml_data_types:CML_IPV4_PREFIX_T;
+                description "From IP address and subnet mask";
             } // END of sFromIpAddr definition.
 
-            leaf toIpAddr  {
-                type  cml_data_types:CML_STRING_T;
-                description "Used to set the to ip address of SNAT";
-            } // END of toIpAddr definition.
 
-            leaf vrfName  {
-                type  cml_data_types:CML_STRING_T;
-                default "default";
-                description "Used to set the vrf name";
-            } // END of vrfName definition.
+            list srcToNatList {
+                key "toIpAddr";
+                description
+                    "srcToNatList";
+                leaf toIpAddr  {
+                    type  cml_data_types:CML_IPV4_ADDR_T;
+                    description "To IP address";
+                } // END of toIpAddr definition.
 
+
+                list srcVrfNatList {
+                    key "vrfName";
+                    description
+                        "srcVrfNatList";
+                    leaf vrfName  {
+                        type  cml_data_types:CML_STRING_T;
+                        description "VRF Name";
+                    } // END of vrfName definition.
+
+                } // End of srcVrfNatList-list
+            } // End of srcToNatList-list
         } // End of srcNatList-list
     } // END of srcNatList-grouping definition.
 
 
     grouping dstNatList-grouping {
     description
-        "dstNatList";
+        "Describes about Destination NAT configurations";
         list dstNatList {
-            if-feature feature_list:HAVE_GUEST_VM;
             key "dFromIpAddr";
             description
-                "dstNatList";
+                "Describes about Destination NAT configurations";
             leaf dFromIpAddr  {
-                type  cml_data_types:CML_STRING_T;
-                description "Used to set the from ip address of DNAT";
+                type  cml_data_types:CML_IPV4_ADDR_T;
+                description "From IP address";
             } // END of dFromIpAddr definition.
 
 
-            list vrfNatlist {
-                key "vrfName";
+            list toNatList {
+                key "toIpAddr";
                 description
-                    "vrfNatlist";
-                leaf vrfName  {
-                    type  cml_data_types:CML_STRING_T;
-                    description "Used to set the vrf name";
-                } // END of vrfName definition.
+                    "Describes about destination NAT address";
+                leaf toIpAddr  {
+                    type  cml_data_types:CML_IPV4_ADDR_T;
+                    description "To IP address";
+                } // END of toIpAddr definition.
 
 
-                list toNatList {
-                    key "toIpAddr";
+                list vrfNatlist {
+                    key "vrfName";
                     description
-                        "toNatList";
-                    leaf protocol  {
-                        type  CML_PROTO_T;
-                        description "Used to set the portocol for DNAT";
-                    } // END of protocol definition.
-
-                    leaf toPortNum  {
-                        type  cml_data_types:CML_INT32_T {
-                             range "-1..65535";
-                        }
-                        default "-1";
-                        description "Used to set the dnat port";
-                    } // END of toPortNum definition.
-
-                    leaf fromPortNum  {
-                        type  cml_data_types:CML_INT32_T {
-                             range "-1..65535";
-                        }
-                        default "-1";
-                        description "Used to set the dnat port";
-                    } // END of fromPortNum definition.
-
-                    leaf toIpAddr  {
+                        "Description about NAT configurations in VRF namespace";
+                    leaf vrfName  {
                         type  cml_data_types:CML_STRING_T;
-                        description "Used to set the to ip address of DNAT";
-                    } // END of toIpAddr definition.
+                        description "VRF Name";
+                    } // END of vrfName definition.
 
-                } // End of toNatList-list
-            } // End of vrfNatlist-list
+
+                    list protocolType {
+                        key "protocol";
+                        description
+                            "Description about DNAT entry protocol";
+                        leaf protocol  {
+                            type  CML_PROTO_T;
+                            description "Use TCP or UDP for NAT";
+                        } // END of protocol definition.
+
+
+                        list sourcePort {
+                            key "fromPortNum";
+                            description
+                                "Description about source port for DNAT entry";
+                            leaf fromPortNum  {
+                                type  cml_data_types:CML_INT32_T {
+                                     range "-1..65535";
+                                }
+                                description "Source port number. Since '0' is valid port number, used '-1' for optional manipulation";
+                            } // END of fromPortNum definition.
+
+
+                            list destPort {
+                                key "toPortNum";
+                                description
+                                    "Description about destination port for DNAT entry";
+                                leaf toPortNum  {
+                                    type  cml_data_types:CML_INT32_T {
+                                         range "-1..65535";
+                                    }
+                                    description "Destination port number. Since '0' is valid port number, used '-1' for optional manipulation";
+                                } // END of toPortNum definition.
+
+                            } // End of destPort-list
+                        } // End of sourcePort-list
+                    } // End of protocolType-list
+                } // End of vrfNatlist-list
+            } // End of toNatList-list
         } // End of dstNatList-list
     } // END of dstNatList-grouping definition.
 
 
     grouping brList-grouping {
     description
-        "brList";
+        "Description about VM bridge creation";
         list brList {
-            if-feature feature_list:HAVE_GUEST_VM;
             key "brName";
             description
-                "brList";
-            leaf vrId  {
-                type  cml_data_types:CML_INT32_T;
-                default "0";
-                description "";
-            } // END of vrId definition.
-
+                "Description about VM bridge creation";
             leaf brName  {
                 type  cml_data_types:CML_STRING_T {
                     length "1..16";
                 }
-                description "";
+                description "Name of the VM bridge";
             } // END of brName definition.
 
             leaf gateWayIpAddr  {
-                type  cml_data_types:CML_STRING_T;
-                description "";
+                type  cml_data_types:CML_IPV4_PREFIX_T;
+                description "Gateway IP address and subnet mask";
             } // END of gateWayIpAddr definition.
-
-            leaf dhcpStartIp  {
-                type  cml_data_types:CML_STRING_T;
-                description "";
-            } // END of dhcpStartIp definition.
-
-            leaf dhcpEndIp  {
-                type  cml_data_types:CML_STRING_T;
-                description "";
-            } // END of dhcpEndIp definition.
 
             leaf leaseMaxVal  {
                 type  cml_data_types:CML_UINT32_T {
                      range "10..1000";
                 }
-                description "";
+                default "1000";
+                description "Maximum number of DHCP leases";
             } // END of leaseMaxVal definition.
 
             leaf leaseTime  {
                 type  cml_data_types:CML_UINT32_T {
                      range "2..3600";
                 }
-                description "";
+                default "300";
+                description "Maximum time for leasing an IP address in minutes";
             } // END of leaseTime definition.
 
-            leaf service  {
-                type  cml_data_types:CML_BOOL_T;
-                description "";
-            } // END of service definition.
+            leaf dhcpStartIp  {
+                type  cml_data_types:CML_IPV4_ADDR_T;
+                description "Starting IP address of the DHCP range";
+            } // END of dhcpStartIp definition.
+
+            leaf dhcpEndIp  {
+                type  cml_data_types:CML_IPV4_ADDR_T;
+                description "Ending IP address of the DHCP range";
+            } // END of dhcpEndIp definition.
 
 
             list macAddrList {
                 key "ipAddr";
                 description
-                    "macAddrList";
+                    "Description about Macaddress";
                 leaf ipAddr  {
-                    type  cml_data_types:CML_STRING_T;
-                    description "";
+                    type  cml_data_types:CML_IPV4_ADDR_T;
+                    description "IP Address";
                 } // END of ipAddr definition.
 
                 leaf macAddr  {
                     type  cml_data_types:CML_MAC_ADDR_T;
                     mandatory true;
-                    description "";
+                    description "MAC Address";
                 } // END of macAddr definition.
 
             } // End of macAddrList-list
+            container dnsMasq {
+                description
+                    "Description about DNS MASQ service";
+                leaf service  {
+                    type  cml_data_types:CML_BOOL_T;
+                    description "Start dns-masq service";
+                } // END of service definition.
+
+            } // END of dnsMasq-container definition.
         } // End of brList-list
     } // END of brList-grouping definition.
 
+    grouping  guestVm-grouping {
+    description
+        "Description about guest vm feature enable";
+    container guestVm {
+        description
+            "Description about guest vm feature enable";
+        leaf featureGuestVm  {
+            type  cml_data_types:CML_BOOL_T;
+            description "Global command to enable Guest-VM feature";
+        } // END of featureGuestVm definition.
+
+    } // END of guestVm-container definition.
+    } // END of guestVm-container definition.
+
     grouping  debugVmEvents-grouping {
     description
-        "debugVmEvents";
+        "Description about vm debug configs";
     container debugVmEvents {
         description
-            "debugVmEvents";
+            "Description about vm debug configs";
         leaf vmDebugFlag  {
             type  cml_data_types:CML_BOOL_T;
-            description "";
+            description "Log virtual machine events";
         } // END of vmDebugFlag definition.
 
     } // END of debugVmEvents-container definition.
     } // END of debugVmEvents-container definition.
-
-    grouping  featureVm-grouping {
-    description
-        "featureVm";
-    container featureVm {
-        description
-            "featureVm";
-        leaf vmFlag  {
-            type  cml_data_types:CML_BOOL_T;
-            description "";
-        } // END of vmFlag definition.
-
-    } // END of featureVm-container definition.
-    } // END of featureVm-container definition.
 
 
 }
