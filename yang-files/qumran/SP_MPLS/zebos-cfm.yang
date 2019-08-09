@@ -408,9 +408,17 @@ submodule zebos-cfm {
 
     typedef  CML_MEASUREMENTTYPE_T {
         type enumeration {
+            enum lmm {
+                value 1;
+                description "LMM SOAM PDU generated and received LMR responses tracked.";
+            }
             enum slm {
                 value 2;
                 description "SLM SOAM PDU generated and received SLR responses tracked(default).";
+            }
+            enum ccm {
+                value 3;
+                description "CCM SOAM PDU generated and received CCM PDUs tracked";
             }
         }
         description "";
@@ -441,21 +449,6 @@ submodule zebos-cfm {
             enum one-minute {
                 value 60;
                 description "TX interval one minute";
-            }
-        }
-        description "";
-        reference "";
-    }
-
-    typedef  CFM_BRIDGE_TYPE {
-        type enumeration {
-            enum vpws {
-                value 1;
-                description "Identifying string for VPWS instance";
-            }
-            enum vpls {
-                value 2;
-                description "Identifying string for VPLS instance";
             }
         }
         description "";
@@ -682,6 +675,97 @@ submodule zebos-cfm {
         reference "";
     }
 
+    typedef  CML_DM_MEASUREMENTTYPE_T {
+        type enumeration {
+            enum dmm {
+                value 1;
+                description "DMM SOAM PDU generated. DMR responses received.";
+            }
+            enum dm1-transmitted {
+                value 2;
+                description "1DM SOAM PDU generated.";
+            }
+            enum dm1-received {
+                value 3;
+                description "1DM SOAM PDU received and tracked.";
+            }
+        }
+        description "";
+        reference "";
+    }
+
+    typedef  CML_CFM_DM_INTERVAL_T {
+        type enumeration {
+            enum 1s {
+                value 4;
+                description "DM PDU Interval 1 second";
+            }
+            enum 10s {
+                value 5;
+                description "DM PDU Interval 10 second";
+            }
+        }
+        description "";
+        reference "";
+    }
+
+    typedef  CML_DM_DATAPATTERN_T {
+        type enumeration {
+            enum zeroes {
+                value 1;
+                description "Indicates the Data TLV contains all zeros.";
+            }
+            enum ones {
+                value 2;
+                description "Indicates the Data TLV contains all ones.";
+            }
+        }
+        description "";
+        reference "";
+    }
+
+    typedef  CML_DM_MEASUREMENTBINTYPE_T {
+        type enumeration {
+            enum frame-delay {
+                value 1;
+                description "Indicates a measurement bin for two-way Frame Delay.";
+            }
+            enum inter-frame-delay-variation {
+                value 4;
+                description "Indicates a measurement bin for two-way Inter-frame Delay Variation.";
+            }
+        }
+        description "";
+        reference "";
+    }
+
+    typedef  CML_CFM_DEBUG_T {
+        type bits {
+            bit events {
+                position 0;
+                description "Enable event debugs";
+            }
+            bit rx {
+                position 1;
+                description "Enable rx debugs";
+            }
+            bit tx {
+                position 2;
+                description "Enable tx debugs";
+            }
+            bit loopback {
+                position 3;
+                description "Enable loopback debugs";
+            }
+            bit traceroute {
+                position 4;
+                description "Enable traceroute debugs";
+            }
+        }
+        description "";
+        reference "";
+    }
+
     grouping configurationErrorList-grouping {
     description
         "The Configuration Error List managed object provides a list of Bridge Ports, aggregated ports, and VIDs that are incorrectly configured";
@@ -771,9 +855,23 @@ submodule zebos-cfm {
             description
                 "A Maintenance Domain for mpls";
             leaf bridgeType  {
-                type  CFM_BRIDGE_TYPE;
+                type  cml_data_types:CFM_BRIDGE_TYPE;
                 description "";
             } // END of bridgeType definition.
+
+
+            leaf tracerouteCacheEnable  {
+                type  cml_data_types:CML_BOOL_T;
+                default false;
+                description "";
+            } // END of tracerouteCacheEnable definition.
+
+
+            leaf tracerouteCacheSize  {
+                type  cml_data_types:CML_UINT32_T;
+                default "100";
+                description "";
+            } // END of tracerouteCacheSize definition.
 
 
 
@@ -885,6 +983,27 @@ submodule zebos-cfm {
 
         } // End of profile-information-list
     } // END of profile-information-grouping definition.
+
+
+    grouping dmProfileInformation-grouping {
+    description
+        "DM Profile Information created for a MEP";
+        list dmProfileInformation {
+            if-feature feature_list:Y1731_HW_OFFLOAD;
+            key "dmProfileName";
+            description
+                "DM Profile Information created for a MEP";
+            leaf dmProfileName  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..64";
+                }
+                description "This attribute contains the profile name for the SOAM DM Session";
+            } // END of dmProfileName definition.
+
+
+            uses delayMeasurementConfigurationGroup;
+        } // End of dmProfileInformation-list
+    } // END of dmProfileInformation-grouping definition.
     grouping lossMeasurementStatsGroup {
         description
             "This grouping includes statistics objects for a SOAM Loss Measurement session.";
@@ -990,6 +1109,186 @@ submodule zebos-cfm {
 
 
     } // END of loss-measurement-configuration-group definition.
+    grouping delayMeasurementStatsGroup {
+        description
+            "This grouping includes statistics objects for a SOAM Delay Measurement session.";
+        leaf dmSuspectStatus  {
+            type  cml_data_types:CML_BOOL_T;
+            config false;
+            description "The object is to be set to false at the start of a measurement interval. It is set to true when there is a discontinuity in the performance measurements during the Measurement Interval.";
+        } // END of dmSuspectStatus definition.
+
+
+        leaf frameDelayTwoWayMin  {
+            type  cml_data_types:CML_GAUGE32_T;
+            config false;
+            units "microseconds";
+            description "This object contains the minimum two-way frame delay calculated by this MEP for this Measurement Interval";
+        } // END of frameDelayTwoWayMin definition.
+
+
+        leaf frameDelayTwoWayMax  {
+            type  cml_data_types:CML_GAUGE32_T;
+            config false;
+            units "microseconds";
+            description "This object contains the minimum two-way frame delay calculated by this MEP for this Measurement Interval";
+        } // END of frameDelayTwoWayMax definition.
+
+
+        leaf frameDelayTwoWayAverage  {
+            type  cml_data_types:CML_GAUGE32_T;
+            config false;
+            units "microseconds";
+            description "This object contains the average two-way frame delay calculated by this MEP for this Measurement Interval";
+        } // END of frameDelayTwoWayAverage definition.
+
+
+        leaf interFrameDelayVariationTwoWayMin  {
+            type  cml_data_types:CML_GAUGE32_T;
+            config false;
+            units "microseconds";
+            description "This object contains the minimum two-way inter-frame delay interval calculated by this MEP for this Measurement Interval";
+        } // END of interFrameDelayVariationTwoWayMin definition.
+
+
+        leaf interFrameDelayVariationTwoWayMax  {
+            type  cml_data_types:CML_GAUGE32_T;
+            config false;
+            units "microseconds";
+            description "This object contains the maximum two-way inter-frame delay interval calculated by this MEP for this Measurement Interval";
+        } // END of interFrameDelayVariationTwoWayMax definition.
+
+
+        leaf interFrameDelayVariationTwoWayAverage  {
+            type  cml_data_types:CML_GAUGE32_T;
+            config false;
+            units "microseconds";
+            description "This object contains the average two-way inter-frame delay interval calculated by this MEP for this Measurement Interval";
+        } // END of interFrameDelayVariationTwoWayAverage definition.
+
+
+    } // END of delayMeasurementStatsGroup definition.
+    grouping delayMeasurementBinsContentGroup {
+        description
+            "This grouping contains result management objects for a SOAM Delay Measurement session.";
+        leaf binNumber  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "2..10";
+            }
+            description "This object specifies the bin number for the configured boundary";
+        } // END of binNumber definition.
+
+
+        leaf lowerBoundThreshold  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "1..2147483647";
+            }
+            mandatory true;
+            units "microseconds";
+            description "This object specifies the lower boundary for a measurement bin. The measurementboundary for each measurement bin is to be larger than the measurement boundary of the preceding measurement bin";
+        } // END of lowerBoundThreshold definition.
+
+
+    } // END of delayMeasurementBinsContentGroup definition.
+    grouping delayMeasurementConfigurationGroup {
+        description
+            "This grouping includes configuration objects for the Delay Measurement function defined in [Y.1731] and [MEF SOAM PM IA].";
+        leaf measurementType  {
+            type  CML_DM_MEASUREMENTTYPE_T;
+            default "dmm";
+            description "";
+        } // END of measurementType definition.
+
+
+        leaf measurementInterval  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "1..1440";
+            }
+            default "15";
+            units "minutes";
+            description "";
+        } // END of measurementInterval definition.
+
+
+        leaf messagePeriod  {
+            type  CML_CFM_DM_INTERVAL_T;
+            default "1s";
+            description "";
+        } // END of messagePeriod definition.
+
+
+        leaf numberIntervalsStored  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "2..1000";
+            }
+            default "32";
+            description "";
+        } // END of numberIntervalsStored definition.
+
+
+        leaf binsPerFdInterval  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "2..10";
+            }
+            default "3";
+            description "";
+        } // END of binsPerFdInterval definition.
+
+
+        leaf binsPerIfdvInterval  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "2..10";
+            }
+            default "2";
+            description "";
+        } // END of binsPerIfdvInterval definition.
+
+
+        leaf priority  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "0..7";
+            }
+            default "2";
+            description "";
+        } // END of priority definition.
+
+
+        leaf frameSize  {
+            type  cml_data_types:CML_UINT32_T {
+                 range "64..9600";
+            }
+            default "64";
+            description "";
+        } // END of frameSize definition.
+
+
+        leaf dataPattern  {
+            type  CML_DM_DATAPATTERN_T;
+            default "zeroes";
+            description "";
+        } // END of dataPattern definition.
+
+
+
+        list binThreshold {
+            if-feature feature_list:Y1731_HW_OFFLOAD;
+            key "measurementBinType";
+            description
+                "This list contains the measurement bin objects for a SOAM Delay Measurement session.";
+            leaf measurementBinType  {
+                type  CML_DM_MEASUREMENTBINTYPE_T;
+                description "This object specifies whether the bin number is for Frame Delay, Inter-Frame Delay Variation or Frame Delay Range";
+            } // END of measurementBinType definition.
+
+
+
+            list binContent {
+                description
+                    "This list contains the Delay Measurement bin threshold configuration values for DM Performance Monitoring.";
+                uses delayMeasurementBinsContentGroup;
+            } // End of binContent-list
+        } // End of binThreshold-list
+    } // END of delayMeasurementConfigurationGroup definition.
     grouping defaultMdLevel-grouping {
         description
             "defaultMdLevelCMLSEPgrouping";
@@ -1194,10 +1493,18 @@ submodule zebos-cfm {
 
         leaf isSlmResponder  {
             if-feature feature_list:Y1731_HW_OFFLOAD;
-            type  cml_data_types:CML_BOOL_T;
-            default false;
+            type  CML_MEASUREMENTTYPE_T;
+            default "0";
             description "Enable the MEP to respond slr message for each slm";
         } // END of isSlmResponder definition.
+
+
+        leaf isDmResponder  {
+            if-feature feature_list:Y1731_HW_OFFLOAD;
+            type  cml_data_types:CML_BOOL_T;
+            default false;
+            description "Enable the MEP to respond DMRs for each DMMs of the peer";
+        } // END of isDmResponder definition.
 
 
         leaf macAddress  {
@@ -1596,6 +1903,144 @@ submodule zebos-cfm {
                 } // End of reply-list
             } // End of linktrace-list
         } // END of linktrace-container definition.
+        container delayMeasurements {
+            if-feature feature_list:Y1731_HW_OFFLOAD;
+            config false;
+            description
+                "This container contains a collection of data definitions related to Delay Measurements.";
+            leaf sessionId  {
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                description "This object uniquely identifies a scheduled measurement. It is automatically generated by the server on creation of a new measurement";
+            } // END of sessionId definition.
+
+
+            leaf sessionStatus  {
+                type  CML_SESSION_STATUS_T;
+                description "This object indicates the current status of the DM session";
+            } // END of sessionStatus definition.
+
+
+            leaf frameDelayTwoWay  {
+                type  cml_data_types:CML_GAUGE32_T;
+                units "microseconds";
+                description "This object contains the two-way frame delay calculated by this MEP from the last received SOAM PDU";
+            } // END of frameDelayTwoWay definition.
+
+
+            leaf interframeDelayVariationTwoWay  {
+                type  cml_data_types:CML_GAUGE32_T;
+                units "microseconds";
+                description "This object contains the last two-way inter-frame delay interval calculated by this MEP";
+            } // END of interframeDelayVariationTwoWay definition.
+
+
+
+            list delayHistoryStats {
+                if-feature feature_list:Y1731_HW_OFFLOAD;
+                key "historyId";
+                config false;
+                description
+                    "This list contains the results for history Measurement Intervals in a SOAM Delay Measurement session.";
+                leaf historyId  {
+                    type  cml_data_types:CML_UINT32_T;
+                    description "The identifier for the Measurement Interval within this DM session";
+                } // END of historyId definition.
+
+
+                leaf endTime  {
+                    type  cml_data_types:CML_DATE_TIME_T {
+                        length "0..255";
+                    }
+                    description "The time that the Measurement Interval ended";
+                } // END of endTime definition.
+
+
+                leaf elapsedTime  {
+                    type  cml_data_types:CML_UINT32_T;
+                    description "The length of time that the Measurement Interval ran for, in 0.01 seconds";
+                } // END of elapsedTime definition.
+
+
+
+                list binThreshold {
+                    if-feature feature_list:Y1731_HW_OFFLOAD;
+                    key "measurementBinType";
+                    config false;
+                    description
+                        "This list contains the measurement bin objects for a SOAM Delay Measurement session.";
+                    leaf measurementBinType  {
+                        type  CML_DM_MEASUREMENTBINTYPE_T;
+                        description "This object specifies whether the bin number is for Frame Delay or Inter-Frame Delay Variation or Frame Delay Range";
+                    } // END of measurementBinType definition.
+
+
+
+                    list binContent {
+                        config false;
+                        description
+                            "This list contains the Delay Measurement bin threshold configuration values for DM Performance Monitoring.";
+                        leaf binCounter  {
+                            type  cml_data_types:CML_GAUGE32_T;
+                            description "This object contains the count of the number of completed measurements initiated in this Measurement Interval whose value falls within the range specified for this bin (that is, greater than or equal to the measurement boundary for the bin, and (unless the bin is the last bin) less than the measurement boundary for the following bin";
+                        } // END of binCounter definition.
+
+
+                        uses delayMeasurementBinsContentGroup;
+                    } // End of binContent-list
+                } // End of binThreshold-list
+                uses delayMeasurementStatsGroup;
+            } // End of delayHistoryStats-list
+            container delayCurrentStats {
+                if-feature feature_list:Y1731_HW_OFFLOAD;
+                config false;
+                description
+                    "This container contains the results for the current Measurement Interval in a SOAM Delay Measurement session gathered during the interval indicated by measurement interval.";
+                leaf startTime  {
+                    type  cml_data_types:CML_DATE_TIME_T {
+                        length "0..255";
+                    }
+                    description "The time that the current Measurement Interval started";
+                } // END of startTime definition.
+
+
+                leaf elapsedTime  {
+                    type  cml_data_types:CML_UINT32_T;
+                    description "The time that the current Measurement Interval has been running, in 0.01 seconds";
+                } // END of elapsedTime definition.
+
+
+
+                list binThreshold {
+                    if-feature feature_list:Y1731_HW_OFFLOAD;
+                    key "measurementBinType";
+                    config false;
+                    description
+                        "This list contains the measurement bin objects for a SOAM Delay Measurement session.";
+                    leaf measurementBinType  {
+                        type  CML_DM_MEASUREMENTBINTYPE_T;
+                        description "This object specifies whether the bin number is for Frame Delay or  Inter-Frame Delay Variation or Frame Delay Range";
+                    } // END of measurementBinType definition.
+
+
+
+                    list binContent {
+                        config false;
+                        description
+                            "This list contains the Delay Measurement bin threshold configuration values for DM Performance Monitoring.";
+                        leaf binCounter  {
+                            type  cml_data_types:CML_GAUGE32_T;
+                            description "This object contains the count of the number of completed measurements initiated in this Measurement Interval whose value falls within the range specified for this bin (that is, greater than or equal to the measurement boundary for the bin, and (unless the bin is the last bin) less than the measurement boundary for the following bin";
+                        } // END of binCounter definition.
+
+
+                        uses delayMeasurementBinsContentGroup;
+                    } // End of binContent-list
+                } // End of binThreshold-list
+                uses delayMeasurementStatsGroup;
+            } // END of delayCurrentStats-container definition.
+        } // END of delayMeasurements-container definition.
         container lossMeasurements {
             if-feature feature_list:Y1731_HW_OFFLOAD;
             config false;
@@ -1699,6 +2144,44 @@ submodule zebos-cfm {
             } // End of historyMeasurementStats-list
         } // END of lossMeasurements-container definition.
     } // END of maintenanceAssociationEndPoint-Grouping definition.
+
+    grouping  cfmTraceroute-grouping {
+    description
+        "cfmTraceroute";
+    container cfmTraceroute {
+        description
+            "cfmTraceroute";
+        leaf tracerouteCacheEnable  {
+            type  cml_data_types:CML_BOOL_T;
+            default false;
+            description "";
+        } // END of tracerouteCacheEnable definition.
+
+
+        leaf tracerouteCacheSize  {
+            type  cml_data_types:CML_UINT32_T;
+            default "100";
+            description "";
+        } // END of tracerouteCacheSize definition.
+
+
+    } // END of cfmTraceroute-container definition.
+    } // END of cfmTraceroute-container definition.
+
+    grouping  cfmGlobalConfig-grouping {
+    description
+        "cfmGlobalConfig";
+    container cfmGlobalConfig {
+        description
+            "cfmGlobalConfig";
+        leaf cfmDebug  {
+            type  CML_CFM_DEBUG_T;
+            description "";
+        } // END of cfmDebug definition.
+
+
+    } // END of cfmGlobalConfig-container definition.
+    } // END of cfmGlobalConfig-container definition.
 
     grouping  defaultMdLevels-grouping {
     description

@@ -602,6 +602,24 @@ submodule zebos-hqos {
                     } // END of redDroppedPkts definition.
 
 
+                    leaf rateKbps  {
+                        type  cml_data_types:CML_FLOAT_T;
+                        description "Queue rate in kbps";
+                    } // END of rateKbps definition.
+
+
+                    leaf rateMbps  {
+                        type  cml_data_types:CML_FLOAT_T;
+                        description "Queue rate in mbps";
+                    } // END of rateMbps definition.
+
+
+                    leaf rateGbps  {
+                        type  cml_data_types:CML_FLOAT_T;
+                        description "Queue rate in gbps";
+                    } // END of rateGbps definition.
+
+
                 } // End of queueStats-list
 
                 list queuingChild1CmapList {
@@ -678,6 +696,24 @@ submodule zebos-hqos {
                         } // END of child1RedDroppedPkts definition.
 
 
+                        leaf child1rateKbps  {
+                            type  cml_data_types:CML_FLOAT_T;
+                            description "Queue rate in kbps";
+                        } // END of child1rateKbps definition.
+
+
+                        leaf child1rateMbps  {
+                            type  cml_data_types:CML_FLOAT_T;
+                            description "Queue rate in mbps";
+                        } // END of child1rateMbps definition.
+
+
+                        leaf child1rateGbps  {
+                            type  cml_data_types:CML_FLOAT_T;
+                            description "Queue rate in gbps";
+                        } // END of child1rateGbps definition.
+
+
                     } // End of child1QueueStats-list
 
                     list queuingChild2CmapList {
@@ -752,6 +788,24 @@ submodule zebos-hqos {
                                 type  cml_data_types:CML_UINT64_T;
                                 description "Number of red packets dropped in the queue";
                             } // END of child2RedDroppedPkts definition.
+
+
+                            leaf child2rateKbps  {
+                                type  cml_data_types:CML_FLOAT_T;
+                                description "Queue rate in kbps";
+                            } // END of child2rateKbps definition.
+
+
+                            leaf child2rateMbps  {
+                                type  cml_data_types:CML_FLOAT_T;
+                                description "Queue rate in mbps";
+                            } // END of child2rateMbps definition.
+
+
+                            leaf child2rateGbps  {
+                                type  cml_data_types:CML_FLOAT_T;
+                                description "Queue rate in gbps";
+                            } // END of child2rateGbps definition.
 
 
                         } // End of child2QueueStats-list
@@ -2054,7 +2108,6 @@ submodule zebos-hqos {
                 } // End of cmapExp-list
 
                 list cmapTrafficType {
-                    if-feature feature_list:HAVE_CUSTOM1_QOS;
                     key "trafficType";
                     description
                         "cmap traffic-type information";
@@ -2279,7 +2332,6 @@ submodule zebos-hqos {
 
 
                 leaf trafficType  {
-                    if-feature feature_list:HAVE_CUSTOM1_QOS;
                     type  cml_data_types:CML_HQOS_TRAFFIC_TYPE_T;
                     description "";
                 } // END of trafficType definition.
@@ -2567,14 +2619,6 @@ submodule zebos-hqos {
                 } // END of cmapName definition.
 
 
-                leaf vlanMatch2  {
-                    type  cml_data_types:CML_INT32_T {
-                         range "1..4094";
-                    }
-                    description "";
-                } // END of vlanMatch2 definition.
-
-
 
                 list matchQueue {
                     if-feature feature_list:HAVE_SERVICE_QUEUING_2;
@@ -2583,7 +2627,7 @@ submodule zebos-hqos {
                         "match type queue";
                     leaf matchQueueNumber  {
                         type  cml_data_types:CML_INT8_T {
-                             range "0..3";
+                             range "0..7";
                         }
                         description "";
                     } // END of matchQueueNumber definition.
@@ -2603,6 +2647,32 @@ submodule zebos-hqos {
 
 
                 } // END of matchService-container definition.
+                container matchInterface {
+                    if-feature feature_list:HAVE_SERVICE_QUEUING_2;
+                    description
+                        "match type interface";
+                    leaf interfaceName  {
+                        type  cml_data_types:CML_STRING_T {
+                            length "0..255";
+                        }
+                        description "";
+                    } // END of interfaceName definition.
+
+
+                } // END of matchInterface-container definition.
+                container matchVlan {
+                    if-feature feature_list:HAVE_SERVICE_QUEUING_2;
+                    description
+                        "match type vlan";
+                    leaf vlanId  {
+                        type  cml_data_types:CML_INT32_T {
+                             range "1..4094";
+                        }
+                        description "";
+                    } // END of vlanId definition.
+
+
+                } // END of matchVlan-container definition.
             } // End of classMapQueuing-list
 
             list pmap {
@@ -3104,6 +3174,24 @@ submodule zebos-hqos {
                         } // END of flag definition.
 
 
+                        leaf CompensationValue  {
+                            if-feature feature_list:HAVE_CUSTOM2_QOS;
+                            type  cml_data_types:CML_INT32_T {
+                                 range "-64..64";
+                            }
+                            description "";
+                        } // END of CompensationValue definition.
+
+
+                        leaf wredWeight  {
+                            if-feature feature_list:HAVE_CUSTOM2_QOS;
+                            type  cml_data_types:CML_INT8_T {
+                                 range "0..31";
+                            }
+                            description "";
+                        } // END of wredWeight definition.
+
+
                         leaf wrrSpFlag  {
                             if-feature feature_list:NOT_HAVE_CUSTOM2_QOS;
                             type  cml_data_types:CML_QOS_WRR_SP_T;
@@ -3114,7 +3202,7 @@ submodule zebos-hqos {
                         leaf wfqWeightValue  {
                             if-feature feature_list:HAVE_CUSTOM2_QOS;
                             type  cml_data_types:CML_INT8_T {
-                                 range "1..127";
+                                 range "1..63";
                             }
                             description "";
                         } // END of wfqWeightValue definition.
@@ -3137,9 +3225,18 @@ submodule zebos-hqos {
                         } // END of servicePolicy definition.
 
 
-                        container qosWred {
+
+                        list qosWredList {
+                            if-feature feature_list:HAVE_CUSTOM2_QOS;
+                            key "wredColor";
                             description
                                 "qos wred structure in quality of service";
+                            leaf wredColor  {
+                                type  cml_data_types:CML_QOS_COLOR_TYPE_T;
+                                description "";
+                            } // END of wredColor definition.
+
+
                             leaf minThreshold  {
                                 type  cml_data_types:CML_INT32_T {
                                      range "1..629145600";
@@ -3148,9 +3245,50 @@ submodule zebos-hqos {
                             } // END of minThreshold definition.
 
 
+                            leaf minType  {
+                                type  cml_data_types:CML_HQOS_THRESHOLD_TYPE_T;
+                                description "";
+                            } // END of minType definition.
+
+
                             leaf maxThreshold  {
                                 type  cml_data_types:CML_INT32_T {
                                      range "1..629145600";
+                                }
+                                description "";
+                            } // END of maxThreshold definition.
+
+
+                            leaf maxType  {
+                                type  cml_data_types:CML_HQOS_THRESHOLD_TYPE_T;
+                                description "";
+                            } // END of maxType definition.
+
+
+                            leaf dropProb  {
+                                type  cml_data_types:CML_INT32_T {
+                                     range "1..100";
+                                }
+                                description "";
+                            } // END of dropProb definition.
+
+
+                        } // End of qosWredList-list
+                        container qosWred {
+                            if-feature feature_list:NOT_HAVE_CUSTOM2_QOS;
+                            description
+                                "qos wred structure in quality of service";
+                            leaf minThreshold  {
+                                type  cml_data_types:CML_INT32_T {
+                                     range "1..524288";
+                                }
+                                description "";
+                            } // END of minThreshold definition.
+
+
+                            leaf maxThreshold  {
+                                type  cml_data_types:CML_INT32_T {
+                                     range "1..524288";
                                 }
                                 description "";
                             } // END of maxThreshold definition.
@@ -3166,7 +3304,7 @@ submodule zebos-hqos {
 
                             leaf minThresholdYp  {
                                 type  cml_data_types:CML_INT32_T {
-                                     range "1..629145600";
+                                     range "1..524288";
                                 }
                                 description "";
                             } // END of minThresholdYp definition.
@@ -3174,7 +3312,7 @@ submodule zebos-hqos {
 
                             leaf maxThresholdYp  {
                                 type  cml_data_types:CML_INT32_T {
-                                     range "1..629145600";
+                                     range "1..524288";
                                 }
                                 description "";
                             } // END of maxThresholdYp definition.
@@ -3190,7 +3328,7 @@ submodule zebos-hqos {
 
                             leaf minThresholdRp  {
                                 type  cml_data_types:CML_INT32_T {
-                                     range "1..629145600";
+                                     range "1..524288";
                                 }
                                 description "";
                             } // END of minThresholdRp definition.
@@ -3198,7 +3336,7 @@ submodule zebos-hqos {
 
                             leaf maxThresholdRp  {
                                 type  cml_data_types:CML_INT32_T {
-                                     range "1..629145600";
+                                     range "1..524288";
                                 }
                                 description "";
                             } // END of maxThresholdRp definition.
@@ -3212,7 +3350,7 @@ submodule zebos-hqos {
 
                             leaf wredExpWeight  {
                                 type  cml_data_types:CML_INT8_T {
-                                     range "1..31";
+                                     range "0..15";
                                 }
                                 description "";
                             } // END of wredExpWeight definition.
