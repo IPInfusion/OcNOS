@@ -32,7 +32,6 @@ module zebos {
     include zebos-interface;
     include zebos-broadcom;
     include zebos-vlan;
-    include zebos-vlanxc;
     include zebos-switchportinterface;
     include zebos-bridge;
     include zebos-mstp;
@@ -50,7 +49,6 @@ module zebos {
     include zebos-keychain;
     include zebos-pim;
     include zebos-pim4;
-    include zebos-vxlan;
     include zebos-tfo;
     include zebos-syslog;
     include zebos-snmp;
@@ -100,6 +98,7 @@ module zebos {
     include zebos-nat;
     include zebos-rbac;
     include zebos-vm;
+    include zebos-portbreakout;
     include zebos-sysupdate;
     include zebos-customstats;
     organization
@@ -186,7 +185,6 @@ module zebos {
     uses imiNatTimeouts-grouping;
     uses installers-grouping;
     uses vr-grouping;
-    uses evc-grouping;
     uses bfdSession-grouping;
     uses confModeDebug-grouping;
     uses execModeDebug-grouping;
@@ -219,6 +217,8 @@ module zebos {
     uses imiRuleAclOutDest-grouping;
     uses imiRuleLocaladdrOutDest-grouping;
     uses imiRuleLocaladdrStatic-grouping;
+    uses portBreakout-grouping;
+    uses portGroupSpeed-grouping;
 
     rpc vrf-clear-default-router-id {
         if-feature feature_list:HAVE_L3;
@@ -2448,156 +2448,6 @@ module zebos {
         }
     }
 
-    rpc vxlan-clear-nvo-id-vxlan-tunnels {
-        if-feature feature_list:HAVE_VXLAN;
-    description "";
-    reference "";
-        input  {
-            leaf vrId  {
-                type cml_data_types:CML_INT32_T;
-
-                mandatory true;
-                description "";
-            }
-        }
-    }
-
-    rpc vxlan-clear-nvo-id-access-port {
-        if-feature feature_list:HAVE_VXLAN;
-    description "";
-    reference "";
-        input  {
-            leaf vrId  {
-                type cml_data_types:CML_INT32_T;
-
-                mandatory true;
-                description "";
-            }
-            leaf ifName  {
-                type cml_data_types:CML_STRING_T;
-
-                mandatory true;
-                description "";
-            }
-        }
-    }
-
-    rpc vxlan-clear-nvo-id-acess-port-vlan {
-        if-feature feature_list:HAVE_VXLAN;
-    description "";
-    reference "";
-        input  {
-            leaf vrId  {
-                type cml_data_types:CML_INT32_T;
-
-                mandatory true;
-                description "";
-            }
-            leaf ifName  {
-                type cml_data_types:CML_STRING_T;
-
-                mandatory true;
-                description "";
-            }
-            leaf vlanId  {
-                type cml_data_types:CML_UINT32_T;
-
-                mandatory true;
-                description "";
-            }
-            leaf innerVlanId  {
-                type cml_data_types:CML_UINT32_T {
-                    range "2..4094";
-                }
-
-                mandatory true;
-                description "";
-            }
-        }
-    }
-
-    rpc vxlan-clear-nvo-id-access-all {
-        if-feature feature_list:HAVE_VXLAN;
-    description "";
-    reference "";
-        input  {
-            leaf vrId  {
-                type cml_data_types:CML_INT32_T;
-
-                mandatory true;
-                description "";
-            }
-            leaf clearAllCounter  {
-                type cml_data_types:CML_BOOL_T;
-
-                mandatory true;
-                description "";
-            }
-        }
-    }
-
-    rpc vxlan-clear-nvo-id-network-all {
-        if-feature feature_list:HAVE_VXLAN;
-    description "";
-    reference "";
-        input  {
-            leaf vrId  {
-                type cml_data_types:CML_INT32_T;
-
-                mandatory true;
-                description "";
-            }
-            leaf clearNetworkAllCounter  {
-                type cml_data_types:CML_BOOL_T;
-
-                mandatory true;
-                description "";
-            }
-        }
-    }
-
-    rpc vxlan-clear-nvo-id-network-port {
-        if-feature feature_list:HAVE_VXLAN;
-    description "";
-    reference "";
-        input  {
-            leaf vrId  {
-                type cml_data_types:CML_INT32_T;
-
-                mandatory true;
-                description "";
-            }
-            leaf destIpv4  {
-                type cml_data_types:CML_STRING_T;
-
-                mandatory true;
-                description "";
-            }
-        }
-    }
-
-    rpc vxlan-clear-nvo-vxlan-mac-stale-entries {
-        if-feature feature_list:HAVE_VXLAN;
-    description "";
-    reference "";
-        input  {
-            leaf vrId  {
-                type cml_data_types:CML_INT32_T;
-
-                mandatory true;
-                description "";
-            }
-            leaf vnId  {
-                type cml_data_types:CML_INT32_T {
-                    range "1..16777215";
-                }
-
-                mandatory true;
-                description "";
-            }
-        }
-    }
-
     rpc tfo-cleartfocounter {
         if-feature feature_list:HAVE_TFO;
     description "clear tfo counter";
@@ -4474,6 +4324,16 @@ module zebos {
         }
     }
 
+    notification system_shutdown_or_reload {
+
+        description "Notify netconf about system shutdown or reload.";
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
     notification interface-Errdis-Notif {
 
         description "The interfaceErrdisNotif is generated when an interface is error-disabled(errDisReason will have non-zero value) and when it recovers from errdisabled state (errDisReason will have '0')..";
@@ -4712,26 +4572,6 @@ module zebos {
         leaf extendedNexthopEncodingCapability {
             type string;
     description "";
-        }
-    }
-
-    notification vxlan-tunnel-status-change-notification {
-
-        description "The nvoTunnelStatus trap is generated when there is any status change in Tunnel.";
-
-        leaf destIp {
-            type string;
-    description "Tunnel destination IP";
-        }
-
-        leaf vrId {
-            type string;
-    description "Virtual router id";
-        }
-
-        leaf tunnelStatus {
-            type string;
-    description "Status of tunnel";
         }
     }
 
