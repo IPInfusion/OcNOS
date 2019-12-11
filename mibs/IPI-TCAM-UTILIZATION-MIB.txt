@@ -1,0 +1,210 @@
+HW-TCAM-UTILIZATION-MIB DEFINITIONS ::= BEGIN
+
+--  This module provides authoritative definitions for tcam utilization table
+--
+--  This module will be extended, as needed.
+--
+
+IMPORTS
+    OBJECT-TYPE,
+    Gauge32, Counter32, Unsigned32,
+    TimeTicks, NOTIFICATION-TYPE
+        FROM SNMPv2-SMI
+    DateAndTime, DisplayString,
+    MacAddress, RowStatus, TEXTUAL-CONVENTION
+        FROM SNMPv2-TC
+    MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+        FROM SNMPv2-CONF
+    enterprises, OBJECT-IDENTITY
+        FROM SNMPv2-SMI
+    ipi FROM OCNOS-IPI-MODULE-MIB;
+
+hwTCAMutilization MODULE-IDENTITY
+    LAST-UPDATED "201603301200Z"   -- Mar 30, 2016 12:00:00 GMT
+    ORGANIZATION
+    "IPI."
+    CONTACT-INFO
+    "support@ipinfusion.com"
+
+   DESCRIPTION
+      "The Structure of NSM Management for TCAM Utilization Information for
+        the IPI enterprise."
+   ::= { ipi 108 }
+
+
+-- ### Groups ###
+
+TCAMUtilizationObjects             OBJECT IDENTIFIER ::={ hwTCAMutilization 1 }
+TCAMUtilizationAlarmObjects        OBJECT IDENTIFIER ::={ hwTCAMutilization 2 }
+
+-- ### Textual Convention
+
+CodeType ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "x"
+    STATUS      current
+    DESCRIPTION
+        "The code type value for a given unit,
+        displayed in hexadecimal."
+    SYNTAX  Unsigned32
+
+UnitType ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "x"
+    STATUS      current
+    DESCRIPTION
+        "The unit type value for a given unit,
+        displayed in hexadecimal."
+    SYNTAX  Unsigned32
+
+--- ### hardware TCAM Utilization Table
+
+    hwTCAMUtilizationTable          OBJECT-TYPE
+        SYNTAX                      SEQUENCE OF HwTCAMUtilizationEntry
+        MAX-ACCESS                  not-accessible
+        STATUS                      current
+        DESCRIPTION
+              "A Table displaying the free, used and total entries
+               of filter groups."
+        ::= { TCAMUtilizationObjects 1 }
+
+        hwTCAMUtilizationEntry          OBJECT-TYPE
+            SYNTAX                      HwTCAMUtilizationEntry
+            MAX-ACCESS                  not-accessible
+            STATUS                      current
+            DESCRIPTION   "TCAM Utilization."
+            INDEX         { groupId }
+            ::= { hwTCAMUtilizationTable 1 }
+
+        HwTCAMUtilizationEntry    ::=
+            SEQUENCE {
+                groupId                 INTEGER,
+                groupName               DisplayString,
+                groupStatus             INTEGER,
+                freeEntries             INTEGER,
+                usedPercent             INTEGER,
+                usedEntries             INTEGER,
+                totalEntries            INTEGER,
+                dedicatedEntries        INTEGER,
+                sharedEntries           INTEGER
+            }
+
+        groupId             OBJECT-TYPE
+            SYNTAX          INTEGER
+            MAX-ACCESS      read-only
+            STATUS          current
+            DESCRIPTION
+                "A unique number corresponding to each TCAM group."
+            ::= { hwTCAMUtilizationEntry 1 }
+
+        groupName           OBJECT-TYPE
+            SYNTAX          DisplayString
+            MAX-ACCESS      read-only
+            STATUS          current
+            DESCRIPTION     "TCAM group name."
+            ::= { hwTCAMUtilizationEntry 2 }
+
+        groupStatus         OBJECT-TYPE
+            SYNTAX          INTEGER
+            MAX-ACCESS      read-only
+            STATUS          current
+            DESCRIPTION
+                "A flag to indicate if the TCAM group is enabled or not.
+                 Value of 0 indicates TCAM group is disabled and 1 indicates
+                 TCAM group is enabled."
+            ::= { hwTCAMUtilizationEntry 3 }
+
+        freeEntries         OBJECT-TYPE
+            SYNTAX          INTEGER
+            MAX-ACCESS      read-only
+            STATUS          current
+            DESCRIPTION
+                "Count of free entries in the TCAM group.
+                 Value of -1 means the field is not applicable."
+            ::= { hwTCAMUtilizationEntry 4 }
+
+        usedPercent         OBJECT-TYPE
+            SYNTAX          INTEGER
+            MAX-ACCESS      read-only
+            STATUS          current
+            DESCRIPTION
+                "Percentage of entries used in the TCAM group.
+                 Value of -1 means the field is not applicable."
+            ::= { hwTCAMUtilizationEntry 5 }
+
+        usedEntries         OBJECT-TYPE
+            SYNTAX          INTEGER
+            MAX-ACCESS      read-only
+            STATUS          current
+            DESCRIPTION
+                "Count of used entries in the TCAM group.
+                 Value of -1 means the field is not applicable."
+            ::= { hwTCAMUtilizationEntry 6 }
+
+        totalEntries         OBJECT-TYPE
+            SYNTAX           INTEGER
+            MAX-ACCESS       read-only
+            STATUS           current
+            DESCRIPTION
+                "Count of total entries in the TCAM group.
+                 Total is summation of dedicated entries and shared entries.
+                 Value of -1 means the field is not applicable."
+            ::= { hwTCAMUtilizationEntry 7 }
+
+        dedicatedEntries     OBJECT-TYPE
+            SYNTAX           INTEGER
+            MAX-ACCESS       read-only
+            STATUS           current
+            DESCRIPTION
+                "Count of total entries dedicated to TCAM group.
+                Dedicated entries are fixed to the TCAM group and are the
+                minimum guaranteed number. Value of -1 means the field
+                is not applicable."
+            ::= { hwTCAMUtilizationEntry 8 }
+
+        sharedEntries        OBJECT-TYPE
+            SYNTAX           INTEGER
+            MAX-ACCESS       read-only
+            STATUS           current
+            DESCRIPTION
+                "Count of entries which are shared across TCAM groups.
+                Value of -1 means the field is not applicable."
+            ::= { hwTCAMUtilizationEntry 9 }
+
+
+    warningThresholdLevel         OBJECT-TYPE
+        SYNTAX                    INTEGER
+        MAX-ACCESS                read-only
+        STATUS                    current
+        DESCRIPTION
+            "Warning TCAM threshold level in percentage.
+             Value of -1 means the field is not applicable."
+        ::= { TCAMUtilizationObjects 2 }
+ 
+    alertThresholdLevel           OBJECT-TYPE
+        SYNTAX                    INTEGER
+        MAX-ACCESS                read-only
+        STATUS                    current
+        DESCRIPTION
+            "Alert TCAM threshold level in percentage.
+             Value of -1 means the field is not applicable."
+        ::= { TCAMUtilizationObjects 3 }
+
+
+TCAMUtilizationAlarmNotifications  OBJECT IDENTIFIER ::= { TCAMUtilizationAlarmObjects 1 }
+
+    hwTCAMWarningThresholdTrap    NOTIFICATION-TYPE
+        OBJECTS                   {groupName, usedPercent, freeEntries}
+        STATUS                    current
+        DESCRIPTION
+            "Trap to send information for Warning Threshold."
+        ::= { TCAMUtilizationAlarmNotifications 1 }
+
+    hwTCAMCriticalThresholdTrap   NOTIFICATION-TYPE
+        OBJECTS                   {groupName, usedPercent, freeEntries}
+        STATUS                    current
+        DESCRIPTION
+            "Trap to send information for Critical Threshold."
+        ::= { TCAMUtilizationAlarmNotifications 2 }
+
+
+END
+
