@@ -4184,6 +4184,7 @@
            cmmOpticalVendorFirmwarenumber      DisplayString,
            cmmNoNetworkInterfaces              INTEGER,
            cmmNoHostInterfaces                 INTEGER,
+           cmmCfpTransPresence                 INTEGER,
            cmmCfpVendorName                    DisplayString,
            cmmCfpVendorOui                     INTEGER,
            cmmCfpVendorPartNum                 DisplayString,
@@ -4203,6 +4204,7 @@
         SYNTAX          INTEGER{
                                 present (1),
                                 notpresent (2),
+                                unknown (3)
                                }
         MAX-ACCESS       read-only
         STATUS           current
@@ -4219,7 +4221,7 @@
                                unknown (0),
                                dco (1),
                                aco (2),
-                               qsfp (3)
+                               non-coherent (3)
                               }
         MAX-ACCESS     read-only
         STATUS         current
@@ -4314,6 +4316,18 @@
              -100001 indicates internal error"
         ::= { cmmCoherentModuleStateEntry 10 }
 
+        cmmCfpTransPresence            OBJECT-TYPE
+        SYNTAX           INTEGER{
+                                  present (1),
+                                  not-present (2),
+                                  unknown (3)
+                                }
+        MAX-ACCESS        read-only
+        STATUS            current
+        DESCRIPTION
+           "To verify cfp transceiver presence"
+       ::= { cmmCoherentModuleStateEntry 11 }
+
       cmmCfpVendorName  OBJECT-TYPE
         SYNTAX         DisplayString
         MAX-ACCESS     read-only
@@ -4323,7 +4337,7 @@
              -100003 indicates device not ready
              -100002 indicates Not applicable
             '-100001' indicates internal error"
-        ::= { cmmCoherentModuleStateEntry 11 }
+        ::= { cmmCoherentModuleStateEntry 12 }
 
       cmmCfpVendorOui       OBJECT-TYPE
         SYNTAX         INTEGER
@@ -4334,7 +4348,7 @@
              -100003 indicates device not ready
              -100002 indicates Not applicable
              -100001 indicates internal error"
-        ::= { cmmCoherentModuleStateEntry 12 }
+        ::= { cmmCoherentModuleStateEntry 13 }
 
       cmmCfpVendorPartNum  OBJECT-TYPE
         SYNTAX          DisplayString
@@ -4345,7 +4359,7 @@
              -100003 indicates device not ready
              -100002 indicates Not applicable
              '-100001' indicates internal error"
-        ::= { cmmCoherentModuleStateEntry 13 }
+        ::= { cmmCoherentModuleStateEntry 14 }
 
       cmmCfpVendorSerialNum  OBJECT-TYPE
         SYNTAX          DisplayString
@@ -4354,7 +4368,7 @@
         DESCRIPTION
            "CFP Vendor Serial Number.
              '-100001' indicates internal error"
-        ::= { cmmCoherentModuleStateEntry 14 }
+        ::= { cmmCoherentModuleStateEntry 15 }
 
       cmmCfpFirmwareVersion OBJECT-TYPE
         SYNTAX          DisplayString
@@ -4365,7 +4379,7 @@
              -100003 indicates device not ready
              -100002 indicates Not applicable
              '-100001' indicates internal error"
-        ::= { cmmCoherentModuleStateEntry 15 }
+        ::= { cmmCoherentModuleStateEntry 16 }
 
 
      -- ## CoherentModuleConfigTable
@@ -4470,23 +4484,23 @@
            cmmChromaticDispersion                  DisplayString,
            cmmDifferentialGroupDelay               INTEGER,
            cmmOperSoftTxDisable                    INTEGER,
-           cmmOperOutputPower                      DisplayString,
+           cmmOperOutputPower                      INTEGER,
            cmmOperLaserFreq                        DisplayString,
            cmmMinLaserFreq                         DisplayString,
            cmmMaxLaserFreq                         DisplayString,
            cmmCurrentTxLaserFreq                   DisplayString,
            cmmTxGridSpacing                        INTEGER,
            cmmLaserGridSupport                     DisplayString,
-           cmmCurrentOutputPower                   DisplayString,
-           cmmCurrentInputPower                    DisplayString,
-           cmmCurrentPostVoaPower                  DisplayString,
-           cmmCurrentProvisionedChannelPower       DisplayString,
-           cmmCfpTransPresence                     INTEGER,
+           cmmCurrentOutputPower                   INTEGER,
+           cmmCurrentInputPower                    INTEGER,
+           cmmCurrentPostVoaPower                  INTEGER,
+           cmmCurrentProvisionedChannelPower       INTEGER,
            cmmRxLosAlarm                           INTEGER,
            cmmRxOtuAlarm                           RxOtuStatusCode,
            cmmRxOduAlarm                           RxOduStatusCode,
            cmmRxOpuAlarm                           RxOpuStatusCode,
            cmmRxTsAlarm                            RxTsStatusCode
+           cmmOSNR                                 INTEGER,
         }
 
        cmmOperNetIfId   OBJECT-TYPE
@@ -4499,6 +4513,7 @@
 
        cmmChannelOperStatus          OBJECT-TYPE
        SYNTAX      INTEGER{
+                            unknown (0),
                             reset (1),
                             initialize (2),
                             low-power (3),
@@ -4759,8 +4774,8 @@
        ::= { cmmCoherentChannelStateEntry  18 }
 
        cmmOperOutputPower       OBJECT-TYPE
-       SYNTAX           DisplayString
-       UNITS            "dBm"
+       SYNTAX           INTEGER
+       UNITS            "0.01 dBm"
        MAX-ACCESS       read-only
        STATUS           current
        DESCRIPTION
@@ -4851,8 +4866,8 @@
         ::= { cmmCoherentChannelStateEntry  25 }
 
         cmmCurrentOutputPower  OBJECT-TYPE
-        SYNTAX        DisplayString
-        UNITS         "dBm"
+        SYNTAX        INTEGER
+        UNITS         "0.01 dBm"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -4863,8 +4878,8 @@
         ::= { cmmCoherentChannelStateEntry 26 }
 
         cmmCurrentInputPower  OBJECT-TYPE
-        SYNTAX        DisplayString
-        UNITS         "dBm"
+        SYNTAX        INTEGER
+        UNITS         "0.01 dBm"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -4875,8 +4890,8 @@
         ::= { cmmCoherentChannelStateEntry  27 }
 
         cmmCurrentPostVoaPower  OBJECT-TYPE
-        SYNTAX        DisplayString
-        UNITS         "dBm"
+        SYNTAX        INTEGER
+        UNITS         "0.01 dBm"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -4885,8 +4900,8 @@
         ::= { cmmCoherentChannelStateEntry  28 }
 
         cmmCurrentProvisionedChannelPower  OBJECT-TYPE
-        SYNTAX        DisplayString
-        UNITS         "dBm"
+        SYNTAX        INTEGER
+        UNITS         "0.01 dBm"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -4896,25 +4911,13 @@
              '-100001' indicates internal error"
         ::= { cmmCoherentChannelStateEntry  29 }
 
-        cmmCfpTransPresence            OBJECT-TYPE
-        SYNTAX           INTEGER{
-                                  present (1),
-                                  not-present (2),
-                                  unknown (3)
-                                }
-        MAX-ACCESS        read-only
-        STATUS            current
-        DESCRIPTION
-           "To verify cfp transceiver presence"
-       ::= { cmmCoherentChannelStateEntry 30 }
-
         cmmRxLosAlarm            OBJECT-TYPE
         SYNTAX        INTEGER
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
           "Netif Rx-Los Alarm."
-        ::= { cmmCoherentChannelStateEntry  31 }
+        ::= { cmmCoherentChannelStateEntry  30 }
 
         cmmRxOtuAlarm            OBJECT-TYPE
         SYNTAX        RxOtuStatusCode
@@ -4922,7 +4925,7 @@
         STATUS        current
         DESCRIPTION
           "Netif Rx-Otu Alarm."
-        ::= { cmmCoherentChannelStateEntry  32 }
+        ::= { cmmCoherentChannelStateEntry  31 }
 
         cmmRxOduAlarm            OBJECT-TYPE
         SYNTAX        RxOduStatusCode
@@ -4930,7 +4933,7 @@
         STATUS        current
         DESCRIPTION
           "Netif Rx-Odu Alarm."
-        ::= { cmmCoherentChannelStateEntry  33 }
+        ::= { cmmCoherentChannelStateEntry  32 }
 
         cmmRxOpuAlarm            OBJECT-TYPE
         SYNTAX        RxOpuStatusCode
@@ -4938,7 +4941,7 @@
         STATUS        current
         DESCRIPTION
           "Netif Rx-Opu Alarm."
-        ::= { cmmCoherentChannelStateEntry  34 }
+        ::= { cmmCoherentChannelStateEntry  33 }
 
         cmmRxTsAlarm            OBJECT-TYPE
         SYNTAX        RxTsStatusCode
@@ -4946,8 +4949,19 @@
         STATUS        current
         DESCRIPTION
           "Netif Rx-Ts Alarm."
-        ::= { cmmCoherentChannelStateEntry  35 }
+        ::= { cmmCoherentChannelStateEntry  34 }
 
+        cmmOSNR                        OBJECT-TYPE
+        SYNTAX           INTEGER
+        UNITS            "0.01 dBm"
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION
+            "Current OSNR in dBm.
+             -100003 indicates device not ready
+             -100002 indicates Not applicable
+             '-100001' indicates internal error"
+        ::= { cmmCoherentChannelStateEntry 35 }
 
     -- ## CoherentChannelConfigTable
 
