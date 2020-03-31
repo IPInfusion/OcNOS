@@ -21,6 +21,10 @@ submodule zebos-bgp {
         prefix cml_data_types;
     }
 
+    import ietf-inet-types {
+        prefix inet;
+    }
+
     import feature_list {
         prefix feature_list;
     }
@@ -44,6 +48,17 @@ submodule zebos-bgp {
     }
 
 
+
+    typedef  CML_BGP_MD5_T {
+        type enumeration {
+            enum 0 {
+                value 1;
+                description "Unencrypted password (key)";
+            }
+        }
+        description "";
+        reference "";
+    }
 
     grouping bgp-grouping {
     description
@@ -1309,16 +1324,6 @@ submodule zebos-bgp {
                         } // END of groupLimitAf definition.
 
 
-                        leaf passwordAf  {
-                            if-feature feature_list:HAVE_TCP_MD5SIG;
-                            type  cml_data_types:CML_STRING_T {
-                                length "0..255";
-                            }
-                            default "NULL";
-                            description "Password";
-                        } // END of passwordAf definition.
-
-
                         leaf transportConnectionPassiveAf  {
                             type  cml_data_types:CML_BOOL_T;
                             description "";
@@ -1449,6 +1454,25 @@ submodule zebos-bgp {
 
 
                         } // End of OptionalASAfList-list
+                        container bgpPasswordAf {
+                            description
+                                "Configure password for the neighbor in addressfamily";
+                            leaf passwordAf  {
+                                if-feature feature_list:HAVE_TCP_MD5SIG;
+                                type  cml_data_types:CML_STRING_T {
+                                    length "0..255";
+                                }
+                                description "";
+                            } // END of passwordAf definition.
+
+
+                            leaf authKeyEncryptionAddrAf  {
+                                type  CML_BGP_MD5_T;
+                                description "";
+                            } // END of authKeyEncryptionAddrAf definition.
+
+
+                        } // END of bgpPasswordAf-container definition.
                         uses peerVrfAttrs;
                         uses peerRuntimeAttr;
                         uses peerAdjOutRouteAttrs;
@@ -2107,16 +2131,26 @@ submodule zebos-bgp {
     grouping peerAndPeerGroupAttrs {
         description
             "peerAndPeerGroupAttrs";
-        leaf password  {
-            if-feature feature_list:HAVE_TCP_MD5SIG;
-            type  cml_data_types:CML_STRING_T {
-                length "0..255";
-            }
-            default "NULL";
-            description "Password";
-        } // END of password definition.
+        container bgpPassword {
+            description
+                "Configure password for the neighbor";
+            leaf password  {
+                if-feature feature_list:HAVE_TCP_MD5SIG;
+                type  cml_data_types:CML_STRING_T {
+                    length "0..255";
+                }
+                default "NULL";
+                description "";
+            } // END of password definition.
 
 
+            leaf authKeyEncryptionAddr  {
+                type  CML_BGP_MD5_T;
+                description "";
+            } // END of authKeyEncryptionAddr definition.
+
+
+        } // END of bgpPassword-container definition.
     } // END of peerAndPeerGroupAttrs definition.
     grouping bgpAfAttrs {
         description
