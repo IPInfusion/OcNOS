@@ -1,0 +1,23 @@
+---
+  - hosts: ocnos
+    gather_facts: no
+    
+
+    tasks:
+      - name: create prefix-list config file
+        template:
+          src: "templates/{{ ansible_network_os }}_prefix_list.j2"
+          dest: "configs/{{inventory_hostname}}.config"  
+          
+      - name: load prefix-list config ocnos
+        ocnos_config:
+          src: "configs/{{ inventory_hostname }}.config"
+
+      - name: show prefix_list config ocnos    
+        cli_command:
+          command: show running-config prefix-list             
+        register: result
+        
+      - name: debug
+        debug:
+          msg: "{{ result.stdout_lines }}"

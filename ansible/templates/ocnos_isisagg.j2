@@ -1,0 +1,52 @@
+key chain {{ key.chain }}
+ key {{ key.keyid }}
+  key-string encrypted {{ key.passwd }}
+  exit
+
+{% for isis in isis.proc1 -%}
+router isis {{ isis.processid }}
+{% if isis.istype  is defined %}
+ is-type {{ isis.istype }}
+{%endif%}
+{% if isis.mode  is defined %}
+ authentication mode {{ isis.mode }} {{ isis.level }}
+ authentication key-chain isis {{ isis.level }}
+{%endif%}
+{% if isis.level is defined %}
+ spf-interval-exp {{ isis.spfvalue }} {{isis.spfinmili }}
+{%endif%}
+{% if isis.level1 is defined %}
+ spf-interval-exp {{ isis.level1 }} {{ isis.spfvalue }} {{isis.spfinmili }}
+{%endif%}
+{% if isis.trafficeng  is defined %}
+ metric-style wide {{ isis.trafficeng }}
+ mpls traffic-eng {{ isis.trafficeng }}
+{%endif%}
+{% if routerid.address is defined %}
+ mpls traffic-eng router-id {{ routerid.address }}
+{% endif%}
+{% if isis.capability is defined %}
+ capability {{ isis.capability }}
+{% endif%}
+{% if isis.dynamic is defined %}
+ dynamic-hostname
+{% endif%}
+ bfd {{ isis.bfd }}
+ net {{ isis.net }}
+{% if isis.metric  is defined %}
+ redistribute isis 1 metric {{ isis.metric }} {{ isis.level }} route-map {{ isis.word }}
+{%endif%}
+{% if isis.passive is defined %}
+ passive-interface {{ isis.passive }}
+{%endif%}
+ exit
+{% for interface in isis.interfaces -%}
+ interface {{ interface.name }}
+ ip router isis {{ interface.isis }}
+ {% if interface.isisnw  is defined %}
+ isis network {{ interface.isisnw }}
+ {%endif%}
+ exit
+{% endfor -%}
+{% endfor -%}
+

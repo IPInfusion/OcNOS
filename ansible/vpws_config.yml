@@ -1,0 +1,23 @@
+---
+  - hosts: ocnos
+    gather_facts: no
+    
+
+    tasks:
+      - name: create VPWS config file
+        template:
+          src: "templates/{{ ansible_network_os }}_vpws.j2"
+          dest: "configs/{{inventory_hostname}}.config"
+     
+      - name: load VPWS config ocnos
+        ocnos_config:
+          src: "configs/{{ inventory_hostname }}.config"
+          
+      - name: show VPWS config ocnos    
+        cli_command:
+          command: show running-config  mpls        
+        register: result
+        
+      - name: debug
+        debug:
+          msg: "{{ result.stdout_lines }}"

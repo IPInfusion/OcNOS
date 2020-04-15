@@ -1,0 +1,29 @@
+---
+  - hosts: ocnos
+    gather_facts: no
+
+    tasks:
+
+      - name: Create configuration templates for AGG node
+        template:
+          src: "templates/{{ ansible_network_os }}_lldp.j2"
+          dest: "configs/{{ inventory_hostname }}lldp.config"
+      - name: load configs lldp
+        ocnos_config:
+          src: "configs/{{ inventory_hostname }}lldp.config"
+      - name: show lldp config ocnos
+        cli_command:
+          command: show running-config lldp 
+        register: result1
+      - name: debug
+        debug:
+          msg: "{{ result1.stdout_lines }}"
+      
+      - name: show lldp neighbors ocnos
+        cli_command:
+          command: show lldp neighbors
+        register: result2
+      - name: debug
+        debug:
+          msg: "{{ result2.stdout_lines }}"
+
