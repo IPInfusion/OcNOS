@@ -18,7 +18,6 @@ IMPORTS
       Ipv6Address
           FROM IPV6-TC
       ipi  FROM OCNOS-IPI-MODULE-MIB
-      ifName  FROM IF-MIB
       ifIndex  FROM IF-MIB
         vrVrId
                 FROM OCNOS-VR-MIB;
@@ -69,7 +68,7 @@ interfaceIfIndexListEntry OBJECT-TYPE
 	::= { interfaceIfIndexListTable 1 }
 
 InterfaceIfIndexListEntry::= SEQUENCE {
-	interfaceIfName1 OCTET STRING,
+	interfaceIfName OCTET STRING,
 	interfaceErrDisReason BITS,
 	interfaceAggDownMinLink INTEGER,
 	interfaceArpDiscardPackets Counter64,
@@ -83,9 +82,13 @@ InterfaceIfIndexListEntry::= SEQUENCE {
 	interfaceRxNeighborSolicitationPackets Counter64,
 	interfaceRxNeighborAdvertisementPackets Counter64,
 	interfaceTxNeighborSolicitationPackets Counter64,
-	interfaceTxNeighborAdvertisementPackets Counter64	}
+	interfaceTxNeighborAdvertisementPackets Counter64,
+	interfaceRxGarpPackets Counter64,
+	interfaceTxGarpPackets Counter64,
+	interfaceRxGnaPackets Counter64,
+	interfaceTxGnaPackets Counter64	}
 
-interfaceIfName1 OBJECT-TYPE
+interfaceIfName OBJECT-TYPE
 	SYNTAX OCTET STRING 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -96,15 +99,15 @@ interfaceIfName1 OBJECT-TYPE
             such as `le0' or a simple port number, such as `1', depending on the interface
             naming syntax of the device. If several entries in the ifTable together represent
             a single interface as named by the device, then each will have the same value of
-            ifName. Note that for an agent which responds to SNMP queries concerning an
-            interface on some other (proxied) device, then the value of ifName for such an
+            name. Note that for an agent which responds to SNMP queries concerning an
+            interface on some other (proxied) device, then the value of name for such an
             interface is the proxied device's local name for it. If there is no local name,
             or this object is otherwise not applicable, then this object contains a zero-length
             string."
 	::= { interfaceIfIndexListEntry 1 }
 
 interfaceErrDisReason OBJECT-TYPE
-	SYNTAX BITS {lagmismatch(0), stpbpduguard(1), linkflap(2), notapplicable(3)} 
+	SYNTAX BITS {lagmismatch(0), stpbpduguard(1), linkflap(2), macmovelimit(3), notapplicable(4)} 
 	MAX-ACCESS read-only
 	STATUS current 
 	DESCRIPTION 
@@ -214,6 +217,38 @@ interfaceTxNeighborAdvertisementPackets OBJECT-TYPE
 	DESCRIPTION 
 		"This Object describes ND Advertisement Transmitted Packets(Applicable only for logical VxLAN-access ports)"
 	::= { interfaceIfIndexListEntry 15 }
+
+interfaceRxGarpPackets OBJECT-TYPE
+	SYNTAX Counter64 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This Object describes Gratuitous ARP  (Garp) Received Packets(Applicable only for logical VxLAN-access ports)"
+	::= { interfaceIfIndexListEntry 16 }
+
+interfaceTxGarpPackets OBJECT-TYPE
+	SYNTAX Counter64 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This Object describes Gratuitous ARP (Garp) Transmitted Packets(Applicable only for logical VxLAN-access ports)"
+	::= { interfaceIfIndexListEntry 17 }
+
+interfaceRxGnaPackets OBJECT-TYPE
+	SYNTAX Counter64 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This Object describes Gratuitous NA (Gna) Received Packets(Applicable only for logical VxLAN-access ports)"
+	::= { interfaceIfIndexListEntry 18 }
+
+interfaceTxGnaPackets OBJECT-TYPE
+	SYNTAX Counter64 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This Object describes Gratuitous NA (Gna) Transmitted Packets(Applicable only for logical VxLAN-access ports)"
+	::= { interfaceIfIndexListEntry 19 }
 
 
 --

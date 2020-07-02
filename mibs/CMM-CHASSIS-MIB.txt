@@ -6,7 +6,7 @@
     --
 
     IMPORTS
-        OBJECT-TYPE,
+        OBJECT-TYPE, MODULE-IDENTITY,
         Gauge32, Counter32, Unsigned32,
         TimeTicks, NOTIFICATION-TYPE
             FROM SNMPv2-SMI
@@ -21,7 +21,7 @@
 
 
 	cmm  MODULE-IDENTITY
-	LAST-UPDATED "201711091200Z"   -- Nov 09, 2017 12:00:00 GMT
+	LAST-UPDATED "202005060000Z"   -- Jun 05, 2020 12:00:00 GMT
 	ORGANIZATION
 	  "IPI."
 	CONTACT-INFO
@@ -30,15 +30,18 @@
 	DESCRIPTION
 	   "The Structure of CMM Management Information for
 	    the IPI enterprise."
+  REVISION "202005060000Z"
+  DESCRIPTION
+      "Complying to level 3 of SMILINT"
 	::= { ipi 100 }
 
 
     -- ### Groups ###
 
-    CmmChassisObject      OBJECT IDENTIFIER ::={ cmm 1 }
-    cmmObjects            OBJECT IDENTIFIER ::={ CmmChassisObject 1 }
-    cmmSysObjects         OBJECT IDENTIFIER ::={ CmmChassisObject 2 }
-    cmmAlarmObjects       OBJECT IDENTIFIER ::={ CmmChassisObject 3 }
+    cmmChassisObject      OBJECT IDENTIFIER ::={ cmm 1 }
+    cmmObjects            OBJECT IDENTIFIER ::={ cmmChassisObject 1 }
+    cmmSysObjects         OBJECT IDENTIFIER ::={ cmmChassisObject 2 }
+    cmmAlarmObjects       OBJECT IDENTIFIER ::={ cmmChassisObject 3 }
 
     -- ### Textual Convention
     LedColorCode ::= TEXTUAL-CONVENTION
@@ -161,8 +164,8 @@
         }
 
        cmmStackUnitIndex  OBJECT-TYPE
-        SYNTAX        INTEGER
-        MAX-ACCESS    not-accessible
+        SYNTAX        INTEGER (1..65535)
+        MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
              "The unique stack unit number."
@@ -483,15 +486,27 @@
            cmmTransDateCode               DisplayString,
            cmmTransDDMSupport             INTEGER,
            cmmTransMaxCaseTemp            INTEGER,
-           cmmTransSFPOptionsImp          BITS, 
+           cmmTransSFPOptionsImp          BITS,
            cmmTransQSFPOptionsImp         BITS,
            cmmTransPresence               INTEGER,
-           cmmTransFrontPanelPortNumber   INTEGER
+           cmmTransFrontPanelPortNumber   INTEGER,
+           cmmTransXFPextendedidentifier  BITS,
+           cmmTransXFP10GEthCompliance    BITS,
+           cmmTransXFP10GFiberChnCompliance BITS,
+           cmmTransXFP10GCopperLinksRsvd  BITS,
+           cmmTransXFPLowerSpeedLinks     BITS,
+           cmmTransXFPSonetInterconnect   BITS,
+           cmmTransXFPSonetShortHaul      BITS,
+           cmmTransXFPSonetLongHaul       BITS,
+           cmmTransXFPSonetVeryLongHaul   BITS,
+           cmmTransXFPOptionsImp          BITS,
+           cmmTransXFPVoltageAuxMonitor   BITS,
+           cmmTransXFPEncoding            BITS
         }
 
        cmmTransIndex   OBJECT-TYPE
-        SYNTAX        INTEGER
-        MAX-ACCESS    not-accessible
+        SYNTAX        INTEGER (1..65535)
+        MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
             " A unique value, greater than zero,for each slot within the unit"
@@ -501,7 +516,10 @@
         SYNTAX        INTEGER {
                                sfp(1),
                                qsfp(2),
-                               unknown(3)
+                               xfp(3),
+                               pon-xfp(4),
+                               unavailable(-100001),
+                               not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
@@ -515,18 +533,19 @@
         STATUS        current
         DESCRIPTION
             "Number of channels available for this transceiver.
-             '-100001' indicates unavailable"
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 3 }
 
         cmmTransidentifier OBJECT-TYPE
         SYNTAX        INTEGER {
-                             unknown(1),
+                             id-unknown(1),
                              gbic(2),
                              soldered-to-motherboard(3),
                              sfp-or-sfpplus-or-sfp28(4),
                              xbi-300pin(5),
                              xenpak(6),
-                             xep(7),
+                             xfp(7),
                              xff(8),
                              xfpe(9),
                              xpak(10),
@@ -546,7 +565,9 @@
                              microqsfp(24),
                              qsfp-doubledensity-8x-pluggable-transceiver(25),
                              reserved(26),
-                             vendor-specific(27)
+                             vendor-specific(27),
+                             unavailable(-100001),
+                             not-applicable(-100002)
                              }
         MAX-ACCESS    read-only
         STATUS        current
@@ -565,7 +586,8 @@
                              gbic-compliant-with-moddef6(7),
                              gbic-compliant-with-moddef7(8),
                              unallocated(9),
-                             unknown(10)
+                             unavailable(-100001),
+                             not-applicable(-100002)
                              }
         MAX-ACCESS    read-only
         STATUS        current
@@ -584,18 +606,19 @@
                              cdrpresent-in-rx(6),
                              powerclass5-4wmax(7),
                              powerclass6-4dot5wmax(8),
-                             powerclass7-5wmax(9)
+                             powerclass7-5wmax(9),
+                             unavailable(30),
+                             not-applicable(31)
                              }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Extended identifier of QSFP transceiver for additional information.
-             Blank indicates unavailable"
+            "Extended identifier of QSFP transceiver for additional information."
         ::= { cmmTransEEPROMEntry 6 }
 
         cmmTransconnectortype   OBJECT-TYPE
         SYNTAX        INTEGER {
-                             unknown(1),
+                             type-unknown(1),
                              subscriber-connector(2),
                              fibrechannel-style1-copperconnector(3),
                              fibrechannel-style2-copperconnector(4),
@@ -615,7 +638,9 @@
                              no-separable-connector(18),
                              mxc2-x16(19),
                              reserved(20),
-                             vendor-specific(21)
+                             vendor-specific(21),
+                             unavailable(-100001),
+                             not-applicable(-100002)
                              }
         MAX-ACCESS    read-only
         STATUS        current
@@ -641,7 +666,9 @@
                              ec-40gbase-cr4(14),
                              ec-40gbase-sr4(15),
                              ec-40gbase-lr4(16),
-                             ec-40g-activecable(17)
+                             ec-40g-activecable(17),
+                             unavailable(-100001),
+                             not-applicable(-100002)
                              }
         MAX-ACCESS    read-only
         STATUS        current
@@ -671,17 +698,18 @@
                              eec-g959-dot1-profilep1-i1-2d1(17),
                              eec-g959-dot1-profilep1-s1-2d2(18),
                              eec-g959-dot1-profilep1-l1-2d2(19),
-                             eec-100gbase-t-with-sfi-electricalinterface(20),
+                             eec-10gbase-t-with-sfi-electricalinterface(20),
                              eec-100g-clr4(21),
                              eec-100g-aoc-or-25g-auic2maoc(22),
                              eec-100g-acc-or-25g-auic2macc(23),
-                             eec-100ge-dwdm2(24)
+                             eec-100ge-dwdm2(24),
+                             unavailable(30),
+                             not-applicable(31)
                              }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Bitmap of Extended Ethernet Compliance codes.
-             Blank indicates unavailable"
+            "Bitmap of Extended Ethernet Compliance codes."
         ::= { cmmTransEEPROMEntry 9 }
 
         cmmTransSonetCompliance   OBJECT-TYPE
@@ -697,13 +725,14 @@
                              oc12-singlemode-shortreach(8),
                              oc3-singlemode-longreach(9),
                              oc3-singlemode-intermediatereach(10),
-                             oc3-singlemode-shortreach(11)
+                             oc3-singlemode-shortreach(11),
+                             unavailable(30),
+                             not-applicable(31)
                              }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Sonet Compliance codes of transceiver.
-             Blank indicates unavailable"
+            "Sonet Compliance codes of transceiver."
         ::= { cmmTransEEPROMEntry 10 }
 
         cmmTransFiberChnlLinkLen  OBJECT-TYPE
@@ -712,13 +741,14 @@
                            medium(1),
                            intermediate(2),
                            long(3),
-                           verylong(4)
+                           verylong(4),
+                           unavailable(30),
+                           not-applicable(31)
                            }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Fiber Channel Link Length.
-             Blank indicates unavailable"
+            "Fiber Channel Link Length."
         ::= { cmmTransEEPROMEntry 11 }
 
         cmmTransFiberChnlTransTech  OBJECT-TYPE
@@ -729,13 +759,14 @@
                            electricalIntra-Enclosure(3),
                            shortwaveLaserWithOutOFC(4),
                            shortwaveLaserwithOFC(5),
-                           longwaveLaserLL(6)
+                           longwaveLaserLL(6),
+                           unavailable(30),
+                           not-applicable(31)
                            }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Fiber Channel Transmitter Technology.
-             Blank indicates unavailable"
+            "Fiber Channel Transmitter Technology."
         ::= { cmmTransEEPROMEntry 12 }
 
         cmmTransFiberChnlTransMedia  OBJECT-TYPE
@@ -747,13 +778,14 @@
                            multi-mode62dot5m(4),
                            multi-mode50m(5),
                            multi-mode50um(6),
-                           single-mode(7)
+                           single-mode(7),
+                           unavailable(30),
+                           not-applicable(31)
                            }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Fiber Channel Transmitter Media.
-             Blank indicates unavailable"
+            "Fiber Channel Transmitter Media."
         ::= { cmmTransEEPROMEntry 13 }
 
         cmmTransSFPFiberChnlSpeed  OBJECT-TYPE
@@ -764,13 +796,14 @@
                              fcs-800mbps(3),
                              fcs-400mbps(4),
                              fcs-200mbps(5),
-                             fcs-100mbps(6)
+                             fcs-100mbps(6),
+                             unavailable(30),
+                             not-applicable(31)
                              }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "SFP Fiber Channel Speed.
-             Blank indicates unavailable"
+            "SFP Fiber Channel Speed."
         ::= { cmmTransEEPROMEntry 14 }
 
         cmmTransQSFPFiberChnlSpeed  OBJECT-TYPE
@@ -781,13 +814,14 @@
                              fcs-800mbps(3),
                              fcs-400mbps(4),
                              fcs-200mbps(5),
-                             fcs-100mbps(6)
+                             fcs-100mbps(6),
+                             unavailable(30),
+                             not-applicable(31)
                              }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "QSFP Fiber Channel Speed.
-             Blank indicates unavailable"
+            "QSFP Fiber Channel Speed."
         ::= { cmmTransEEPROMEntry 15 }
 
         cmmTransSFPInfiniBandCompliance OBJECT-TYPE
@@ -796,8 +830,8 @@
                            ibc-1xlx(2),
                            ibc-1xcopperactive(3),
                            ibc-1xcopperpassive(4),
-                           ibc-unknown(5),
-                           ibc-notapplicable(6)
+                           unavailable(-100001),
+                           not-applicable(-100002)
                            }
         MAX-ACCESS    read-only
         STATUS        current
@@ -809,8 +843,8 @@
         SYNTAX        INTEGER {
                            escon-mmf-1310nm-led(1),
                            escon-smf-1310nm-laser(2),
-                           unknown(3),
-                           notapplicable(4)
+                           unavailable(-100001),
+                           not-applicable(-100002)
                            }
         MAX-ACCESS    read-only
         STATUS        current
@@ -822,8 +856,8 @@
         SYNTAX        INTEGER {
                               active(1),
                               passive(2),
-                              unknown(3),
-                              notapplicable(4)
+                              unavailable(-100001),
+                              not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
@@ -842,12 +876,14 @@
                               enc-64b-or-66b(7),
                               enc-256b-or-257b(8),
                               enc-pam4(9),
-                              enc-reserved(10)
+                              enc-reserved(10),
+                              unavailable(-100001),
+                              not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Code for high speed serial encoding algorithm."
+            "Code for SFP/QSFP high speed serial encoding algorithm."
         ::= { cmmTransEEPROMEntry 19 }
 
         cmmTransLengthKmtrs  OBJECT-TYPE
@@ -857,7 +893,8 @@
         STATUS        current
         DESCRIPTION
             "Link length supported for single mode fiber, units of km.
-             '-100001' indicates unavailable"
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 20 }
 
         cmmTransLengthMtrs  OBJECT-TYPE
@@ -878,7 +915,8 @@
         STATUS        current
         DESCRIPTION
             "Link length supported for 62.5 um OM1 fiber, units of 10 m.
-             '-100001' indicates unavailable"
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 22 }
 
         cmmTransLengthOM2 OBJECT-TYPE
@@ -888,7 +926,8 @@
         STATUS        current
         DESCRIPTION
             "Link length supported for 50 um OM2 fiber, units of 10 m.
-             '-100001' indicates unavailable"
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 23 }
 
         cmmTransLengthOM3 OBJECT-TYPE
@@ -898,7 +937,8 @@
         STATUS        current
         DESCRIPTION
             "Link length supported for 50 um OM3 fiber, units of 10 m.
-             '-100001' indicates unavailable"
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 24 }
 
         cmmTransLengthOM4 OBJECT-TYPE
@@ -908,7 +948,8 @@
         STATUS        current
         DESCRIPTION
             "Link length supported for 50 um OM4 fiber, units of 10 m.
-             '-100001' indicates unavailable"
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 25 }
 
         cmmTransVendorName OBJECT-TYPE
@@ -972,7 +1013,8 @@
         STATUS        current
         DESCRIPTION
             "Nominal signalling rate, units of 100MBd.
-             '-100001' indicates unavailable"
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 32 }
 
         cmmTransBitRateMax  OBJECT-TYPE
@@ -982,7 +1024,7 @@
         DESCRIPTION
             "Upper bit rate margin, units of 1% above the Nominal Bit Rate.
             Value '0' indicates this field is not specified.
-             '-100001' indicates unavailable
+            '-100001' indicates unavailable
             '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 33 }
 
@@ -993,7 +1035,7 @@
         DESCRIPTION
             "Lower bit rate margin, units of 1% below the Nominal Bit Rate.
             Value '0' indicates this field is not specified.
-             '-100001' indicates unavailable
+            '-100001' indicates unavailable
             '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 34 }
 
@@ -1019,13 +1061,16 @@
         SYNTAX        INTEGER{
                              yes(1),
                              no(2),
-                             unknown(3)
+                             unavailable(-100001),
+                             not-applicable(-100002)
                              }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
             "Indicates whether diagnostics monitoring is
-            supported or not."
+            supported or not.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 37 }
 
         cmmTransMaxCaseTemp   OBJECT-TYPE
@@ -1034,7 +1079,8 @@
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Maximum case temperature in Celsius.'-100001' indicates unavailable
+            "Maximum case temperature in Celsius.
+            '-100001' indicates unavailable
             '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 38 }
 
@@ -1053,13 +1099,14 @@
                            rate-select(10),
                            tx-disable(11),
                            tx-fault(12),
-                           rx-loss-of-signal(13)
+                           rx-loss-of-signal(13),
+                           unavailable(30),
+                           not-applicable(31)
                            }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Transceiver Options Implemented for SFP Transceiver.
-             Blank indicates unavailable"
+            "Transceiver Options Implemented for SFP Transceiver."
         ::= { cmmTransEEPROMEntry 39 }
 
         cmmTransQSFPOptionsImp  OBJECT-TYPE
@@ -1087,20 +1134,22 @@
                            tx-fault(20),
                            tx-squelch-to-reduce-pave(21),
                            tx-squelch-to-reduce-oma(22),
-                           tx-loss-of-signal(23)
+                           tx-loss-of-signal(23),
+                           unavailable(30),
+                           not-applicable(31)
                            }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Transceiver Options Implemented for QSFP Transceiver.
-             Blank indicates unavailable"
+            "Transceiver Options Implemented for QSFP Transceiver."
         ::= { cmmTransEEPROMEntry 40 }
 
         cmmTransPresence  OBJECT-TYPE
         SYNTAX        INTEGER{
                              present(1),
                              notpresent(2),
-                             unknown(3)
+                             unavailable(-100001),
+                             not-applicable(-100002)
                              }
         MAX-ACCESS    read-only
         STATUS        current
@@ -1115,6 +1164,207 @@
          DESCRIPTION
              "Front panel port number"
          ::= { cmmTransEEPROMEntry 42 }
+
+        cmmTransXFPextendedidentifier  OBJECT-TYPE
+         SYNTAX        BITS {
+                             powerlevel1-1dot5wmax(0),
+                             powerlevel2-2dot5wmax(1),
+                             powerlevel3-3dot5wmax(2),
+                             powerlevel4-over3dot5w(3),
+                             cdr-none(4),
+                             tx-refclk-input-notrequired(5),
+                             cleicode-present(6),
+                             unavailable(30),
+                             not-applicable(31)
+                            }
+         MAX-ACCESS    read-only
+         STATUS        current
+         DESCRIPTION
+              "XFP transceiver extended identifier to provide extra information."
+         ::= { cmmTransEEPROMEntry 43 }
+
+        cmmTransXFP10GEthCompliance OBJECT-TYPE
+          SYNTAX        BITS {
+                              xec-10gbase-sr(0),
+                              xec-10gbase-lr(1),
+                              xec-10gbase-er(2),
+                              xec-10gbase-lrm(3),
+                              xec-10gbase-sw(4),
+                              xec-10gbase-lw(5),
+                              xec-10gbase-ew(6),
+                              unavailable(30),
+                              not-applicable(31)
+                             }
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+              "10G ethernet compliant interface supported by XFP transceiver"
+          ::= { cmmTransEEPROMEntry 44 }
+
+          cmmTransXFP10GFiberChnCompliance OBJECT-TYPE
+           SYNTAX        BITS {
+                                xfcc-1200-mx-sn-I(0),
+                                xfcc-1200-sm-ll-l(1),
+                                xfcc-exended-reach-1550nm(2),
+                                xfcc-exen-reach-1300nm-fp(3),
+                                unavailable(30),
+                                not-applicable(31)
+                              }
+           MAX-ACCESS    read-only
+           STATUS        current
+           DESCRIPTION
+                "10G fiber channel interface supported by XFP transceiver."
+           ::= { cmmTransEEPROMEntry 45 }
+
+          cmmTransXFP10GCopperLinksRsvd OBJECT-TYPE
+           SYNTAX        BITS {
+                                xcl-rsvd(0),
+                                unavailable(30),
+                                not-applicable(31)
+                              }
+           MAX-ACCESS    read-only
+           STATUS        current
+           DESCRIPTION
+                "10G copper link interface supported by XFP transceiver (Not used)."
+           ::= { cmmTransEEPROMEntry 46 }
+
+          cmmTransXFPLowerSpeedLinks OBJECT-TYPE
+           SYNTAX        BITS {
+                              xlsl-1000base-sx(0),
+                              xlsl-1000base-lx(1),
+                              xlsl-2xfc-mmf(2),
+                              xlsl-2xfc-smf(3),
+                              xlsl-oc48-sr(4),
+                              xlsl-oc48-ir(5),
+                              xlsl-oc48-lr(6),
+                              unavailable(30),
+                              not-applicable(31)
+                              }
+           MAX-ACCESS    read-only
+           STATUS        current
+           DESCRIPTION
+                "Low speed interface supported by XFP transceiver."
+           ::= { cmmTransEEPROMEntry 47 }
+
+          cmmTransXFPSonetInterconnect OBJECT-TYPE
+           SYNTAX        BITS {
+                              xsi-i-64-lr(0),
+                              xsi-i-64-l(1),
+                              xsi-i-64-2r(2),
+                              xsi-i-64-2(3),
+                              xsi-i-64-3(4),
+                              xsi-i-64-5(5),
+                              unavailable(30),
+                              not-applicable(31)
+                            }
+           MAX-ACCESS    read-only
+           STATUS        current
+           DESCRIPTION
+                "SONETinterconnect interface supported by XFP transceiver."
+           ::= { cmmTransEEPROMEntry 48 }
+
+
+          cmmTransXFPSonetShortHaul OBJECT-TYPE
+           SYNTAX        BITS {
+                             xssh-s-64-l(0),
+                             xssh-s-64-2a(1),
+                             xssh-s-64-2b(2),
+                             xssh-s-64-3a(3),
+                             xssh-s-64-3b(4),
+                             xssh-s-64-5a(5),
+                             xssh-s-64-5b(6),
+                             unavailable(30),
+                             not-applicable(31)
+                            }
+           MAX-ACCESS    read-only
+           STATUS        current
+           DESCRIPTION
+                "SONET short haul interface supported by XFP transceiver."
+           ::= { cmmTransEEPROMEntry 49 }
+
+          cmmTransXFPSonetLongHaul OBJECT-TYPE
+           SYNTAX        BITS {
+                              xslh-l-64-l(0),
+                              xslh-l-64-2a(1),
+                              xslh-l-64-2b(2),
+                              xslh-l-64-2c(3),
+                              xslh-l-64-3(4),
+                              xlsh-l-g959-1-p1l1-2d2(5),
+                              unavailable(30),
+                              not-applicable(31)
+                             }
+           MAX-ACCESS    read-only
+           STATUS        current
+           DESCRIPTION
+                "SONET long haul interface supported by XFP transceiver."
+           ::= { cmmTransEEPROMEntry 50 }
+
+          cmmTransXFPSonetVeryLongHaul OBJECT-TYPE
+           SYNTAX        BITS {
+                              xsvh-v-64-2a(0),
+                              xsvh-v-64-2b(1),
+                              xsvh-v-64-3(2),
+                              unavailable(30),
+                              not-applicable(31)
+                              }
+           MAX-ACCESS    read-only
+           STATUS        current
+           DESCRIPTION
+                "SONET very long haul interface supported by XFP transceiver."
+           ::= { cmmTransEEPROMEntry 51 }
+
+
+        cmmTransXFPOptionsImp OBJECT-TYPE
+         SYNTAX        BITS {
+                              xfp-vps(0),
+                              xfp-tx-disable(1),
+                              xfp-p-down(2),
+                              xfp-vps-lv(3),
+                              xfp-vps-bypass(4),
+                              xfp-active-fec(5),
+                              xfp-wavelength-tunability(6),
+                              xfp-cmu(7),
+                              unavailable(30),
+                              not-applicable(31)
+                            }
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+              "Optional enhanced features implemented by XFP transceiver."
+          ::= { cmmTransEEPROMEntry 52 }
+
+        cmmTransXFPVoltageAuxMonitor OBJECT-TYPE
+         SYNTAX        BITS {
+                            xfp-vcc-5(0),
+                            xfp-vcc-3(1),
+                            xfp-vcc-2(2),
+                            unavailable(30),
+                            not-applicable(31)
+                            }
+         MAX-ACCESS    read-only
+         STATUS        current
+         DESCRIPTION
+              "XFP Voltages monitored by auxiliary measurements."
+         ::= { cmmTransEEPROMEntry 53 }
+
+        cmmTransXFPEncoding  OBJECT-TYPE
+        SYNTAX        BITS  {
+                              enc-rsvd0(0),
+                              enc-rsvd1(1),
+                              enc-rsvd2(2),
+                              enc-rz(3),
+                              enc-nrz(4),
+                              enc-sonet-scrambled(5),
+                              enc-8b10b(6),
+                              enc-64b66b(7),
+                              unavailable(30),
+                              not-applicable(31)
+                            }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Code for XFP high speed serial encoding algorithm."
+        ::= { cmmTransEEPROMEntry 54 }
 
     -- ## DDMChannel Entry
      cmmTransDDMTable OBJECT-TYPE
@@ -1174,12 +1424,17 @@
            cmmTransRxLosState                         INTEGER,
            cmmTransTxLosState                         INTEGER,
            cmmTransResetState                         INTEGER,
-           cmmTransPowerMode                          INTEGER
+           cmmTransPowerMode                          INTEGER,
+           cmmTransXFPVoltage2                        INTEGER,
+           cmmTransXFPVolt2CriticalThresholdMin       INTEGER,
+           cmmTransXFPVolt2CriticalThresholdMax       INTEGER,
+           cmmTransXFPVolt2AlertThresholdMin          INTEGER,
+           cmmTransXFPVolt2AlertThresholdMax          INTEGER
            }
 
        cmmTransChannelIndex   OBJECT-TYPE
-        SYNTAX        INTEGER
-        MAX-ACCESS    not-accessible
+        SYNTAX        INTEGER (1..65535)
+        MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
             " A unique value, greater than zero,for each channel in the transceiver
@@ -1461,8 +1716,8 @@
         SYNTAX        INTEGER {
                                supported(1),
                                unsupported(2),
-                               notapplicable(3),
-                               unknown(4)
+                               unavailable(-100001),
+                               not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
@@ -1474,8 +1729,8 @@
         SYNTAX        INTEGER {
                                supported(1),
                                unsupported(2),
-                               notapplicable(3),
-                               unknown(4)
+                               unavailable(-100001),
+                               not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
@@ -1489,8 +1744,8 @@
                                 activeunsupported(2),
                                 inactive(3),
                                 inactiveunsupported(4),
-                                notapplicable(5),
-                                unknown(6)
+                                unavailable(-100001),
+                                not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
@@ -1502,7 +1757,8 @@
         SYNTAX        INTEGER {
                                enable(1),
                                disable(2),
-                               unknown(3)
+                               unavailable(-100001),
+                               not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
@@ -1514,7 +1770,8 @@
         SYNTAX        INTEGER {
                                enable(1),
                                disable(2),
-                               unknown(3)
+                               unavailable(-100001),
+                               not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
@@ -1526,40 +1783,100 @@
         SYNTAX        INTEGER {
                                enable(1),
                                disable(2),
-                               unknown(3)
+                               unavailable(-100001),
+                               not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Transceiver TX Los State (applicable only for QSFP).
-            '-100002' indicates not-applicable."
+            "Transceiver TX Los State (applicable only for QSFP)."
         ::= { cmmTransDDMEntry 32 }
 
        cmmTransResetState  OBJECT-TYPE
         SYNTAX        INTEGER {
                                normal(1),
                                reset(2),
-                               unknown(3)
+                               unavailable(-100001),
+                               not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Transceiver Reset State (applicable only for QSFP).
-            '-100002' indicates not-applicable."
+            "Transceiver Reset State (applicable only for QSFP)."
         ::= { cmmTransDDMEntry 33 }
 
         cmmTransPowerMode  OBJECT-TYPE
         SYNTAX        INTEGER {
                                low(1),
                                high(2),
-                               unknown(3)
+                               unavailable(-100001),
+                               not-applicable(-100002)
                               }
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Transceiver Power mode (applicable only for QSFP).
-            '-100002' indicates not-applicable."
+            "Transceiver Power mode (applicable only for QSFP)."
         ::= { cmmTransDDMEntry 34 }
+
+        cmmTransXFPVoltage2  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 V"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Internally measured voltage of the second available supply of the XFP transceiver.
+             This is common across channels for a transceiver.
+             '-100001' indicates unavailable.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 35 }
+
+        cmmTransXFPVolt2CriticalThresholdMin  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 V"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The minimum warning threshold of the second available voltage of the XFP transceiver.
+             This is common across channels for a transceiver.
+             '-100001' indicates unavailable.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 36 }
+
+        cmmTransXFPVolt2CriticalThresholdMax  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 V"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The maximum warning threshold of the second available voltage of the XFP transceiver.
+             This is common across channels for a transceiver.
+             '-100001' indicates unavailable.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 37 }
+
+        cmmTransXFPVolt2AlertThresholdMin  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 V"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The minimum alert threshold of the second available voltage of the XFP transceiver.
+             This is common across channels for a transceiver.
+             '-100001' indicates unavailable.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 38 }
+
+        cmmTransXFPVolt2AlertThresholdMax  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 V"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The maximum alert threshold of the second available voltage of the XFP transceiver.
+             This is common across channels for a transceiver.
+             '-100001' indicates unavailable.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMEntry 39 }
 
     -- ### Ram Table
 
@@ -1826,7 +2143,7 @@
        }
 
         cmmSysPSUIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2348,7 +2665,7 @@
         ::= { cmmSysObjects 8 }
 
       cmmFanTrayEntry    OBJECT-TYPE
-        SYNTAX        CmmFanEntry
+        SYNTAX        CmmFanTrayEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -2366,7 +2683,7 @@
         }
 
        cmmFanTrayNumber    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2426,7 +2743,7 @@
         }
 
        cmmFanIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2520,7 +2837,7 @@
         }
 
         cmmSysTemperatureSensorIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2877,7 +3194,7 @@
         }
 
         cmmSwitchTemperatureSensorIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2938,8 +3255,16 @@
           cmmSysHarddiskTotalsize                 INTEGER, 
           cmmSysHarddiskUsedMem                   INTEGER,
           cmmSysHarddiskFreeMem                   INTEGER,
-          cmmSysHarddiskCriticalThreshold         INTEGER,
-          cmmSysHarddiskAlertThreshold            INTEGER
+          cmmSysHarddiskUsageCriticalThreshold         INTEGER,
+          cmmSysHarddiskUsageAlertThreshold            INTEGER,
+          cmmSysHardDiskRemainLifeCriticalThreshold  INTEGER,
+          cmmSysHardDiskRemainLifeAlertThreshold     INTEGER,
+          cmmSysHardDiskRemainLife                   INTEGER,
+          cmmSysHardDiskAvailableReservedSpaceCriticalThreshold INTEGER,
+          cmmSysHardDiskAvailableReservedSpaceAlertThreshold  INTEGER,
+          cmmSysHardDiskAvailableReservedSpace  INTEGER,
+          cmmSysHardDiskReallocSectorsCount     INTEGER,
+          cmmSysHardDiskUncorrectSectorCount  INTEGER
         }
 
         cmmSysHarddiskSerialno    OBJECT-TYPE
@@ -3053,7 +3378,7 @@
              '-100001' indicates unavailable"
         ::= { cmmSysHardDiskEntry 12 }
 
-        cmmSysHarddiskCriticalThreshold  OBJECT-TYPE
+        cmmSysHarddiskUsageCriticalThreshold  OBJECT-TYPE
         SYNTAX        INTEGER 
         UNITS         " % "
         MAX-ACCESS    read-only
@@ -3063,7 +3388,7 @@
              '-100001' indicates unavailable"
         ::= { cmmSysHardDiskEntry 13 }
 
-        cmmSysHarddiskAlertThreshold  OBJECT-TYPE
+        cmmSysHarddiskUsageAlertThreshold  OBJECT-TYPE
         SYNTAX        INTEGER 
         UNITS         " % "
         MAX-ACCESS    read-only
@@ -3072,6 +3397,86 @@
             "Harddisk usage threshold %  for Alert Level.
              '-100001' indicates unavailable"
         ::= { cmmSysHardDiskEntry 14 }
+
+        cmmSysHardDiskRemainLifeCriticalThreshold  OBJECT-TYPE
+        SYNTAX        INTEGER 
+        UNITS         " % "
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Harddisk Remain Life threshold % for Critical Level.
+             '-100001' indicates unavailable"
+        ::= { cmmSysHardDiskEntry 15 }
+
+        cmmSysHardDiskRemainLifeAlertThreshold     OBJECT-TYPE
+        SYNTAX        INTEGER 
+        UNITS         " % "
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Harddisk Remain Life threshold % for Alert Level.
+             '-100001' indicates unavailable"
+        ::= { cmmSysHardDiskEntry 16 }
+
+        cmmSysHardDiskRemainLife                   OBJECT-TYPE
+        SYNTAX        INTEGER 
+        UNITS         " % "
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Harddisk Remain life %.
+             '-100001' indicates unavailable"
+        ::= { cmmSysHardDiskEntry 17 }
+
+        cmmSysHardDiskAvailableReservedSpaceCriticalThreshold     OBJECT-TYPE
+        SYNTAX        INTEGER 
+        UNITS         " % "
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Harddisk Available Reserved Space threshold % for critical Level.
+             '-100001' indicates unavailable"
+        ::= { cmmSysHardDiskEntry 18 }
+
+        cmmSysHardDiskAvailableReservedSpaceAlertThreshold     OBJECT-TYPE
+        SYNTAX        INTEGER 
+        UNITS         " % "
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Harddisk Available Reserved Space threshold % for Alert Level.
+             '-100001' indicates unavailable"
+        ::= { cmmSysHardDiskEntry 19 }
+
+        cmmSysHardDiskAvailableReservedSpace     OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         " % "
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Harddisk Available Reserved Space %.
+             '-100001' indicates unavailable"
+        ::= { cmmSysHardDiskEntry 20 }
+
+        cmmSysHardDiskReallocSectorsCount                  OBJECT-TYPE
+        SYNTAX        INTEGER 
+        UNITS         " 1 "
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Harddisk Reallocated Sectors Count.
+             '-100001' indicates unavailable"
+        ::= { cmmSysHardDiskEntry 21 }
+
+        cmmSysHardDiskUncorrectSectorCount                   OBJECT-TYPE
+        SYNTAX        INTEGER 
+        UNITS         " 1 "
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+             "Harddisk Uncorrectable Sectors Count. 
+             '-100001' indicates unavailable"
+        ::= { cmmSysHardDiskEntry 22 }
 
 -- ## System Overall Status Table
         cmmSystemStatusTable OBJECT-TYPE
@@ -3163,7 +3568,7 @@
                 }
 
         cmmCpuCoreIndex  OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -3574,7 +3979,7 @@
         }
 
         cmmSysCpldIndex  OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -3819,7 +4224,7 @@
         OBJECTS       {
                       cmmStackUnitIndex,
                       cmmSysHarddiskUsedMem,
-                      cmmSysHarddiskAlertThreshold
+                      cmmSysHarddiskUsageAlertThreshold
                      }
         STATUS       current
         DESCRIPTION
@@ -3830,7 +4235,7 @@
         OBJECTS       {
                       cmmStackUnitIndex,
                       cmmSysHarddiskUsedMem,
-                      cmmSysHarddiskCriticalThreshold
+                      cmmSysHarddiskUsageCriticalThreshold
                      }
         STATUS       current
         DESCRIPTION
@@ -3841,7 +4246,7 @@
         OBJECTS       {
                       cmmStackUnitIndex,
                       cmmSysHarddiskUsedMem,
-                      cmmSysHarddiskAlertThreshold 
+                      cmmSysHarddiskUsageAlertThreshold
                      }
         STATUS       current
         DESCRIPTION
@@ -3852,12 +4257,76 @@
         OBJECTS       {
                       cmmStackUnitIndex,
                       cmmSysHarddiskUsedMem,
-                      cmmSysHarddiskCriticalThreshold
+                      cmmSysHarddiskUsageCriticalThreshold
                      }
         STATUS       current
         DESCRIPTION
             "Trap to send when Hard Disk usage recovers under critical threshold."
         ::= { cmmAlarmMibNotifications 28 }
+
+     cmmSysHardDiskRemainLifeRisingCritical  NOTIFICATION-TYPE
+        OBJECTS       {
+                      cmmStackUnitIndex,
+                      cmmSysHardDiskRemainLife,
+                      cmmSysHardDiskRemainLifeCriticalThreshold
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when Hard Disk Remain life reached below the Critical threshold."
+        ::= { cmmAlarmMibNotifications 29 }
+
+      cmmSysHardDiskRemainLifeRisingAlert  NOTIFICATION-TYPE
+        OBJECTS       {
+                      cmmStackUnitIndex,
+                      cmmSysHardDiskRemainLife,
+                      cmmSysHardDiskRemainLifeAlertThreshold
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when Hard Disk Remain life reached below the Alert threshold."
+        ::= { cmmAlarmMibNotifications 30 }
+     
+     cmmSysHardDiskAvailableReservedSpaceCritical  NOTIFICATION-TYPE
+        OBJECTS       {
+                      cmmStackUnitIndex,
+                      cmmSysHardDiskAvailableReservedSpace,
+                      cmmSysHardDiskAvailableReservedSpaceCriticalThreshold
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when Hard Disk Available Reserved Space reached below the Critical threshold."
+        ::= { cmmAlarmMibNotifications 31 }
+
+     cmmSysHardDiskAvailableReservedSpaceAlert  NOTIFICATION-TYPE
+        OBJECTS       {
+                      cmmStackUnitIndex,
+                      cmmSysHardDiskAvailableReservedSpace,
+                      cmmSysHardDiskAvailableReservedSpaceAlertThreshold
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when Hard Disk Available Reserved Space reached below the Alert threshold."
+        ::= { cmmAlarmMibNotifications 32 }
+
+    cmmSysHardDiskReallocSectorsCountCritical  NOTIFICATION-TYPE
+        OBJECTS       {
+                      cmmStackUnitIndex,
+                      cmmSysHardDiskReallocSectorsCount
+                      }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when Hard Disk Realloced sector count increments by 10."
+        ::= { cmmAlarmMibNotifications 33 }
+
+    cmmSysHardDiskUncorrectableSectorCountAlert  NOTIFICATION-TYPE
+        OBJECTS       {
+                      cmmStackUnitIndex,
+                      cmmSysHardDiskUncorrectSectorCount
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when Hard Disk Uncorrectable sector count increments by 1."
+        ::= { cmmAlarmMibNotifications 34 }
 
     cmmTemperatureLowEmergency   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3871,7 +4340,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature will be below lower threshold for sensor"
-        ::= { cmmAlarmMibNotifications 31 }
+        ::= { cmmAlarmMibNotifications 41 }
 
     cmmTemperatureHighEmergency   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3885,7 +4354,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature will be above threshold for sensor"
-        ::= { cmmAlarmMibNotifications 32 }
+        ::= { cmmAlarmMibNotifications 42 }
 
     cmmTemperatureLowAlert   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3899,7 +4368,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature is nearing low emergency condition for sensor"
-        ::= { cmmAlarmMibNotifications 33 }
+        ::= { cmmAlarmMibNotifications 43 }
 
     cmmTemperatureHighAlert   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3913,7 +4382,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature is nearing high emergency condition for sensor"
-        ::= { cmmAlarmMibNotifications 34 }
+        ::= { cmmAlarmMibNotifications 44 }
 
     cmmTemperatureLowCritical   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3927,7 +4396,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature has reached low critical condition for sensor"
-        ::= { cmmAlarmMibNotifications 35 }
+        ::= { cmmAlarmMibNotifications 45 }
 
     cmmTemperatureHighCritical   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3941,7 +4410,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature has reached high critical condition for sensor"
-        ::= { cmmAlarmMibNotifications 36 }
+        ::= { cmmAlarmMibNotifications 46 }
 
     cmmTemperatureHighAlertRecovery   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3955,7 +4424,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature is recovered to normal range from alert level high for sensor"
-        ::= { cmmAlarmMibNotifications 37 }
+        ::= { cmmAlarmMibNotifications 47 }
 
     cmmTemperatureLowAlertRecovery   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3969,7 +4438,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature is recovered to normal range from alert level low for sensor"
-        ::= { cmmAlarmMibNotifications 38 }
+        ::= { cmmAlarmMibNotifications 48 }
 
     cmmTemperatureHighCriticalRecovery   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3983,7 +4452,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature is recovered to normal range from critical level high for sensor"
-        ::= { cmmAlarmMibNotifications 39 }
+        ::= { cmmAlarmMibNotifications 49 }
 
     cmmTemperatureLowCriticalRecovery   NOTIFICATION-TYPE
         OBJECTS      {
@@ -3997,7 +4466,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Temperature is recovered to normal range from critical level low for sensor"
-        ::= { cmmAlarmMibNotifications 40 }
+        ::= { cmmAlarmMibNotifications 50 }
 
     cmmPsuInsertedNotify   NOTIFICATION-TYPE
         OBJECTS      {
@@ -4009,7 +4478,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Power supply unit is inserted"
-        ::= { cmmAlarmMibNotifications 41 }
+        ::= { cmmAlarmMibNotifications 51 }
 
     cmmPsuRemovedAlert   NOTIFICATION-TYPE
         OBJECTS      {
@@ -4021,7 +4490,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Power supply unit is Removed"
-        ::= { cmmAlarmMibNotifications 42 }
+        ::= { cmmAlarmMibNotifications 52 }
 
     cmmPsuAcFailedAlert  NOTIFICATION-TYPE
         OBJECTS      {
@@ -4031,7 +4500,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Power supply unit has no input power"
-        ::= { cmmAlarmMibNotifications 43 }
+        ::= { cmmAlarmMibNotifications 53 }
 
     cmmPsuAcRecover  NOTIFICATION-TYPE
         OBJECTS      {
@@ -4041,7 +4510,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Power supply unit input is restored"
-        ::= { cmmAlarmMibNotifications 44 }
+        ::= { cmmAlarmMibNotifications 54 }
 
     cmmPsu12vPgFailedAlert  NOTIFICATION-TYPE
         OBJECTS      {
@@ -4051,7 +4520,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Power supply unit has no output power"
-        ::= { cmmAlarmMibNotifications 45 }
+        ::= { cmmAlarmMibNotifications 55 }
 
     cmmPsu12vPgRecover  NOTIFICATION-TYPE
         OBJECTS      {
@@ -4061,7 +4530,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Power supply unit has restored output"
-        ::= { cmmAlarmMibNotifications 46 }
+        ::= { cmmAlarmMibNotifications 56 }
 
     cmmFanTrayInsertedNotify   NOTIFICATION-TYPE
         OBJECTS      {
@@ -4072,7 +4541,7 @@
         STATUS       current
         DESCRIPTION
             "Set when fan tray is inserted"
-        ::= { cmmAlarmMibNotifications 51 }
+        ::= { cmmAlarmMibNotifications 61 }
 
     cmmFanTrayRemovedAlert   NOTIFICATION-TYPE
         OBJECTS      {
@@ -4083,7 +4552,7 @@
         STATUS       current
         DESCRIPTION
             "Set when fan tray is Removed"
-        ::= { cmmAlarmMibNotifications 52 }
+        ::= { cmmAlarmMibNotifications 62 }
 
     cmmFanTrayFaultyAlert  NOTIFICATION-TYPE
        OBJECTS      {
@@ -4094,7 +4563,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Given Fan Tray Faulty."
-        ::= { cmmAlarmMibNotifications 53 }
+        ::= { cmmAlarmMibNotifications 63 }
 
     cmmFanTrayRecovered  NOTIFICATION-TYPE
        OBJECTS      {
@@ -4105,7 +4574,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Given Fan Tray is recovered."
-        ::= { cmmAlarmMibNotifications 54 }
+        ::= { cmmAlarmMibNotifications 64 }
 
     cmmFanTrayStallAlert  NOTIFICATION-TYPE
        OBJECTS      {
@@ -4116,7 +4585,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Given Fan Tray Stalled."
-        ::= { cmmAlarmMibNotifications 55 }
+        ::= { cmmAlarmMibNotifications 65 }
 
     cmmFanTrayStallRecovered  NOTIFICATION-TYPE
        OBJECTS      {
@@ -4127,7 +4596,7 @@
         STATUS       current
         DESCRIPTION
             "Set when Given Fan Tray is recovered from stall."
-        ::= { cmmAlarmMibNotifications 56 }
+        ::= { cmmAlarmMibNotifications 66 }
 
     cmmFanRPMMinAlert  NOTIFICATION-TYPE
         OBJECTS      {
@@ -4139,7 +4608,7 @@
         STATUS       current
         DESCRIPTION
             "Set when fan RPM set to its minimum value."
-        ::= { cmmAlarmMibNotifications 57 }
+        ::= { cmmAlarmMibNotifications 67 }
 
     cmmFanRPMMaxAlert  NOTIFICATION-TYPE
         OBJECTS      {
@@ -4151,7 +4620,7 @@
         STATUS       current
         DESCRIPTION
             "Set when fan RPM set to its maximum value."
-        ::= { cmmAlarmMibNotifications 58 }
+        ::= { cmmAlarmMibNotifications 68 }
 
      cmmAlertIncompatibleTransceiverPresence   NOTIFICATION-TYPE
         OBJECTS      {
@@ -4570,5 +5039,73 @@
         DESCRIPTION
             "Set when Trasceiver is inserted and failed to read transceiver EEPROM information."
         ::= { cmmTransMibNotifications 53}
+
+    cmmTransXFPCriticalVoltage2High   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmStackUnitIndex,
+                      cmmTransIndex,
+                      cmmTransType,
+                      cmmTransXFPVoltage2,
+                      cmmTransXFPVolt2CriticalThresholdMin,
+                      cmmTransXFPVolt2CriticalThresholdMax
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when the volatge of the second available supply of the XFP transceiver exceeds the high warning level."
+        ::= { cmmTransMibNotifications 61}
+
+    cmmTransXFPCriticalVoltage2Low   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmStackUnitIndex,
+                      cmmTransIndex,
+                      cmmTransType,
+                      cmmTransXFPVoltage2,
+                      cmmTransXFPVolt2CriticalThresholdMin,
+                      cmmTransXFPVolt2CriticalThresholdMax
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when the volatge of the second available supply of the XFP transceiver is below the low warning level."
+        ::= { cmmTransMibNotifications 62}
+
+    cmmTransXFPAlertVoltage2High   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmStackUnitIndex,
+                      cmmTransIndex,
+                      cmmTransType,
+                      cmmTransXFPVoltage2,
+                      cmmTransXFPVolt2AlertThresholdMin,
+                      cmmTransXFPVolt2AlertThresholdMax
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when the volatge of the second available supply of the XFP transceiver exceeds the high alert level."
+        ::= { cmmTransMibNotifications 63}
+
+    cmmTransXFPAlertVoltage2Low   NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmStackUnitIndex,
+                      cmmTransIndex,
+                      cmmTransType,
+                      cmmTransXFPVoltage2,
+                      cmmTransXFPVolt2AlertThresholdMin,
+                      cmmTransXFPVolt2AlertThresholdMax
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when the volatge of the second available supply of the XFP transceiver is below the low alert level"
+        ::= { cmmTransMibNotifications 64}
+
+    cmmTransNotifyTransceiverXFPVolt2Recovered  NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmStackUnitIndex,
+                      cmmTransIndex,
+                      cmmTransType,
+                      cmmTransXFPVoltage2
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when the volatge of the second available supply of the XFP transceiver is recovered from the voltage fault."
+        ::= { cmmTransMibNotifications 65}
 
    END
