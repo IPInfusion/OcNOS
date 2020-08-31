@@ -1,5 +1,5 @@
 # OcNOS™ Network Operating System 
-OcNOS SP 1.0 ED 2.4R2 Refers to SP-1.0.0.427 Release (Build #193)
+OcNOS SP 3.0 Refers to OnNOS-SP-3.0 Release (Build #115)
 
 Contains the SNMP MIB files, Yang files, Ansible modules etc. to use with OcNOS.
 
