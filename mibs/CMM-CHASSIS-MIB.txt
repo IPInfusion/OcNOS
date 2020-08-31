@@ -6,8 +6,8 @@
     --
 
     IMPORTS
-        OBJECT-TYPE,
-        Gauge32, Counter32, Unsigned32,
+        OBJECT-TYPE, MODULE-IDENTITY,
+        Gauge32, Counter32, Unsigned32, Counter64,
         TimeTicks, NOTIFICATION-TYPE
             FROM SNMPv2-SMI
         DateAndTime, DisplayString,
@@ -17,11 +17,11 @@
             FROM SNMPv2-CONF
         enterprises,OBJECT-IDENTITY
             FROM SNMPv2-SMI
-	    ipi FROM OCNOS-IPI-MODULE-MIB;
+	      ipi FROM OCNOS-IPI-MODULE-MIB;
 
 
 	cmm  MODULE-IDENTITY
-	LAST-UPDATED "201711091200Z"   -- Nov 09, 2017 12:00:00 GMT
+	LAST-UPDATED "202008061200Z"   -- Aug 06, 2020 12:00:00 GMT
 	ORGANIZATION
 	  "IPI."
 	CONTACT-INFO
@@ -30,15 +30,18 @@
 	DESCRIPTION
 	   "The Structure of CMM Management Information for
 	    the IPI enterprise."
-	::= { ipi 100 }
+  REVISION "202008061200Z"
+  DESCRIPTION
+      "Complying to level 3 of SMILINT"
+  ::= { ipi 100 }
 
 
     -- ### Groups ###
 
-    CmmChassisObject      OBJECT IDENTIFIER ::={ cmm 1 }
-    cmmObjects            OBJECT IDENTIFIER ::={ CmmChassisObject 1 }
-    cmmSysObjects         OBJECT IDENTIFIER ::={ CmmChassisObject 2 }
-    cmmAlarmObjects       OBJECT IDENTIFIER ::={ CmmChassisObject 3 }
+    cmmChassisObject      OBJECT IDENTIFIER ::={ cmm 1 }
+    cmmObjects            OBJECT IDENTIFIER ::={ cmmChassisObject 1 }
+    cmmSysObjects         OBJECT IDENTIFIER ::={ cmmChassisObject 2 }
+    cmmAlarmObjects       OBJECT IDENTIFIER ::={ cmmChassisObject 3 }
 
     -- ### Textual Convention
     LedColorCode ::= TEXTUAL-CONVENTION
@@ -82,7 +85,6 @@
                         software(7)
                         }
     ErrorFigures ::= TEXTUAL-CONVENTION
-       DISPLAY-HINT   "d.ded"
        STATUS         current
        DESCRIPTION
           " Frame Error Rate (FER)/Uncorrecter BER. This parameter measures the
@@ -105,8 +107,8 @@
     RxOtuStatusCode ::= TEXTUAL-CONVENTION
       STATUS         current
       DESCRIPTION
-         "The components for Rx Otu Alarm status in the unit.If integer value
-          is 0, then no Rx OTU alarm present "
+         "The components for Rx Otu Alarm status. Zeros indicates alarms cleared.
+          Blank indicates Failure"
       SYNTAX        BITS   {
                              loss-of-frame(0),
                              loss-of-multiframe(1),
@@ -117,8 +119,8 @@
     RxOduStatusCode ::= TEXTUAL-CONVENTION
       STATUS         current
       DESCRIPTION
-         "The components for Rx Odu Alarm status in the unit.If integer value
-          is 0, then no Rx ODU alarm present"
+         "The components for Rx Odu Alarm status. Zeros indicate alarms cleared.
+          Blank indicates Failure"
       SYNTAX        BITS   {
                              backward-defect-indication(0),
                              alarm-indication-signal(1),
@@ -129,8 +131,8 @@
     RxOpuStatusCode ::= TEXTUAL-CONVENTION
       STATUS         current
       DESCRIPTION
-         "The components for Rx Opu Alarm status in the unit.If integer value
-          is 0, then no Rx OPU alarm present"
+         "The components for Rx Opu Alarm status.Zeros indicated alarms cleared.
+          Blank indicates failure"
       SYNTAX        BITS   {
                              payload-Mismatch(0),
                              client-signal-fail(1)
@@ -139,8 +141,8 @@
     RxTsStatusCode ::= TEXTUAL-CONVENTION
       STATUS         current
       DESCRIPTION
-         "The components for Rx Ts Alarm status in the unit.If integer value
-          is 0,then no Rx TS alarm present"
+         "The components for Rx Ts Alarm status.Zeros indicates alarms cleared.
+          Blank indicates failure"
       SYNTAX        BITS   {
                              loss-of-lock(0)
                            }
@@ -225,8 +227,8 @@
         }
 
        cmmStackUnitIndex  OBJECT-TYPE
-        SYNTAX        INTEGER
-        MAX-ACCESS    not-accessible
+        SYNTAX        INTEGER (1..65535)
+        MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
              "The unique stack unit number."
@@ -555,8 +557,8 @@
         }
 
        cmmTransIndex   OBJECT-TYPE
-        SYNTAX        INTEGER
-        MAX-ACCESS    not-accessible
+        SYNTAX        INTEGER  (1..65535)
+        MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
             " A unique value, greater than zero,for each slot within the unit"
@@ -591,7 +593,7 @@
                              sfp-or-sfpplus-or-sfp28(4),
                              xbi-300pin(5),
                              xenpak(6),
-                             xep(7),
+                             xfp(7),
                              xff(8),
                              xfpe(9),
                              xpak(10),
@@ -680,7 +682,7 @@
                              rj45(18),
                              no-separable-connector(19),
                              mxc2-x16(20),
-                             reserved(21),
+                             reserved1(21),
                              vendor-specific(22)
                              }
         MAX-ACCESS    read-only
@@ -1185,7 +1187,7 @@
      ::= { cmmSysObjects 3 }
 
       cmmTransDDMEntry OBJECT-TYPE
-        SYNTAX        CmmTransDDMChannelEntry
+        SYNTAX        CmmTransDDMEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -1197,7 +1199,7 @@
                  }
         ::= { cmmTransDDMTable 1 }
 
-      CmmTransDDMChannelEntry    ::=
+      CmmTransDDMEntry    ::=
         SEQUENCE {
            cmmTransChannelIndex                       INTEGER,
            cmmTransTemperature                        INTEGER,
@@ -1272,8 +1274,8 @@
            }
 
        cmmTransChannelIndex   OBJECT-TYPE
-        SYNTAX        INTEGER
-        MAX-ACCESS    not-accessible
+        SYNTAX        INTEGER (1..65535)
+        MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
             " A unique value, greater than zero,for each channel in the transceiver
@@ -1661,7 +1663,7 @@
          STATUS        current
          DESCRIPTION
              "Front panel port number"
-         ::= { cmmTransEEPROMEntry 45 }
+         ::= { cmmTransDDMEntry 35 }
 
         cmmTransPreFecBerVal  OBJECT-TYPE
         SYNTAX        ErrorFigures
@@ -2279,7 +2281,7 @@
        }
 
         cmmSysPSUIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2801,7 +2803,7 @@
         ::= { cmmSysObjects 8 }
 
       cmmFanTrayEntry    OBJECT-TYPE
-        SYNTAX        CmmFanEntry
+        SYNTAX        CmmFanTrayEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -2819,7 +2821,7 @@
         }
 
        cmmFanTrayNumber    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2879,7 +2881,7 @@
         }
 
        cmmFanIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2973,7 +2975,7 @@
         }
 
         cmmSysTemperatureSensorIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -3330,7 +3332,7 @@
         }
 
         cmmSwitchTemperatureSensorIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -3704,7 +3706,7 @@
                 }
 
         cmmCpuCoreIndex  OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -4115,7 +4117,7 @@
         }
 
         cmmSysCpldIndex  OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -4186,14 +4188,16 @@
            cmmNoHostInterfaces                 INTEGER,
            cmmCfpTransPresence                 INTEGER,
            cmmCfpVendorName                    DisplayString,
-           cmmCfpVendorOui                     INTEGER,
+           cmmCfpVendorOui                     DisplayString,
            cmmCfpVendorPartNum                 DisplayString,
            cmmCfpVendorSerialNum               DisplayString,
-           cmmCfpFirmwareVersion               DisplayString
+           cmmCfpFirmwareVersion               DisplayString,
+           cmmCfpTemperature                   INTEGER,
+           cmmCfpPower                         INTEGER
         }
 
       cmmOperSlotId   OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..8)
         MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
@@ -4340,11 +4344,11 @@
         ::= { cmmCoherentModuleStateEntry 12 }
 
       cmmCfpVendorOui       OBJECT-TYPE
-        SYNTAX         INTEGER
+        SYNTAX         DisplayString
         MAX-ACCESS     read-only
         STATUS         current
         DESCRIPTION
-           "CFP Vendor Oui.
+           "CFP Vendor Oui in Hex Format.
              -100003 indicates device not ready
              -100002 indicates Not applicable
              -100001 indicates internal error"
@@ -4381,6 +4385,29 @@
              '-100001' indicates internal error"
         ::= { cmmCoherentModuleStateEntry 16 }
 
+      cmmCfpTemperature OBJECT-TYPE
+        SYNTAX          INTEGER
+        UNITS           "0.01 C"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+           "CFP Module Temperature.
+             -100003 indicates device not ready
+             -100002 indicates Not applicable
+             '-100001' indicates internal error"
+        ::= { cmmCoherentModuleStateEntry 17 }
+
+      cmmCfpPower OBJECT-TYPE
+        SYNTAX          INTEGER
+        UNITS           "0.001 V"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+           "CFP Module Power Supply.
+             -100003 indicates device not ready
+             -100002 indicates Not applicable
+             '-100001' indicates internal error"
+        ::= { cmmCoherentModuleStateEntry 18 }
 
      -- ## CoherentModuleConfigTable
 
@@ -4412,7 +4439,7 @@
         }
 
        cmmSlotId     OBJECT-TYPE
-       SYNTAX        INTEGER
+       SYNTAX        INTEGER (1..8)
        MAX-ACCESS    not-accessible
        STATUS        current
        DESCRIPTION
@@ -4433,8 +4460,8 @@
 
        cmmModuleServiceStatus OBJECT-TYPE
        SYNTAX                 INTEGER{
-                                       Inactive (0),
-                                       Active (1)
+                                       inactive (0),
+                                       active (1)
                                      }
        MAX-ACCESS       read-only
        STATUS           current
@@ -4466,45 +4493,50 @@
 
        CmmCoherentChannelStateEntry    ::=
        SEQUENCE {
-           cmmOperNetIfId                          INTEGER,
-           cmmChannelOperStatus                    INTEGER,
-           cmmDspOperStatus                        INTEGER,
-           cmmOperModulationFormat                 INTEGER,
-           cmmOperDifferntialEncoding              INTEGER,
-           cmmOperPulseShapingRx                   INTEGER,
-           cmmOperPulseShapingTx                   INTEGER,
-           cmmOperLoopbackType                     INTEGER,
-           cmmOperPrbsType                         INTEGER,
-           cmmOperLosiEnabled                      INTEGER,
-           cmmPrbsInSync                           INTEGER,
-           cmmCurrentPrbsBer                       DisplayString,
-           cmmCurrentBerPeriod                     INTEGER,
-           cmmCurrentPreFecBer                     ErrorFigures,
-           cmmCurrentPostFecBer                    ErrorFigures,
-           cmmChromaticDispersion                  DisplayString,
-           cmmDifferentialGroupDelay               INTEGER,
-           cmmOperSoftTxDisable                    INTEGER,
-           cmmOperOutputPower                      INTEGER,
-           cmmOperLaserFreq                        DisplayString,
-           cmmMinLaserFreq                         DisplayString,
-           cmmMaxLaserFreq                         DisplayString,
-           cmmCurrentTxLaserFreq                   DisplayString,
-           cmmTxGridSpacing                        INTEGER,
-           cmmLaserGridSupport                     DisplayString,
-           cmmCurrentOutputPower                   INTEGER,
-           cmmCurrentInputPower                    INTEGER,
-           cmmCurrentPostVoaPower                  INTEGER,
-           cmmCurrentProvisionedChannelPower       INTEGER,
-           cmmRxLosAlarm                           INTEGER,
-           cmmRxOtuAlarm                           RxOtuStatusCode,
-           cmmRxOduAlarm                           RxOduStatusCode,
-           cmmRxOpuAlarm                           RxOpuStatusCode,
-           cmmRxTsAlarm                            RxTsStatusCode
-           cmmOSNR                                 INTEGER,
+           cmmOperNetIfId                            INTEGER,
+           cmmChannelOperStatus                      INTEGER,
+           cmmDspOperStatus                          INTEGER,
+           cmmOperModulationFormat                   INTEGER,
+           cmmOperDifferntialEncoding                INTEGER,
+           cmmOperPulseShapingRx                     INTEGER,
+           cmmOperPulseShapingTx                     INTEGER,
+           cmmOperLoopbackType                       INTEGER,
+           cmmOperPrbsType                           INTEGER,
+           cmmOperLosiEnabled                        INTEGER,
+           cmmPrbsInSync                             INTEGER,
+           cmmCurrentPrbsBer                         DisplayString,
+           cmmCurrentBerPeriod                       INTEGER,
+           cmmCurrentPreFecBer                       ErrorFigures,
+           cmmCurrentPostFecBer                      ErrorFigures,
+           cmmChromaticDispersion                    INTEGER,
+           cmmDifferentialGroupDelay                 INTEGER,
+           cmmOperSoftTxDisable                      INTEGER,
+           cmmOperOutputPower                        INTEGER,
+           cmmOperLaserFreq                          DisplayString,
+           cmmMinLaserFreq                           DisplayString,
+           cmmMaxLaserFreq                           DisplayString,
+           cmmCurrentTxLaserFreq                     DisplayString,
+           cmmTxGridSpacing                          INTEGER,
+           cmmLaserGridSupport                       DisplayString,
+           cmmCurrentOutputPower                     INTEGER,
+           cmmCurrentInputPower                      INTEGER,
+           cmmCurrentPostVoaPower                    INTEGER,
+           cmmCurrentProvisionedChannelPower         INTEGER,
+           cmmRxLosAlarm                             INTEGER,
+           cmmRxOtuAlarm                             RxOtuStatusCode,
+           cmmRxOduAlarm                             RxOduStatusCode,
+           cmmRxOpuAlarm                             RxOpuStatusCode,
+           cmmRxTsAlarm                              RxTsStatusCode,
+           cmmOSNR                                   INTEGER,
+           cmmCurrentPostVOAProvisionedChannelPower  INTEGER,
+           cmmCurrentQMargin                         INTEGER,
+           cmmCurrentuncorrectedBlockCount           Counter32,
+           cmmCurrentPreFecBerIntVal                 Counter64,
+           cmmCurrentPrbsBerIntVal                   Counter64
         }
 
        cmmOperNetIfId   OBJECT-TYPE
-       SYNTAX       INTEGER
+       SYNTAX       INTEGER (0..15)
        MAX-ACCESS   accessible-for-notify
        STATUS       current
        DESCRIPTION
@@ -4736,12 +4768,12 @@
         ::= { cmmCoherentChannelStateEntry  15 }
 
        cmmChromaticDispersion          OBJECT-TYPE
-       SYNTAX         DisplayString
+       SYNTAX         INTEGER
        UNITS          "ps/nm"
        MAX-ACCESS     read-only
        STATUS         current
        DESCRIPTION
-            "Current chromatic dispersion.
+            "Current chromatic dispersion in pico second/nano meter (ps/nm).
              -100003 indicates device not ready
              -100002 indicates Not applicable
             '-100001' indicates internal error"
@@ -4753,10 +4785,10 @@
        MAX-ACCESS     read-only
        STATUS         current
        DESCRIPTION
-            "The Differential Group delay in ps.
+            "The Differential Group delay in pico second.
              -100003 indicates device not ready
              -100002 indicates Not applicable
-            -100001 indicates internal error"
+             -100001 indicates internal error"
        ::= { cmmCoherentChannelStateEntry   17 }
 
        cmmOperSoftTxDisable     OBJECT-TYPE
@@ -4916,7 +4948,10 @@
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-          "Netif Rx-Los Alarm."
+          "Netif Rx-Los Alarm.
+            -100003 indicates device not ready
+            -100002 indicates Not applicable
+            '-100001' indicates internal error"
         ::= { cmmCoherentChannelStateEntry  30 }
 
         cmmRxOtuAlarm            OBJECT-TYPE
@@ -4924,7 +4959,8 @@
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-          "Netif Rx-Otu Alarm."
+          "Netif Rx-Otu Alarm. Zeros indicates alarms cleared.
+          Blank indicates Failure"
         ::= { cmmCoherentChannelStateEntry  31 }
 
         cmmRxOduAlarm            OBJECT-TYPE
@@ -4932,7 +4968,8 @@
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-          "Netif Rx-Odu Alarm."
+          "Netif Rx-Odu Alarm.Zeros indicates alarms cleared.
+          Blank indicates Failure"
         ::= { cmmCoherentChannelStateEntry  32 }
 
         cmmRxOpuAlarm            OBJECT-TYPE
@@ -4940,7 +4977,8 @@
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-          "Netif Rx-Opu Alarm."
+          "Netif Rx-Opu Alarm. Zeros indicates alarms cleared.
+          Blank indicates Failure"
         ::= { cmmCoherentChannelStateEntry  33 }
 
         cmmRxTsAlarm            OBJECT-TYPE
@@ -4948,20 +4986,77 @@
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-          "Netif Rx-Ts Alarm."
+          "Netif Rx-Ts Alarm. Zeros indicates alarms cleared.
+          Blank indicates Failure"
         ::= { cmmCoherentChannelStateEntry  34 }
 
         cmmOSNR                        OBJECT-TYPE
+        SYNTAX           INTEGER
+        UNITS            "0.01 dB"
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION
+            "Current OSNR in dB.
+             -100003 indicates device not ready
+             -100002 indicates Not applicable
+             '-100001' indicates internal error"
+        ::= { cmmCoherentChannelStateEntry 35 }
+
+        cmmCurrentPostVOAProvisionedChannelPower      OBJECT-TYPE
         SYNTAX           INTEGER
         UNITS            "0.01 dBm"
         MAX-ACCESS       read-only
         STATUS           current
         DESCRIPTION
-            "Current OSNR in dBm.
+            "Current Post VOA Provisioned Channel Power in dBm.
              -100003 indicates device not ready
              -100002 indicates Not applicable
              '-100001' indicates internal error"
-        ::= { cmmCoherentChannelStateEntry 35 }
+        ::= { cmmCoherentChannelStateEntry 36 }
+
+        cmmCurrentQMargin                        OBJECT-TYPE
+        SYNTAX           INTEGER
+        UNITS            "0.01 dB"
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION
+            "Current Network Q-Margin Value in dB.
+             -100003 indicates device not ready
+             -100002 indicates Not applicable
+             '-100001' indicates internal error"
+        ::= { cmmCoherentChannelStateEntry 37 }
+
+        cmmCurrentuncorrectedBlockCount           OBJECT-TYPE
+        SYNTAX           Counter32
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION
+            "Current UnCorrected Block-Count value."
+        ::= { cmmCoherentChannelStateEntry 38 }
+
+        cmmCurrentPreFecBerIntVal           OBJECT-TYPE
+        SYNTAX           Counter64
+        UNITS            "1e-18 ber/BER Period"
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION
+            "The value received in exponent form from the hardware is divided by
+            (1e-18) and the result is stored as integer value.
+            '0' indicates internal error, Not a Number, Device not ready, Not
+            applicable"
+        ::= { cmmCoherentChannelStateEntry 39 }
+
+        cmmCurrentPrbsBerIntVal           OBJECT-TYPE
+        SYNTAX           Counter64
+        UNITS            "1e-18"
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION
+            "The value received in exponent form from the hardware is divided by
+            (1e-18) and the result is stored as integer value.
+            '0' indicates internal error, Not a Number, Device not ready, Not
+            applicable"
+        ::= { cmmCoherentChannelStateEntry 40 }
 
     -- ## CoherentChannelConfigTable
 
@@ -5001,7 +5096,7 @@
         }
 
       cmmNetIfId     OBJECT-TYPE
-        SYNTAX       INTEGER
+        SYNTAX       INTEGER (0..15)
         MAX-ACCESS   not-accessible
         STATUS       current
         DESCRIPTION
@@ -5175,7 +5270,7 @@
                    }
 
       cmmOperHostIfId   OBJECT-TYPE
-        SYNTAX       INTEGER
+        SYNTAX       INTEGER (0..15)
         MAX-ACCESS   accessible-for-notify
         STATUS       current
         DESCRIPTION
@@ -5243,7 +5338,7 @@
                    }
 
       cmmHostIfId    OBJECT-TYPE
-        SYNTAX       INTEGER
+        SYNTAX       INTEGER (0..15)
         MAX-ACCESS   not-accessible
         STATUS       current
         DESCRIPTION
@@ -5488,8 +5583,7 @@
         OBJECTS       {
                       cmmStackUnitIndex,
                       cmmSysHarddiskUsedMem,
-                      cmmSysHarddiskUsageAlertThreshold,
-                      cmmAlarmVarString
+                      cmmSysHarddiskUsageAlertThreshold
                      }
         STATUS       current
         DESCRIPTION
