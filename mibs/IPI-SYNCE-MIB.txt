@@ -1,0 +1,481 @@
+IPI-SYNCE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, NOTIFICATION-TYPE,
+    OBJECT-TYPE, Unsigned32, TimeTicks, Counter64
+        FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION, TruthValue, DisplayString
+        FROM SNMPv2-TC
+    ipi FROM OCNOS-IPI-MODULE-MIB;
+
+ipiSynceMIB MODULE-IDENTITY
+    LAST-UPDATED    "202007140000Z"
+    ORGANIZATION    "IPI."
+    CONTACT-INFO
+        "support@ipinfusion.com"
+    DESCRIPTION
+        "SyncE mib for IPI enterprise."
+    REVISION    "202007140000Z"
+    DESCRIPTION "SyncE mib intial version"
+        ::= { ipi 110 }
+
+IpiSynceEECOptionType ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "Option for synchronous ethernet equipment clock"
+    REFERENCE       "Section 1 of G.8262"
+    SYNTAX          INTEGER {
+                        option1(1),
+                        option2(2)
+                    }
+
+IpiSynceClockSelectionModeType ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "Clock selection mode for EEC"
+    REFERENCE       "Section 5.12 of G.781"
+    SYNTAX          INTEGER {
+                        qlEnabled(1),
+                        qlDisabled(2)
+                    }
+
+IpiSynceQualityLevelType ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "Clock selection mode for EEC"
+    REFERENCE       "Section 11.3.2.1 of G.8264"
+    SYNTAX          INTEGER {
+                        prc(1),
+                        ssuA(2),
+                        ssuB(3),
+                        eec1(4),
+                        dnu(5),
+                        prs(6),
+                        stu(7),
+                        st2(8),
+                        tnc(9),
+                        ste3(10),
+                        eec2(11),
+                        prov(12),
+                        dus(13),
+                        unknown(15),
+                        unavail(16)
+                    }
+
+IpiSynceClockStateType ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "Clock operating state"
+    SYNTAX          INTEGER {
+                        invalid(0),
+                        freerun(1),
+                        holdover(2),
+                        locked(3)
+                    }
+
+IpiSynceEsmcStatusType ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "ESMC status value"
+    SYNTAX          INTEGER {
+                        idle(0),
+                        start(1),
+                        ok(2),
+                        failed(3),
+                        unavail(4)
+                    }
+
+IpiSynceLinkStatusType ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "Interface link status"
+    SYNTAX          INTEGER {
+                        up(1),
+                        down(2)
+                    }
+
+ipiSynceMIBNotifs       OBJECT IDENTIFIER ::= { ipiSynceMIB 0 }
+
+ipiSynceMIBObjects      OBJECT IDENTIFIER ::= { ipiSynceMIB 1 }
+
+ipiSynceMIBClockInfo    OBJECT IDENTIFIER ::= { ipiSynceMIBObjects 1 }
+
+ipiSynceMIBSourcesInfo  OBJECT IDENTIFIER ::= { ipiSynceMIBObjects 2 }
+
+ipiSynceClockStateTable OBJECT-TYPE
+    SYNTAX          SEQUENCE OF IpiSynceClockStateEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "Table of information about the SyncE clock"
+    ::= { ipiSynceMIBClockInfo 1 }
+
+ipiSynceClockStateEntry OBJECT-TYPE
+    SYNTAX          IpiSynceClockStateEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This object specifies a table entry that contains information
+        about a SyncE clock"
+    INDEX           { ipiSynceClockInstanceIndex }
+    ::= { ipiSynceClockStateTable 1 }
+
+IpiSynceClockStateEntry ::= SEQUENCE {
+        ipiSynceClockInstanceIndex      Unsigned32,
+        ipiSynceClockSelectionMode      IpiSynceClockSelectionModeType,
+        ipiSynceEECOption               IpiSynceEECOptionType,
+        ipiSynceClockSourceName         DisplayString,
+        ipiSynceClockQualityLevel       IpiSynceQualityLevelType,
+        ipiSynceClockState              IpiSynceClockStateType,
+        ipiSynceClockDpllState          IpiSynceClockStateType,
+        ipiSynceClockStateDuration      TimeTicks,
+        ipiSynceClockSelClkSrcId        Unsigned32
+}
+
+ipiSynceClockInstanceIndex OBJECT-TYPE
+    SYNTAX          Unsigned32
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the clock instance index"
+    ::= { ipiSynceClockStateEntry 1 }
+
+ipiSynceClockSelectionMode OBJECT-TYPE
+    SYNTAX          IpiSynceClockSelectionModeType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the clock selection process"
+    DEFVAL          { qlEnabled }
+    ::= { ipiSynceClockStateEntry 2 }
+
+ipiSynceEECOption OBJECT-TYPE
+    SYNTAX          IpiSynceEECOptionType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the EEC option"
+    DEFVAL          { option1 }
+    ::= { ipiSynceClockStateEntry 3 }
+
+ipiSynceClockSourceName OBJECT-TYPE
+    SYNTAX          DisplayString (SIZE  (1..64))
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the input source name to which SyncE clock
+        is locked"
+    ::= { ipiSynceClockStateEntry 4 }
+
+ipiSynceClockQualityLevel OBJECT-TYPE
+    SYNTAX          IpiSynceQualityLevelType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the EEC clock quality level"
+    ::= { ipiSynceClockStateEntry 5 }
+
+ipiSynceClockState OBJECT-TYPE
+    SYNTAX          IpiSynceClockStateType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the synce clock state"
+    ::= { ipiSynceClockStateEntry 6 }
+
+ipiSynceClockDpllState OBJECT-TYPE
+    SYNTAX          IpiSynceClockStateType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the synce clock DPLL state"
+    ::= { ipiSynceClockStateEntry 7 }
+
+ipiSynceClockStateDuration OBJECT-TYPE
+    SYNTAX          TimeTicks
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the ipiSynceClockState duration"
+    ::= { ipiSynceClockStateEntry 8 }
+
+ipiSynceClockSelClkSrcId OBJECT-TYPE
+    SYNTAX          Unsigned32
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the unique clock source id on
+        ipiSynceClockSourceName input"
+    REFERENCE       "Section 5.13.2 of G.781"
+    ::= { ipiSynceClockStateEntry 9 }
+
+
+ipiSynceInputSourceTable OBJECT-TYPE
+    SYNTAX          SEQUENCE OF IpiSynceInputSourceEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This object specified table of synce inputs"
+    ::= { ipiSynceMIBSourcesInfo 1 }
+
+ipiSynceInputSourceEntry OBJECT-TYPE
+    SYNTAX          IpiSynceInputSourceEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This object specifies synce enable input interface"
+    INDEX           { ipiSynceInputSourceIndex }
+    ::= { ipiSynceInputSourceTable 1 }
+
+IpiSynceInputSourceEntry ::= SEQUENCE {
+        ipiSynceInputSourceIndex            Unsigned32,
+        ipiSynceInputSourceName             DisplayString,
+        ipiSynceInputSourcePriority         Unsigned32,
+        ipiSynceInputSourceIsSelected       TruthValue,
+        ipiSynceInputSourceEsmcStatus       IpiSynceEsmcStatusType,
+        ipiSynceInputSourceLinkStatus       IpiSynceLinkStatusType,
+        ipiSynceInputSourceSignalFail       TruthValue,
+        ipiSynceInputSourceConfigQl         IpiSynceQualityLevelType,
+        ipiSynceInputSourceReceiveQl        IpiSynceQualityLevelType,
+        ipiSynceInputSourceOperQl           IpiSynceQualityLevelType,
+        ipiSynceInputSourceWtrTime          Unsigned32,
+        ipiSynceInputSourceHoldoffTime      Unsigned32,
+        ipiSynceInputSourceWtrRunning       TruthValue,
+        ipiSynceInputSourceHoldoffRunning   TruthValue,
+        ipiSynceInputSourceClkSrcId         Unsigned32,
+        ipiSynceInputSourceEsmcPacketsRx    Counter64
+}
+
+ipiSynceInputSourceIndex OBJECT-TYPE
+    SYNTAX          Unsigned32
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This object specifies an entry for input source. The index
+        is interface index for ethernet ports. Indexes for non ethernet
+        is as follows. gps - 1, ptp - 2, 10mhz-in - 3"
+    ::= { ipiSynceInputSourceEntry 1 }
+
+ipiSynceInputSourceName OBJECT-TYPE
+    SYNTAX          DisplayString (SIZE  (1..64))
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the input source name"
+    ::= { ipiSynceInputSourceEntry 2 }
+
+ipiSynceInputSourcePriority OBJECT-TYPE
+    SYNTAX          Unsigned32 (0..255)
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the input source priority"
+    ::= { ipiSynceInputSourceEntry 3 }
+
+ipiSynceInputSourceIsSelected OBJECT-TYPE
+    SYNTAX          TruthValue
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies if this input is selected as input source
+        for the SyncE clock"
+    ::= { ipiSynceInputSourceEntry 4 }
+
+ipiSynceInputSourceEsmcStatus OBJECT-TYPE
+    SYNTAX          IpiSynceEsmcStatusType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies ESMC protocol status for this input source"
+    ::= { ipiSynceInputSourceEntry 5 }
+
+ipiSynceInputSourceLinkStatus OBJECT-TYPE
+    SYNTAX          IpiSynceLinkStatusType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies link status for this input source"
+    ::= { ipiSynceInputSourceEntry 6 }
+
+ipiSynceInputSourceSignalFail OBJECT-TYPE
+    SYNTAX          TruthValue
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies signal failed status for this input"
+    ::= { ipiSynceInputSourceEntry 7 }
+
+ipiSynceInputSourceConfigQl OBJECT-TYPE
+    SYNTAX          IpiSynceQualityLevelType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies configured quality level on this input"
+    ::= { ipiSynceInputSourceEntry 8 }
+
+ipiSynceInputSourceReceiveQl OBJECT-TYPE
+    SYNTAX          IpiSynceQualityLevelType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies received quality level from ESMC on this
+        input"
+    ::= { ipiSynceInputSourceEntry 9 }
+
+ipiSynceInputSourceOperQl OBJECT-TYPE
+    SYNTAX          IpiSynceQualityLevelType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies operational quality level on this input"
+    ::= { ipiSynceInputSourceEntry 10 }
+
+ipiSynceInputSourceWtrTime OBJECT-TYPE
+    SYNTAX          Unsigned32
+    UNITS           "minutes"
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies wait to restore time for this input"
+    REFERENCE       "Section 5.9 of G.781"
+    ::= { ipiSynceInputSourceEntry 11 }
+
+ipiSynceInputSourceHoldoffTime OBJECT-TYPE
+    SYNTAX          Unsigned32
+    UNITS           "milliseconds"
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies hold off timer for this input"
+    REFERENCE       "Section 5.8 of G.781"
+    ::= { ipiSynceInputSourceEntry 12 }
+
+ipiSynceInputSourceWtrRunning OBJECT-TYPE
+    SYNTAX          TruthValue
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies if wtr time is running"
+    ::= { ipiSynceInputSourceEntry 13 }
+
+ipiSynceInputSourceHoldoffRunning OBJECT-TYPE
+    SYNTAX          TruthValue
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies if hold off time is running"
+    ::= { ipiSynceInputSourceEntry 14 }
+
+ipiSynceInputSourceClkSrcId OBJECT-TYPE
+    SYNTAX          Unsigned32
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the clock source identifier on this input"
+    REFERENCE       "Section 5.13.2 of G.781"
+    ::= { ipiSynceInputSourceEntry 15 }
+
+ipiSynceInputSourceEsmcPacketsRx OBJECT-TYPE
+    SYNTAX          Counter64
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies ESMC packets received on this input"
+    REFERENCE       "Section 5.13.2 of G.781"
+    ::= { ipiSynceInputSourceEntry 16 }
+
+
+ipiSynceOutputSourceTable OBJECT-TYPE
+    SYNTAX          SEQUENCE OF IpiSynceOutputSourceEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This object specified table of synce outputs"
+    ::= { ipiSynceMIBSourcesInfo 2 }
+
+ipiSynceOutputSourceEntry OBJECT-TYPE
+    SYNTAX          IpiSynceOutputSourceEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This object specifies synce enable output interface"
+    INDEX           { ipiSynceOutputSourceIndex }
+    ::= { ipiSynceOutputSourceTable 1 }
+
+IpiSynceOutputSourceEntry ::= SEQUENCE {
+        ipiSynceOutputSourceIndex           Unsigned32,
+        ipiSynceOutputSourceName            DisplayString,
+        ipiSynceOutputSourceLinkStatus      IpiSynceLinkStatusType,
+        ipiSynceOutputSourceConfigQl        IpiSynceQualityLevelType,
+        ipiSynceOutputSourceOperQl          IpiSynceQualityLevelType,
+        ipiSynceInputSourceEsmcPacketsTx    Counter64
+}
+
+ipiSynceOutputSourceIndex OBJECT-TYPE
+    SYNTAX          Unsigned32
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This object specifies an entry for output source. The index
+        is interface index for ethernet ports"
+    ::= { ipiSynceOutputSourceEntry 1 }
+
+ipiSynceOutputSourceName OBJECT-TYPE
+    SYNTAX          DisplayString (SIZE  (1..64))
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the output source name"
+    ::= { ipiSynceOutputSourceEntry 2 }
+
+ipiSynceOutputSourceLinkStatus OBJECT-TYPE
+    SYNTAX          IpiSynceLinkStatusType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies link status for this output source"
+    ::= { ipiSynceOutputSourceEntry 3 }
+
+ipiSynceOutputSourceConfigQl OBJECT-TYPE
+    SYNTAX          IpiSynceQualityLevelType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies configured quality level on this output"
+    ::= { ipiSynceOutputSourceEntry 4 }
+
+ipiSynceOutputSourceOperQl OBJECT-TYPE
+    SYNTAX          IpiSynceQualityLevelType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies operational quality level on this output"
+    ::= { ipiSynceOutputSourceEntry 5 }
+
+ipiSynceInputSourceEsmcPacketsTx OBJECT-TYPE
+    SYNTAX          Counter64
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies ESMC packets transmitted on this output"
+    ::= { ipiSynceOutputSourceEntry 6 }
+
+
+-- Notifications
+
+ipiSynceClockOutOfLock NOTIFICATION-TYPE
+    OBJECTS { ipiSynceClockState }
+    STATUS  current
+    DESCRIPTION
+            "Synce clock status changed from locked to unlocked"
+    ::= { ipiSynceMIBNotifs 1 }
+
+ipiSynceClockInLock NOTIFICATION-TYPE
+    OBJECTS { ipiSynceClockState, ipiSynceClockSourceName }
+    STATUS  current
+    DESCRIPTION
+            "Synce clock status changed from unlocked to locked"
+    ::= { ipiSynceMIBNotifs 2 }
+
+
+END
