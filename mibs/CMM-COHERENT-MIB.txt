@@ -576,7 +576,7 @@
      -- ## CoherentModuleConfigTable
 
       cmmCoherentModuleConfigTable     OBJECT-TYPE
-        SYNTAX        SEQUENCE OF CmmCoherentModuleConfigEntry
+        SYNTAX        SEQUENCE OF CmmCoherentModuleConfigTableEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -584,8 +584,8 @@
              for each Optical module."
         ::= { cmmCoherentModuleObjects 4 }
 
-      cmmCoherentModuleConfigEntry  OBJECT-TYPE
-        SYNTAX        CmmCoherentModuleConfigEntry
+      cmmCoherentModuleConfigTableEntry  OBJECT-TYPE
+        SYNTAX        CmmCoherentModuleConfigTableEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -594,7 +594,7 @@
         INDEX    { cmmSlotIndex }
         ::= { cmmCoherentModuleConfigTable 1 }
 
-      CmmCoherentModuleConfigEntry    ::=
+      CmmCoherentModuleConfigTableEntry    ::=
            SEQUENCE {
            cmmAdminStatus                    INTEGER,
            cmmModuleServiceStatus            INTEGER
@@ -610,7 +610,7 @@
         DESCRIPTION
             " Admin operational status of the optical module.
              -100001 indicates internal error"
-        ::= { cmmCoherentModuleConfigEntry 1 }
+        ::= { cmmCoherentModuleConfigTableEntry 1 }
 
       cmmModuleServiceStatus OBJECT-TYPE
         SYNTAX                 INTEGER{
@@ -621,7 +621,7 @@
         STATUS           current
         DESCRIPTION
             " To enable service for the optical controller module."
-        ::= { cmmCoherentModuleConfigEntry 2 }
+        ::= { cmmCoherentModuleConfigTableEntry 2 }
 
 
       -- ## CoherentChannelTable
@@ -682,7 +682,8 @@
            cmmCurrentQMargin                         INTEGER,
            cmmCurrentuncorrectedBlockCount           Counter32,
            cmmCurrentPreFecBerIntVal                 Counter64,
-           cmmCurrentPrbsBerIntVal                   Counter64
+           cmmCurrentPrbsBerIntVal                   Counter64,
+           cmmLaserAge                               INTEGER
         }
 
       cmmNetIfIndex  OBJECT-TYPE
@@ -1140,10 +1141,9 @@
          MAX-ACCESS       read-only
          STATUS           current
          DESCRIPTION
-            "The value received in exponent form from the hardware is divided by
-            (1e-18) and the result is stored as integer value.
-            '0' indicates internal error, Not a Number, Device not ready, Not
-            applicable"
+           "The object returns the Pre-Fec-Ber value in the units of 1e-18 ber/BER Period.
+            BER value 2 represents internal error/Device not ready/Not applicable
+            BER value 3 represents DSP is not Ready."
         ::= { cmmCoherentChannelEntry 34 }
 
        cmmCurrentPrbsBerIntVal           OBJECT-TYPE
@@ -1152,11 +1152,24 @@
          MAX-ACCESS       read-only
          STATUS           current
          DESCRIPTION
-            "The value received in exponent form from the hardware is divided by
-            (1e-18) and the result is stored as integer value.
-            '0' indicates internal error, Not a Number, Device not ready, Not
-            applicable"
+            "This object returns the value of prbs bit error rate in the units
+            of 1e-18 error bit per bit received.
+            BER value 2 represents internal error/Device not ready/Not applicable
+            BER value 3 represents prbs type not configured."
         ::= { cmmCoherentChannelEntry 35 }
+
+       cmmLaserAge            OBJECT-TYPE
+         SYNTAX               INTEGER
+         UNITS                " % "
+         MAX-ACCESS           read-only
+         STATUS               current
+         DESCRIPTION
+           "Laser Age mentioned in percentage.
+            0 meaning Beginning of Life and 100 meaning End of Life.
+            -100003 indicates device not ready
+            -100002 indicates Not applicable
+            -100001 indicates internal error."
+        ::= { cmmCoherentChannelEntry  36 }
 
 
     -- ## CoherentChannelFAWSTable
@@ -1573,7 +1586,7 @@
     -- ## CoherentChannelConfigTable
 
        cmmCoherentChannelConfigTable     OBJECT-TYPE
-       SYNTAX        SEQUENCE OF CmmCoherentChannelConfigEntry
+       SYNTAX        SEQUENCE OF CmmCoherentChannelConfigTableEntry
        MAX-ACCESS    not-accessible
        STATUS        current
        DESCRIPTION
@@ -1581,8 +1594,8 @@
              objects for a particular port.."
        ::= { cmmCoherentChannelObjects 4 }
 
-       cmmCoherentChannelConfigEntry  OBJECT-TYPE
-       SYNTAX        CmmCoherentChannelConfigEntry
+       cmmCoherentChannelConfigTableEntry  OBJECT-TYPE
+       SYNTAX        CmmCoherentChannelConfigTableEntry
        MAX-ACCESS    not-accessible
        STATUS        current
        DESCRIPTION
@@ -1591,7 +1604,7 @@
        INDEX        { cmmSlotIndex, cmmNetIfIndex }
        ::= { cmmCoherentChannelConfigTable 1 }
 
-      CmmCoherentChannelConfigEntry    ::=
+      CmmCoherentChannelConfigTableEntry    ::=
         SEQUENCE {
            cmmSoftTxDisable                   INTEGER,
            cmmLosiEnabled                     INTEGER,
@@ -1615,7 +1628,7 @@
         DESCRIPTION
             "Disable transmission of data on a network interface.
             -100001 indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry  1 }
+        ::= { cmmCoherentChannelConfigTableEntry  1 }
 
       cmmLosiEnabled     OBJECT-TYPE
         SYNTAX            INTEGER{
@@ -1627,7 +1640,7 @@
         DESCRIPTION
            "lOSI is enabled or not.
             -100001 indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry 2 }
+        ::= { cmmCoherentChannelConfigTableEntry  2 }
 
       cmmDifferntialEncoding       OBJECT-TYPE
         SYNTAX          INTEGER{
@@ -1639,7 +1652,7 @@
         DESCRIPTION
            "Enable differential encoding on a optical network interface.
              -100001 indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry 3 }
+        ::= { cmmCoherentChannelConfigTableEntry  3 }
 
       cmmOutputPower     OBJECT-TYPE
         SYNTAX           DisplayString
@@ -1649,7 +1662,7 @@
         DESCRIPTION
             "Specifies the output power of the optical network interface.
              '-100001' indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry 4 }
+        ::= { cmmCoherentChannelConfigTableEntry  4 }
 
       cmmLaserFreq       OBJECT-TYPE
         SYNTAX           DisplayString
@@ -1660,7 +1673,7 @@
            "Specifies the output laser frequency for the optical network
             interface in terms of MHz.
             '-100001' indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry 5 }
+        ::= { cmmCoherentChannelConfigTableEntry  5 }
 
       cmmModulationFormat              OBJECT-TYPE
         SYNTAX        INTEGER{
@@ -1682,7 +1695,7 @@
         DESCRIPTION
             "Specifies the modulation format of the optical signal.
              -100001 indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry 6 }
+        ::= { cmmCoherentChannelConfigTableEntry  6 }
 
       cmmPulseShapingRx            OBJECT-TYPE
         SYNTAX           INTEGER{
@@ -1694,7 +1707,7 @@
         DESCRIPTION
             "Enable or disable rx pulse shaping of the signal.
              -100001 indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry 7 }
+        ::= { cmmCoherentChannelConfigTableEntry  7 }
 
       cmmPulseShapingTx              OBJECT-TYPE
         SYNTAX           INTEGER{
@@ -1706,7 +1719,7 @@
         DESCRIPTION
             "Enable or disable tx pulse shaping of the signal.
              -100001 indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry 8 }
+        ::= { cmmCoherentChannelConfigTableEntry  8 }
 
       cmmLoopbackType        OBJECT-TYPE
         SYNTAX         INTEGER{
@@ -1720,7 +1733,7 @@
             "use to send and receive data from the same network interface
              port to verify that the port is operational.
              -100001 indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry 9 }
+        ::= { cmmCoherentChannelConfigTableEntry  9 }
 
       cmmPrbsType             OBJECT-TYPE
         SYNTAX          INTEGER{
@@ -1739,7 +1752,7 @@
             "Simulate random data for transmission across the
              network interface if set.
              -100001 indicates internal error"
-        ::= { cmmCoherentChannelConfigEntry 10 }
+        ::= { cmmCoherentChannelConfigTableEntry  10 }
 
 
    -- ## CoherentChannelMonitorConfigTable
@@ -1852,6 +1865,51 @@
            '-100001' indicates internal error"
       ::= { cmmCoherentChannelMonitorConfigEntry 7 }
 
+    -- ## CoherentChannelErrorCountTable
+
+    cmmCoherentChannelErrorCountTable      OBJECT-TYPE
+      SYNTAX        SEQUENCE OF CmmCoherentChannelErrorCountTableEntry
+      MAX-ACCESS    not-accessible
+      STATUS        current
+      DESCRIPTION
+        "A list of entries containing information on the Network-Interface
+         Error counter values of Coherent Optical Module."
+     ::= { cmmCoherentChannelObjects 7 }
+
+    cmmCoherentChannelErrorCountTableEntry      OBJECT-TYPE
+      SYNTAX        CmmCoherentChannelErrorCountTableEntry
+      MAX-ACCESS    not-accessible
+      STATUS        current
+      DESCRIPTION
+        "Entry of Network-Interface Error
+                               Counter values of Coherent Optical Module."
+      INDEX        { cmmSlotIndex, cmmNetIfIndex }
+     ::= { cmmCoherentChannelErrorCountTable 1 }
+
+    CmmCoherentChannelErrorCountTableEntry    ::=
+      SEQUENCE {
+                cmmFecUncorrectedBlockCount       Counter64,
+                cmmOtnSmBip8ErrorCount            Counter64
+               }
+    cmmFecUncorrectedBlockCount     OBJECT-TYPE
+      SYNTAX         Counter64
+      MAX-ACCESS     read-only
+      STATUS         current
+      DESCRIPTION
+        "Specifies the Uncorrected Fec BlockCount value of the network
+         interface, in a Coherent optical module. '0' indicates internal
+         error. Device not ready, Not Applicable."
+     ::= { cmmCoherentChannelErrorCountTableEntry 1 }
+
+    cmmOtnSmBip8ErrorCount       OBJECT-TYPE
+      SYNTAX        Counter64
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+        "Specifies the OTN Section Monitoring BIP-8 Count Value of the
+         network interface, in a Coherent Optical Module. '0' indicates
+         internal error, Device not ready, Not Applicable."
+    ::= { cmmCoherentChannelErrorCountTableEntry 2 }
 
      -- ## CoherentHostTable
 
@@ -1876,9 +1934,10 @@
 
       CmmCoherentHostEntry    ::=
         SEQUENCE    {
-                      cmmHostIfIndex              INTEGER,
-                      cmmOperFecType              INTEGER,
-                      cmmOperLoopBack             INTEGER
+                      cmmHostIfIndex                     INTEGER,
+                      cmmOperFecType                     INTEGER,
+                      cmmOperLoopBack                    INTEGER,
+                      cmmHostIfCurrentPreFecBerIntVal    Counter64
                     }
 
       cmmHostIfIndex   OBJECT-TYPE
@@ -1918,6 +1977,17 @@
              -100002 indicates Not applicable
              -100001 indicates internal error"
         ::= { cmmCoherentHostEntry 3}
+
+      cmmHostIfCurrentPreFecBerIntVal     OBJECT-TYPE
+        SYNTAX        Counter64
+        UNITS         "1e-18 ber/BER Period"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+          "The object returns the Pre-Fec-Ber value in the units of 1e-18 ber/BER Period.
+           BER value 2 represents internal error/Device not ready/Not applicable
+           BER value 3 represents DSP is not Ready."
+       ::= { cmmCoherentHostEntry 4 }
 
 
     -- ## CoherentHostFAWSTable
@@ -1969,7 +2039,7 @@
     -- ## CoherentHostConfigTable
 
       cmmCoherentHostConfigTable     OBJECT-TYPE
-        SYNTAX        SEQUENCE OF CmmCoherentHostConfigEntry
+        SYNTAX        SEQUENCE OF CmmCoherentHostConfigTableEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -1977,8 +2047,8 @@
              objects for a particular port.."
         ::= { cmmCoherentHostObjects 3 }
 
-      cmmCoherentHostConfigEntry  OBJECT-TYPE
-        SYNTAX        CmmCoherentHostConfigEntry
+      cmmCoherentHostConfigTableEntry  OBJECT-TYPE
+        SYNTAX        CmmCoherentHostConfigTableEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -1987,7 +2057,7 @@
         INDEX        { cmmSlotIndex, cmmHostIfIndex }
        ::= { cmmCoherentHostConfigTable 1 }
 
-      CmmCoherentHostConfigEntry    ::=
+      CmmCoherentHostConfigTableEntry    ::=
         SEQUENCE    {
                       cmmFecType                  INTEGER,
                       cmmLoopBack                 INTEGER
@@ -2004,7 +2074,7 @@
         DESCRIPTION
             "Fec Type of the host interface in a optical module.
              -100001 indicates internal error"
-        ::= { cmmCoherentHostConfigEntry 1}
+        ::= { cmmCoherentHostConfigTableEntry 1}
 
       cmmLoopBack        OBJECT-TYPE
         SYNTAX      INTEGER{
@@ -2017,7 +2087,43 @@
         DESCRIPTION
             "Loopback Type of the host interface in a optical module.
              -100001 indicates internal error"
-        ::= { cmmCoherentHostConfigEntry 2}
+        ::= { cmmCoherentHostConfigTableEntry 2}
+
+    -- ## CoherentHostErrorCountTable
+
+       cmmCoherentHostErrorCountTable     OBJECT-TYPE
+         SYNTAX        SEQUENCE OF CmmCoherentHostErrorCountTableEntry
+         MAX-ACCESS    not-accessible
+         STATUS        current
+         DESCRIPTION
+           "A list of entries containing information on  Host-Interface
+            Error counter values of  Coherent Optical Module."
+        ::= { cmmCoherentHostObjects 5}
+
+       cmmCoherentHostErrorCountTableEntry     OBJECT-TYPE
+         SYNTAX       CmmCoherentHostErrorCountTableEntry
+         MAX-ACCESS   not-accessible
+         STATUS       current
+         DESCRIPTION
+           "Entry of  Host-Interface Counter values of Coherent Optical
+            Module."
+         INDEX        { cmmSlotIndex, cmmHostIfIndex }
+        ::= { cmmCoherentHostErrorCountTable 1 }
+
+       CmmCoherentHostErrorCountTableEntry    ::=
+         SEQUENCE    {
+                       cmmHostIfFecUncorrectedBlockCount      Counter64
+                     }
+
+       cmmHostIfFecUncorrectedBlockCount       OBJECT-TYPE
+         SYNTAX           Counter64
+         MAX-ACCESS       read-only
+         STATUS           current
+         DESCRIPTION
+           "Uncorrected Fec Block Count Value of the Host-Interface in
+            Coherent Optical Module. '0' indicates internal error, Not a
+            number. Device not ready , Not applicable."
+        ::= { cmmCoherentHostErrorCountTableEntry 1}
 
 
     -- ## Notifications
