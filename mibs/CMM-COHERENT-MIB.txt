@@ -45,6 +45,20 @@
                              hostlane-out-of-alignment (5)
                            }
 
+    GridSupportCode  ::= TEXTUAL-CONVENTION
+      STATUS         current
+      DESCRIPTION
+         "List of Laser Grid Support offered by the Coherent Module.
+          Empty string indicate internal error"
+      SYNTAX        BITS   {
+                             grid-6-25-ghz (0),
+                             grid-12-5-ghz (1),
+                             grid-25-ghz (2),
+                             grid-33-ghz (3),
+                             grid-50-ghz (4),
+                             grid-100-ghz (5)
+                           }
+
     RxOtuStatusCode ::= TEXTUAL-CONVENTION
       STATUS         current
       DESCRIPTION
@@ -377,7 +391,6 @@
              '-100001' indicates internal error"
         ::= { cmmCoherentModuleEntry 18 }
 
-
     -- ## CoherentModuleFAWSTable
 
       cmmCoherentModuleFAWSTable     OBJECT-TYPE
@@ -597,7 +610,8 @@
       CmmCoherentModuleConfigTableEntry    ::=
            SEQUENCE {
            cmmAdminStatus                    INTEGER,
-           cmmModuleServiceStatus            INTEGER
+           cmmModuleServiceStatus            INTEGER,
+           cmmSlotDescription                DisplayString
         }
 
       cmmAdminStatus         OBJECT-TYPE
@@ -623,6 +637,13 @@
             " To enable service for the optical controller module."
         ::= { cmmCoherentModuleConfigTableEntry 2 }
 
+      cmmSlotDescription  OBJECT-TYPE
+        SYNTAX            DisplayString
+        MAX-ACCESS        read-only
+        STATUS            current
+        DESCRIPTION
+          " Specifies Coherent Optics slot Description."
+          ::= { cmmCoherentModuleConfigTableEntry 3 }
 
       -- ## CoherentChannelTable
 
@@ -659,20 +680,20 @@
            cmmOperPrbsType                           INTEGER,
            cmmOperLosiEnabled                        INTEGER,
            cmmPrbsInSync                             INTEGER,
-           cmmCurrentPrbsBer                         DisplayString,
+           cmmCurrentPrbsBer                         Counter64,
            cmmCurrentBerPeriod                       INTEGER,
-           cmmCurrentPreFecBer                       ErrorFigures,
-           cmmCurrentPostFecBer                      ErrorFigures,
+           cmmCurrentPreFecBer                       Counter64,
+           cmmCurrentPostFecBer                      Counter64,
            cmmChromaticDispersion                    INTEGER,
-           cmmDifferentialGroupDelay                 INTEGER,
+           cmmDifferentialGroupDelay                 Counter32,
            cmmOperSoftTxDisable                      INTEGER,
            cmmOperOutputPower                        INTEGER,
-           cmmOperLaserFreq                          DisplayString,
-           cmmMinLaserFreq                           DisplayString,
-           cmmMaxLaserFreq                           DisplayString,
-           cmmCurrentTxLaserFreq                     DisplayString,
+           cmmOperLaserFreq                          Counter64,
+           cmmMinLaserFreq                           Counter64,
+           cmmMaxLaserFreq                           Counter64,
+           cmmCurrentTxLaserFreq                     Counter64,
            cmmTxGridSpacing                          INTEGER,
-           cmmLaserGridSupport                       DisplayString,
+           cmmLaserGridSupport                       GridSupportCode,
            cmmCurrentOutputPower                     INTEGER,
            cmmCurrentInputPower                      INTEGER,
            cmmCurrentPostVoaPower                    INTEGER,
@@ -681,9 +702,8 @@
            cmmCurrentPostVOAProvisionedChannelPower  INTEGER,
            cmmCurrentQMargin                         INTEGER,
            cmmCurrentuncorrectedBlockCount           Counter32,
-           cmmCurrentPreFecBerIntVal                 Counter64,
-           cmmCurrentPrbsBerIntVal                   Counter64,
-           cmmLaserAge                               INTEGER
+           cmmLaserAge                               INTEGER,
+           cmmOperFecMode                            INTEGER
         }
 
       cmmNetIfIndex  OBJECT-TYPE
@@ -871,14 +891,14 @@
         ::= { cmmCoherentChannelEntry 11 }
 
       cmmCurrentPrbsBer   OBJECT-TYPE
-        SYNTAX        DisplayString
+        SYNTAX        Counter64
+        UNITS         "1e-18"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Current PRBS BER.
-             -100003 indicates device not ready
-             -100002 indicates Not applicable
-             '-100001' indicates internal error"
+            "Current PRBS BER in the units of 1e-18.
+             BER value 2 represents internal error/ Device not ready/
+             Value not applicable."
         ::= { cmmCoherentChannelEntry  12 }
 
       cmmCurrentBerPeriod  OBJECT-TYPE
@@ -894,27 +914,25 @@
         ::= { cmmCoherentChannelEntry  13 }
 
       cmmCurrentPreFecBer  OBJECT-TYPE
-        SYNTAX        ErrorFigures
-        UNITS         "ber/BER Period"
+        SYNTAX        Counter64
+        UNITS         "1e-18 ber/BER Period"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Current Pre Fec Ber in ber/sec.
-             -100003 indicates device not ready
-             -100002 indicates Not applicable
-             '-100001' indicates internal error"
+            "Current Pre Fec Ber in the units of 1e-18 ber/sec.
+             BER value 2 represents internal error/ Device not ready/
+             Value not applicable."
         ::= { cmmCoherentChannelEntry  14 }
 
       cmmCurrentPostFecBer  OBJECT-TYPE
-        SYNTAX        ErrorFigures
-        UNITS         "ber/BER Period"
+        SYNTAX        Counter64
+        UNITS         "1e-18 ber/BER Period"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Current Post Fec Ber.
-             -100003 indicates device not ready
-             -100002 indicates Not applicable
-             '-100001' indicates internal error"
+            "Current Post Fec Ber in the units of 1e-18 ber/BER Period.
+            BER value 2 represents internal error/ Device not ready/
+            Not applicable/ Value not applicable."
         ::= { cmmCoherentChannelEntry  15 }
 
       cmmChromaticDispersion          OBJECT-TYPE
@@ -930,15 +948,12 @@
         ::= { cmmCoherentChannelEntry  16 }
 
       cmmDifferentialGroupDelay          OBJECT-TYPE
-        SYNTAX         INTEGER
+        SYNTAX         Counter32
         UNITS          "ps"
         MAX-ACCESS     read-only
         STATUS         current
         DESCRIPTION
-            "The Differential Group delay in pico second.
-             -100003 indicates device not ready
-             -100002 indicates Not applicable
-             -100001 indicates internal error"
+            "The Differential Group delay in pico second."
         ::= { cmmCoherentChannelEntry   17 }
 
       cmmOperSoftTxDisable     OBJECT-TYPE
@@ -968,63 +983,55 @@
         ::= { cmmCoherentChannelEntry 19 }
 
       cmmOperLaserFreq          OBJECT-TYPE
-        SYNTAX           DisplayString
-        UNITS            "MHz"
+        SYNTAX           Counter64
+        UNITS            "Hz"
         MAX-ACCESS       read-only
         STATUS           current
         DESCRIPTION
            "Specifies the output laser frequency for the optical network
-            interface in terms of MHz.
-             -100003 indicates device not ready
-             -100002 indicates Not applicable
-            '-100001' indicates internal error"
+            interface in terms of Hz.
+            0 indicates device not ready/Not applicable/internal error"
         ::= { cmmCoherentChannelEntry 20 }
 
        cmmMinLaserFreq  OBJECT-TYPE
-         SYNTAX           DisplayString
-         UNITS            "MHz"
+         SYNTAX           Counter64
+         UNITS            "Hz"
          MAX-ACCESS       read-only
          STATUS           current
          DESCRIPTION
-            "Min frequency of the laser in the units of MHz.
-             -100003 indicates device not ready
-             -100002 indicates Not applicable
-             '-100001' indicates internal error"
+            "Min frequency of the laser in the units of Hz.
+             0 indicates device not ready/Not applicable/internal error"
          ::= { cmmCoherentChannelEntry 21 }
 
        cmmMaxLaserFreq  OBJECT-TYPE
-         SYNTAX          DisplayString
-         UNITS           "MHz"
+         SYNTAX          Counter64
+         UNITS           "Hz"
          MAX-ACCESS      read-only
          STATUS          current
          DESCRIPTION
-            "Max frequency of the laser in the units of MHz.
-             -100003 indicates device not ready
-             -100002 indicates Not applicable
-             '-100001' indicates internal error"
+            "Max frequency of the laser in the units of Hz.
+             0 indicates device not ready/Not applicable/internal error"
         ::= { cmmCoherentChannelEntry  22 }
 
        cmmCurrentTxLaserFreq  OBJECT-TYPE
-         SYNTAX          DisplayString
-         UNITS           "MHz"
+         SYNTAX          Counter64
+         UNITS           "Hz"
          MAX-ACCESS      read-only
          STATUS          current
          DESCRIPTION
-            "Current Tx-Laser Frequency in MHz.
-             -100003 indicates device not ready
-             -100002 indicates Not applicable
-             '-100001' indicates internal error"
+            "Current Tx-Laser Frequency in Hz.
+             0 indicates device not ready/Not applicable/internal error"
         ::= { cmmCoherentChannelEntry  23 }
 
        cmmTxGridSpacing  OBJECT-TYPE
          SYNTAX         INTEGER{
-                                grid-spacing-100-ghz (1),
-                                grid-spacing-50-ghz (2),
-                                grid-spacing-33-ghz (3),
-                                grid-spacing-25-ghz (4),
-                                grid-spacing-12-5-ghz (5),
-                                grid-spacing-6-25-ghz (6)
-                              }
+                                 grid-spacing-6-25-ghz (0),
+                                 grid-spacing-12-5-ghz (1),
+                                 grid-spacing-25-ghz (2),
+                                 grid-spacing-33-ghz (3),
+                                 grid-spacing-50-ghz (4),
+                                 grid-spacing-100-ghz (5)
+                               }
          MAX-ACCESS     read-only
          STATUS         current
          DESCRIPTION
@@ -1035,14 +1042,12 @@
         ::= { cmmCoherentChannelEntry  24 }
 
        cmmLaserGridSupport  OBJECT-TYPE
-         SYNTAX        DisplayString
+         SYNTAX        GridSupportCode
          MAX-ACCESS    read-only
          STATUS        current
          DESCRIPTION
-            "Laser grid.
-             -100003 indicates device not ready
-             -100002 indicates Not applicable
-             '-100001' indicates internal error"
+            "Laser grid suppported by the Coherent Module.
+             Empty string indicates internal error."
         ::= { cmmCoherentChannelEntry  25 }
 
        cmmCurrentOutputPower  OBJECT-TYPE
@@ -1135,29 +1140,6 @@
             "Current UnCorrected Block-Count value."
         ::= { cmmCoherentChannelEntry 33 }
 
-       cmmCurrentPreFecBerIntVal           OBJECT-TYPE
-         SYNTAX           Counter64
-         UNITS            "1e-18 ber/BER Period"
-         MAX-ACCESS       read-only
-         STATUS           current
-         DESCRIPTION
-           "The object returns the Pre-Fec-Ber value in the units of 1e-18 ber/BER Period.
-            BER value 2 represents internal error/Device not ready/Not applicable
-            BER value 3 represents DSP is not Ready."
-        ::= { cmmCoherentChannelEntry 34 }
-
-       cmmCurrentPrbsBerIntVal           OBJECT-TYPE
-         SYNTAX           Counter64
-         UNITS            "1e-18"
-         MAX-ACCESS       read-only
-         STATUS           current
-         DESCRIPTION
-            "This object returns the value of prbs bit error rate in the units
-            of 1e-18 error bit per bit received.
-            BER value 2 represents internal error/Device not ready/Not applicable
-            BER value 3 represents prbs type not configured."
-        ::= { cmmCoherentChannelEntry 35 }
-
        cmmLaserAge            OBJECT-TYPE
          SYNTAX               INTEGER
          UNITS                " % "
@@ -1169,8 +1151,24 @@
             -100003 indicates device not ready
             -100002 indicates Not applicable
             -100001 indicates internal error."
-        ::= { cmmCoherentChannelEntry  36 }
+        ::= { cmmCoherentChannelEntry  34 }
 
+      cmmOperFecMode    OBJECT-TYPE
+        SYNTAX          INTEGER {
+                          unknown (0),
+                          fec-15per-everest (1),
+                          fec-15per-denali (2),
+                          fec-otu4-g709 (3),
+                          fec-otu4-transparent (4),
+                          fec-otu4-7per-staircase (5)
+                        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "FEC mode for optical signal.
+            -100003 indicates device not ready
+            -100001 indicates internal error."
+        ::= { cmmCoherentChannelEntry  35 }
 
     -- ## CoherentChannelFAWSTable
 
@@ -1288,7 +1286,6 @@
           "Channel Prefec ber signal status power alarm."
         ::= { cmmCoherentChannelFAWSTableEntry 8 }
 
-
     -- ## CoherentChannelMonitorTable
 
       cmmCoherentChannelMonitorTable     OBJECT-TYPE
@@ -1330,9 +1327,9 @@
                 cmmOutputPowerHighWarningThreshold               INTEGER,
                 cmmOutputPowerLowWarningThreshold                INTEGER,
                 cmmOutputPowerLowAlarmThreshold                  INTEGER,
-                cmmOperPreFecBerSignalDegradeThreshold           INTEGER,
-                cmmOperPreFecBerSignalFailThreshold              INTEGER,
-                cmmOperPreFecBerSignalclearThreshold             INTEGER
+                cmmOperPreFecBerSignalDegradeThreshold           Counter64,
+                cmmOperPreFecBerSignalFailThreshold              Counter64,
+                cmmOperPreFecBerSignalclearThreshold             Counter64
                    }
 
       cmmOperInputPowerHighAlarmThreshold      OBJECT-TYPE
@@ -1544,43 +1541,40 @@
           -100001 indicates internal error."
         ::= { cmmCoherentChannelMonitorTableEntry  16 }
 
-      cmmOperPreFecBerSignalDegradeThreshold      OBJECT-TYPE
-        SYNTAX        INTEGER
-        UNITS         "0.01 dBm"
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION
-          "Specifies the Signal Degrade threshold Value based on pre-fec ber
-          of the optical network interface.
-          -100003 indicates device not ready.
-          -100002 indicates Not applicable.
-          -100001 indicates internal error."
-        ::= { cmmCoherentChannelMonitorTableEntry  17 }
-
       cmmOperPreFecBerSignalFailThreshold      OBJECT-TYPE
-        SYNTAX        INTEGER
-        UNITS         "0.01 dBm"
+        SYNTAX        Counter64
+        UNITS         "1e-18"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
           "Specifies the Signal Fail threshold Value based on pre-fec ber
           of the optical network interface.
-          -100003 indicates device not ready.
-          -100002 indicates Not applicable.
-          -100001 indicates internal error."
+          BER value 2 represents internal error/ Device not ready/
+          Value not applicable."
+        ::= { cmmCoherentChannelMonitorTableEntry  17 }
+
+     cmmOperPreFecBerSignalDegradeThreshold      OBJECT-TYPE
+        SYNTAX        Counter64
+        UNITS         "1e-18"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+          "Specifies the Signal Degrade threshold Value based on pre-fec ber
+          of the optical network interface.
+          BER value 2 represents internal error/ Device not ready/
+          Value not applicable."
         ::= { cmmCoherentChannelMonitorTableEntry  18 }
 
      cmmOperPreFecBerSignalclearThreshold      OBJECT-TYPE
-        SYNTAX        INTEGER
-        UNITS         "0.01 dBm"
+        SYNTAX        Counter64
+        UNITS         "1e-18"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
           "Specifies the Signal Clear threshold Value based on pre-fec ber
           of the optical network interface.
-          -100003 indicates device not ready.
-          -100002 indicates Not applicable.
-          -100001 indicates internal error."
+          BER value 2 represents internal error/ Device not ready/
+          Value not applicable."
         ::= { cmmCoherentChannelMonitorTableEntry  19 }
 
     -- ## CoherentChannelConfigTable
@@ -1609,13 +1603,14 @@
            cmmSoftTxDisable                   INTEGER,
            cmmLosiEnabled                     INTEGER,
            cmmDifferntialEncoding             INTEGER,
-           cmmOutputPower                     DisplayString,
-           cmmLaserFreq                       DisplayString,
+           cmmOutputPower                     INTEGER,
+           cmmLaserFreq                       Counter64,
            cmmModulationFormat                INTEGER,
            cmmPulseShapingRx                  INTEGER,
            cmmPulseShapingTx                  INTEGER,
            cmmLoopbackType                    INTEGER,
-           cmmPrbsType                        INTEGER
+           cmmPrbsType                        INTEGER,
+           cmmFecMode                         INTEGER
         }
 
       cmmSoftTxDisable     OBJECT-TYPE
@@ -1655,8 +1650,8 @@
         ::= { cmmCoherentChannelConfigTableEntry  3 }
 
       cmmOutputPower     OBJECT-TYPE
-        SYNTAX           DisplayString
-        UNITS            "dBm"
+        SYNTAX           INTEGER
+        UNITS            "0.01 dBm"
         MAX-ACCESS       read-only
         STATUS           current
         DESCRIPTION
@@ -1665,14 +1660,14 @@
         ::= { cmmCoherentChannelConfigTableEntry  4 }
 
       cmmLaserFreq       OBJECT-TYPE
-        SYNTAX           DisplayString
-        UNITS            "MHz"
+        SYNTAX           Counter64
+        UNITS            "Hz"
         MAX-ACCESS       read-only
         STATUS           current
         DESCRIPTION
            "Specifies the output laser frequency for the optical network
-            interface in terms of MHz.
-            '-100001' indicates internal error"
+            interface in terms of Hz.
+            0 indicates internal error"
         ::= { cmmCoherentChannelConfigTableEntry  5 }
 
       cmmModulationFormat              OBJECT-TYPE
@@ -1755,6 +1750,23 @@
         ::= { cmmCoherentChannelConfigTableEntry  10 }
 
 
+      cmmFecMode  OBJECT-TYPE
+        SYNTAX    INTEGER {
+                      none (0),
+                      fec-15per-everest (1),
+                      fec-15per-denali (2),
+                      fec-otu4-g709 (3),
+                      fec-otu4-transparent (4),
+                      fec-otu4-7per-staircase (5)
+                  }
+        MAX-ACCESS           read-only
+        STATUS               current
+        DESCRIPTION
+            "FEC mode for optical signal.
+            -100003 indicates device not ready
+            -100001 indicates internal error"
+        ::= { cmmCoherentChannelConfigTableEntry  11 }
+
    -- ## CoherentChannelMonitorConfigTable
 
    cmmCoherentChannelMonitorConfigTable OBJECT-TYPE
@@ -1778,91 +1790,84 @@
 
      CmmCoherentChannelMonitorConfigTableEntry    ::=
         SEQUENCE {
-                   cmmInputPowerHighAlarmThreshold                DisplayString,
-                   cmmInputPowerHighWarnThreshold                 DisplayString,
-                   cmmInputPowerLowWarnThreshold                  DisplayString,
-                   cmmInputPowerLowAlarmThreshold                 DisplayString,
-                   cmmPreFecBerSignalFailureThreshold             DisplayString,
-                   cmmPreFecBerSignalDegradeThreshold             DisplayString,
-                   cmmPreFecBerSignalClearThreshold               DisplayString
+                   cmmInputPowerHighAlarmThreshold                INTEGER,
+                   cmmInputPowerHighWarnThreshold                 INTEGER,
+                   cmmInputPowerLowWarnThreshold                  INTEGER,
+                   cmmInputPowerLowAlarmThreshold                 INTEGER,
+                   cmmPreFecBerSignalFailureThreshold             Counter64,
+                   cmmPreFecBerSignalDegradeThreshold             Counter64,
+                   cmmPreFecBerSignalClearThreshold               Counter64
                   }
 
      cmmInputPowerHighAlarmThreshold     OBJECT-TYPE
-        SYNTAX                DisplayString
-        UNITS                 "dBm"
+        SYNTAX                INTEGER
+        UNITS                 "0.01 dBm"
         MAX-ACCESS            read-only
         STATUS                current
         DESCRIPTION
               "Specifies the rx-input power High Alarm threshold value of the
-               optical network interface.
-               '-100001' indicates internal error"
+               optical network interface."
         ::= { cmmCoherentChannelMonitorConfigEntry 1 }
 
     cmmInputPowerHighWarnThreshold      OBJECT-TYPE
-       SYNTAX                DisplayString
-       UNITS                 "dBm"
+       SYNTAX                INTEGER
+       UNITS                 "0.01 dBm"
        MAX-ACCESS            read-only
        STATUS                current
        DESCRIPTION
         "Specifies the rx-input power High Warning threshold value of the
-         optical network interface.
-         '-100001' indicates internal error"
+         optical network interface."
        ::= { cmmCoherentChannelMonitorConfigEntry 2 }
 
      cmmInputPowerLowWarnThreshold     OBJECT-TYPE
-       SYNTAX                DisplayString
-       UNITS                 "dBm"
+       SYNTAX                INTEGER
+       UNITS                 "0.01 dBm"
        MAX-ACCESS            read-only
        STATUS                current
        DESCRIPTION
            "Specifies the rx-input power Low Alarm threshold value of the
-           optical network interface.
-           '-100001' indicates internal error"
+           optical network interface."
       ::= { cmmCoherentChannelMonitorConfigEntry 3 }
 
     cmmInputPowerLowAlarmThreshold      OBJECT-TYPE
-       SYNTAX                DisplayString
-       UNITS                 "dBm"
+       SYNTAX                INTEGER
+       UNITS                 "0.01 dBm"
        MAX-ACCESS            read-only
        STATUS                current
        DESCRIPTION
              "Specifies the rx-input power Low Warning threshold value of the
-             optical network interface.
-             '-100001' indicates internal error"
+             optical network interface."
        ::= { cmmCoherentChannelMonitorConfigEntry 4 }
 
 
     cmmPreFecBerSignalFailureThreshold  OBJECT-TYPE
-      SYNTAX                DisplayString
-      UNITS                 "dBm"
+      SYNTAX                Counter64
+      UNITS                 "1e-18"
       MAX-ACCESS            read-only
       STATUS                current
       DESCRIPTION
            "Specifies the Pre fec ber Signal Failure value of the
-           optical network interface.
-           '-100001' indicates internal error"
+           optical network interface."
       ::= { cmmCoherentChannelMonitorConfigEntry 5 }
 
     cmmPreFecBerSignalDegradeThreshold OBJECT-TYPE
-      SYNTAX                DisplayString
-      UNITS                 "dBm"
+      SYNTAX                Counter64
+      UNITS                 "1e-18"
       MAX-ACCESS            read-only
       STATUS                current
       DESCRIPTION
            "Specifies the Pre fec ber Signal Degrade value of the optical
-            network interface.
-           '-100001' indicates internal error"
+            network interface."
       ::= { cmmCoherentChannelMonitorConfigEntry 6 }
 
     cmmPreFecBerSignalClearThreshold OBJECT-TYPE
-      SYNTAX                DisplayString
-      UNITS                 "dBm"
+      SYNTAX                Counter64
+      UNITS                 "1e-18"
       MAX-ACCESS            read-only
       STATUS                current
       DESCRIPTION
            "Specifies the Pre fec ber Signal CLEAR value of the optical
-           network interface.
-           '-100001' indicates internal error"
+           network interface."
       ::= { cmmCoherentChannelMonitorConfigEntry 7 }
 
     -- ## CoherentChannelErrorCountTable
@@ -1937,7 +1942,7 @@
                       cmmHostIfIndex                     INTEGER,
                       cmmOperFecType                     INTEGER,
                       cmmOperLoopBack                    INTEGER,
-                      cmmHostIfCurrentPreFecBerIntVal    Counter64
+                      cmmHostIfCurrentPreFecBer          Counter64
                     }
 
       cmmHostIfIndex   OBJECT-TYPE
@@ -1978,15 +1983,15 @@
              -100001 indicates internal error"
         ::= { cmmCoherentHostEntry 3}
 
-      cmmHostIfCurrentPreFecBerIntVal     OBJECT-TYPE
+      cmmHostIfCurrentPreFecBer     OBJECT-TYPE
         SYNTAX        Counter64
         UNITS         "1e-18 ber/BER Period"
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
           "The object returns the Pre-Fec-Ber value in the units of 1e-18 ber/BER Period.
-           BER value 2 represents internal error/Device not ready/Not applicable
-           BER value 3 represents DSP is not Ready."
+           BER value 2 represents internal error/ Device not ready/
+           Value not applicable."
        ::= { cmmCoherentHostEntry 4 }
 
 
