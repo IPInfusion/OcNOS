@@ -124,7 +124,36 @@
                              none (13)
                            }
 
-   -- ### Object Information
+    ModuleFaultStatusCode  ::= TEXTUAL-CONVENTION
+      STATUS         current
+      DESCRIPTION
+         "The components for Module Fault status.
+         Empty String indicates unavailable"
+      SYNTAX        BITS   {
+                             over-temperature-fault (0),
+                             hardware-fault (1),
+                             initialization-fault (2),
+                             power-supply-fault (3),
+                             checksum-fault (4)
+                           }
+
+    HostLaneFaultCode  ::= TEXTUAL-CONVENTION
+       STATUS         current
+       DESCRIPTION
+          "The components for Module Host lane specific bits.
+          Empty String indicates unavailable"
+       SYNTAX        BITS  {
+                             tx-host-lol-l0 (0),
+                             tx-host-lol-l1 (1),
+                             tx-host-lol-l2 (2),
+                             tx-host-lol-l3 (3),
+                             ingress-aps-msg-rcvd (4),
+                             deskew-lock-fault(5),
+                             out-of-align (6),
+                             loss-of-align (7)
+                           }
+
+  -- ### Object Information
 
      cmmCoherentObjects           OBJECT IDENTIFIER ::={ cmmChassisObject 15 }
      cmmCoherentMibNotifications  OBJECT IDENTIFIER ::={ cmmChassisObject 16 }
@@ -416,7 +445,8 @@
         SEQUENCE    {
                       cmmModuleTemperature             INTEGER,
                       cmmModuleVoltage                 INTEGER,
-                      cmmModuleGeneralStatus           ModuleGeneralStatusCode
+                      cmmModuleGeneralStatus           ModuleGeneralStatusCode,
+                      cmmModuleFaultStatus             ModuleFaultStatusCode
                     }
 
       cmmModuleTemperature    OBJECT-TYPE
@@ -455,6 +485,14 @@
           Zeros Indicates No Alarms."
         ::= { cmmCoherentModuleFAWSEntry 3}
 
+      cmmModuleFaultStatus       OBJECT-TYPE
+        SYNTAX        ModuleFaultStatusCode
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Module Fault Status alarm. Empty String indicates unavailable.
+            Zeros Indicates No Alarms."
+        ::= { cmmCoherentModuleFAWSEntry 4}
 
     -- ## CoherentModuleMonitoringTable
 
@@ -644,6 +682,201 @@
         DESCRIPTION
           " Specifies Coherent Optics slot Description."
           ::= { cmmCoherentModuleConfigTableEntry 3 }
+
+     -- ## CoherentModuleEventCountTable
+
+      cmmCoherentModuleEventCountTable     OBJECT-TYPE
+        SYNTAX        SEQUENCE OF CmmCoherentModuleEventCountEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "Event count information for each Optical module."
+        ::= { cmmCoherentModuleObjects 5 }
+
+      cmmCoherentModuleEventCountEntry  OBJECT-TYPE
+        SYNTAX        CmmCoherentModuleEventCountEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "A list of entries containing Coherent Module event count information."
+        INDEX    { cmmSlotIndex }
+        ::= { cmmCoherentModuleEventCountTable 1 }
+
+      CmmCoherentModuleEventCountEntry    ::=
+        SEQUENCE  {
+                    cmmHwInterlockEC                 INTEGER,
+                    cmmTXLossofSignalFunctionalityEC INTEGER,
+                    cmmRXLossofSignalEC              INTEGER,
+                    cmmRXNetworkLossofLockEC         INTEGER,
+                    cmmTXHostLossofLockEC            INTEGER,
+                    cmmHostLaneOutofAlignmentEC      INTEGER,
+                    cmmOverTemperatureFaultEC        INTEGER,
+                    cmmHardwareFaultEC               INTEGER,
+                    cmmInitializationFaultEC         INTEGER,
+                    cmmPowersupplyFaultEC            INTEGER,
+                    cmmChecksumFaultEC               INTEGER,
+                    cmmTemperatureLowAlarmEC         INTEGER,
+                    cmmTemperatureLowWarningEC       INTEGER,
+                    cmmTemperatureHighWarningEC      INTEGER,
+                    cmmTemperatureHighAlarmEC        INTEGER,
+                    cmmPowerLowAlarmEC               INTEGER,
+                    cmmPowerLowWarningEC             INTEGER,
+                    cmmPowerHighWarningEC            INTEGER,
+                    cmmPowerHighAlarmEC              INTEGER
+                 }
+
+      cmmHwInterlockEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module General Fault hardware interlock event count."
+        ::= { cmmCoherentModuleEventCountEntry 1 }
+
+      cmmTXLossofSignalFunctionalityEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module General Fault tx loss of signal functionality
+            event count."
+        ::= { cmmCoherentModuleEventCountEntry 2 }
+
+      cmmRXLossofSignalEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module General Fault rx loss of signal event count."
+        ::= { cmmCoherentModuleEventCountEntry 3 }
+
+      cmmRXNetworkLossofLockEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module General Fault rx network loss of lock event count."
+        ::= { cmmCoherentModuleEventCountEntry 4 }
+
+      cmmTXHostLossofLockEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module General Fault tx host loss of lock event count."
+        ::= { cmmCoherentModuleEventCountEntry 5 }
+
+      cmmHostLaneOutofAlignmentEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module General Fault hostlane out of alignment event count."
+        ::= { cmmCoherentModuleEventCountEntry 6 }
+
+      cmmOverTemperatureFaultEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module Fault Status over temperature fault event count."
+        ::= { cmmCoherentModuleEventCountEntry 7 }
+
+      cmmHardwareFaultEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module Fault Status hardware fault event count."
+        ::= { cmmCoherentModuleEventCountEntry 8 }
+
+      cmmInitializationFaultEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module Fault Status initialization fault event count."
+        ::= { cmmCoherentModuleEventCountEntry 9 }
+
+      cmmPowersupplyFaultEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module Fault Status power supply fault event count."
+        ::= { cmmCoherentModuleEventCountEntry 10 }
+
+      cmmChecksumFaultEC   OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module Fault Status checksum fault event count."
+        ::= { cmmCoherentModuleEventCountEntry 11 }
+
+      cmmTemperatureLowAlarmEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module temperature low alarm event count."
+        ::= { cmmCoherentModuleEventCountEntry 12 }
+
+      cmmTemperatureLowWarningEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module temperature low warning event count."
+        ::= { cmmCoherentModuleEventCountEntry 13 }
+
+      cmmTemperatureHighWarningEC  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module temperature high warning event count."
+        ::= { cmmCoherentModuleEventCountEntry 14 }
+
+      cmmTemperatureHighAlarmEC   OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module temperature high alarm event count."
+        ::= { cmmCoherentModuleEventCountEntry 15 }
+
+      cmmPowerLowAlarmEC    OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module power low alarm event count."
+        ::= { cmmCoherentModuleEventCountEntry 16 }
+
+      cmmPowerLowWarningEC   OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module power low warning event count."
+        ::= { cmmCoherentModuleEventCountEntry 17 }
+
+      cmmPowerHighWarningEC   OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module power high warning event count."
+        ::= { cmmCoherentModuleEventCountEntry 18 }
+
+      cmmPowerHighAlarmEC    OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Module power high alarm event count."
+        ::= { cmmCoherentModuleEventCountEntry 19 }
 
       -- ## CoherentChannelTable
 
@@ -1147,10 +1380,10 @@
          STATUS               current
          DESCRIPTION
            "Laser Age mentioned in percentage.
-            0 meaning Beginning of Life and 100 meaning End of Life.
-            -100003 indicates device not ready
-            -100002 indicates Not applicable
-            -100001 indicates internal error."
+           0 meaning Beginning of Life and 100 meaning End of Life.
+           -100003 indicates device not ready
+           -100002 indicates Not applicable
+           -100001 indicates internal error."
         ::= { cmmCoherentChannelEntry  34 }
 
       cmmOperFecMode    OBJECT-TYPE
@@ -1201,7 +1434,10 @@
                       cmmRxTs                RxTsStatusCode,
                       cmmInPower             INTEGER,
                       cmmOutPower            INTEGER,
-                      cmmPreFecBerSignal     INTEGER
+                      cmmPreFecBerSignal     INTEGER,
+                      cmmQMarginAlarm        INTEGER,
+                      cmmSNRAlarm            INTEGER,
+                      cmmChromaticDispersionAlarm     INTEGER
                     }
 
       cmmRxLos            OBJECT-TYPE
@@ -1286,6 +1522,39 @@
           "Channel Prefec ber signal status power alarm."
         ::= { cmmCoherentChannelFAWSTableEntry 8 }
 
+      cmmQMarginAlarm       OBJECT-TYPE
+        SYNTAX    INTEGER {
+                    false (0),
+                    true (1)
+                  }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Netif Q-Margin Alarm."
+        ::= { cmmCoherentChannelFAWSTableEntry 9 }
+
+      cmmSNRAlarm       OBJECT-TYPE
+        SYNTAX    INTEGER {
+                    false (0),
+                    true (1)
+                  }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Netif SNR Alarm."
+        ::= { cmmCoherentChannelFAWSTableEntry 10 }
+
+      cmmChromaticDispersionAlarm       OBJECT-TYPE
+        SYNTAX      INTEGER {
+                      false (0),
+                      true (1)
+                    }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Netif Chromatic Dispersion alarm."
+        ::= { cmmCoherentChannelFAWSTableEntry 11 }
+
     -- ## CoherentChannelMonitorTable
 
       cmmCoherentChannelMonitorTable     OBJECT-TYPE
@@ -1329,8 +1598,11 @@
                 cmmOutputPowerLowAlarmThreshold                  INTEGER,
                 cmmOperPreFecBerSignalDegradeThreshold           Counter64,
                 cmmOperPreFecBerSignalFailThreshold              Counter64,
-                cmmOperPreFecBerSignalclearThreshold             Counter64
-                   }
+                cmmOperPreFecBerSignalclearThreshold             Counter64,
+                cmmOperQMarginThreshold                          INTEGER,
+                cmmOperOSNRThreshold                             INTEGER,
+                cmmOperChromaticDispersionThreshold              INTEGER
+            }
 
       cmmOperInputPowerHighAlarmThreshold      OBJECT-TYPE
         SYNTAX        INTEGER
@@ -1577,6 +1849,40 @@
           Value not applicable."
         ::= { cmmCoherentChannelMonitorTableEntry  19 }
 
+      cmmOperQMarginThreshold     OBJECT-TYPE
+        SYNTAX           INTEGER
+        UNITS            "0.01 dB"
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION
+            "Current Network Rx Q-Margin Threshold violation in dB.
+            -100003 indicates device not ready
+            '-100001' indicates unavailable"
+        ::= { cmmCoherentChannelMonitorTableEntry 20 }
+
+      cmmOperOSNRThreshold       OBJECT-TYPE
+        SYNTAX           INTEGER
+        UNITS            "0.01 dB"
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION
+            "Current OSNR Threshold violation in dB.
+            -100003 indicates device not ready
+            '-100001' indicates unavailable"
+        ::= { cmmCoherentChannelMonitorTableEntry 21 }
+
+      cmmOperChromaticDispersionThreshold       OBJECT-TYPE
+        SYNTAX           INTEGER
+        UNITS            "ps/nm"
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION
+           "Current chromatic dispersion threshold violation in
+           pico second/nano meter (ps/nm).
+           -100003 indicates device not ready
+           '-100001' indicates unavailable"
+        ::= { cmmCoherentChannelMonitorTableEntry 22 }
+
     -- ## CoherentChannelConfigTable
 
        cmmCoherentChannelConfigTable     OBJECT-TYPE
@@ -1749,7 +2055,6 @@
              -100001 indicates internal error"
         ::= { cmmCoherentChannelConfigTableEntry  10 }
 
-
       cmmFecMode  OBJECT-TYPE
         SYNTAX    INTEGER {
                       none (0),
@@ -1796,7 +2101,10 @@
                    cmmInputPowerLowAlarmThreshold                 INTEGER,
                    cmmPreFecBerSignalFailureThreshold             Counter64,
                    cmmPreFecBerSignalDegradeThreshold             Counter64,
-                   cmmPreFecBerSignalClearThreshold               Counter64
+                   cmmPreFecBerSignalClearThreshold               Counter64,
+                   cmmQMarginThreshold                            INTEGER,
+                   cmmOSNRThreshold                               INTEGER,
+                   cmmChromaticDispersionThreshold                INTEGER
                   }
 
      cmmInputPowerHighAlarmThreshold     OBJECT-TYPE
@@ -1839,7 +2147,6 @@
              optical network interface."
        ::= { cmmCoherentChannelMonitorConfigEntry 4 }
 
-
     cmmPreFecBerSignalFailureThreshold  OBJECT-TYPE
       SYNTAX                Counter64
       UNITS                 "1e-18"
@@ -1869,6 +2176,203 @@
            "Specifies the Pre fec ber Signal CLEAR value of the optical
            network interface."
       ::= { cmmCoherentChannelMonitorConfigEntry 7 }
+
+    cmmQMarginThreshold   OBJECT-TYPE
+      SYNTAX           INTEGER
+      UNITS            "0.01 dB"
+      MAX-ACCESS       read-only
+      STATUS           current
+      DESCRIPTION
+          "Current Network Rx Q-Margin Threshold violation in dB.
+          -100003 indicates device not ready
+          '-100001' indicates unavailable"
+      ::= { cmmCoherentChannelMonitorConfigEntry 8 }
+
+    cmmOSNRThreshold    OBJECT-TYPE
+      SYNTAX           INTEGER
+      UNITS            "0.01 dB"
+      MAX-ACCESS       read-only
+      STATUS           current
+      DESCRIPTION
+          "Current OSNR Threshold violation in dB.
+          -100003 indicates device not ready
+          '-100001' indicates unavailable"
+      ::= { cmmCoherentChannelMonitorConfigEntry 9 }
+
+    cmmChromaticDispersionThreshold   OBJECT-TYPE
+      SYNTAX           INTEGER
+      UNITS            "ps/nm"
+      MAX-ACCESS       read-only
+      STATUS           current
+      DESCRIPTION
+          "Current chromatic dispersion threshold violation in
+          pico second/nano meter (ps/nm).
+          -100003 indicates device not ready
+          '-100001' indicates unavailable"
+      ::= { cmmCoherentChannelMonitorConfigEntry 10 }
+
+  -- ## CoherentChannelEventCountTable
+
+    cmmCoherentChannelEventCountTable     OBJECT-TYPE
+      SYNTAX        SEQUENCE OF CmmCoherentChannelEventCountEntry
+      MAX-ACCESS    not-accessible
+      STATUS        current
+      DESCRIPTION
+          "Event count information for each optical network interface"
+      ::= { cmmCoherentChannelObjects 6 }
+
+    cmmCoherentChannelEventCountEntry  OBJECT-TYPE
+      SYNTAX        CmmCoherentChannelEventCountEntry
+      MAX-ACCESS    not-accessible
+      STATUS        current
+      DESCRIPTION
+          "A list of entries containing Coherent Channel network interface
+          event count information."
+      INDEX    { cmmSlotIndex,
+                 cmmNetIfIndex  }
+      ::= { cmmCoherentChannelEventCountTable 1 }
+
+      CmmCoherentChannelEventCountEntry    ::=
+      SEQUENCE {
+                 cmmOperInputPowerHighAlarmThresholdEC             INTEGER,
+                 cmmOperInputPowerHighWarnThresholdEC              INTEGER,
+                 cmmOperInputPowerLowWarnThresholdEC               INTEGER,
+                 cmmOperInputPowerLowAlarmThresholdEC              INTEGER,
+                 cmmOutputPowerHighAlarmThresholdEC                INTEGER,
+                 cmmOutputPowerHighWarnThresholdEC                 INTEGER,
+                 cmmOutputPowerLowWarnThresholdEC                  INTEGER,
+                 cmmOutputPowerLowAlarmThresholdEC                 INTEGER,
+                 cmmOperPrefecberSignalFailThresholdEC             INTEGER,
+                 cmmOperPrefecberSignalDegradeThresholdEC          INTEGER,
+                 cmmQMarginThresholdEC                             INTEGER,
+                 cmmOSNRThresholdEC                                INTEGER,
+                 cmmChromaticDispersionThresholdEC                 INTEGER,
+                 cmmRXLossEC                                       INTEGER
+              }
+
+        cmmOperInputPowerHighAlarmThresholdEC  OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface oper input power high alarm threshold
+              event count."
+          ::= { cmmCoherentChannelEventCountEntry 1 }
+
+        cmmOperInputPowerHighWarnThresholdEC    OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface oper input power high warning threshold
+               event count."
+          ::= { cmmCoherentChannelEventCountEntry 2 }
+
+        cmmOperInputPowerLowWarnThresholdEC    OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+             "Module Network interface oper input power low warning threshold
+          event count."
+          ::= { cmmCoherentChannelEventCountEntry 3 }
+
+        cmmOperInputPowerLowAlarmThresholdEC   OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface oper input power low alarm threshold
+          event count."
+          ::= { cmmCoherentChannelEventCountEntry 4 }
+
+        cmmOutputPowerHighAlarmThresholdEC OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface output power high alarm
+              threshold event count."
+          ::= { cmmCoherentChannelEventCountEntry 5 }
+
+        cmmOutputPowerHighWarnThresholdEC   OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface output power high warning
+              threshold event count."
+          ::= { cmmCoherentChannelEventCountEntry 6 }
+
+        cmmOutputPowerLowWarnThresholdEC   OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface output power low warning
+              threshold event count."
+          ::= { cmmCoherentChannelEventCountEntry 7 }
+
+        cmmOutputPowerLowAlarmThresholdEC OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface output power low alarm
+              threshold event count."
+          ::= { cmmCoherentChannelEventCountEntry 8 }
+
+        cmmOperPrefecberSignalFailThresholdEC   OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface oper prefecber signal fail
+              threshold event count."
+          ::= { cmmCoherentChannelEventCountEntry 9 }
+
+        cmmOperPrefecberSignalDegradeThresholdEC  OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface oper prefecber signal degrade
+              threshold event count."
+          ::= { cmmCoherentChannelEventCountEntry 10 }
+
+        cmmQMarginThresholdEC   OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface current Q Margin
+              threshold event count."
+          ::= { cmmCoherentChannelEventCountEntry 11 }
+
+        cmmOSNRThresholdEC   OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface current SNR threshold event count."
+          ::= { cmmCoherentChannelEventCountEntry 12 }
+
+        cmmChromaticDispersionThresholdEC   OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "Module Network interface current chromatic dispersion
+              threshold event count."
+          ::= { cmmCoherentChannelEventCountEntry 13 }
+
+        cmmRXLossEC   OBJECT-TYPE
+          SYNTAX      INTEGER
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+          "Module Network interface RX loss event count."
+          ::= { cmmCoherentChannelEventCountEntry 14 }
 
     -- ## CoherentChannelErrorCountTable
 
@@ -2019,7 +2523,8 @@
       CmmCoherentHostFAWSTableEntry    ::=
         SEQUENCE    {
                       cmmRxPcs                    PcsAlarmStatusCode,
-                      cmmTxPcs                    PcsAlarmStatusCode
+                      cmmTxPcs                    PcsAlarmStatusCode,
+                      cmmCoherentHostFaultStatus  HostLaneFaultCode
                    }
 
       cmmRxPcs       OBJECT-TYPE
@@ -2039,6 +2544,15 @@
           "Hostif Tx-Pcs Alarm. Empty String indicates unavailable
            Zeros indicate No alarm"
         ::= { cmmCoherentHostFAWSTableEntry  2}
+
+      cmmCoherentHostFaultStatus       OBJECT-TYPE
+        SYNTAX        HostLaneFaultCode
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Hostif Fault Alarm status. Empty String indicates unavailable
+            Zeros indicate No alarm"
+        ::= { cmmCoherentHostFAWSTableEntry  3}
 
 
     -- ## CoherentHostConfigTable
@@ -2094,6 +2608,338 @@
              -100001 indicates internal error"
         ::= { cmmCoherentHostConfigTableEntry 2}
 
+  -- CoherentHostEventCountTable
+
+    cmmCoherentHostEventCountTable     OBJECT-TYPE
+      SYNTAX        SEQUENCE OF CmmCoherentHostEventCountEntry
+      MAX-ACCESS    not-accessible
+      STATUS        current
+      DESCRIPTION
+          "Event count information for each host interface"
+          ::= { cmmCoherentHostObjects 4 }
+
+    cmmCoherentHostEventCountEntry   OBJECT-TYPE
+      SYNTAX        CmmCoherentHostEventCountEntry
+      MAX-ACCESS    not-accessible
+      STATUS        current
+      DESCRIPTION
+          "A list of entries containing Coherent Host interface
+           event count information."
+      INDEX    { cmmSlotIndex,
+                 cmmHostIfIndex  }
+      ::= { cmmCoherentHostEventCountTable 1 }
+
+    CmmCoherentHostEventCountEntry      ::=
+      SEQUENCE {
+                 cmmIngressPCSLossofSignalEC                 INTEGER,
+                 cmmIngressPCSLossofFrameEC                  INTEGER,
+                 cmmIngressPCSIllegalAlignmentMarkerEC       INTEGER,
+                 cmmIngressPCSRemoteFaultEC                  INTEGER,
+                 cmmIngressPCSLocalFaultEC                   INTEGER,
+                 cmmIngressPCSHighBEREC                      INTEGER,
+                 cmmIngressPCSBIPErrorEC                     INTEGER,
+                 cmmIngressPCSDeskewErrorEC                  INTEGER,
+                 cmmIngressPCSLossofBlocklockEC              INTEGER,
+                 cmmIngressPCSLossofAlignmentMarkerLockEC    INTEGER,
+                 cmmIngressPCSLossofAlignmentEC              INTEGER,
+                 cmmIngressPCSOPUClientSignalFailEC          INTEGER,
+                 cmmIngressPCSErrorBlocksDetectedEC          INTEGER,
+                 cmmEgressPCSLossofSignalEC                  INTEGER,
+                 cmmEgressPCSLossofFrameEC                   INTEGER,
+                 cmmEgressPCSIllegalAlignmentMarkerEC        INTEGER,
+                 cmmEgressPCSRemoteFaultEC                   INTEGER,
+                 cmmEgressPCSLocalFaultEC                    INTEGER,
+                 cmmEgressPCSHighBEREC                       INTEGER,
+                 cmmEgressPCSBIPErrorEC                      INTEGER,
+                 cmmEgressPCSDeskewErrorEC                   INTEGER,
+                 cmmEgressPCSLossofBlocklockEC               INTEGER,
+                 cmmEgressPCSLossofAlignmentMarkerLockEC     INTEGER,
+                 cmmEgressPCSLossofAlignmentEC               INTEGER,
+                 cmmEgressPCSOPUClientSignalFailEC           INTEGER,
+                 cmmEgressPCSErrorBlocksDetectedEC           INTEGER,
+                 cmmTXHostLolL0EC                            INTEGER,
+                 cmmTXHostLolL1EC                            INTEGER,
+                 cmmTXHostLolL2EC                            INTEGER,
+                 cmmTXHostLolL3EC                            INTEGER,
+                 cmmIngressAPSMsgRcvdEC                      INTEGER,
+                 cmmDeskewLockFaultEC                        INTEGER,
+                 cmmOutofAlignEC                             INTEGER,
+                 cmmLossofAlignEC                            INTEGER
+              }
+
+      cmmIngressPCSLossofSignalEC OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Host interface ingress PCS loss of signal event count."
+        ::= { cmmCoherentHostEventCountEntry 1 }
+
+      cmmIngressPCSLossofFrameEC    OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Host interface ingress PCS loss of frame event count."
+        ::= { cmmCoherentHostEventCountEntry 2 }
+
+      cmmIngressPCSIllegalAlignmentMarkerEC    OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Host interface ingress PCS illegal alignment marker event count."
+        ::= { cmmCoherentHostEventCountEntry 3 }
+
+      cmmIngressPCSRemoteFaultEC    OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Host interface ingress PCS remote fault event count."
+        ::= { cmmCoherentHostEventCountEntry 4 }
+
+      cmmIngressPCSLocalFaultEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress PCS local fault event count."
+         ::= { cmmCoherentHostEventCountEntry 5 }
+
+      cmmIngressPCSHighBEREC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress PCS high ber event count."
+         ::= { cmmCoherentHostEventCountEntry 6 }
+
+      cmmIngressPCSBIPErrorEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress PCS bip error event count."
+         ::= { cmmCoherentHostEventCountEntry 7 }
+
+      cmmIngressPCSDeskewErrorEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress PCS deskew error event count."
+         ::= { cmmCoherentHostEventCountEntry 8 }
+
+       cmmIngressPCSLossofBlocklockEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress PCS loss of block lock event count."
+         ::= { cmmCoherentHostEventCountEntry 9 }
+
+       cmmIngressPCSLossofAlignmentMarkerLockEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress PCS loss of alignment marker lock event count."
+         ::= { cmmCoherentHostEventCountEntry 10 }
+
+      cmmIngressPCSLossofAlignmentEC  OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress PCS loss of alignment event count."
+         ::= { cmmCoherentHostEventCountEntry 11 }
+
+      cmmIngressPCSOPUClientSignalFailEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress PCS OPU client signal fail event count."
+         ::= { cmmCoherentHostEventCountEntry 12 }
+
+      cmmIngressPCSErrorBlocksDetectedEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress PCS error blocks detected event count."
+         ::= { cmmCoherentHostEventCountEntry 13 }
+
+      cmmEgressPCSLossofSignalEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS loss of signal event count."
+         ::= { cmmCoherentHostEventCountEntry 14 }
+
+      cmmEgressPCSLossofFrameEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS loss of frame event count."
+         ::= { cmmCoherentHostEventCountEntry 15 }
+
+      cmmEgressPCSIllegalAlignmentMarkerEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS illegal alignment marker event count."
+         ::= { cmmCoherentHostEventCountEntry 16 }
+
+      cmmEgressPCSRemoteFaultEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS remote fault event count."
+         ::= { cmmCoherentHostEventCountEntry 17 }
+
+      cmmEgressPCSLocalFaultEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS local fault event count."
+         ::= { cmmCoherentHostEventCountEntry 18 }
+
+      cmmEgressPCSHighBEREC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS high ber event count."
+         ::= { cmmCoherentHostEventCountEntry 19 }
+
+      cmmEgressPCSBIPErrorEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS bip error event count."
+         ::= { cmmCoherentHostEventCountEntry 20 }
+
+      cmmEgressPCSDeskewErrorEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS deskew error event count."
+         ::= { cmmCoherentHostEventCountEntry 21 }
+
+      cmmEgressPCSLossofBlocklockEC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS loss of block lock event count."
+         ::= { cmmCoherentHostEventCountEntry 22 }
+
+      cmmEgressPCSLossofAlignmentMarkerLockEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS loss of alignment marker
+             lock event count."
+         ::= { cmmCoherentHostEventCountEntry 23 }
+
+      cmmEgressPCSLossofAlignmentEC  OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS loss of alignment event count."
+         ::= { cmmCoherentHostEventCountEntry 24 }
+
+      cmmEgressPCSOPUClientSignalFailEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS OPU client signal fail event count."
+         ::= { cmmCoherentHostEventCountEntry 25 }
+
+      cmmEgressPCSErrorBlocksDetectedEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface egress PCS error blocks detected event count."
+         ::= { cmmCoherentHostEventCountEntry 26 }
+
+       cmmTXHostLolL0EC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface tx loss of lock lane0 event count."
+         ::= { cmmCoherentHostEventCountEntry 27 }
+
+       cmmTXHostLolL1EC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface tx loss of lock lane1 event count."
+         ::= { cmmCoherentHostEventCountEntry 28 }
+
+       cmmTXHostLolL2EC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface tx loss of lock lane2 event count."
+         ::= { cmmCoherentHostEventCountEntry 29 }
+
+       cmmTXHostLolL3EC    OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface tx loss of lock lane3 event count."
+         ::= { cmmCoherentHostEventCountEntry 30 }
+
+      cmmIngressAPSMsgRcvdEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface ingress aps message received event count."
+         ::= { cmmCoherentHostEventCountEntry 31 }
+
+      cmmDeskewLockFaultEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface deskew lock fault event count."
+         ::= { cmmCoherentHostEventCountEntry 32 }
+
+      cmmOutofAlignEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface out of alignment event count."
+         ::= { cmmCoherentHostEventCountEntry 33 }
+
+      cmmLossofAlignEC OBJECT-TYPE
+         SYNTAX      INTEGER
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Host interface loss of alignment event count."
+         ::= { cmmCoherentHostEventCountEntry 34 }
+
     -- ## CoherentHostErrorCountTable
 
        cmmCoherentHostErrorCountTable     OBJECT-TYPE
@@ -2129,7 +2975,6 @@
             Coherent Optical Module. '0' indicates internal error, Not a
             number. Device not ready , Not applicable."
         ::= { cmmCoherentHostErrorCountTableEntry 1}
-
 
     -- ## Notifications
     --
@@ -2308,6 +3153,18 @@
             "Notification sent when Module General Status changes.
             Zeros indicate alarm cleared"
         ::= { cmmCoherentModuleMibNotifications 15 }
+
+  cmmCoherentModuleFaultStatus NOTIFICATION-TYPE
+        OBJECTS      {
+                       cmmStackUnitIndex,
+                       cmmSlotIndex,
+                       cmmModuleFaultStatus
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Notification sent when Module fault is detected.
+            Zeros indicate alarm cleared"
+        ::= { cmmCoherentModuleMibNotifications 16 }
 
 
    -- Coherent Channel notifications
@@ -2490,6 +3347,78 @@
             from failure/Degrade"
         ::= {  cmmCoherentChannelMibNotifications 15 }
 
+    cmmCoherentChannelRXQMarginForPMInterval  NOTIFICATION-TYPE
+        OBJECTS   {
+                    cmmStackUnitIndex,
+                    cmmSlotIndex,
+                    cmmNetIfIndex
+                  }
+        STATUS       current
+        DESCRIPTION
+            "Notification sent when network RX Q-margin over PM interval value
+            cross threshold limit."
+        ::= { cmmCoherentChannelMibNotifications 16 }
+
+    cmmCoherentChannelRXQMarginForPMIntervalRecovery  NOTIFICATION-TYPE
+        OBJECTS   {
+                    cmmStackUnitIndex,
+                    cmmSlotIndex,
+                    cmmNetIfIndex
+                  }
+        STATUS       current
+        DESCRIPTION
+            "Notification sent when network RX Q-margin over PM interval value
+            recovered from threshold."
+        ::= { cmmCoherentChannelMibNotifications 17 }
+
+    cmmCoherentChannelCurrentOSNRThreshold     NOTIFICATION-TYPE
+        OBJECTS   {
+                    cmmStackUnitIndex,
+                    cmmSlotIndex,
+                    cmmNetIfIndex
+                  }
+        STATUS       current
+        DESCRIPTION
+            "Notification sent when network lane0 current OSNR
+            cross threshold limit."
+        ::= { cmmCoherentChannelMibNotifications 18 }
+
+    cmmCoherentChannelCurrentOSNRThresholdRecovery   NOTIFICATION-TYPE
+        OBJECTS   {
+                    cmmStackUnitIndex,
+                    cmmSlotIndex,
+                    cmmNetIfIndex
+                  }
+        STATUS       current
+        DESCRIPTION
+            "Notification sent when network lane0 current OSNR
+            recovered from threshold."
+        ::= { cmmCoherentChannelMibNotifications 19 }
+
+    cmmCoherentChannelChromaticDispersion  NOTIFICATION-TYPE
+        OBJECTS   {
+                    cmmStackUnitIndex,
+                    cmmSlotIndex,
+                    cmmNetIfIndex
+                  }
+        STATUS       current
+        DESCRIPTION
+            "Notification sent when RX lane current chromatic dispersion
+            cross the threshold limit."
+        ::= { cmmCoherentChannelMibNotifications 20 }
+
+    cmmCoherentChannelChromaticDispersionRecovery  NOTIFICATION-TYPE
+        OBJECTS   {
+                    cmmStackUnitIndex,
+                    cmmSlotIndex,
+                    cmmNetIfIndex
+                  }
+        STATUS       current
+        DESCRIPTION
+            "Notification sent when RX lane current chromatic dispersion
+            recovered from threshold."
+        ::= { cmmCoherentChannelMibNotifications 21 }
+
   -- Host Interface Notification
 
   cmmCoherentHostRxPCS NOTIFICATION-TYPE
@@ -2517,5 +3446,18 @@
             "Notification Send when TX PCS alarms are raised.
             Zeros indicate alarm cleared"
         ::= { cmmCoherentHostMibNotifications 2 }
+
+  cmmCoherentHostFaultStatusAlarm   NOTIFICATION-TYPE
+        OBJECTS   {
+                    cmmStackUnitIndex,
+                    cmmSlotIndex,
+                    cmmHostIfIndex,
+                    cmmCoherentHostFaultStatus
+                  }
+        STATUS       current
+        DESCRIPTION
+            "Notification sent when Host fault status is changed.
+             Zeros indicate alarm cleared"
+        ::= { cmmCoherentHostMibNotifications 3 }
 
 END
