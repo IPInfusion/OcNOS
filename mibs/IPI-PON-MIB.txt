@@ -1,0 +1,536 @@
+IPI-PON-MIB DEFINITIONS ::= BEGIN
+
+    --  This module provides authoritative definitions for PON related modules
+    --
+    --  This module will be extended, as needed.
+    --
+
+
+IMPORTS
+      OBJECT-TYPE, MODULE-IDENTITY,
+      Gauge32, Counter32, Integer32, Unsigned32,
+      IpAddress, Counter64,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC
+      ipi  FROM OCNOS-IPI-MODULE-MIB;
+
+ipiPonMIB MODULE-IDENTITY
+   LAST-UPDATED "202010060000Z"
+   ORGANIZATION "IP Infusion Inc."
+   CONTACT-INFO
+       "postal: 3965 Freedom Circle, Suite 200, Santa Clara, CA 95054
+
+        email: support@ipinfusion.com
+
+        telephone: +1 408-400-1900
+        website: http://www.ipinfusion.com/"
+   DESCRIPTION
+      "This MIB module is for managing Passive Optical Network"
+   REVISION      "202010090000Z"
+   DESCRIPTION
+      "Initial Version"
+   ::= { ipi  112 }
+
+
+    IpiPonIdValue ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT    "d"
+    STATUS          current
+    DESCRIPTION
+        "An id specifying a particular OLT/ONU/FLOW."
+
+    SYNTAX      Unsigned32 (0..65535)
+
+    IpiPonMtuValue ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT    "d"
+    STATUS          current
+    DESCRIPTION
+        "An id specifying a particular OLT/ONU/FLOW."
+
+    SYNTAX      Unsigned32 (64..65536)
+
+    IpiPonUniIdValue ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT    "d"
+    STATUS          current
+    DESCRIPTION
+        "An id specifying a particular UNI port."
+
+    SYNTAX      Unsigned32 (0..255)
+
+
+    IpiPonPortName ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT    "255a"
+    STATUS          current
+    DESCRIPTION
+        "This is a string to specify port name."
+
+    SYNTAX          OCTET STRING (SIZE (1..255))
+
+    IpiPonSerialNumber ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT    "255a"
+    STATUS          current
+    DESCRIPTION
+        "This is a string to specify onu serial number."
+
+    SYNTAX          OCTET STRING (SIZE (1..255))
+
+    -- ### Groups ###
+
+    ipiPonMIBNotifs           OBJECT IDENTIFIER ::= { ipiPonMIB 0 }
+    ipiPonNotifVariables      OBJECT IDENTIFIER ::= { ipiPonMIBNotifs 1 }
+
+    ipiPonMIBOltNotifs        OBJECT IDENTIFIER ::= { ipiPonMIBNotifs 2 }
+    ipiPonMIBOnuNotifs        OBJECT IDENTIFIER ::= { ipiPonMIBNotifs 3 }
+    ipiPonMIBFlowNotifs       OBJECT IDENTIFIER ::= { ipiPonMIBNotifs 4 }
+
+    -- ## PON Trap Support objects
+
+    ipiPonOltId OBJECT-TYPE
+        SYNTAX       IpiPonIdValue
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+           "OLT ID."
+   ::= { ipiPonNotifVariables 1 }
+
+    ipiPonOltPonPortName OBJECT-TYPE
+        SYNTAX       IpiPonPortName
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+           "OLT PON Port Name."
+   ::= { ipiPonNotifVariables 2 }
+
+    ipiPonOltNniPortName OBJECT-TYPE
+        SYNTAX       IpiPonPortName
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+           "OLT NNI Port Name."
+   ::= { ipiPonNotifVariables 3 }
+
+    ipiPonOnuId OBJECT-TYPE
+        SYNTAX       IpiPonIdValue
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+           "ONU ID of an ONU."
+       ::= { ipiPonNotifVariables 4 }
+
+    ipiPonOnuUniId OBJECT-TYPE
+        SYNTAX       IpiPonUniIdValue
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+           "UNI Port Name."
+       ::= { ipiPonNotifVariables 5 }
+
+    ipiPonLinkState OBJECT-TYPE
+        SYNTAX       INTEGER {
+                        down (0),
+                           up (1) }
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+            "An generic state for an interface or a node
+             or a link."
+        ::= { ipiPonNotifVariables 6 }
+
+    ipiPonOnuSerialNumber OBJECT-TYPE
+        SYNTAX       IpiPonSerialNumber
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+            "ONU Serial Number"
+        ::= { ipiPonNotifVariables 7 }
+
+    ipiPonFlowId OBJECT-TYPE
+        SYNTAX       IpiPonIdValue
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+            "Flow ID in OLT."
+        ::= { ipiPonNotifVariables 8 }
+
+    ipiPonOnuProvMode OBJECT-TYPE
+        SYNTAX       INTEGER {
+                            manual (1),
+                            automatic (2) }
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+            "Provisioning mode options."
+        ::= { ipiPonNotifVariables 9 }
+
+    ipiPonOltNniMtu OBJECT-TYPE
+        SYNTAX       IpiPonMtuValue
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+            "MTU for NNI interface."
+        ::= { ipiPonNotifVariables 10 }
+
+    ipiPonFecStatus OBJECT-TYPE
+        SYNTAX       INTEGER {
+                        disabled (0),
+                           enabled (1) }
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+            "FEC status option for an onu profile."
+        ::= { ipiPonNotifVariables 11 }
+
+    ipiPonTcEncryptStatus OBJECT-TYPE
+        SYNTAX       INTEGER {
+                        off (0),
+                           on (1) }
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+            "TC layer encryption option for an onu profile."
+        ::= { ipiPonNotifVariables 12 }
+
+    -- PON Traps
+
+    ipiPonOltDeviceInitFailure NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltDeviceInitFailure trap signifies that
+           there has been a failure in initialization of an
+           OLT."
+        ::= { ipiPonMIBOltNotifs 1 }
+
+    ipiPonOltMissing NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltMissing trap signifies that a connection
+           has been lost with an OLT."
+       ::= { ipiPonMIBOltNotifs 2 }
+
+    ipiPonOltReset NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltReset trap signifies that an OLT has
+           been reset from CLI."
+       ::= { ipiPonMIBOltNotifs 3 }
+
+    ipiPonOltSwDownloadFailure NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltSwDownloadFailure trap signifies that SW
+           download/upgrade procedure has failed for an OLT."
+       ::= { ipiPonMIBOltNotifs 4 }
+
+    ipiPonOltDiscovered NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltDiscovered trap signifies that a new OLT has been
+           discovered."
+       ::= { ipiPonMIBOltNotifs 5 }
+
+    ipiPonOltInitComplete NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltInitComplete trap signifies that initialization for
+           an OLT has been completed."
+       ::= { ipiPonMIBOltNotifs 6 }
+
+    ipiPonOltPonLinkStatusChange NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltPonPortName,
+                    ipiPonLinkState
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltPonLinkStatusChange trap signifies
+           that there has  been a change in the state of
+           a PON interface."
+        ::= { ipiPonMIBOltNotifs 7 }
+
+    ipiponOltNniLinkStatusChange NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltNniPortName,
+                    ipiPonLinkState
+                  }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltNniLinkStatusChange trap signifies
+           that there has  been a change in the state of
+           a NNI interface on OLT."
+       ::= { ipiPonMIBOltNotifs 8 }
+
+    ipiPonOltNniIfMtuChanged NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOltNniPortName,
+                    ipiPonOltNniMtu
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltNniIfMtuChanged trap signifies that MTU for a NNI port
+           has been changed through CLI."
+       ::= { ipiPonMIBOltNotifs 9 }
+
+    ipiPonUsBandwidthExceeded NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOltPonPortName,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponUsBandwidthExceeded trap signifies that committed US bw
+           on a PON port is exceeded beyond 10G."
+       ::= { ipiPonMIBOltNotifs 10 }
+
+    ipiPonOnuProvChange NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuProvMode
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuProvChange trap signifies that prov mode
+           changes have been made for an ONU."
+       ::= { ipiPonMIBOltNotifs 11 }
+
+    ipiPonOltTcLayerOltEncEnable NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonTcEncryptStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltTcLayerEncEnable trap signifies that TC layer
+           encryption has been enabled on a PON port."
+       ::= { ipiPonMIBOltNotifs 12 }
+
+    ipiPonLos NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltPonPortName
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponLos trap signifies that LOS (Loss of signal) alarm has been
+           raised on a PON port."
+       ::= { ipiPonMIBOltNotifs 13 }
+
+    ipiPonOltRogueOntDetectedSerial NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltPonPortName,
+                    ipiPonOnuSerialNumber
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltRogueOntDetected trap signifies
+           that a rogue ONT has been detected on a PON
+           port of an OLT."
+       ::= { ipiPonMIBOnuNotifs 1 }
+
+    ipiPonOltRogueOntDetectedPortOnly NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltPonPortName
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltRogueOntDetected trap signifies
+           that a rogue ONT has been detected on a PON
+           port of an OLT."
+       ::= { ipiPonMIBOnuNotifs 2 }
+
+    ipiPonOntConfigFailed NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOltPonPortName,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOntConfigFailed trap signifies that OMCI
+           configuration has been rejected by an ONT."
+       ::= { ipiPonMIBOnuNotifs 3 }
+
+    ipiPonOntDiscovered NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOntDiscovered trap signifies that an ONT has
+           been discovered on a PON port of an OLT."
+       ::= { ipiPonMIBOnuNotifs 4 }
+
+    ipiPonOntResetIndication NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOntResetIndication trap signifies that a MIB reset
+           has been performed on an ONU."
+       ::= { ipiPonMIBOnuNotifs 5 }
+
+    ipiPonOntLost NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOntLost trap signifies that communication
+           with an ONU has gone down."
+       ::= { ipiPonMIBOnuNotifs 6 }
+
+    ipiPonOltUsFecChange NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOnuId,
+                    ipiPonFecStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltUsFecChange trap signifies that a change
+           in upstream FEC mode has been made on an OLT."
+       ::= { ipiPonMIBOnuNotifs 7 }
+
+    ipiPonOltTcLayerOnuEncEnable NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOnuId,
+                    ipiPonTcEncryptStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOltTcLayerEncEnable trap signifies that TC layer
+           encryption has been enabled on a PON port."
+       ::= { ipiPonMIBOnuNotifs 8 }
+
+    ipiPonOntEquipmentAlarm NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOntEquipmentAlarm trap signifies that an equipment failure
+           alarm has been received from an ONU."
+       ::= { ipiPonMIBOnuNotifs 9 }
+
+    ipiPonOntUniLinkStatusChange NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId,
+                    ipiPonOnuUniId,
+                    ipiPonLinkState
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOntUniLinkStatusChange trap signifies that there
+           has been a change in UNI port link status of an ONU."
+       ::= { ipiPonMIBOnuNotifs 10 }
+
+    ipiPonOnuLof NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuLof trap signifies that LOF (Loss of frame) alarm has
+           been raised on for an ONU."
+       ::= { ipiPonMIBOnuNotifs 11 }
+
+    ipiPonOnuDow NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuDow trap signifies that DOWi (Drift of Window) alarm has
+           been raised on for an ONU."
+       ::= { ipiPonMIBOnuNotifs 12 }
+
+    ipiPonOnuSfi NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuSfi trap signifies that SFi (Signals Failure) alarm has
+           been raised on for an ONU."
+       ::= { ipiPonMIBOnuNotifs 13 }
+
+    ipiPonOnuSdi NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuSdi trap signifies that SDi (Signals Degrade) alarm has
+           been raised on for an ONU."
+       ::= { ipiPonMIBOnuNotifs 14 }
+
+    ipiPonOnuLoai NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuLoai trap signifies that LOAi (Loss of ack event) alarm has
+           been raised on for an ONU."
+       ::= { ipiPonMIBOnuNotifs 15 }
+
+    ipiPonOnuSufi NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuSufi trap signifies that SUFi (Start-up failure) alarm has
+           been raised on for an ONU."
+       ::= { ipiPonMIBOnuNotifs 16 }
+
+    ipiPonOltFlowConfigFailed NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonFlowId
+                }
+        STATUS             current
+        DESCRIPTION
+           "An ponOltFlowConfigFailed trap signifies that a flow
+           failed to be programmed on data plane."
+       ::= { ipiPonMIBFlowNotifs 1 }
+
+END
+
