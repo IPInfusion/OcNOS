@@ -6,8 +6,8 @@
     --
 
     IMPORTS
-        OBJECT-TYPE,
-        Gauge32, Counter32, Unsigned32,
+        OBJECT-TYPE, MODULE-IDENTITY,
+        Gauge32, Counter32, Unsigned32, Counter64,
         TimeTicks, NOTIFICATION-TYPE
             FROM SNMPv2-SMI
         DateAndTime, DisplayString,
@@ -17,11 +17,11 @@
             FROM SNMPv2-CONF
         enterprises,OBJECT-IDENTITY
             FROM SNMPv2-SMI
-	    ipi FROM OCNOS-IPI-MODULE-MIB;
+	      ipi FROM OCNOS-IPI-MODULE-MIB;
 
 
 	cmm  MODULE-IDENTITY
-	LAST-UPDATED "201711091200Z"   -- Nov 09, 2017 12:00:00 GMT
+	LAST-UPDATED "202008061200Z"   -- Aug 06, 2020 12:00:00 GMT
 	ORGANIZATION
 	  "IPI."
 	CONTACT-INFO
@@ -30,15 +30,18 @@
 	DESCRIPTION
 	   "The Structure of CMM Management Information for
 	    the IPI enterprise."
-	::= { ipi 100 }
+  REVISION "202008061200Z"
+  DESCRIPTION
+      "Complying to level 3 of SMILINT"
+  ::= { ipi 100 }
 
 
     -- ### Groups ###
 
-    CmmChassisObject      OBJECT IDENTIFIER ::={ cmm 1 }
-    cmmObjects            OBJECT IDENTIFIER ::={ CmmChassisObject 1 }
-    cmmSysObjects         OBJECT IDENTIFIER ::={ CmmChassisObject 2 }
-    cmmAlarmObjects       OBJECT IDENTIFIER ::={ CmmChassisObject 3 }
+    cmmChassisObject      OBJECT IDENTIFIER ::={ cmm 1 }
+    cmmObjects            OBJECT IDENTIFIER ::={ cmmChassisObject 1 }
+    cmmSysObjects         OBJECT IDENTIFIER ::={ cmmChassisObject 2 }
+    cmmAlarmObjects       OBJECT IDENTIFIER ::={ cmmChassisObject 3 }
 
     -- ### Textual Convention
     LedColorCode ::= TEXTUAL-CONVENTION
@@ -82,7 +85,6 @@
                         software(7)
                         }
     ErrorFigures ::= TEXTUAL-CONVENTION
-       DISPLAY-HINT   "d.ded"
        STATUS         current
        DESCRIPTION
           " Frame Error Rate (FER)/Uncorrecter BER. This parameter measures the
@@ -91,6 +93,10 @@
             cannot be corrected by the FEC.
 
             Pre-FEC Bit Error Ratio (BER). This is the total number of errored
+            bits that were corrected by the FEC during an interval divided by
+            the total number of bits received in the interval.
+
+            Post-FEC Bit Error Ratio (BER). This is the total number of errored
             bits that were corrected by the FEC during an interval divided by
             the total number of bits received in the interval.
 
@@ -129,7 +135,7 @@
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
-            "A list of entries containing information 
+            "A list of entries containing information
              for each stacked unit."
         ::= { cmmSysObjects 1 }
 
@@ -138,7 +144,7 @@
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
-            "A list of entries containing information 
+            "A list of entries containing information
              for each stacked unit."
         INDEX    { cmmStackUnitIndex }
         ::= { cmmStackUnitTable 1 }
@@ -178,8 +184,8 @@
         }
 
        cmmStackUnitIndex  OBJECT-TYPE
-        SYNTAX        INTEGER
-        MAX-ACCESS    not-accessible
+        SYNTAX        INTEGER (1..65535)
+        MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
              "The unique stack unit number."
@@ -204,7 +210,7 @@
         ::= { cmmStackUnitEntry 3 }
 
        cmmStackUnitUpTime OBJECT-TYPE
-        SYNTAX      TimeTicks 
+        SYNTAX      TimeTicks
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
@@ -502,14 +508,14 @@
            cmmTransDateCode               DisplayString,
            cmmTransDDMSupport             INTEGER,
            cmmTransMaxCaseTemp            INTEGER,
-           cmmTransSFPOptionsImp          BITS, 
+           cmmTransSFPOptionsImp          BITS,
            cmmTransQSFPOptionsImp         BITS,
            cmmTransPresence               INTEGER
         }
 
        cmmTransIndex   OBJECT-TYPE
-        SYNTAX        INTEGER
-        MAX-ACCESS    not-accessible
+        SYNTAX        INTEGER  (1..65535)
+        MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
             " A unique value, greater than zero,for each slot within the unit"
@@ -544,7 +550,7 @@
                              sfp-or-sfpplus-or-sfp28(4),
                              xbi-300pin(5),
                              xenpak(6),
-                             xep(7),
+                             xfp(7),
                              xff(8),
                              xfpe(9),
                              xpak(10),
@@ -633,7 +639,7 @@
                              rj45(18),
                              no-separable-connector(19),
                              mxc2-x16(20),
-                             reserved(21),
+                             reserved1(21),
                              vendor-specific(22)
                              }
         MAX-ACCESS    read-only
@@ -1138,7 +1144,7 @@
      ::= { cmmSysObjects 3 }
 
       cmmTransDDMEntry OBJECT-TYPE
-        SYNTAX        CmmTransDDMChannelEntry
+        SYNTAX        CmmTransDDMEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -1150,7 +1156,7 @@
                  }
         ::= { cmmTransDDMTable 1 }
 
-      CmmTransDDMChannelEntry    ::=
+      CmmTransDDMEntry    ::=
         SEQUENCE {
            cmmTransChannelIndex                       INTEGER,
            cmmTransTemperature                        INTEGER,
@@ -1225,8 +1231,8 @@
            }
 
        cmmTransChannelIndex   OBJECT-TYPE
-        SYNTAX        INTEGER
-        MAX-ACCESS    not-accessible
+        SYNTAX        INTEGER (1..65535)
+        MAX-ACCESS    accessible-for-notify
         STATUS        current
         DESCRIPTION
             " A unique value, greater than zero,for each channel in the transceiver
@@ -1614,7 +1620,7 @@
          STATUS        current
          DESCRIPTION
              "Front panel port number"
-         ::= { cmmTransEEPROMEntry 45 }
+         ::= { cmmTransDDMEntry 35 }
 
         cmmTransPreFecBerVal  OBJECT-TYPE
         SYNTAX        ErrorFigures
@@ -2232,7 +2238,7 @@
        }
 
         cmmSysPSUIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2754,7 +2760,7 @@
         ::= { cmmSysObjects 8 }
 
       cmmFanTrayEntry    OBJECT-TYPE
-        SYNTAX        CmmFanEntry
+        SYNTAX        CmmFanTrayEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -2772,7 +2778,7 @@
         }
 
        cmmFanTrayNumber    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2832,7 +2838,7 @@
         }
 
        cmmFanIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2902,7 +2908,7 @@
             "A temperature entry containing objects related to particular temperature sensor"
         ::= { cmmSysObjects 10 }
 
-      cmmSysTemperatureEntry  OBJECT-TYPE 
+      cmmSysTemperatureEntry  OBJECT-TYPE
         SYNTAX        CmmSysTemperatureEntry
         MAX-ACCESS    not-accessible
         STATUS        current
@@ -2926,7 +2932,7 @@
         }
 
         cmmSysTemperatureSensorIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -2948,7 +2954,7 @@
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "Value represents Temperature Sensor value. 
+            "Value represents Temperature Sensor value.
              '-100001' indicates unavailable"
         ::= { cmmSysTemperatureEntry 3 }
 
@@ -2981,7 +2987,7 @@
             "Value represents Temperature Sensor Min Alert threshold.
              '-100001' indicates unavailable"
         ::= { cmmSysTemperatureEntry 6 }
- 
+
         cmmSysTempAlertThresholdMax    OBJECT-TYPE
         SYNTAX        INTEGER
         UNITS         "0.01 C"
@@ -3041,7 +3047,7 @@
           cmmSysMasterLedStatus      INTEGER,
           cmmSysMasterLedColor       LedColorCode,
           cmmSysFanStatus            INTEGER,
-          cmmSysFrontFanLedColor     LedColorCode, 
+          cmmSysFrontFanLedColor     LedColorCode,
           cmmSysRamStatus            INTEGER,
           cmmSysCpuStatus            INTEGER,
           cmmSysDiskStatus           INTEGER,
@@ -3205,22 +3211,22 @@
             "Status of Temperature sensors in the unit."
         ::= { cmmSysComponentStatusEntry 14 }
 
-    -- ## Software Module Table 
+    -- ## Software Module Table
 
        cmmSysSwModuleTable    OBJECT-TYPE
         SYNTAX        SEQUENCE OF CmmSysSwModuleEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
-            "Software module information" 
+            "Software module information"
         ::= { cmmSysObjects 12 }
 
-      cmmSysSwModuleEntry    OBJECT-TYPE 
+      cmmSysSwModuleEntry    OBJECT-TYPE
         SYNTAX        CmmSysSwModuleEntry
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
-            "Software module information" 
+            "Software module information"
         INDEX    { cmmStackUnitIndex }
         ::= { cmmSysSwModuleTable 1 }
 
@@ -3235,12 +3241,12 @@
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-            "This variable indicates the software 
+            "This variable indicates the software
             module version that is currently
-            running on the unit.  
-            The software release version is in 
+            running on the unit.
+            The software release version is in
             the format as follow:
-            <major version>.<minor version>.<minor 
+            <major version>.<minor version>.<minor
             version>......
             '1.2' indicate major version of 1 and
             minor release of 2.
@@ -3283,7 +3289,7 @@
         }
 
         cmmSwitchTemperatureSensorIndex    OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
@@ -3341,7 +3347,7 @@
           cmmSysHarddiskUnformattedBytesorTrack   INTEGER,
           cmmSysHarddiskUnformattedBytesorSector  INTEGER,
           cmmSysHarddiskRevisionNum               DisplayString,
-          cmmSysHarddiskTotalsize                 INTEGER, 
+          cmmSysHarddiskTotalsize                 INTEGER,
           cmmSysHarddiskUsedMem                   INTEGER,
           cmmSysHarddiskFreeMem                   INTEGER,
           cmmSysHarddiskUsageCriticalThreshold         INTEGER,
@@ -3438,7 +3444,7 @@
         ::= { cmmSysHardDiskEntry 9 }
 
         cmmSysHarddiskTotalsize    OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " MBytes "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3448,7 +3454,7 @@
         ::= { cmmSysHardDiskEntry 10 }
 
         cmmSysHarddiskUsedMem  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3458,7 +3464,7 @@
         ::= { cmmSysHardDiskEntry 11 }
 
         cmmSysHarddiskFreeMem  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3468,7 +3474,7 @@
         ::= { cmmSysHardDiskEntry 12 }
 
         cmmSysHarddiskUsageCriticalThreshold  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3478,7 +3484,7 @@
         ::= { cmmSysHardDiskEntry 13 }
 
         cmmSysHarddiskUsageAlertThreshold  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3488,7 +3494,7 @@
         ::= { cmmSysHardDiskEntry 14 }
 
         cmmSysHardDiskRemainLifeCriticalThreshold  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3498,7 +3504,7 @@
         ::= { cmmSysHardDiskEntry 15 }
 
         cmmSysHardDiskRemainLifeAlertThreshold     OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3508,7 +3514,7 @@
         ::= { cmmSysHardDiskEntry 16 }
 
         cmmSysHardDiskRemainLife                   OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3518,7 +3524,7 @@
         ::= { cmmSysHardDiskEntry 17 }
 
         cmmSysHardDiskAvailableReservedSpaceCriticalThreshold     OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3528,7 +3534,7 @@
         ::= { cmmSysHardDiskEntry 18 }
 
         cmmSysHardDiskAvailableReservedSpaceAlertThreshold     OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3548,7 +3554,7 @@
         ::= { cmmSysHardDiskEntry 20 }
 
         cmmSysHardDiskReallocSectorsCount                  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " 1 "
         MAX-ACCESS    read-only
         STATUS        current
@@ -3558,12 +3564,12 @@
         ::= { cmmSysHardDiskEntry 21 }
 
         cmmSysHardDiskUncorrectSectorCount                   OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " 1 "
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-             "Harddisk Uncorrectable Sectors Count. 
+             "Harddisk Uncorrectable Sectors Count.
              '-100001' indicates unavailable"
         ::= { cmmSysHardDiskEntry 22 }
 
@@ -3630,7 +3636,7 @@
             "Value represents the Color of the system led."
         ::= { cmmSystemStatusEntry 4 }
 
--- CPU per core utilisation table 
+-- CPU per core utilisation table
 
         cmmCpuCoreUtilTable OBJECT-TYPE
         SYNTAX        SEQUENCE OF CmmCpuCoreUtilEntry
@@ -3657,7 +3663,7 @@
                 }
 
         cmmCpuCoreIndex  OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -4061,14 +4067,14 @@
 
       CmmSysCpldEntry    ::=
         SEQUENCE {
-          cmmSysCpldIndex              INTERGER,
+          cmmSysCpldIndex              INTEGER,
           cmmSysCpldName               DisplayString,
           cmmSysCpldSupportedVer       DisplayString,
           cmmSysCpldCurrentVer         DisplayString
         }
 
         cmmSysCpldIndex  OBJECT-TYPE
-        SYNTAX        INTEGER
+        SYNTAX        INTEGER (1..65535)
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION
@@ -4104,12 +4110,12 @@
 
 
     --
-    -- ## Notifications 
+    -- ## Notifications
     --
-    
-    cmmAlarmVariable             OBJECT IDENTIFIER ::= { cmmAlarmObjects 0 } 
-    cmmAlarmMibNotifications     OBJECT IDENTIFIER ::= { cmmAlarmObjects 1 }  
-    cmmTransMibNotifications     OBJECT IDENTIFIER ::= { cmmAlarmObjects 2 }  
+
+    cmmAlarmVariable             OBJECT IDENTIFIER ::= { cmmAlarmObjects 0 }
+    cmmAlarmMibNotifications     OBJECT IDENTIFIER ::= { cmmAlarmObjects 1 }
+    cmmTransMibNotifications     OBJECT IDENTIFIER ::= { cmmAlarmObjects 2 }
 
     cmmAlarmVarInteger OBJECT-TYPE
     SYNTAX       INTEGER
@@ -4118,7 +4124,7 @@
     DESCRIPTION
         "An generic INTEGER value in the TRAP object"
     ::= { cmmAlarmVariable 1 }
-   
+
     cmmAlarmVarString OBJECT-TYPE
     SYNTAX       OCTET STRING
     MAX-ACCESS   accessible-for-notify
@@ -4163,7 +4169,7 @@
                      }
         STATUS       current
         DESCRIPTION
-            "Trap to send information for 1min alert level threshold and 
+            "Trap to send information for 1min alert level threshold and
              CPU Utilisation"
         ::= { cmmAlarmMibNotifications 3 }
 
@@ -4175,7 +4181,7 @@
                      }
         STATUS       current
         DESCRIPTION
-            "Trap to send information for 1min critical level threshold and 
+            "Trap to send information for 1min critical level threshold and
              CPU Utilisation"
         ::= { cmmAlarmMibNotifications 4 }
 
@@ -4280,7 +4286,7 @@
         OBJECTS      {
                       cmmStackUnitIndex,
                       cmmSysRamUsedMem,
-                      cmmSysRamCriticalThreshold 
+                      cmmSysRamCriticalThreshold
                      }
         STATUS       current
         DESCRIPTION
@@ -4314,7 +4320,6 @@
                       cmmStackUnitIndex,
                       cmmSysHarddiskUsedMem,
                       cmmSysHarddiskUsageAlertThreshold
-                      cmmAlarmVarString
                      }
         STATUS       current
         DESCRIPTION
@@ -4375,7 +4380,7 @@
         DESCRIPTION
             "Trap to send when Hard Disk Remain life reached below the Alert threshold."
         ::= { cmmAlarmMibNotifications 30 }
-     
+
      cmmSysHardDiskAvailableReservedSpaceCritical  NOTIFICATION-TYPE
         OBJECTS       {
                       cmmStackUnitIndex,
@@ -4401,7 +4406,7 @@
     cmmSysHardDiskReallocSectorsCountCritical  NOTIFICATION-TYPE
         OBJECTS       {
                       cmmStackUnitIndex,
-                      cmmSysHardDiskReallocSectorsCount,
+                      cmmSysHardDiskReallocSectorsCount
                       }
         STATUS       current
         DESCRIPTION
@@ -4411,7 +4416,7 @@
     cmmSysHardDiskUncorrectableSectorCountAlert  NOTIFICATION-TYPE
         OBJECTS       {
                       cmmStackUnitIndex,
-                      cmmSysHardDiskUncorrectSectorCount,
+                      cmmSysHardDiskUncorrectSectorCount
                      }
         STATUS       current
         DESCRIPTION
@@ -4563,7 +4568,7 @@
                       cmmStackUnitIndex,
                       cmmSysPSUIndex,
                       cmmSysPowerSupplyOperStatus,
-                      cmmPsuSerialNumber 
+                      cmmPsuSerialNumber
                      }
         STATUS       current
         DESCRIPTION
@@ -4575,7 +4580,7 @@
                       cmmStackUnitIndex,
                       cmmSysPSUIndex,
                       cmmSysPowerSupplyOperStatus,
-                      cmmPsuSerialNumber 
+                      cmmPsuSerialNumber
                      }
         STATUS       current
         DESCRIPTION
@@ -5114,7 +5119,7 @@
      cmmAlertIncompatibleTransceiverPresence   NOTIFICATION-TYPE
         OBJECTS      {
                       cmmStackUnitIndex,
-                      cmmTransIndex,
+                      cmmTransIndex
                      }
         STATUS       current
         DESCRIPTION
@@ -5124,7 +5129,7 @@
      cmmNotifyIncompatibleTransceiverRecovery   NOTIFICATION-TYPE
         OBJECTS      {
                       cmmStackUnitIndex,
-                      cmmTransIndex,
+                      cmmTransIndex
                      }
         STATUS       current
         DESCRIPTION
@@ -5650,4 +5655,5 @@ cmmTransNotifyTransceiverLaserTempRecovered   NOTIFICATION-TYPE
     DESCRIPTION
         "Set when laser temperature of transceiver is recovered from temperature fault."
     ::= { cmmTransMibNotifications 125}
-   END
+
+END
