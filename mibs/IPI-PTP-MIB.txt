@@ -1,11 +1,14 @@
 IPI-PTP-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
-    MODULE-IDENTITY, NOTIFICATION-TYPE
+    MODULE-IDENTITY, NOTIFICATION-TYPE, OBJECT-TYPE, OBJECT-IDENTITY
         FROM SNMPv2-SMI
-    ptpbaseClockRunningState
-        FROM RFC-8173-PTP-MIB
-    ipi FROM OCNOS-IPI-MODULE-MIB;
+    TruthValue
+        FROM SNMPv2-TC
+    ptpbaseClockRunningState,ptpbaseClockPortRunningState,
+    ptpbaseClockPortCurrentPeerAddress, PtpClockPortTransportTypeAddress
+        FROM PTPBASE-MIB
+    ipi FROM IPI-MODULE-MIB;
 
 ipiPtpMIB MODULE-IDENTITY
     LAST-UPDATED    "202007140000Z"
@@ -18,9 +21,42 @@ ipiPtpMIB MODULE-IDENTITY
     DESCRIPTION "PTP mib intial version"
         ::= { ipi 111 }
 
+ipiPtpMIBNotifs    OBJECT IDENTIFIER ::= { ipiPtpMIB 0 }
+ipiPtpMIBObjects   OBJECT IDENTIFIER ::= { ipiPtpMIB 1 }
 
-ipiPtpMIBNotifs OBJECT IDENTIFIER ::= { ipiPtpMIB 0 }
+ipiPtpClockPortIndex OBJECT-TYPE
+    SYNTAX          INTEGER
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "Clock port number"
+    ::= { ipiPtpMIBObjects 1 }
 
+ipiPtpClockPortPtsfStatus OBJECT-TYPE
+    SYNTAX          TruthValue
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "PTSF is true/false"
+    ::= { ipiPtpMIBObjects 2 }
+
+ipiPtpClockMasterAddress OBJECT-TYPE
+    SYNTAX          PtpClockPortTransportTypeAddress
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the master address"
+    ::= { ipiPtpMIBObjects 3 }
+
+ipiPtpClockMasterPortIdentity OBJECT-TYPE
+    SYNTAX          OCTET STRING(SIZE(1..256))
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the value of portIdentity of the port on
+        the master that issues the Sync messages used in synchronizing
+        this clock."
+    ::= { ipiPtpMIBObjects 4 }
 
 ipiPtpServoOutOfLock NOTIFICATION-TYPE
     OBJECTS { ptpbaseClockRunningState }
@@ -35,6 +71,35 @@ ipiPtpServoInLock NOTIFICATION-TYPE
     DESCRIPTION
             "PTP servo status changed from unlocked to locked"
     ::= { ipiPtpMIBNotifs 2 }
+
+ipiPtpServoStatus NOTIFICATION-TYPE
+    OBJECTS { ptpbaseClockRunningState }
+    STATUS  current
+    DESCRIPTION
+            "PTP servo states"
+    ::= { ipiPtpMIBNotifs 3 }
+
+ipiPtpPortStatus NOTIFICATION-TYPE
+    OBJECTS { ipiPtpClockPortIndex, ptpbaseClockPortRunningState }
+    STATUS  current
+    DESCRIPTION
+            "PTP clock port state"
+    ::= { ipiPtpMIBNotifs 4 }
+
+ipiPtpPtsfStatus NOTIFICATION-TYPE
+    OBJECTS { ipiPtpClockPortIndex,
+            ptpbaseClockPortCurrentPeerAddress, ipiPtpClockPortPtsfStatus }
+    STATUS  current
+    DESCRIPTION
+            "PTP PTSF set/unset information for a clock-port"
+    ::= { ipiPtpMIBNotifs 5 }
+
+ipiPtpMasterChange NOTIFICATION-TYPE
+    OBJECTS { ipiPtpClockMasterAddress, ipiPtpClockMasterPortIdentity}
+    STATUS  current
+    DESCRIPTION
+            "PTP clock master change information with new master address"
+    ::= { ipiPtpMIBNotifs 6 }
 
 
 END
