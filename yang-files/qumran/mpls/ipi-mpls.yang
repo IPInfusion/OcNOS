@@ -23,18 +23,27 @@ module ipi-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-mpls-types {
         prefix ipi-mpls-types;
+        revision-date 2021-02-12;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
+    }
+
+    import ipi-if-aggregate {
+        prefix ipi-if-aggregate;
+        revision-date 2020-12-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -49,6 +58,21 @@ module ipi-mpls {
     description
         "Data model for MPLS";
 
+
+    revision "2021-05-13" {
+        description "Corrected dependencies for label-management object lists";
+        reference " 0.5.1.";
+    }
+
+    revision "2021-03-30" {
+        description "Change for Tunnel policy config";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-03-15" {
+        description "Change for restructuring Diffserve-TE";
+        reference " 0.4.0.";
+    }
 
     revision "2021-01-27" {
         description "Change for restructuring Label Management and admin group CLIs";
@@ -65,6 +89,50 @@ module ipi-mpls {
         reference " 0.1.0.";
     }
 
+    grouping tunnel-policies-config {
+        description
+            "configuration parameters for tunnel policy";
+        leaf name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Name for the tunnel policy";
+        } // END of name definition.
+
+        leaf-list color-code  {
+            type  uint32 {
+                 range "1..4294967295"  {
+                    description "1..4294967295:Color to be used";
+                 }
+            }
+            description "Use this attribute to configure color for tunnel policy";
+        } // END of color-code definition.
+
+        leaf selection-mode  {
+            type  ipi-mpls-types:mpls_tunnel_selection_mode_t;
+            default "dedicated";
+            description "Use this attribute to configure selection mode for tunnel policy";
+        } // END of selection-mode definition.
+
+        leaf tunnel-type  {
+            type  cml-data-types:cml_mpls_tunnel_selection_type_t;
+            description "Use this attribute to configure selection mode for tunnel policy";
+        } // END of tunnel-type definition.
+
+    } // END of tunnel-policies-config definition.
+    grouping mpls-6pe-tunnel-policy {
+        description
+            "MPLS 6PE tunnel policy Configurations";
+        leaf name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to map Tunnel policy to 6PE";
+        } // END of name definition.
+
+    } // END of mpls-6pe-tunnel-policy definition.
     grouping mpls-global-config {
         description
             "MPLS global configuration";
@@ -90,24 +158,18 @@ module ipi-mpls {
         leaf ingress-ttl-value  {
             type  uint8 {
                  range "0..255"  {
-                    description "TTL value to be used";
+                    description "0..255:TTL value to be used";
                  }
             }
             description "Use this attribute to set a Time to Live (TTL) value for LSPs for
                         which this LSR is the ingress.";
         } // END of ingress-ttl-value definition.
 
-        leaf diffserv-te-enable  {
-            if-feature feature-list:HAVE_DSTE;
-            type  empty;
-            description "Use this attribute to enable Differentiated Services globally.";
-        } // END of diffserv-te-enable definition.
-
         leaf egress-ttl-value  {
             if-feature feature-list:NOT_HAVE_USER_HSL;
             type  uint8 {
                  range "0..255"  {
-                    description "TTL value to be used";
+                    description "0..255:TTL value to be used";
                  }
             }
             description "mpls egress-ttl . Use this attribute to set a custom Time to Live
@@ -144,7 +206,7 @@ module ipi-mpls {
         leaf label-space  {
             type  uint16 {
                  range "0..60000"  {
-                    description "label space value";
+                    description "0..60000:label space value";
                  }
             }
             description "Use this attribute to specify label-space for the interface, at
@@ -157,7 +219,7 @@ module ipi-mpls {
             "MPLS Administrative Group Configurations";
         leaf name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create a name-to-value binding for an
@@ -167,7 +229,7 @@ module ipi-mpls {
         leaf id  {
             type  uint8 {
                  range "0..31"  {
-                    description "Value of administrative group to be added";
+                    description "0..31:Value of administrative group to be added";
                  }
             }
             description "identifier value for the administrative group";
@@ -180,7 +242,7 @@ module ipi-mpls {
         leaf-list admin-group-name  {
             if-feature feature-list:HAVE_TE;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create an administrative group to be used for
@@ -190,14 +252,98 @@ module ipi-mpls {
                         multiple groups per interface.";
         } // END of admin-group-name definition.
 
+        leaf bandwidth  {
+            if-feature feature-list:HAVE_TE;
+            if-feature feature-list:NOT_IF_BANDWIDTH_INFO;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            default "0";
+            description "Use this attribute to specify a discrete, maximum bandwidth value for
+                        the interface. The bandwidth attribute takes input in kbps, mbps and
+                        gbps.";
+        } // END of bandwidth definition.
+
+        leaf reservable-bandwidth  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
+            if-feature feature-list:HAVE_TE;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify the maximum reservable bandwidth per
+                        interface. This value can be a larger or smaller value than
+                        max-bandwidth.";
+        } // END of reservable-bandwidth definition.
+
+        leaf-list shared-risk-link-group  {
+            if-feature feature-list:HAVE_SRLG;
+            type  uint32 {
+                 range "0..4294967295"  {
+                    description "0..4294967295:Group number";
+                 }
+            }
+            description "Use this attribute to add the link to a srlg group";
+        } // END of shared-risk-link-group definition.
+
     } // END of mpls-interface-bandwidth-config definition.
+    grouping mpls-bandwidth-class-config {
+        description
+            "MPLS Bandwidth Class Configurations";
+        leaf name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to create a new bandwidth class name. Using this
+                        command changes the command mode to Bandwidth-class mode";
+        } // END of name definition.
+
+    } // END of mpls-bandwidth-class-config definition.
+    grouping mpls-bandwidth-properties-config {
+        description
+            "MPLS Bandwidth Class without DSTE Configurations";
+        leaf max-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            mandatory true;
+            description "Use this attribute to specify the maximum bandwidth to be used for a
+                        bandwidth-class. The bandwidth value is in bits";
+        } // END of max-bandwidth definition.
+
+        leaf setup-priority  {
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:Setup Priority value <0-7>";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to specify the maximum bandwidth to be used for a
+                        bandwidth-class. The bandwidth value is in bits";
+        } // END of setup-priority definition.
+
+        leaf hold-priority  {
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:Hold Priority value <0-7>";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to specify the maximum bandwidth to be used for a
+                        bandwidth-class. The bandwidth value is in bits";
+        } // END of hold-priority definition.
+
+    } // END of mpls-bandwidth-properties-config definition.
     grouping label-space-config {
         description
             "Label space configuration";
         leaf label-space-name  {
             type  uint16 {
                  range "0..60000"  {
-                    description "Label-space value";
+                    description "0..60000:Label-space value";
                  }
             }
             description "This attribute identifies the label space";
@@ -210,7 +356,7 @@ module ipi-mpls {
         leaf min-label  {
             type  uint32 {
                  range "16..1048575"  {
-                    description "Minimum size to be used for label pools or protocol range";
+                    description "16..1048575:Minimum size to be used for label pools or protocol range";
                  }
             }
             mandatory true;
@@ -222,7 +368,7 @@ module ipi-mpls {
         leaf max-label  {
             type  uint32 {
                  range "16..1048575"  {
-                    description "Maximum size to be used for label pools or protocol range";
+                    description "16..1048575:Maximum size to be used for label pools or protocol range";
                  }
             }
             mandatory true;
@@ -243,12 +389,45 @@ module ipi-mpls {
 
         uses label-range-config;
     } // END of module-label-range-config definition.
+    grouping mpls-supported-diffserv-classes-config {
+        description
+            "Supported MPLS diffServe class configuration";
+        leaf supported-class-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to configure a DiffServ class.";
+        } // END of supported-class-name definition.
+
+    } // END of mpls-supported-diffserv-classes-config definition.
+    grouping mpls-class-exp-bit-config {
+        description
+            "Grouping for MPLS diffServe class to expbit mapping parameters";
+        leaf supported-class-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to configure a DiffServ class.";
+        } // END of supported-class-name definition.
+
+        leaf exp-bit  {
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:EXP bit to be mapped to";
+                 }
+            }
+            description "EXP bit to map to the supported class.";
+        } // END of exp-bit definition.
+
+    } // END of mpls-class-exp-bit-config definition.
     grouping l2vpn-customer-service-map-state {
         description
             "Grouping for Operational attributes for service-template mapping list";
         leaf vpls-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to retrieve confgiured VPLS instance details";
@@ -261,7 +440,7 @@ module ipi-mpls {
 
         leaf binding-interface-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to retrieve binded interface details for a
@@ -274,7 +453,7 @@ module ipi-mpls {
             "Grouping for Configuration attributes for access-circuit-group";
         leaf group-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create a new access circuit group for MPLS";
@@ -283,7 +462,7 @@ module ipi-mpls {
         leaf group-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Identifier for the group (group-id to be used in LDP)";
+                    description "1..4294967295:Identifier for the group (group-id to be used in LDP)";
                  }
             }
             mandatory true;
@@ -361,12 +540,15 @@ module ipi-mpls {
         } // END of match-all definition.
 
         leaf-list match-single-tag-outer-vlan-range  {
-            type  cml-data-types:cml_range_t;
+            type  string {
+                length "1..4094";
+                pattern "[^?' =,>]+";
+            }
             description "Use this attribute to set match type with outer vlan value";
         } // END of match-single-tag-outer-vlan-range definition.
 
         leaf match-untagged  {
-            when " not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-all) + not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-single-tag-outer-vlan-range) + not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:double-tag/ipi-mpls:match-outer-vlan-id) ";
+            when " not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-all) ";
             type  empty;
             description "Use this attribute to specify match criteria as match untagged";
         } // END of match-untagged definition.
@@ -377,7 +559,7 @@ module ipi-mpls {
             "Top level groupig for customer-service-template double-tag attributes";
 
         list double-tag {
-        when " not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-all) + not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-untagged) + not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-single-tag-outer-vlan-range) ";
+        when " not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-all) ";
             key "match-outer-vlan-id match-inner-vlan-id";
             description
                 "Configuration for double-tag configurations";
@@ -414,7 +596,7 @@ module ipi-mpls {
         leaf match-outer-vlan-id  {
             type  uint16 {
                  range "1..4094"  {
-                    description "Outer vid value";
+                    description "1..4094:Outer vid value";
                  }
             }
             description "Specify outer vlan id for match double tag";
@@ -423,7 +605,7 @@ module ipi-mpls {
         leaf match-inner-vlan-id  {
             type  uint16 {
                  range "1..4094"  {
-                    description "Inner vid value";
+                    description "1..4094:Inner vid value";
                  }
             }
             description "Specify inner vlan id for match double tag";
@@ -470,7 +652,7 @@ module ipi-mpls {
             when " /ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:action-type/ipi-mpls:config/ipi-mpls:vlan-action-type != '1' ";
             type  uint16 {
                  range "1..4094"  {
-                    description "Vid range";
+                    description "1..4094:Vid range";
                  }
             }
             description "Spefiy vlan identifier for action types push and translate`";
@@ -524,7 +706,6 @@ module ipi-mpls {
             "Top level container for MPLS, including configuration and state data";
 
         list label-space {
-        when " /ipi-mpls:mpls/ipi-mpls:label-space/ipi-mpls:module-label-range/ipi-mpls:config  or /ipi-mpls:mpls/ipi-mpls:label-space/ipi-mpls:global-label-range ";
             key "label-space-name";
             description
                 "MPLS Label-Space Configurations";
@@ -621,6 +802,48 @@ module ipi-mpls {
                 uses mpls-admin-group-config;
             } // END of state-container definition.
         } // End of admin-group-list
+
+        list bandwidth-class {
+            if-feature feature-list:HAVE_TE;
+            key "name";
+            description
+                "MPLS Bandwidth Class Configurations";
+            leaf name  {
+                type  leafref {
+                    path  "../config/name";
+                }
+                description "Use this attribute to create a new bandwidth class name. Using this
+                            command changes the command mode to Bandwidth-class mode";
+            } // END of name definition.
+
+            container config {
+                description
+                    "Config Container for MPLS Bandwidth Class Configurations";
+                uses mpls-bandwidth-class-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State Contatiner for MPLS Bandwidth Class Configurations";
+                uses mpls-bandwidth-class-config;
+            } // END of state-container definition.
+            container properties {
+                description
+                    "Properties for Bandwidth Class with no DSTE";
+                container config {
+                    presence "To configure BC without DSTE";
+                    description
+                        "Config Container for Bandwidth Class without DSTE";
+                    uses mpls-bandwidth-properties-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State Container for MPLS Bandwidth Class Without DSTE Configurations";
+                    uses mpls-bandwidth-properties-config;
+                } // END of state-container definition.
+            } // END of properties-container definition.
+        } // End of bandwidth-class-list
         container l2vpn {
             description
                 "Top Level container for l2vpn objects";
@@ -647,7 +870,6 @@ module ipi-mpls {
                 "mpls interface level configuration and state data";
 
             list interface {
-            when " /ipi-mpls:mpls/ipi-mpls:interfaces/ipi-mpls:interface/ipi-mpls:label-switching/ipi-mpls:config/ipi-mpls:enable  or /ipi-mpls:mpls/ipi-mpls:interfaces/ipi-mpls:interface/ipi-mpls:mpls-interface-bandwidth/ipi-mpls:config/ipi-mpls:admin-group-name ";
                 key "name";
                 description
                     "List of MPLS enabled interfaces on the device.";
@@ -676,6 +898,7 @@ module ipi-mpls {
                     } // END of state-container definition.
                 } // END of label-switching-container definition.
                 container mpls-interface-bandwidth {
+                    when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) ";
                     description
                         "MPLS Interface Bandwidth Configurations";
                     container config {
@@ -708,6 +931,64 @@ module ipi-mpls {
                 uses mpls-debug-config;
             } // END of state-container definition.
         } // END of debug-container definition.
+        container tunnel-policies {
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            description
+                "tunnel policy configuration and state data";
+
+            list tunnel-policy {
+                key "name";
+                description
+                    "List of tunnel policies";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Name for the tunnel policy";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "configuration for tunnel-policy";
+                    uses tunnel-policies-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state data for tunnel policy";
+                    uses tunnel-policies-config;
+                } // END of state-container definition.
+            } // End of tunnel-policy-list
+        } // END of tunnel-policies-container definition.
+        container six-pe-tunnel-policies {
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            description
+                "6PE tunnel policy configuration and state data";
+
+            list six-pe-tunnel-policy {
+                key "name";
+                description
+                    "List of tunnel policies";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Name for the tunnel policy";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "configuration for tunnel selection policy";
+                    uses mpls-6pe-tunnel-policy;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state data for 6PE tunnel policy";
+                    uses mpls-6pe-tunnel-policy;
+                } // END of state-container definition.
+            } // End of six-pe-tunnel-policy-list
+        } // END of six-pe-tunnel-policies-container definition.
     } // END of mpls-container definition.
     } // END of mpls-grouping definition.
 

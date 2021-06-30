@@ -23,38 +23,52 @@ module ipi-l2vpn-vpws {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
+    }
+
+    import ipi-network-instance-types {
+        prefix ipi-network-instance-types;
+        revision-date 2020-12-15;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
+        revision-date 2021-05-13;
     }
 
     import ipi-vpws-types {
         prefix ipi-vpws-types;
+        revision-date 2020-11-25;
     }
 
     import ipi-qos {
         prefix ipi-qos;
+        revision-date 2021-06-10;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import ietf-yang-types {
         prefix yang;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -69,6 +83,11 @@ module ipi-l2vpn-vpws {
     description
         "Datamodel for VPWS pseudowire";
 
+
+    revision "2021-04-27" {
+        description "service-template is constrained with string length";
+        reference "Initial Version";
+    }
 
     revision "2021-03-10" {
         description "pw-link-mode made mandatory to support Secondary pw-mode config";
@@ -86,7 +105,7 @@ module ipi-l2vpn-vpws {
         leaf pseudowire-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Identifying value used for MPLS Layer-2 Virtual Circuit";
+                    description "1..4294967295:Identifying value used for MPLS Layer-2 Virtual Circuit";
                  }
             }
             description "Use this attribute to assign pseudowire identifier to create an
@@ -104,7 +123,7 @@ module ipi-l2vpn-vpws {
         description
             "Grouping for Service TPID pseudowire";
         leaf service-tpid  {
-            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:service-vlan-id) ";
+            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) ";
             type  ipi-vpws-types:vpws_svc_tpid_t;
             description "Use this attribute to specify tunneling ethertype to be used for an
                         instance of an MPLS layer 2 virtual circuit";
@@ -122,7 +141,7 @@ module ipi-l2vpn-vpws {
 
         leaf attachment-group-identifier  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to specify AGI value for genfec pseudowire";
@@ -150,7 +169,7 @@ module ipi-l2vpn-vpws {
             "Grouping for common attributes of  pseudowire";
         leaf group-name  {
             type  string {
-                length "1..max";
+                length "1..32";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create a group name with default available
@@ -160,7 +179,7 @@ module ipi-l2vpn-vpws {
         leaf group-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Identifier for the group (group-id to be used in LDP)";
+                    description "1..4294967295:Identifier for the group (group-id to be used in LDP)";
                  }
             }
             description "Use this attribute to create a group with specific group-identifier
@@ -173,13 +192,32 @@ module ipi-l2vpn-vpws {
                         Circuit.";
         } // END of enable-control-word definition.
 
+        leaf tunnel-name  {
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specificy the transport tunnel-name to be used
+                        for MPLS Layer-2 Virtual Circuit.";
+        } // END of tunnel-name definition.
+
+        leaf tunnel-policy  {
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            type  string {
+                length "1..127";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specificy transport tunnel-policy to be used for
+                        MPLS Layer-2 Virtual Circuit.";
+        } // END of tunnel-policy definition.
+
         leaf tunnel-identifier  {
             type  uint32 {
-                 range "1..65535"  {
-                    description "Tunnel-Identifier - Is obtained only after the tunnel is configured";
+                 range "1..5000"  {
+                    description "1..5000:Identifying value for Tunnel-id";
                  }
             }
-            description "Use this attribute to specificy the transport tunnel-identifier to be
+            description "Use this attribute to specificy the static tunnel-identifier to be
                         used for MPLS Layer-2 Virtual Circuit.";
         } // END of tunnel-identifier definition.
 
@@ -198,24 +236,12 @@ module ipi-l2vpn-vpws {
     grouping vpws-pseudowire-tagged-config {
         description
             "Grouping for tagged pseudowire attributes";
-        leaf service-vlan-id  {
-            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-manual-pseudowire) ";
-            type  uint16 {
-                 range "2..4094"  {
-                    description "SVLAN Identifier";
-                 }
-            }
+        leaf enable-tagged-mode  {
+            type  empty;
             mandatory true;
-            description "Use this attribute to specificy the vlan-id to be used for tagged mode
-                        MPLS Layer-2 Virtual Circuit.";
-        } // END of service-vlan-id definition.
-
-        leaf transport-identifier  {
-            type  ipi-vpws-types:vpws_mpls_tpid_t;
-            mandatory true;
-            description "Use this attribute to specificy the tpid to be used for tagged mode
-                        MPLS Layer-2 Virtual Circuit.";
-        } // END of transport-identifier definition.
+            description "This attribute is used to enable tagged mode of pseudowire. This can
+                        be enabled at creation time";
+        } // END of enable-tagged-mode definition.
 
     } // END of vpws-pseudowire-tagged-config definition.
     grouping vpws-pseudowire-raw-config {
@@ -323,7 +349,7 @@ module ipi-l2vpn-vpws {
             "Grouping for global interface level configuration for PW";
         leaf service-template  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute is used to configure service-template for vc-mode";
@@ -371,7 +397,7 @@ module ipi-l2vpn-vpws {
             "Grouping for service-template mapping configurationattributes for VPWS";
         leaf pseudowire-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute is used to map pseudowire on customer interface for
@@ -398,7 +424,7 @@ module ipi-l2vpn-vpws {
             when " /ipi-qos:qos/ipi-qos:global/ipi-qos:map-profile/ipi-qos:cos-to-queue-profiles/ipi-qos:cos-to-queue-profile/ipi-qos:name ";
             if-feature feature-list:HAVE_QOS_MAPPING_PROFILE;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute is used to map cos-to-queue profile on customer
@@ -409,7 +435,7 @@ module ipi-l2vpn-vpws {
             when " /ipi-qos:qos/ipi-qos:global/ipi-qos:map-profile/ipi-qos:queue-color-to-cos-profiles/ipi-qos:queue-color-to-cos-profile/ipi-qos:name ";
             if-feature feature-list:HAVE_QOS_MAPPING_PROFILE;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute is used to map queue-to-cos profile on customer
@@ -465,7 +491,7 @@ module ipi-l2vpn-vpws {
         leaf incoming-label  {
             type  uint32 {
                  range "16..15999"  {
-                    description "in-coming Label <16-15999>";
+                    description "16..15999:in-coming Label <16-15999>";
                  }
             }
             mandatory true;
@@ -475,7 +501,7 @@ module ipi-l2vpn-vpws {
         leaf outgoing-label  {
             type  uint32 {
                  range "16..15999"  {
-                    description "Out-going Label <16-15999>";
+                    description "16..15999:Out-going Label <16-15999>";
                  }
             }
             mandatory true;
@@ -646,7 +672,7 @@ module ipi-l2vpn-vpws {
 
                     leaf network-interface-name  {
                         type  string {
-                            length "1..max";
+                            length "1..1965";
                             pattern "[^?' =,>|]+";
                         }
                         config false;
@@ -656,7 +682,7 @@ module ipi-l2vpn-vpws {
 
                     leaf customer-service-template-name  {
                         type  string {
-                            length "1..max";
+                            length "1..1965";
                             pattern "[^?' =,>|]+";
                         }
                         config false;
@@ -709,7 +735,7 @@ module ipi-l2vpn-vpws {
                 uses vpws-pseudowire-state;
             } // END of state-container definition.
             container default-tagged {
-                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:service-vlan-id) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) ";
+                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) ";
                 description
                     "Default Tagged container for Fec128 pseudowire";
                 container config {
@@ -761,7 +787,7 @@ module ipi-l2vpn-vpws {
                 } // END of state-container definition.
             } // END of tagged-container definition.
             container raw {
-                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:default-tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-default-tagged-mode) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:service-vlan-id) ";
+                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:default-tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-default-tagged-mode) ";
                 description
                     "Container for Raw Fec128 pseudowire";
                 container config {
@@ -871,6 +897,129 @@ module ipi-l2vpn-vpws {
                 mandatory true;
                 description "";
             }
+        }
+    }
+
+    notification mpls-pseudowire-up {
+
+        description "This notification is sent when pseusowire-state enters the up(4) state.";
+
+        // severity "MINOR";
+        // eventClass "STATE";
+        leaf pseudowire-identifier {
+            type  uint32;
+        description
+            "Use this attribute to assign pseudowire identifier to create an
+                    instance of an MPLS layer 2 virtual circuit. A Layer-2 MPLS Virtual
+                    Circuit instance may be bound to any interface on the router; however,
+                    only one interface may be bound to a Layer-2 circuit at a time.";
+        }
+
+        leaf peer-address {
+            type ipi-vpws-types:vpws_ip_addr_t;
+        description
+            "Use this attribute to specify pseudowire end peer IP address to create
+                    an instance of an MPLS layer 2 virtual circuit";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name";
+        }
+
+        leaf pseudowire-state {
+            type ipi-vpws-types:vpws_mpls_pw_state_t;
+        description
+            "This attribute provides local pseudowire state";
+        }
+    }
+
+    notification mpls-pseudowire-down {
+
+        description "This notification is sent when pseusowire-state enters the down(1) state.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf pseudowire-identifier {
+            type  uint32;
+        description
+            "Use this attribute to assign pseudowire identifier to create an
+                    instance of an MPLS layer 2 virtual circuit. A Layer-2 MPLS Virtual
+                    Circuit instance may be bound to any interface on the router; however,
+                    only one interface may be bound to a Layer-2 circuit at a time.";
+        }
+
+        leaf peer-address {
+            type ipi-vpws-types:vpws_ip_addr_t;
+        description
+            "Use this attribute to specify pseudowire end peer IP address to create
+                    an instance of an MPLS layer 2 virtual circuit";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name";
+        }
+
+        leaf pseudowire-state {
+            type ipi-vpws-types:vpws_mpls_pw_state_t;
+        description
+            "This attribute provides local pseudowire state";
+        }
+    }
+
+    notification mpls-pseudowire-deleted {
+
+        description "This notification is sent when pseusowire is deleted.";
+
+        // severity "MINOR";
+        // eventClass "STATE";
+        leaf pseudowire-identifier {
+            type  uint32;
+        description
+            "Use this attribute to assign pseudowire identifier to create an
+                    instance of an MPLS layer 2 virtual circuit. A Layer-2 MPLS Virtual
+                    Circuit instance may be bound to any interface on the router; however,
+                    only one interface may be bound to a Layer-2 circuit at a time.";
+        }
+
+        leaf peer-address {
+            type ipi-vpws-types:vpws_ip_addr_t;
+        description
+            "Use this attribute to specify pseudowire end peer IP address to create
+                    an instance of an MPLS layer 2 virtual circuit";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name";
+        }
+
+        leaf pseudowire-state {
+            type ipi-vpws-types:vpws_mpls_pw_state_t;
+        description
+            "This attribute provides local pseudowire state";
         }
     }
 

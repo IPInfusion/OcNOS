@@ -23,18 +23,17 @@ module ipi-qos {
 
     import cml-data-types {
         prefix cml-data-types;
-    }
-
-    import ipi-interface {
-        prefix ipi-interface;
+        revision-date 2021-05-03;
     }
 
     import ipi-qos-types {
         prefix ipi-qos-types;
+        revision-date 2021-06-09;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -49,6 +48,91 @@ module ipi-qos {
     description
         "Quality of Service (QoS)";
 
+
+    revision "2021-06-10" {
+        description "Changed data type to CML_RANGE_T for attributes 'port', 'vlan', 'inner-vlan', 'rtp'.";
+        reference "Initial Version";
+    }
+
+    revision "2021-06-08" {
+        description "Add a limit of 32 entries on leaf-list used for destination-mac and source-mac attributes.";
+        reference "Initial Version";
+    }
+
+    revision "2021-06-07" {
+        description "Changed value on QOS_CLEAR_STATS_T used on objectaction qos-clear-statistics";
+        reference "Initial Version";
+    }
+
+    revision "2021-06-04" {
+        description "Changed type of attributes 'precedence-remark', 'precedence-remark-only-bridged', 'dscp-value-remark' and 'dscp-remark-only-bridged'. Attribute 'dscp-value' from 'qos-mode' have name changed to 'dscp-value-remark'.";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-28" {
+        description "Removed whole policy-maps-default container";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-26" {
+        description "Changed data type for attributes dscp-all, ipv6-dscp-all, precedence-all, ipv6-precedence-all";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-20" {
+        description "Changed type of attributes with name 'type' of containers 'class-map-default' and 'policy-map-default'";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-19" {
+        description "Changed types QOS_PRECEDENCE_EXTENDED_T and QOS_DSCP_EXTENDED_T to CML_UINT8_T and types QOS_PRECEDENCE_VAL_T and QOS_DSCP_VAL_T to CML_RANGE_T";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-14" {
+        description "Removed vxlan-qos clis for DC platforms";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-11" {
+        description "Remove unsupported leaves block-size and child-service-policy-name";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-07" {
+        description "Add weight and drop-probability options for DC platforms";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-06" {
+        description "Updated color and dei overall the model to include 'all' when it is the key, otherwise to be optional";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-05" {
+        description "Added length in policies and classes names";
+        reference "Initial Version";
+    }
+
+    revision "2021-04-13" {
+        description "Enable weighted-round-robin and strict-priority unicast/non-unicast weight configuration for DC platforms";
+        reference "Initial Version";
+    }
+
+    revision "2021-04-06" {
+        description "Updated mac address leaves to new type";
+        reference "Initial Version";
+    }
+
+    revision "2021-03-24" {
+        description "Renamed precedence and vxlan-queue-color-to-dscp-profiles objects";
+        reference "Initial Version";
+    }
+
+    revision "2021-03-23" {
+        description "Removed mutation-map related objects";
+        reference "Initial Version";
+    }
 
     revision "2021-03-18" {
         description "Created a separated struct for class-map type queue";
@@ -105,14 +189,14 @@ module ipi-qos {
             "Grouping for QoS class-default match state";
         leaf name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to show the class-map-default name";
         } // END of name definition.
 
         leaf type  {
-            type  ipi-qos-types:qos_class_map_t;
+            type  ipi-qos-types:qos_class_map_default_t;
             description "Use this attribute to show the class-map-default type.";
         } // END of type definition.
 
@@ -156,72 +240,6 @@ module ipi-qos {
                     when " ../config/match-criteria='2' ";
                     description
                         "Configuration data for QoS class match-any";
-
-                    list layer4-match-ipv4 {
-                        key "protocol port-type";
-                        max-elements 1;
-                        description
-                            "Configuration data for QoS class layer 4 match";
-                        leaf protocol  {
-                            type  leafref {
-                                path  "../config/protocol";
-                            }
-                            description "Use this attribute to classify traffic based on the layer 4 protocol";
-                        } // END of protocol definition.
-
-                        leaf port-type  {
-                            type  leafref {
-                                path  "../config/port-type";
-                            }
-                            description "Use this attribute to classify traffic based on layer 4 source port or
-                                        destination port";
-                        } // END of port-type definition.
-
-                        container config {
-                            description
-                                "Configuration data for QoS class layer 4 match";
-                            uses qos-layer4-match-config;
-                        } // END of config-container definition.
-                        container state {
-                            config false;
-                            description
-                                "Operational state data for QoS class layer 4 match";
-                            uses qos-layer4-match-config;
-                        } // END of state-container definition.
-                    } // End of layer4-match-ipv4-list
-
-                    list layer4-match-ipv6 {
-                        key "protocol port-type";
-                        max-elements 1;
-                        description
-                            "Configuration data for QoS class ipv6 layer 4 match";
-                        leaf protocol  {
-                            type  leafref {
-                                path  "../config/protocol";
-                            }
-                            description "Use this attribute to classify traffic based on the layer 4 protocol";
-                        } // END of protocol definition.
-
-                        leaf port-type  {
-                            type  leafref {
-                                path  "../config/port-type";
-                            }
-                            description "Use this attribute to classify traffic based on layer 4 source port or
-                                        destination port";
-                        } // END of port-type definition.
-
-                        container config {
-                            description
-                                "Configuration data for QoS class ipv6 layer 4 match";
-                            uses qos-layer4-match-config;
-                        } // END of config-container definition.
-                        container state {
-                            config false;
-                            description
-                                "Operational state data for QoS class layer 4 match";
-                            uses qos-layer4-match-config;
-                        } // END of state-container definition.
-                    } // End of layer4-match-ipv6-list
                     container config {
                         description
                             "Configuration data for QoS class match-any";
@@ -233,6 +251,81 @@ module ipi-qos {
                             "Operational state data for QoS class match-any";
                         uses qos-class-match-any-config;
                     } // END of state-container definition.
+                    container ipv4 {
+                        description
+                            "Configuration data for QoS class match-any";
+
+                        list layer4-match {
+                            key "protocol port-type";
+                            max-elements 1;
+                            description
+                                "Configuration data for QoS class layer 4 match";
+                            leaf protocol  {
+                                type  leafref {
+                                    path  "../config/protocol";
+                                }
+                                description "Use this attribute to classify traffic based on the layer 4 protocol";
+                            } // END of protocol definition.
+
+                            leaf port-type  {
+                                type  leafref {
+                                    path  "../config/port-type";
+                                }
+                                description "Use this attribute to classify traffic based on layer 4 source port or
+                                            destination port";
+                            } // END of port-type definition.
+
+                            container config {
+                                description
+                                    "Configuration data for QoS class layer 4 match";
+                                uses qos-layer4-match-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "Operational state data for QoS class layer 4 match";
+                                uses qos-layer4-match-config;
+                            } // END of state-container definition.
+                        } // End of layer4-match-list
+                    } // END of ipv4-container definition.
+                    container ipv6 {
+                        description
+                            "Configuration data for QoS class match-any";
+
+                        list layer4-match {
+                            if-feature feature-list:HAVE_CUSTOM2_QOS;
+                            key "protocol port-type";
+                            max-elements 1;
+                            description
+                                "Configuration data for QoS class ipv6 layer 4 match";
+                            leaf protocol  {
+                                type  leafref {
+                                    path  "../config/protocol";
+                                }
+                                description "Use this attribute to classify traffic based on the layer 4 protocol";
+                            } // END of protocol definition.
+
+                            leaf port-type  {
+                                type  leafref {
+                                    path  "../config/port-type";
+                                }
+                                description "Use this attribute to classify traffic based on layer 4 source port or
+                                            destination port";
+                            } // END of port-type definition.
+
+                            container config {
+                                description
+                                    "Configuration data for QoS class ipv6 layer 4 match";
+                                uses qos-layer4-match-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "Operational state data for QoS class layer 4 match";
+                                uses qos-layer4-match-config;
+                            } // END of state-container definition.
+                        } // End of layer4-match-list
+                    } // END of ipv6-container definition.
                 } // END of match-any-conditions-container definition.
                 container match-all-conditions {
                     when " ../config/match-criteria='1' ";
@@ -280,6 +373,7 @@ module ipi-qos {
                     } // End of layer4-match-ipv4-list
 
                     list layer4-match-ipv6 {
+                        if-feature feature-list:HAVE_CUSTOM2_QOS;
                         key "protocol-all port-type-all port-all";
                         max-elements 1;
                         description
@@ -338,7 +432,7 @@ module ipi-qos {
             "Grouping for QoS class match configuration";
         leaf name  {
             type  string {
-                length "1..max";
+                length "1..32";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to set the class-map name";
@@ -375,7 +469,8 @@ module ipi-qos {
         leaf port  {
             type  cml-data-types:cml_range_t;
             mandatory true;
-            description "Use this attribute to classify traffic based on the port";
+            description "Use this attribute to classify traffic based on the port. Enter
+                        TCP/UDP port value 1-65535 or range of values.";
         } // END of port definition.
 
     } // END of qos-layer4-match-config definition.
@@ -396,7 +491,7 @@ module ipi-qos {
         leaf port-all  {
             type  uint16 {
                  range "1..65535"  {
-                    description "TCP/UDP port value 1-65535";
+                    description "1..65535:TCP/UDP port value 1-65535";
                  }
             }
             description "Use this attribute to classify traffic based on the port";
@@ -408,7 +503,7 @@ module ipi-qos {
             "Grouping for QoS class match-any configuration";
         leaf access-control-list-name  {
             type  string {
-                length "1..max";
+                length "1..64";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to classify traffic based on the Access Control
@@ -416,92 +511,138 @@ module ipi-qos {
         } // END of access-control-list-name definition.
 
         leaf-list ethertype  {
-            type  cml-data-types:cml_raw_string_t {
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            type  string {
+                length "1..1965";
                 pattern "0x[^?' =,>]+";
-                }
-                description "Use this attribute to classify traffic based on the EtherType value(s)";
-            } // END of ethertype definition.
+            }
+            description "Use this attribute to classify traffic based on the EtherType value(s)";
+        } // END of ethertype definition.
 
-            leaf-list traffic-type  {
-                type  ipi-qos-types:qos_traffic_type_t;
-                description "Use this attribute to classify traffic based on the traffic type value";
-            } // END of traffic-type definition.
+        leaf-list traffic-type  {
+            type  ipi-qos-types:qos_traffic_type_t;
+            description "Use this attribute to classify traffic based on the traffic type value";
+        } // END of traffic-type definition.
 
-            leaf cos  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                type  cml-data-types:cml_range_t;
-                description "Use this attribute to classify traffic based on the Class of Service
-                            (CoS) value";
-            } // END of cos definition.
+        leaf cos  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on the Class of Service
+                        (CoS) value";
+        } // END of cos definition.
 
-            leaf inner-cos  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                type  cml-data-types:cml_range_t;
-                description "Use this attribute to classify traffic based on inner Class of Service
-                            (CoS) value";
-            } // END of inner-cos definition.
+        leaf inner-cos  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on inner Class of Service
+                        (CoS) value";
+        } // END of inner-cos definition.
 
-            leaf vlan  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                if-feature feature-list:HAVE_SERVICE_QUEUING_2;
-                type  cml-data-types:cml_range_t;
-                description "Use this attribute to classify traffic based on VLAN ID";
-            } // END of vlan definition.
+        leaf vlan  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on VLAN ID. Enter VLAN ID
+                        1-4094 or range of VLAN ID's.";
+        } // END of vlan definition.
 
-            leaf inner-vlan  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                type  cml-data-types:cml_range_t;
-                description "Use this attribute to classify traffic based on inner VLAN ID";
-            } // END of inner-vlan definition.
+        leaf inner-vlan  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on inner VLAN ID. Enter
+                        VLAN ID 1-4094 or range of VLAN ID's.";
+        } // END of inner-vlan definition.
 
-            leaf rtp  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                type  cml-data-types:cml_range_t;
-                description "Use this attribute to classify traffic based on the Real-time
-                            Transport Protocol (RTP)";
-            } // END of rtp definition.
+        leaf rtp  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on the Real-time
+                        Transport Protocol (RTP). The rtp value 2000-65535 or range of rtp
+                        values.";
+        } // END of rtp definition.
 
-            leaf mpls-exp  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                if-feature feature-list:HAVE_DIFFSERV;
-                type  cml-data-types:cml_range_t;
-                description "Use this attribute to classify traffic based on the MPLS experimental
-                            (EXP) value";
-            } // END of mpls-exp definition.
+        leaf mpls-exp  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            if-feature feature-list:HAVE_DIFFSERV;
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on the MPLS experimental
+                        (EXP) value";
+        } // END of mpls-exp definition.
 
-            leaf dscp  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                type  ipi-qos-types:qos_dscp_val_t;
-                description "Use this attribute to classify traffic based on the Differentiated
-                            Services Control Protocol (DSCP) value";
-            } // END of dscp definition.
+        leaf dscp  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on the Differentiated
+                        Services Control Protocol (DSCP) value.
+                        Warning: In CLI show running, DSCP values with well-known names (ex.:
+                        af11, cs0) will be displayed as such.
+                        On Netconf, DSCP values will always be numeric.";
+        } // END of dscp definition.
 
-            leaf ipv6-dscp  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                type  ipi-qos-types:qos_dscp_val_t;
-                description "Use this attribute to classify traffic based on the Differentiated
-                            Services Control Protocol (DSCP) value";
-            } // END of ipv6-dscp definition.
+        leaf ipv6-dscp  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on the Differentiated
+                        Services Control Protocol (DSCP) value.
+                        Warning: In CLI show running, DSCP values with well-known names (ex.:
+                        af11, cs0) will be displayed as such.
+                        On Netconf, DSCP values will always be numeric.";
+        } // END of ipv6-dscp definition.
 
-            leaf precedence-any  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                type  ipi-qos-types:qos_precedence_val_t;
-                description "Use this attribute to classify traffic based on the precedence value";
-            } // END of precedence-any definition.
+        leaf precedence  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on the precedence value.
+                        Warning: In CLI show running, precedence values with well-known names
+                        (ex.: priority, immediate) will be displayed as such.
+                        On Netconf, precedence values will always be numeric.";
+        } // END of precedence definition.
 
-            leaf ipv6-precedence  {
-                when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
-                type  ipi-qos-types:qos_precedence_val_t;
-                description "Use this attribute to specify if match is upon IPv6 packet";
-            } // END of ipv6-precedence definition.
+        leaf ipv6-precedence  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify IPv6 traffic based on the precedence
+                        value.
+                        Warning: In CLI show running, precedence values with well-known names
+                        (ex.: priority, immediate) will be displayed as such.
+                        On Netconf, precedence values will always be numeric.";
+        } // END of ipv6-precedence definition.
+
+        leaf-list packet-protocol  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_proto_type_t;
+            description "Use this attribute to classify traffic based on the protocol";
+        } // END of packet-protocol definition.
+
+        leaf-list source-mac  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_mac_address_t {
+                length "1..17";
+            }
+            max-elements 32;
+            description "Use this attribute to classify traffic based on the source MAC
+                        address. The MAC address value allow up to 17 characters.";
+        } // END of source-mac definition.
+
+        leaf-list destination-mac  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_mac_address_t {
+                length "1..17";
+            }
+            max-elements 32;
+            description "Use this attribute to classify traffic based on the destination MAC
+                        address. The MAC address value allow up to 17 characters.";
+        } // END of destination-mac definition.
 
     } // END of qos-class-match-any-config definition.
     grouping qos-class-match-all-config {
         description
             "Grouping for QoS class match-all configuration";
         leaf ethertype-all  {
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to classify traffic based on the EtherType value";
@@ -515,7 +656,7 @@ module ipi-qos {
         leaf cos-all  {
             type  uint8 {
                  range "0..7"  {
-                    description "CoS values";
+                    description "0..7:CoS values";
                  }
             }
             description "Use this attribute to classify traffic based on the Class of Service
@@ -525,7 +666,7 @@ module ipi-qos {
         leaf inner-cos-all  {
             type  uint8 {
                  range "0..7"  {
-                    description "CoS values";
+                    description "0..7:CoS values";
                  }
             }
             description "Use this attribute to classify traffic based on the inner Class of
@@ -533,10 +674,9 @@ module ipi-qos {
         } // END of inner-cos-all definition.
 
         leaf vlan-all  {
-            if-feature feature-list:HAVE_SERVICE_QUEUING_2;
             type  uint16 {
                  range "1..4094"  {
-                    description "VLAN values";
+                    description "1..4094:VLAN values";
                  }
             }
             description "Use this attribute to classify traffic based on the VLAN ID";
@@ -545,7 +685,7 @@ module ipi-qos {
         leaf inner-vlan-all  {
             type  uint16 {
                  range "1..4094"  {
-                    description "Inner VLAN values";
+                    description "1..4094:Inner VLAN values";
                  }
             }
             description "Use this attribute to classify traffic based on the inner VLAN ID";
@@ -554,7 +694,7 @@ module ipi-qos {
         leaf rtp-all  {
             type  uint32 {
                  range "2000..65535"  {
-                    description "Specify rtp value 2000-65535";
+                    description "2000..65535:Specify rtp value 2000-65535";
                  }
             }
             description "Use this attribute to classify traffic based on the Real-time
@@ -565,7 +705,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_DIFFSERV;
             type  uint8 {
                  range "0..7"  {
-                    description "EXP value";
+                    description "0..7:EXP value";
                  }
             }
             description "Use this attribute to classify traffic based on the MPLS experimental
@@ -573,26 +713,83 @@ module ipi-qos {
         } // END of mpls-exp-all definition.
 
         leaf dscp-all  {
-            type  ipi-qos-types:qos_dscp_extended_t;
+            type  string {
+                length "1..8";
+                pattern "[^?' =,>|]+";
+            }
             description "Use this attribute to classify traffic based on the Differentiated
-                        Services Control Protocol (DSCP) value";
+                        Services Control Protocol (DSCP) value. The DSCP value range is 0-63.
+                        Warning: In CLI show running, DSCP values with well-known names (ex.:
+                        af11, cs0) will be displayed as such.
+                        On Netconf, DSCP values will always be numeric. The string type allow
+                        up to 8 characters on well-known name.";
         } // END of dscp-all definition.
 
         leaf ipv6-dscp-all  {
-            type  ipi-qos-types:qos_dscp_extended_t;
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            type  string {
+                length "1..8";
+                pattern "[^?' =,>|]+";
+            }
             description "Use this attribute to classify traffic based on the Differentiated
-                        Services Control Protocol (DSCP) value";
+                        Services Control Protocol (DSCP) value upon IPv6 packet. The DSCP
+                        value range is 0-63.
+                        Warning: In CLI show running, DSCP values with well-known names (ex.:
+                        af11, cs0) will be displayed as such.
+                        On Netconf, DSCP values will always be numeric. The string type allow
+                        up to 8 characters on well-known name.";
         } // END of ipv6-dscp-all definition.
 
         leaf precedence-all  {
-            type  ipi-qos-types:qos_precedence_extended_t;
-            description "Use this attribute to classify traffic based on the precedence value";
+            type  string {
+                length "1..13";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to classify traffic based on the precedence value.
+                        The precedence value range is 0-7.
+                        Warning: In CLI show running, precedence values with well-known names
+                        (ex.: priority, immediate) will be displayed as such.
+                        On Netconf, precedence values will always be numeric. The string type
+                        allow up to 13 characters on well-known name.";
         } // END of precedence-all definition.
 
         leaf ipv6-precedence-all  {
-            type  ipi-qos-types:qos_precedence_extended_t;
-            description "Use this attribute to specify if match is upon IPv6 packet";
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            type  string {
+                length "1..13";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to classify traffic based on the precedence value
+                        upon IPv6 packet. The precedence value range is 0-7.
+                        Warning: In CLI show running, precedence values with well-known names
+                        (ex.: priority, immediate) will be displayed as such.
+                        On Netconf, precedence values will always be numeric. The string type
+                        allow up to 13 characters on well-known name.";
         } // END of ipv6-precedence-all definition.
+
+        leaf packet-protocol-all  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_proto_type_t;
+            description "Use this attribute to classify traffic based on the protocol";
+        } // END of packet-protocol-all definition.
+
+        leaf source-mac-all  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_mac_address_t {
+                length "1..17";
+            }
+            description "Use this attribute to classify traffic based on the source MAC
+                        address. The MAC address value allow up to 17 characters.";
+        } // END of source-mac-all definition.
+
+        leaf destination-mac-all  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_mac_address_t {
+                length "1..17";
+            }
+            description "Use this attribute to classify traffic based on the destination MAC
+                        address. The MAC address value allow up to 17 characters.";
+        } // END of destination-mac-all definition.
 
     } // END of qos-class-match-all-config definition.
     grouping qos-class-map-queuing-match-condition-config {
@@ -602,7 +799,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_SERVICE_QUEUING_2;
             type  uint16 {
                  range "1..4094"  {
-                    description "VLAN values";
+                    description "1..4094:VLAN values";
                  }
             }
             description "Use this attribute to classify traffic based on the VLAN ID";
@@ -612,7 +809,8 @@ module ipi-qos {
             if-feature feature-list:HAVE_SERVICE_QUEUING_2;
             type  uint8 {
                  range "0..7"  {
-                    description "Valid range of hardware-queue is 0-3 for services and 0-7 for port";
+                    description "0..7:Valid range of hardware-queue is 0-3 for services and 0-7 for
+                            port";
                  }
             }
             description "Use this attribute to classify traffic based on queue value";
@@ -621,7 +819,7 @@ module ipi-qos {
         leaf service-template-name  {
             if-feature feature-list:HAVE_SERVICE_QUEUING_2;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to classify traffic based on service template";
@@ -630,7 +828,7 @@ module ipi-qos {
         leaf interface  {
             if-feature feature-list:HAVE_SERVICE_QUEUING_2;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to classify traffic based on the subinterface or
@@ -663,7 +861,7 @@ module ipi-qos {
             "Grouping for QoS class-map-queuing configuration";
         leaf name  {
             type  string {
-                length "1..max";
+                length "1..32";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to set the class-map name";
@@ -711,73 +909,13 @@ module ipi-qos {
             } // End of class-map-queuing-list
         } // END of class-maps-queuing-container definition.
     } // END of qos-class-map-queuing-top definition.
-    grouping qos-vxlan-cos-to-queue-profile-top {
-        description
-            "Grouping for QoS VXLAN CoS to queue profile";
-        container vxlan-cos-to-queue-profiles {
-            if-feature feature-list:HAVE_VXLAN;
-            if-feature feature-list:NOT_HAVE_DUNE;
-            description
-                "Configuration data for QoS VXLAN CoS to queue profile";
-
-            list vxlan-cos-to-queue-profile {
-                key "profile-direction profile-id";
-                description
-                    "Configuration data list for QoS VXLAN CoS to queue profile";
-                leaf profile-direction  {
-                    type  leafref {
-                        path  "../config/profile-direction";
-                    }
-                    description "Use this attribute to set direction";
-                } // END of profile-direction definition.
-
-                leaf profile-id  {
-                    type  leafref {
-                        path  "../config/profile-id";
-                    }
-                    description "Use this attribute to set profile identification";
-                } // END of profile-id definition.
-
-                container config {
-                    description
-                        "Configuration data for QoS VXLAN CoS to queue profile";
-                    uses qos-vxlan-cos-to-queue-profile-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for QoS VXLAN CoS to queue profile";
-                    uses qos-vxlan-cos-to-queue-profile-config;
-                } // END of state-container definition.
-                uses qos-cos-to-queue;
-            } // End of vxlan-cos-to-queue-profile-list
-        } // END of vxlan-cos-to-queue-profiles-container definition.
-    } // END of qos-vxlan-cos-to-queue-profile-top definition.
-    grouping qos-vxlan-cos-to-queue-profile-config {
-        description
-            "Grouping for QoS VXLAN CoS to queue profile configuration";
-        leaf profile-direction  {
-            type  ipi-qos-types:qos_vxlan_dir_t;
-            description "Use this attribute to set direction";
-        } // END of profile-direction definition.
-
-        leaf profile-id  {
-            type  uint8 {
-                 range "1..64"  {
-                    description "Identification values";
-                 }
-            }
-            description "Use this attribute to set profile identification";
-        } // END of profile-id definition.
-
-    } // END of qos-vxlan-cos-to-queue-profile-config definition.
     grouping qos-cos-to-queue-config {
         description
             "Grouping for QoS CoS to queue configuration";
         leaf cos-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "CoS values";
+                    description "0..7:CoS values";
                  }
             }
             description "Use this attribute to map a Class of Service (CoS) value to a
@@ -787,7 +925,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "Queue values";
+                    description "0..7:Queue values";
                  }
             }
             mandatory true;
@@ -829,123 +967,6 @@ module ipi-qos {
             } // End of cos-to-queue-list
         } // END of cos-to-queues-container definition.
     } // END of qos-cos-to-queue definition.
-    grouping qos-vxlan-dscp-to-queue-profile-top {
-        description
-            "Grouping for QoS VXLAN DSCP to queue profile";
-        container vxlan-dscp-to-queue-profiles {
-            if-feature feature-list:HAVE_VXLAN;
-            if-feature feature-list:NOT_HAVE_DUNE;
-            description
-                "Configuration data for QoS VXLAN DSCP to queue profile";
-
-            list vxlan-dscp-to-queue-profile {
-                key "profile-direction profile-id";
-                description
-                    "Configuration data list for QoS VXLAN DSCP to queue profile";
-                leaf profile-direction  {
-                    type  leafref {
-                        path  "../config/profile-direction";
-                    }
-                    description "Use this attribute to set direction";
-                } // END of profile-direction definition.
-
-                leaf profile-id  {
-                    type  leafref {
-                        path  "../config/profile-id";
-                    }
-                    description "Use this attribute to set profile identification";
-                } // END of profile-id definition.
-
-                container config {
-                    description
-                        "Configuration data for QoS VXLAN DSCP to queue profile";
-                    uses qos-vxlan-dscp-to-queue-profile-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for QoS VXLAN DSCP to queue profile";
-                    uses qos-vxlan-dscp-to-queue-profile-config;
-                } // END of state-container definition.
-                uses qos-vxlan-dscp-to-queue;
-            } // End of vxlan-dscp-to-queue-profile-list
-        } // END of vxlan-dscp-to-queue-profiles-container definition.
-    } // END of qos-vxlan-dscp-to-queue-profile-top definition.
-    grouping qos-vxlan-dscp-to-queue-profile-config {
-        description
-            "Grouping for QoS VXLAN DSCP to queue profile configuration";
-        leaf profile-direction  {
-            type  ipi-qos-types:qos_vxlan_dir_t;
-            description "Use this attribute to set direction";
-        } // END of profile-direction definition.
-
-        leaf profile-id  {
-            type  uint8 {
-                 range "65..128"  {
-                    description "Identification values";
-                 }
-            }
-            description "Use this attribute to set profile identification";
-        } // END of profile-id definition.
-
-    } // END of qos-vxlan-dscp-to-queue-profile-config definition.
-    grouping qos-vxlan-dscp-to-queue {
-        description
-            "Grouping for QoS VXLAN DSCP to queue";
-        container dscp-to-queues {
-            description
-                "Configuration data for QoS VXLAN DSCP to queue";
-
-            list dscp-to-queue {
-                key "dscp-value";
-                description
-                    "Configuration data list for QoS VXLAN DSCP to queue";
-                leaf dscp-value  {
-                    type  leafref {
-                        path  "../config/dscp-value";
-                    }
-                    description "Use this attribute to map a Differentiated Services Control Protocol
-                                (DSCP) value to a particular queue";
-                } // END of dscp-value definition.
-
-                container config {
-                    description
-                        "Configuration data for QoS VXLAN DSCP to queue";
-                    uses qos-vxlan-dscp-to-queue-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for QoS VXLAN DSCP to queue";
-                    uses qos-vxlan-dscp-to-queue-config;
-                } // END of state-container definition.
-            } // End of dscp-to-queue-list
-        } // END of dscp-to-queues-container definition.
-    } // END of qos-vxlan-dscp-to-queue definition.
-    grouping qos-vxlan-dscp-to-queue-config {
-        description
-            "Grouping for QoS VXLAN DSCP to queue configuration";
-        leaf dscp-value  {
-            type  uint8 {
-                 range "0..63"  {
-                    description "DSCP values";
-                 }
-            }
-            description "Use this attribute to map a Differentiated Services Control Protocol
-                        (DSCP) value to a particular queue";
-        } // END of dscp-value definition.
-
-        leaf queue-id  {
-            type  uint8 {
-                 range "0..7"  {
-                    description "Queue values";
-                 }
-            }
-            mandatory true;
-            description "Use this attribute to select the queue DSCP is mapped to";
-        } // END of queue-id definition.
-
-    } // END of qos-vxlan-dscp-to-queue-config definition.
     grouping qos-cos-to-queue-profile-top {
         description
             "Grouping for QoS CoS DEI to queue profile";
@@ -995,6 +1016,44 @@ module ipi-qos {
     grouping qos-cos-dei-to-queue {
         description
             "Grouping for QoS CoS DEI to queue";
+        container cos-dei-to-queues {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            description
+                "Configuration data for QoS CoS DEI to queue";
+
+            list cos-dei-to-queue {
+                key "cos-value dei-value";
+                description
+                    "Configuration data list for QoS CoS DEI to queue";
+                leaf cos-value  {
+                    type  leafref {
+                        path  "../config/cos-value";
+                    }
+                    description "Use this attribute to map a Class of Service (CoS) value to a
+                                particular queue";
+                } // END of cos-value definition.
+
+                leaf dei-value  {
+                    type  leafref {
+                        path  "../config/dei-value";
+                    }
+                    description "Use this attribute to map a Discard Eligibility Indicator (DEI) value
+                                to a particular queue. Default value is 2.";
+                } // END of dei-value definition.
+
+                container config {
+                    description
+                        "Configuration data for QoS CoS DEI to queue";
+                    uses qos-cos-dei-to-queue-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for QoS CoS DEI to queue";
+                    uses qos-cos-dei-to-queue-config;
+                } // END of state-container definition.
+            } // End of cos-dei-to-queue-list
+        } // END of cos-dei-to-queues-container definition.
     } // END of qos-cos-dei-to-queue definition.
     grouping qos-cos-dei-to-queue-config {
         description
@@ -1002,7 +1061,7 @@ module ipi-qos {
         leaf cos-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "CoS values";
+                    description "0..7:CoS values";
                  }
             }
             description "Use this attribute to map a Class of Service (CoS) value to a
@@ -1019,7 +1078,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "Queue values";
+                    description "0..7:Queue values";
                  }
             }
             mandatory true;
@@ -1028,9 +1087,7 @@ module ipi-qos {
 
         leaf color  {
             type  ipi-qos-types:qos_color_t;
-            mandatory true;
-            description "Use this attribute to select the color CoS DEI is mapped to. Default
-                        value is 3.";
+            description "Use this attribute to select the color CoS DEI is mapped to.";
         } // END of color definition.
 
     } // END of qos-cos-dei-to-queue-config definition.
@@ -1126,7 +1183,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "DSCP values";
+                    description "0..63:DSCP values";
                  }
             }
             description "Use this attribute to select Differentiated Services Control Protocol
@@ -1134,7 +1191,7 @@ module ipi-qos {
         } // END of dscp-value definition.
 
         leaf color  {
-            type  ipi-qos-types:qos_color_t;
+            type  ipi-qos-types:qos_color_key_t;
             default "all";
             description "Use this attribute to select the color to map";
         } // END of color definition.
@@ -1142,7 +1199,7 @@ module ipi-qos {
         leaf remark-dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "DSCP values";
+                    description "0..63:DSCP values";
                  }
             }
             mandatory true;
@@ -1189,7 +1246,7 @@ module ipi-qos {
             "Grouping for QoS DSCP to queue profile configuration";
         leaf name  {
             type  string {
-                length "1..max";
+                length "1..31";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to set a name to DSCP to queue profile";
@@ -1200,7 +1257,6 @@ module ipi-qos {
         description
             "Grouping for QoS DSCP to queue";
         container dscp-to-queues {
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
             description
                 "Configuration data for QoS DSCP to queue";
 
@@ -1236,7 +1292,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "DSCP values";
+                    description "0..63:DSCP values";
                  }
             }
             description "Use this attribute to map a Differentiated Services Control Protocol
@@ -1246,7 +1302,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "Queue values";
+                    description "0..7:Queue values";
                  }
             }
             mandatory true;
@@ -1255,13 +1311,14 @@ module ipi-qos {
 
         leaf color  {
             type  ipi-qos-types:qos_color_t;
-            description "Use this attribute to select the color to map. Default value is 3.";
+            description "Use this attribute to select the color to map.";
         } // END of color definition.
 
         leaf remark-dscp-value  {
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..63"  {
-                    description "DSCP values";
+                    description "0..63:DSCP values";
                  }
             }
             description "Use this attribute to select Differentiated Services Control Protocol
@@ -1374,14 +1431,14 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "Queue values";
+                    description "0..7:Queue values";
                  }
             }
             description "Use this attribute to select the queue to map";
         } // END of queue-id definition.
 
         leaf color  {
-            type  ipi-qos-types:qos_color_t;
+            type  ipi-qos-types:qos_color_key_t;
             default "all";
             description "Use this attribute to select the color to map";
         } // END of color definition.
@@ -1389,7 +1446,7 @@ module ipi-qos {
         leaf exp-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "MPLS experimental values";
+                    description "0..7:MPLS experimental values";
                  }
             }
             mandatory true;
@@ -1446,7 +1503,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "DSCP values";
+                    description "0..63:DSCP values";
                  }
             }
             description "Use this attribute to map a Differentiated Services Control Protocol
@@ -1456,7 +1513,7 @@ module ipi-qos {
         leaf exp-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "MPLS experimental values";
+                    description "0..7:MPLS experimental values";
                  }
             }
             mandatory true;
@@ -1465,6 +1522,197 @@ module ipi-qos {
         } // END of exp-value definition.
 
     } // END of qos-dscp-to-exp-config definition.
+    grouping qos-dscp-encap-profile-top {
+        description
+            "Grouping for QoS dscp encapsulation profile";
+        container dscp-encapsulation-profiles {
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            description
+                "Configuration data for QoS dscp encapsulation profile";
+
+            list dscp-encapsulation-profile {
+                key "name";
+                description
+                    "Configuration data list for QoS dscp encapsulation profile";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Use this attribute to set a name to VxLAN dscp encapsulation profile
+                                name";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data for QoS dscp encapsulation profile";
+                    uses qos-dscp-encapsulation-profile-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for QoS dscp encapsulation profile";
+                    uses qos-dscp-encapsulation-profile-config;
+                } // END of state-container definition.
+                uses qos-dscp-encap-layer-2;
+                uses qos-dscp-encap-layer-3;
+            } // End of dscp-encapsulation-profile-list
+        } // END of dscp-encapsulation-profiles-container definition.
+    } // END of qos-dscp-encap-profile-top definition.
+    grouping qos-dscp-encapsulation-profile-config {
+        description
+            "Grouping for QoS VxLAN dscp encapsulation profile configuration";
+        leaf name  {
+            type  string {
+                length "1..31";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set a name to dscp encapsulation profile name";
+        } // END of name definition.
+
+    } // END of qos-dscp-encapsulation-profile-config definition.
+    grouping qos-dscp-encap-layer-2 {
+        description
+            "Grouping for QoS L2 dscp encapsulation";
+        container layer-2 {
+            description
+                "Configuration data for Qos L2 dscp encapsulation";
+            uses qos-l2-queue-color-to-dscp;
+        } // END of layer-2-container definition.
+    } // END of qos-dscp-encap-layer-2 definition.
+    grouping qos-l2-queue-color-to-dscp {
+        description
+            "Grouping for QoS queue color to dscp encapsulation";
+        container queue-color-to-dscps {
+            description
+                "Configuration data for QoS queue color to dscp encapsulation";
+
+            list queue-color-to-dscp {
+                key "queue-id color";
+                description
+                    "Configuration data list for QoS queue color to dscp encapsulation";
+                leaf queue-id  {
+                    type  leafref {
+                        path  "../config/queue-id";
+                    }
+                    description "Use this attribute to select the queue to map";
+                } // END of queue-id definition.
+
+                leaf color  {
+                    type  leafref {
+                        path  "../config/color";
+                    }
+                    description "Use this attribute to select the color to map. Default value is 3.";
+                } // END of color definition.
+
+                container config {
+                    description
+                        "Configuration data for QoS queue color to dscp encapsulation";
+                    uses qos-l2-queue-color-to-dscp-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for QoS queue color to dscp encapsulation";
+                    uses qos-l2-queue-color-to-dscp-config;
+                } // END of state-container definition.
+            } // End of queue-color-to-dscp-list
+        } // END of queue-color-to-dscps-container definition.
+    } // END of qos-l2-queue-color-to-dscp definition.
+    grouping qos-l2-queue-color-to-dscp-config {
+        description
+            "Grouping for QoS queue color to dscpEncap configuration";
+        leaf queue-id  {
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:Queue values";
+                 }
+            }
+            description "Use this attribute to select the queue to map";
+        } // END of queue-id definition.
+
+        leaf color  {
+            type  ipi-qos-types:qos_color_key_t;
+            default "all";
+            description "Use this attribute to select the color to map";
+        } // END of color definition.
+
+        leaf dscp-value  {
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63:Select DSCP value";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to select the VxLAN dscp-encap value mapped to";
+        } // END of dscp-value definition.
+
+    } // END of qos-l2-queue-color-to-dscp-config definition.
+    grouping qos-dscp-encap-layer-3 {
+        description
+            "Grouping for QoS L3 dscp encapsulation";
+        container layer-3 {
+            description
+                "Configuration data for Qos L3 dscp encapsulation";
+            uses qos-l3-dscp-to-dscp-encap;
+        } // END of layer-3-container definition.
+    } // END of qos-dscp-encap-layer-3 definition.
+    grouping qos-l3-dscp-to-dscp-encap {
+        description
+            "Grouping for QoS DSCP to dscp encapsulation";
+        container dscp-to-dscp-encaps {
+            description
+                "Configuration data for QoS DSCP to dscp encapsulation";
+
+            list dscp-to-dscp-encap {
+                key "dscp-value";
+                description
+                    "Configuration data list for QoS DSCP to dscp encapsulation";
+                leaf dscp-value  {
+                    type  leafref {
+                        path  "../config/dscp-value";
+                    }
+                    description "Use this attribute to map a Differentiated Services Control Protocol
+                                (DSCP) value";
+                } // END of dscp-value definition.
+
+                container config {
+                    description
+                        "Configuration data for QoS DSCP to dscp encapsulation";
+                    uses qos-l3-dscp-to-dscp-encap-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for QoS DSCP to dscp encapsulation";
+                    uses qos-l3-dscp-to-dscp-encap-config;
+                } // END of state-container definition.
+            } // End of dscp-to-dscp-encap-list
+        } // END of dscp-to-dscp-encaps-container definition.
+    } // END of qos-l3-dscp-to-dscp-encap definition.
+    grouping qos-l3-dscp-to-dscp-encap-config {
+        description
+            "Grouping for QoS DSCP to dscp encap configuration";
+        leaf dscp-value  {
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63:Select DSCP value";
+                 }
+            }
+            description "Use this attribute to map a Differentiated Services Control Protocol
+                        (DSCP) value";
+        } // END of dscp-value definition.
+
+        leaf dscp-encap-value  {
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63:Select dscp value";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to select the VxLAN dscp-encap value mapped to";
+        } // END of dscp-encap-value definition.
+
+    } // END of qos-l3-dscp-to-dscp-encap-config definition.
     grouping qos-exp-to-queue-profile-top {
         description
             "Grouping for QoS MPLS experimental to queue profile";
@@ -1548,7 +1796,7 @@ module ipi-qos {
         leaf exp-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "MPLS experimental values";
+                    description "0..7:MPLS experimental values";
                  }
             }
             description "Use this attribute to select the MPLS experimental (EXP) value to map";
@@ -1557,7 +1805,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "Queue values";
+                    description "0..7:Queue values";
                  }
             }
             mandatory true;
@@ -1566,11 +1814,114 @@ module ipi-qos {
 
         leaf color  {
             type  ipi-qos-types:qos_color_t;
-            mandatory true;
-            description "Use this attribute to select the color mapped to. Default value is 3.";
+            description "Use this attribute to select the color mapped to.";
         } // END of color definition.
 
     } // END of qos-exp-to-queue-config definition.
+    grouping qos-queue-to-exp-profile-top {
+        description
+            "Grouping for QoS MPLS queue to exp profile";
+        container queue-to-exp-profiles {
+            if-feature feature-list:HAVE_DIFFSERV;
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            description
+                "Configuration data for QoS MPLS queue to exp profile";
+
+            list queue-to-exp-profile {
+                key "name";
+                description
+                    "Configuration data list for QoS MPLS queue to exp profile";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Use this attribute to set a name to MPLS experimental (EXP) to queue
+                                profile name";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data for QoS MPLS queue to exp profile";
+                    uses qos-queue-to-exp-profile-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for QoS MPLS queue to exp profile";
+                    uses qos-queue-to-exp-profile-config;
+                } // END of state-container definition.
+                uses qos-queue-to-exp;
+            } // End of queue-to-exp-profile-list
+        } // END of queue-to-exp-profiles-container definition.
+    } // END of qos-queue-to-exp-profile-top definition.
+    grouping qos-queue-to-exp-profile-config {
+        description
+            "Grouping for QoS MPLS queue to exp profile configuration";
+        leaf name  {
+            type  string {
+                length "1..31";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set a name to MPLS queue to exp profile name";
+        } // END of name definition.
+
+    } // END of qos-queue-to-exp-profile-config definition.
+    grouping qos-queue-to-exp {
+        description
+            "Grouping for QoS MPLS queue to exp";
+        container queues-to-exp {
+            description
+                "Configuration data for QoS MPLS queue to exp";
+
+            list queue-to-exp {
+                key "queue-id";
+                description
+                    "Configuration data list for QoS MPLS queue to exp";
+                leaf queue-id  {
+                    type  leafref {
+                        path  "../config/queue-id";
+                    }
+                    description "Use this attribute to select the queue to map";
+                } // END of queue-id definition.
+
+                container config {
+                    description
+                        "Configuration data for QoS MPLS queue to exp";
+                    uses qos-queue-to-exp-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for QoS MPLS queue to exp";
+                    uses qos-queue-to-exp-config;
+                } // END of state-container definition.
+            } // End of queue-to-exp-list
+        } // END of queues-to-exp-container definition.
+    } // END of qos-queue-to-exp definition.
+    grouping qos-queue-to-exp-config {
+        description
+            "Grouping for QoS MPLS queue to exp configuration";
+        leaf queue-id  {
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:Queue values";
+                 }
+            }
+            description "Use this attribute to select the queue to map";
+        } // END of queue-id definition.
+
+        leaf exp-value  {
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:MPLS experimental values";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to select the MPLS experimental (EXP) value mapped
+                        to";
+        } // END of exp-value definition.
+
+    } // END of qos-queue-to-exp-config definition.
     grouping qos-queue-color-to-cos-profile-top {
         description
             "Grouping for QoS queue color to CoS profile";
@@ -1661,14 +2012,14 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "Queue values";
+                    description "0..7:Queue values";
                  }
             }
             description "Use this attribute to select the queue to map";
         } // END of queue-id definition.
 
         leaf color  {
-            type  ipi-qos-types:qos_color_t;
+            type  ipi-qos-types:qos_color_key_t;
             default "all";
             description "Use this attribute to select the color to map";
         } // END of color definition.
@@ -1676,7 +2027,7 @@ module ipi-qos {
         leaf cos-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "CoS values";
+                    description "0..7:CoS values";
                  }
             }
             mandatory true;
@@ -1684,12 +2035,22 @@ module ipi-qos {
         } // END of cos-value definition.
 
     } // END of qos-queue-color-to-cos-config definition.
+    grouping qos-queue-color-to-dscp-profile-config {
+        description
+            "Grouping for QoS queue color to DSCP profile configuraation";
+        leaf name  {
+            type  string {
+                length "1..31";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to select the queue color to DSCP profile name";
+        } // END of name definition.
+
+    } // END of qos-queue-color-to-dscp-profile-config definition.
     grouping qos-queue-color-to-dscp-profile-top {
         description
             "Grouping for QoS queue color to DSCP profile";
         container queue-color-to-dscp-profiles {
-            if-feature feature-list:HAVE_VXLAN;
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
             description
                 "Configuration data for QoS queue color to DSCP profile";
 
@@ -1719,18 +2080,6 @@ module ipi-qos {
             } // End of queue-color-to-dscp-profile-list
         } // END of queue-color-to-dscp-profiles-container definition.
     } // END of qos-queue-color-to-dscp-profile-top definition.
-    grouping qos-queue-color-to-dscp-profile-config {
-        description
-            "Grouping for QoS queue color to DSCP profile configuraation";
-        leaf name  {
-            type  string {
-                length "1..31";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to select the queue color to DSCP profile name";
-        } // END of name definition.
-
-    } // END of qos-queue-color-to-dscp-profile-config definition.
     grouping qos-queue-color-to-dscp {
         description
             "Grouping for QoS queue color to DSCP";
@@ -1776,14 +2125,14 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "Quue values";
+                    description "0..7:Quue values";
                  }
             }
             description "Use this attribute to select the queue to map";
         } // END of queue-id definition.
 
         leaf color  {
-            type  ipi-qos-types:qos_color_t;
+            type  ipi-qos-types:qos_color_key_t;
             default "all";
             description "Use this attribute to select the color to map";
         } // END of color definition.
@@ -1791,7 +2140,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "DSCP values";
+                    description "0..63:DSCP values";
                  }
             }
             mandatory true;
@@ -1808,203 +2157,17 @@ module ipi-qos {
             if-feature feature-list:HAVE_QOS_MAPPING_PROFILE;
             description
                 "Configuration data for QoS map profile";
-            uses qos-vxlan-cos-to-queue-profile-top;
-            uses qos-vxlan-dscp-to-queue-profile-top;
             uses qos-cos-to-queue-profile-top;
             uses qos-dscp-to-dscp-profile-top;
             uses qos-dscp-to-queue-profile-top;
+            uses qos-dscp-encap-profile-top;
             uses qos-exp-encap-profile-top;
             uses qos-exp-to-queue-profile-top;
+            uses qos-queue-to-exp-profile-top;
             uses qos-queue-color-to-cos-profile-top;
             uses qos-queue-color-to-dscp-profile-top;
         } // END of map-profile-container definition.
     } // END of qos-map-profile-top definition.
-    grouping qos-mutation-map-top {
-        description
-            "Grouping for QoS mutation map";
-        container mutation-map {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
-            if-feature feature-list:NOT_HAVE_QOS_MAPPING_PROFILE;
-            description
-                "Configuration data for QoS mutation map";
-            uses qos-map-cos;
-            uses qos-map-dscp;
-            uses qos-map-exp;
-            uses qos-map-class;
-        } // END of mutation-map-container definition.
-    } // END of qos-mutation-map-top definition.
-    grouping qos-map-cos {
-        description
-            "Grouping for QoS map CoS";
-        container coses {
-            description
-                "Configuration data for QoS map CoS";
-
-            list cos {
-                key "cos-value";
-                description
-                    "Configuration data list for QoS map CoS";
-                leaf cos-value  {
-                    type  leafref {
-                        path  "../config/cos-value";
-                    }
-                    description "Use this attribute to map a Class of Service (CoS) value to a
-                                particular queue";
-                } // END of cos-value definition.
-
-                container config {
-                    description
-                        "Configuration data for QoS map CoS";
-                    uses qos-map-cos-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for QoS map CoS";
-                    uses qos-map-cos-config;
-                } // END of state-container definition.
-            } // End of cos-list
-        } // END of coses-container definition.
-    } // END of qos-map-cos definition.
-    grouping qos-map-cos-config {
-        description
-            "Grouping for QoS map CoS configuration";
-        leaf cos-value  {
-            type  uint8 {
-                 range "0..7"  {
-                    description "CoS values";
-                 }
-            }
-            description "Use this attribute to map a Class of Service (CoS) value to a
-                        particular queue";
-        } // END of cos-value definition.
-
-        leaf queue-id  {
-            type  uint8 {
-                 range "0..7"  {
-                    description "Queue values";
-                 }
-            }
-            mandatory true;
-            description "Use this attribute to select the queue CoS is mapped to";
-        } // END of queue-id definition.
-
-    } // END of qos-map-cos-config definition.
-    grouping qos-map-dscp {
-        description
-            "Grouping for QoS map DSCP";
-        container dscps {
-            description
-                "Configuration data for QoS map DSCP";
-
-            list dscp {
-                key "dscp-value";
-                description
-                    "Configuration data list for QoS map DSCP";
-                leaf dscp-value  {
-                    type  leafref {
-                        path  "../config/dscp-value";
-                    }
-                    description "Use this attribute to map a Differentiated Services Control Protocol
-                                (DSCP) value to a particular queue";
-                } // END of dscp-value definition.
-
-                container config {
-                    description
-                        "Configuration data for QoS map DSCP";
-                    uses qos-map-dscp-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for QoS map DSCP";
-                    uses qos-map-dscp-config;
-                } // END of state-container definition.
-            } // End of dscp-list
-        } // END of dscps-container definition.
-    } // END of qos-map-dscp definition.
-    grouping qos-map-dscp-config {
-        description
-            "Grouping for QoS map DSCP configuration";
-        leaf dscp-value  {
-            type  uint8 {
-                 range "0..63"  {
-                    description "DSCP values";
-                 }
-            }
-            description "Use this attribute to map a Differentiated Services Control Protocol
-                        (DSCP) value to a particular queue";
-        } // END of dscp-value definition.
-
-        leaf queue-id  {
-            type  uint8 {
-                 range "0..7"  {
-                    description "Queue values";
-                 }
-            }
-            mandatory true;
-            description "Use this attribute to select the queue DSCP is mapped to";
-        } // END of queue-id definition.
-
-    } // END of qos-map-dscp-config definition.
-    grouping qos-map-exp {
-        description
-            "Grouping for QoS map MPLS experimental";
-        container exps {
-            if-feature feature-list:HAVE_DIFFSERV;
-            description
-                "Configuration data for QoS map MPLS experimental";
-
-            list exp {
-                key "exp-value";
-                description
-                    "Configuration data list for QoS map MPLS experimental";
-                leaf exp-value  {
-                    type  leafref {
-                        path  "../config/exp-value";
-                    }
-                    description "Use this attribute to map a MPLS experimental (EXP) value to a
-                                particular class";
-                } // END of exp-value definition.
-
-                container config {
-                    description
-                        "Configuration data for QoS map MPLS experimental";
-                    uses qos-map-exp-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for QoS map MPLS experimental";
-                    uses qos-map-exp-config;
-                } // END of state-container definition.
-            } // End of exp-list
-        } // END of exps-container definition.
-    } // END of qos-map-exp definition.
-    grouping qos-map-exp-config {
-        description
-            "Grouping for QoS map MPLS experimental configuration";
-        leaf exp-value  {
-            type  uint8 {
-                 range "0..7"  {
-                    description "MPLS experimental values";
-                 }
-            }
-            description "Use this attribute to map a MPLS experimental (EXP) value to a
-                        particular class";
-        } // END of exp-value definition.
-
-        leaf class-value  {
-            type  uint8 {
-                 range "0..7"  {
-                    description "Class values";
-                 }
-            }
-            mandatory true;
-            description "Use this attribute to select the class EXP is mapped to";
-        } // END of class-value definition.
-
-    } // END of qos-map-exp-config definition.
     grouping qos-map-class {
         description
             "Grouping for QoS map class";
@@ -2045,7 +2208,7 @@ module ipi-qos {
         leaf class-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "Class values";
+                    description "0..7:Class values";
                  }
             }
             description "Use this attribute to map a class value to a particular MPLS
@@ -2055,7 +2218,7 @@ module ipi-qos {
         leaf exp-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "MPLS experimental values";
+                    description "0..7:MPLS experimental values";
                  }
             }
             mandatory true;
@@ -2063,35 +2226,10 @@ module ipi-qos {
         } // END of exp-value definition.
 
     } // END of qos-map-class-config definition.
-    grouping qos-queue-wrr-unicast-non-unicast-config {
-        description
-            "Grouping for QoS queue weighted round robin unicast/non-unicast
-                        configuration";
-        leaf unicast-queue-weight  {
-            type  uint8 {
-                 range "1..127"  {
-                    description "Weight values";
-                 }
-            }
-            description "Use this attribute to set weight for unicast packets for scheduler
-                        mode of L1 node to WRR";
-        } // END of unicast-queue-weight definition.
-
-        leaf non-unicast-queue-weight  {
-            type  uint8 {
-                 range "1..127"  {
-                    description "Weight values";
-                 }
-            }
-            description "Use this attribute to set weight for non-unicast packets for scheduler
-                        mode of L1 node to WRR";
-        } // END of non-unicast-queue-weight definition.
-
-    } // END of qos-queue-wrr-unicast-non-unicast-config definition.
     grouping qos-queue-wrr-unicast-non-unicast {
         description
             "Grouping for QoS queue weighted round robin unicast/non-unicast";
-        container weighted-round-robin {
+        container weighted-round-robins {
             when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:scheduler-mode/ipi-qos:strict-priority/ipi-qos:config/ipi-qos:enabled) ";
             description
                 "Configuration data for QoS queue weighted round robin
@@ -2101,21 +2239,21 @@ module ipi-qos {
                 key "unicast-queue-weight non-unicast-queue-weight";
                 max-elements 1;
                 description
-                    "Match community length list";
+                    "Configuration data list for WRR weights";
                 leaf unicast-queue-weight  {
                     type  leafref {
                         path  "../config/unicast-queue-weight";
                     }
-                    description "Use this attribute to set weight for unicast packets for scheduler
-                                mode of L1 node to WRR";
+                    description "Use this attribute to set action as change qos wrr weigth for uc queue
+                                in the egress to the defined value for matched packets";
                 } // END of unicast-queue-weight definition.
 
                 leaf non-unicast-queue-weight  {
                     type  leafref {
                         path  "../config/non-unicast-queue-weight";
                     }
-                    description "Use this attribute to set weight for non-unicast packets for scheduler
-                                mode of L1 node to WRR";
+                    description "Use this attribute to set action as change qos wrr weigth for non-uc
+                                queue in the egress to the defined value for matched packets";
                 } // END of non-unicast-queue-weight definition.
 
                 container config {
@@ -2132,8 +2270,33 @@ module ipi-qos {
                     uses qos-queue-wrr-unicast-non-unicast-config;
                 } // END of state-container definition.
             } // End of weighted-round-robin-list
-        } // END of weighted-round-robin-container definition.
+        } // END of weighted-round-robins-container definition.
     } // END of qos-queue-wrr-unicast-non-unicast definition.
+    grouping qos-queue-wrr-unicast-non-unicast-config {
+        description
+            "Grouping for QoS queue weighted round robin unicast/non-unicast
+                        configuration";
+        leaf unicast-queue-weight  {
+            type  uint8 {
+                 range "1..127"  {
+                    description "1..127:Weight Value assigned to UC queues";
+                 }
+            }
+            description "Use this attribute to set action as change qos wrr weigth for uc queue
+                        in the egress to the defined value for matched packets";
+        } // END of unicast-queue-weight definition.
+
+        leaf non-unicast-queue-weight  {
+            type  uint8 {
+                 range "1..127"  {
+                    description "1..127:Weight Value assigned to Non-UC queues";
+                 }
+            }
+            description "Use this attribute to set action as change qos wrr weigth for non-uc
+                        queue in the egress to the defined value for matched packets";
+        } // END of non-unicast-queue-weight definition.
+
+    } // END of qos-queue-wrr-unicast-non-unicast-config definition.
     grouping qos-queue-sp-config {
         description
             "Grouping for QoS queue strict priority configuration";
@@ -2148,7 +2311,7 @@ module ipi-qos {
         description
             "Grouping for QoS queue strict priority";
         container strict-priority {
-            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:scheduler-mode/ipi-qos:weighted-round-robin/ipi-qos:weighted-round-robin/ipi-qos:config/ipi-qos:unicast-queue-weight) ";
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:scheduler-mode/ipi-qos:weighted-round-robins/ipi-qos:weighted-round-robin/ipi-qos:config/ipi-qos:unicast-queue-weight) ";
             description
                 "Configuration data for QoS queue strict priority";
             container config {
@@ -2167,106 +2330,14 @@ module ipi-qos {
     grouping qos-queue-scheduler-top {
         description
             "Grouping for QoS queue scheduler";
+        container scheduler-mode {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            description
+                "Configuration data for QoS queue scheduler";
+            uses qos-queue-wrr-unicast-non-unicast;
+            uses qos-queue-sp;
+        } // END of scheduler-mode-container definition.
     } // END of qos-queue-scheduler-top definition.
-    grouping qos-policy-map-default-top {
-        description
-            "Grouping for QoS policy-map-default";
-        container policy-maps-default {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
-            config false;
-            description
-                "State data for QoS policy-map-default";
-
-            list policy-map-default {
-                key "policy-map-name";
-                config false;
-                description
-                    "State data list for QoS policy-map-default";
-                leaf policy-map-name  {
-                    type  leafref {
-                        path  "../state/policy-map-name";
-                    }
-                    description "Use this attribute to show the policy-map-default name";
-                } // END of policy-map-name definition.
-
-                container state {
-                    config false;
-                    description
-                        "Operational state data for QoS policy-map-default";
-                    uses qos-policy-map-default-state;
-                } // END of state-container definition.
-                container classes-default {
-                    config false;
-                    description
-                        "State data for QoS policy-map-default class state";
-                    uses qos-policy-map-default-class;
-                } // END of classes-default-container definition.
-            } // End of policy-map-default-list
-        } // END of policy-maps-default-container definition.
-    } // END of qos-policy-map-default-top definition.
-    grouping qos-policy-map-default-state {
-        description
-            "Grouping for QoS policy-map-default state";
-        leaf policy-map-name  {
-            type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to show the policy-map-default name";
-        } // END of policy-map-name definition.
-
-        leaf type  {
-            type  ipi-qos-types:qos_policy_map_t;
-            description "Use this attribute to show the policy-map-default type.";
-        } // END of type definition.
-
-    } // END of qos-policy-map-default-state definition.
-    grouping qos-policy-map-default-class {
-        description
-            "Grouping for QoS policy-map-default class state";
-
-        list class-default {
-            key "class-map-name";
-            config false;
-            description
-                "State data list for QoS policy-map-default class state";
-            leaf class-map-name  {
-                type  leafref {
-                    path  "../state/class-map-name";
-                }
-                description "Use this attribute to attach a class-map-default of type qos or queue
-                            to the policy-map-default";
-            } // END of class-map-name definition.
-
-            container state {
-                config false;
-                description
-                    "Operational state data for QoS policy-map-default class state";
-                uses qos-policy-map-default-class-state;
-            } // END of state-container definition.
-        } // End of class-default-list
-    } // END of qos-policy-map-default-class definition.
-    grouping qos-policy-map-default-class-state {
-        description
-            "Grouping for QoS policy-map-default class state";
-        leaf class-map-name  {
-            type  ipi-qos-types:qos_policy_map_class_t;
-            description "Use this attribute to show the class-map-default of type qos or queue
-                        attached to the policy-map-default";
-        } // END of class-map-name definition.
-
-        leaf type  {
-            type  ipi-qos-types:qos_policy_map_t;
-            description "Use this attribute to show the class-map-default type.";
-        } // END of type definition.
-
-        leaf priority  {
-            type  uint8;
-            description "Use this attribute to show the priority value of class-map-default
-                        attached to this policy-map-default.";
-        } // END of priority definition.
-
-    } // END of qos-policy-map-default-class-state definition.
     grouping qos-policy-map-top {
         description
             "Grouping for QoS policy-map";
@@ -2369,13 +2440,6 @@ module ipi-qos {
             description "Use this attribute to set the class-map type. Default value is 1.";
         } // END of type definition.
 
-        leaf child-service-policy-name  {
-            type  leafref {
-                path  "/qos/global/policy-maps/policy-map/policy-map-name";
-            }
-            description "Use this attribute to attach a child service-policy to the policy-map";
-        } // END of child-service-policy-name definition.
-
     } // END of qos-policy-map-class-config definition.
     grouping qos-queue-mode-top {
         description
@@ -2409,7 +2473,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  int8 {
                  range "-64..64"  {
-                    description "Compensation values";
+                    description "-64..64:Compensation values";
                  }
             }
             description "Use this attribute to set the compensation used to adjust this byte
@@ -2422,12 +2486,29 @@ module ipi-qos {
             description "Use this attribute to set the low delay tolerance profile.";
         } // END of delay-tolerance definition.
 
+        leaf weighted-round-robin-queue-weight  {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            type  uint8 {
+                 range "1..127"  {
+                    description "1..127:Weight values";
+                 }
+            }
+            description "Use this attribute to set the weight for Weighted Round Robin queue
+                        scheduling algorithm";
+        } // END of weighted-round-robin-queue-weight definition.
+
+        leaf strict-priority-enabled  {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            type  empty;
+            description "Use this attibute to set Strict Priority as queue scheduling algorithm";
+        } // END of strict-priority-enabled definition.
+
         leaf priority-level  {
             when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:queue-mode/ipi-qos:config/ipi-qos:weighted-fair-queueing-queue-weight) ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "Priority level values. 0 to 7 for ports and 0 to 3 for services";
+                    description "0..7:Priority level values. 0 to 7 for ports and 0 to 3 for services";
                  }
             }
             description "Use this attribute to set the class traffic level for Priority queue
@@ -2439,7 +2520,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "1..63"  {
-                    description "Weigth values";
+                    description "1..63:Weigth values";
                  }
             }
             description "Use this attribute to set the weight for Weighted Fair Queueing queue
@@ -2479,16 +2560,16 @@ module ipi-qos {
                 uses qos-queue-mode-red-config;
             } // END of state-container definition.
             uses qos-queue-mode-wred-top;
+            uses qos-queue-mode-random-detect-top;
         } // END of red-container definition.
     } // END of qos-queue-mode-red-top definition.
     grouping qos-queue-mode-red-config {
         description
             "Grouping for QoS queue random early detection";
         leaf weight  {
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..31"  {
-                    description "Weight values";
+                    description "0..31:Weight values";
                  }
             }
             description "Use this attribute to set weight for Weighted Random Early Detection";
@@ -2499,11 +2580,11 @@ module ipi-qos {
         description
             "Grouping for QoS queue weighted random early detection";
         container wreds {
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
             description
                 "Configuration data for QoS queue weighted random early detection";
 
             list wred {
-                if-feature feature-list:HAVE_CUSTOM2_QOS;
                 key "color";
                 description
                     "Configuration data list for QoS queue weighted random early detection";
@@ -2533,7 +2614,7 @@ module ipi-qos {
         description
             "Grouping for QoS queue weighted random early detection configuration";
         leaf color  {
-            type  ipi-qos-types:qos_color_t;
+            type  ipi-qos-types:qos_color_key_t;
             default "all";
             description "Use this attribute to set Weighted Random Early Detection color";
         } // END of color definition.
@@ -2541,7 +2622,7 @@ module ipi-qos {
         leaf min-threshold  {
             type  uint32 {
                  range "1..629145600"  {
-                    description "Minimal threshold values";
+                    description "1..629145600:Minimal threshold values";
                  }
             }
             mandatory true;
@@ -2558,7 +2639,7 @@ module ipi-qos {
         leaf max-threshold  {
             type  uint32 {
                  range "1..629145600"  {
-                    description "Maximum threshold values";
+                    description "1..629145600:Maximum threshold values";
                  }
             }
             mandatory true;
@@ -2575,7 +2656,7 @@ module ipi-qos {
         leaf drop-probability  {
             type  uint8 {
                  range "1..100"  {
-                    description "Drop probability percentage. (default value is 80)";
+                    description "1..100:Drop probability percentage. (default value is 80)";
                  }
             }
             mandatory true;
@@ -2584,6 +2665,129 @@ module ipi-qos {
         } // END of drop-probability definition.
 
     } // END of qos-queue-mode-wred-config definition.
+    grouping qos-queue-mode-random-detect-top {
+        description
+            "Grouping for QoS queue weighted random early detection";
+        container wred {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            description
+                "Configuration data for QoS queue weighted random early detection";
+            container config {
+                description
+                    "Configuration data for QoS queue weighted random early detection";
+                uses qos-queue-mode-random-detect-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for QoS queue weighted random early detection";
+                uses qos-queue-mode-random-detect-config;
+            } // END of state-container definition.
+        } // END of wred-container definition.
+    } // END of qos-queue-mode-random-detect-top definition.
+    grouping qos-queue-mode-random-detect-config {
+        description
+            "Grouping for QoS queue weighted random early detection configuration";
+        leaf min-threshold  {
+            type  uint32;
+            mandatory true;
+            description "Use this attribute to set Weighted Random Early Detection minimum
+                        threshold";
+        } // END of min-threshold definition.
+
+        leaf threshold-unit  {
+            type  ipi-qos-types:qos_threshold_t;
+            mandatory true;
+            description "Use this attribute to set minimum threshold unit";
+        } // END of threshold-unit definition.
+
+        leaf max-threshold  {
+            type  uint32 {
+                 range "1..524288"  {
+                    description "1..524288:Maximum threshold values";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to set maximum threshold unit";
+        } // END of max-threshold definition.
+
+        leaf drop-probability  {
+            type  uint8 {
+                 range "1..100"  {
+                    description "1..100:Drop probability percentage. (default value is 80)";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to set the percentage of packet drops when average
+                        queue length reaches maximum threshold. Default value is 80.";
+        } // END of drop-probability definition.
+
+        leaf min-threshold-yellow  {
+            type  uint32 {
+                 range "1..524288"  {
+                    description "1..524288:Minimal threshold values";
+                 }
+            }
+            description "Use this attribute to set Weighted Random Early Detection minimum
+                        threshold";
+        } // END of min-threshold-yellow definition.
+
+        leaf max-threshold-yellow  {
+            type  uint32 {
+                 range "1..524288"  {
+                    description "1..524288:Maximum threshold values";
+                 }
+            }
+            description "Use this attribute to set maximum threshold unit";
+        } // END of max-threshold-yellow definition.
+
+        leaf drop-probability-yellow  {
+            type  uint8 {
+                 range "1..100"  {
+                    description "1..100:Drop probability percentage. (default value is 80)";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to set the percentage of packet drops when average
+                        queue length reaches maximum threshold. Default value is 80.";
+        } // END of drop-probability-yellow definition.
+
+        leaf min-threshold-red  {
+            type  uint32 {
+                 range "1..524288"  {
+                    description "1..524288:Minimal threshold values";
+                 }
+            }
+            description "Use this attribute to set Weighted Random Early Detection minimum
+                        threshold";
+        } // END of min-threshold-red definition.
+
+        leaf max-threshold-red  {
+            type  uint32 {
+                 range "1..524288"  {
+                    description "1..524288:Maximum threshold values";
+                 }
+            }
+            description "Use this attribute to set maximum threshold unit";
+        } // END of max-threshold-red definition.
+
+        leaf drop-probability-red  {
+            type  uint8 {
+                 range "1..100"  {
+                    description "1..100:Drop probability percentage. (default value is 80)";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to set the percentage of packet drops when average
+                        queue length reaches maximum threshold. Default value is 80.";
+        } // END of drop-probability-red definition.
+
+        leaf explicit-congestion-notification  {
+            type  empty;
+            description "Use this attribute to set explicit congestion notification.";
+        } // END of explicit-congestion-notification definition.
+
+    } // END of qos-queue-mode-random-detect-config definition.
     grouping qos-queue-mode-tail-drop-top {
         description
             "Grouping for QoS queue tail-drop";
@@ -2630,7 +2834,7 @@ module ipi-qos {
         leaf max-threshold  {
             type  uint32 {
                  range "1..629145600"  {
-                    description "Maximum threshold values";
+                    description "1..629145600:Maximum threshold values";
                  }
             }
             description "Use this attribute to set tail drop limits on egress queue";
@@ -2645,6 +2849,43 @@ module ipi-qos {
     grouping qos-queue-mode-bandwidth-top {
         description
             "Grouping for QoS queue bandwidth";
+        container bandwidths {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            description
+                "Configuration data for QoS queue bandwidth";
+
+            list bandwidth {
+                key "rate-value rate-type";
+                max-elements 1;
+                description
+                    "Configuration data for QoS queue bandwidth";
+                leaf rate-value  {
+                    type  leafref {
+                        path  "../config/rate-value";
+                    }
+                    description "Use this attribute to set a minimum bandwidth rate on the egress queue";
+                } // END of rate-value definition.
+
+                leaf rate-type  {
+                    type  leafref {
+                        path  "../config/rate-type";
+                    }
+                    description "Use this attribute to set the bandwidth rate unit";
+                } // END of rate-type definition.
+
+                container config {
+                    description
+                        "Configuration data for QoS queue bandwidth";
+                    uses qos-queue-mode-bandwidth-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for QoS queue bandwidth";
+                    uses qos-queue-mode-bandwidth-config;
+                } // END of state-container definition.
+            } // End of bandwidth-list
+        } // END of bandwidths-container definition.
     } // END of qos-queue-mode-bandwidth-top definition.
     grouping qos-queue-mode-bandwidth-config {
         description
@@ -2742,7 +2983,7 @@ module ipi-qos {
         leaf priority  {
             type  uint16 {
                  range "1..1000"  {
-                    description "Priority values";
+                    description "1..1000:Priority values";
                  }
             }
             description "Use this attribute to set the user priority for the class attached to
@@ -2763,11 +3004,25 @@ module ipi-qos {
                 description
                     "Set precedence option";
 
-                leaf precedence  {
-                    type  ipi-qos-types:qos_precedence_extended_t;
+                leaf precedence-remark  {
+                    type  string {
+                        length "1..13";
+                        pattern "[^?' =,>|]+";
+                    }
                     description "Use this attribute to match traffic classes set action as change
-                                precedence in the egress packet to the defined value";
-                } // END of precedence definition.
+                                precedence in the egress packet to the defined value. The precedence
+                                value range is 0-7.
+                                Warning: In CLI show running, precedence values with well-known names
+                                (ex.: priority, immediate) will be displayed as such.
+                                On Netconf, precedence values will always be numeric. The string type
+                                allow up to 13 characters on well-known name.";
+                } // END of precedence-remark definition.
+
+            }
+            case bridge-precedence {
+
+                description
+                    "Set bridge precedence option";
 
             }
             case cos {
@@ -2778,7 +3033,7 @@ module ipi-qos {
                 leaf cos-value  {
                     type  uint8 {
                          range "0..7"  {
-                            description "CoS values";
+                            description "0..7:CoS values";
                          }
                     }
                     description "Use this attribute to match traffic classes set action as change CoS
@@ -2786,16 +3041,60 @@ module ipi-qos {
                 } // END of cos-value definition.
 
             }
+            case bridge-cos {
+
+                description
+                    "Set bridge CoS option";
+
+                leaf cos-remark-only-bridged  {
+                    if-feature feature-list:HAVE_CUSTOM1_QOS;
+                    type  uint8 {
+                         range "0..7"  {
+                            description "0..7:CoS values";
+                         }
+                    }
+                    description "Use this attribute to enable remarking only bridged packets";
+                } // END of cos-remark-only-bridged definition.
+
+            }
             case dscp {
 
                 description
                     "Set DSCP option";
 
-                leaf dscp-value  {
-                    type  ipi-qos-types:qos_dscp_extended_t;
+                leaf dscp-value-remark  {
+                    type  string {
+                        length "1..8";
+                        pattern "[^?' =,>|]+";
+                    }
                     description "Use this attribute to match traffic classes set action as change DSCP
-                                in the egress packet to the defined value";
-                } // END of dscp-value definition.
+                                in the egress packet to the defined value. The DSCP value range is
+                                0-63.
+                                Warning: In CLI show running, DSCP values with well-known names (ex.:
+                                af11, cs0) will be displayed as such.
+                                On Netconf, DSCP values will always be numeric. The string type allow
+                                up to 8 characters on well-known name.";
+                } // END of dscp-value-remark definition.
+
+            }
+            case bridge-dscp {
+
+                description
+                    "Set bridge DSCP option";
+
+                leaf dscp-remark-only-bridged  {
+                    if-feature feature-list:HAVE_CUSTOM1_QOS;
+                    type  string {
+                        length "1..8";
+                        pattern "[^?' =,>|]+";
+                    }
+                    description "Use this attribute to enable remarking only bridged packets. The DSCP
+                                value range is 0-63.
+                                Warning: In CLI show running, DSCP values with well-known names (ex.:
+                                af11, cs0) will be displayed as such.
+                                On Netconf, DSCP values will always be numeric. The string type allow
+                                up to 8 characters on well-known name.";
+                } // END of dscp-remark-only-bridged definition.
 
             }
             case queue {
@@ -2806,7 +3105,7 @@ module ipi-qos {
                 leaf queue-id  {
                     type  uint8 {
                          range "0..7"  {
-                            description "Queue values";
+                            description "0..7:Queue values";
                          }
                     }
                     description "Use this attribute to match traffic classes set action as change queue
@@ -2814,10 +3113,20 @@ module ipi-qos {
                 } // END of queue-id definition.
 
             }
-            case vlan {
+            case bridge-queue {
 
                 description
-                    "Set VLAN option";
+                    "Set bridge queue option";
+
+                leaf queue-remark-only-bridged  {
+                    if-feature feature-list:HAVE_CUSTOM1_QOS;
+                    type  uint8 {
+                         range "0..7"  {
+                            description "0..7:Queue values";
+                         }
+                    }
+                    description "Use this attribute to enable remarking only bridged packets";
+                } // END of queue-remark-only-bridged definition.
 
             }
         } // END of set-option-choice definition.
@@ -2856,7 +3165,6 @@ module ipi-qos {
                 uses qos-aggregate-police-ref;
                 uses qos-police-config;
             } // END of state-container definition.
-            uses qos-police-action;
         } // END of police-container definition.
     } // END of qos-police definition.
     grouping qos-police-config {
@@ -2870,7 +3178,7 @@ module ipi-qos {
         leaf cir  {
             type  uint64 {
                  range "1..720000000"  {
-                    description "Committed Information Rate values";
+                    description "1..720000000:Committed Information Rate values";
                  }
             }
             mandatory true;
@@ -2889,7 +3197,7 @@ module ipi-qos {
         leaf bc  {
             type  uint64 {
                  range "1..4161"  {
-                    description "Committed Burst values";
+                    description "1..4161:Committed Burst values";
                  }
             }
             description "Use this attribute to set a Committed Burst";
@@ -2905,7 +3213,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint64 {
                  range "1..720000000"  {
-                    description "Excess Information Rate values";
+                    description "1..720000000:Excess Information Rate values";
                  }
             }
             description "Use this attribute to set an Excess Information Rate";
@@ -2918,10 +3226,26 @@ module ipi-qos {
             description "Use this attribute to set an Excess Information Rate unit";
         } // END of eir-unit definition.
 
+        leaf pir  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  uint64 {
+                 range "1..2000000000"  {
+                    description "1..2000000000:Peak Information Rate values";
+                 }
+            }
+            description "Use this attribute to set a Peak Information Rate";
+        } // END of pir definition.
+
+        leaf pir-unit  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_rate_unit_t;
+            description "Use this attribute to set a Peak Information Rate unit";
+        } // END of pir-unit definition.
+
         leaf be  {
             type  uint32 {
                  range "1..4161"  {
-                    description "Extended Burst values";
+                    description "1..4161:Extended Burst values";
                  }
             }
             description "Use this attribute to set an Extended Burst";
@@ -2933,6 +3257,130 @@ module ipi-qos {
             description "Use this attribute to set an Extended Burst unit";
         } // END of be-unit definition.
 
+        leaf set-conform-action  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_conform_action_t;
+            description "Use this attribute to set an action when queue traffic conforms with
+                        defined policer values";
+        } // END of set-conform-action definition.
+
+        leaf conform-cos  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:CoS values";
+                 }
+            }
+            description "CoS value to be set on packets that conform";
+        } // END of conform-cos definition.
+
+        leaf conform-dscp  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63:DSCP values";
+                 }
+            }
+            description "DSCP value to be set on packets that conform";
+        } // END of conform-dscp definition.
+
+        leaf conform-precedence  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:Precedence value";
+                 }
+            }
+            description "Precedence value to be set on packets that conform";
+        } // END of conform-precedence definition.
+
+        leaf conform-exp  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            if-feature feature-list:HAVE_DIFFSERV;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:EXP values";
+                 }
+            }
+            description "MPLS class value to be set on packets that conform";
+        } // END of conform-exp definition.
+
+        leaf set-exceed-action  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_exceed_action_t;
+            description "Use this attribute to set an action when queue traffic exceeds define
+                        policer values";
+        } // END of set-exceed-action definition.
+
+        leaf exceed-cos  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:CoS values";
+                 }
+            }
+            description "CoS value to be set on packets that exceed";
+        } // END of exceed-cos definition.
+
+        leaf exceed-dscp  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63:DSCP values";
+                 }
+            }
+            description "DSCP value to be set on packets that exceed";
+        } // END of exceed-dscp definition.
+
+        leaf exceed-exp  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            if-feature feature-list:HAVE_DIFFSERV;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:EXP values";
+                 }
+            }
+            description "MPLS class value to be set on packets that exceed";
+        } // END of exceed-exp definition.
+
+        leaf set-violate-action  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  ipi-qos-types:qos_violate_action_t;
+            description "Use this attribute to set an action when queue traffic violates
+                        defined policer values";
+        } // END of set-violate-action definition.
+
+        leaf violate-cos  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:CoS values";
+                 }
+            }
+            description "CoS value to be set on packets that violate";
+        } // END of violate-cos definition.
+
+        leaf violate-dscp  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63:DSCP values";
+                 }
+            }
+            description "DSCP value to be set on packets that violate";
+        } // END of violate-dscp definition.
+
+        leaf violate-exp  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            if-feature feature-list:HAVE_DIFFSERV;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:EXP values";
+                 }
+            }
+            description "MPLS class value to be set on packets that violate";
+        } // END of violate-exp definition.
+
     } // END of qos-police-config definition.
     grouping qos-police-action {
         description
@@ -2940,12 +3388,42 @@ module ipi-qos {
     } // END of qos-police-action definition.
     grouping qos-police-actions-config {
         description
-            "Grouping for QoS police actions configuration";
+            "Grouping for QoS police action";
         leaf set-conform-action  {
             type  ipi-qos-types:qos_conform_action_t;
             description "Use this attribute to set an action when queue traffic conforms with
                         defined policer values";
         } // END of set-conform-action definition.
+
+        leaf conform-cos  {
+            when " ../set-conform-action='set-cos-transmit' ";
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:CoS values";
+                 }
+            }
+            description "CoS value to be set on packets that conform";
+        } // END of conform-cos definition.
+
+        leaf conform-dscp  {
+            when " ../set-conform-action='set-dscp-transmit' ";
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63:DSCP values";
+                 }
+            }
+            description "DSCP value to be set on packets that conform";
+        } // END of conform-dscp definition.
+
+        leaf conform-precedence  {
+            when " ../set-conform-action='set-prec-transmit' ";
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:Precedence value";
+                 }
+            }
+            description "Precedence value to be set on packets that conform";
+        } // END of conform-precedence definition.
 
         leaf set-exceed-action  {
             type  ipi-qos-types:qos_exceed_action_t;
@@ -2953,11 +3431,51 @@ module ipi-qos {
                         policer values";
         } // END of set-exceed-action definition.
 
+        leaf exceed-cos  {
+            when " ../set-exceed-action='set-cos-transmit' ";
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:CoS values";
+                 }
+            }
+            description "CoS value to be set on packets that exceed";
+        } // END of exceed-cos definition.
+
+        leaf exceed-dscp  {
+            when " ../set-exceed-action='set-dscp-transmit' ";
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63:DSCP values";
+                 }
+            }
+            description "DSCP value to be set on packets that exceed";
+        } // END of exceed-dscp definition.
+
         leaf set-violate-action  {
             type  ipi-qos-types:qos_violate_action_t;
             description "Use this attribute to set an action when queue traffic violates
                         defined policer values";
         } // END of set-violate-action definition.
+
+        leaf violate-cos  {
+            when " ../set-violate-action='set-mpls-class' ";
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:CoS values";
+                 }
+            }
+            description "CoS value to be set on packets that violate";
+        } // END of violate-cos definition.
+
+        leaf violate-dscp  {
+            when " ../set-violate-action='set-dscp-transmit' ";
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63:DSCP values";
+                 }
+            }
+            description "DSCP value to be set on packets that violate";
+        } // END of violate-dscp definition.
 
     } // END of qos-police-actions-config definition.
     grouping qos-aggregate-police-ref {
@@ -2988,6 +3506,12 @@ module ipi-qos {
             type  empty;
             description "Use this command to enable remarking of CoS set by the egress map";
         } // END of cos definition.
+
+        leaf dei  {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            type  empty;
+            description "Use this command to enable remarking of DEI set by the egress map";
+        } // END of dei definition.
 
         leaf dscp  {
             type  empty;
@@ -3025,6 +3549,7 @@ module ipi-qos {
 
         leaf red-drop-disabled  {
             when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  empty;
             description "Use this attribute to disable red packet drop in the system. Red
                         packets are dropped in the system by default to
@@ -3039,18 +3564,6 @@ module ipi-qos {
             type  empty;
             description "Use this attribute to enable QoS statistics";
         } // END of statistics-enabled definition.
-
-        leaf block-size  {
-            if-feature feature-list:HAVE_FLEXPORT;
-            if-feature feature-list:HAVE_SERVICE_QUEUING_1;
-            type  uint8 {
-                 range "1..8"  {
-                    description "Block-size values";
-                 }
-            }
-            default "1";
-            description "Use this attribute to configure block-size for vlan-queuing";
-        } // END of block-size definition.
 
     } // END of qos-global-config definition.
     grouping qos-global-top {
@@ -3071,12 +3584,10 @@ module ipi-qos {
                 uses qos-global-config;
             } // END of state-container definition.
             uses qos-map-profile-top;
-            uses qos-mutation-map-top;
             uses qos-remark-top;
             uses qos-class-map-default-top;
             uses qos-class-map-top;
             uses qos-class-map-queuing-top;
-            uses qos-policy-map-default-top;
             uses qos-policy-map-top;
             uses qos-aggregate-police-top;
             uses qos-queue-scheduler-top;
@@ -3098,14 +3609,14 @@ module ipi-qos {
     rpc qos-clear-statistics {
         description "Clears QoS statistics";
         input  {
-            leaf name  {
+            leaf interface-name  {
                 type string;
                 default "NULL";
                 description "Specify the interface name for which statistics should be cleared";
             }
-            leaf cos-stat-value  {
+            leaf type  {
                 type ipi-qos-types:qos_clear_stats_t;
-                default "type-qos-default";
+                default "type-all";
                 description "Specify the type of statistics that should be cleared";
             }
         }

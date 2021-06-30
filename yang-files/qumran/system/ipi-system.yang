@@ -21,16 +21,14 @@ module ipi-system {
 
     prefix "ipi-system";
 
-    import cml-data-types {
-        prefix cml-data-types;
-    }
-
     import ietf-yang-types {
         prefix yang;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -61,49 +59,68 @@ module ipi-system {
     typedef  system_time_duration {
         type string;
         description "Define how long the system up and running time";
+    }
+
+    typedef  system_timezone_name_t {
+        type string;
+        description "A time zone name as used by the Time Zone Database, sometimes referred
+                    to as the 'Olson Database'. The exact set of valid values is an
+                    implementation-specific  matter.  Client discovery of the exact set of
+                    time zone names for a particular server is out of scope.";
+        reference "BCP 175: Procedures for Maintaining the Time Zone Database";
     }    grouping system-clock-top {
         description
             "Top-level grouping for system-wide clock configuration";
         container clock {
             description
                 "Top-level container for clock configuration data";
+            container config {
+                description
+                    "config data for system clock";
+                uses system-clock-config;
+            } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operational state data for system clock";
-                uses system-clock-state;
+                uses system-clock-config;
             } // END of state-container definition.
         } // END of clock-container definition.
     } // END of system-clock-top definition.
-    grouping system-clock-state {
+    grouping system-clock-config {
         description
-            "Operational state data for system-wide clock configuration";
+            "Configuration data for system-wide clock";
         leaf timezone-name  {
-            type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+            type  system_timezone_name_t {
+                length "1..1965";
             }
             description "The attribute display timezone name used for the system";
         } // END of timezone-name definition.
 
-    } // END of system-clock-state definition.
+    } // END of system-clock-config definition.
     grouping system-global-state {
         description
             "system global state parameters";
         leaf software-version  {
-            type  cml-data-types:cml_raw_string_t;
+            type  string {
+                length "1..1965";
+            }
             description "This attribute display software version";
         } // END of software-version definition.
 
         leaf software-build-number  {
             if-feature feature-list:BUILD_PRODUCT_VERSION;
             if-feature feature-list:BUILD_NUMBER;
-            type  cml-data-types:cml_raw_string_t;
+            type  string {
+                length "1..1965";
+            }
             description "This attribute display software Build Number";
         } // END of software-build-number definition.
 
         leaf system-uptime  {
-            type  system_time_duration;
+            type  system_time_duration {
+                length "1..1965";
+            }
             description "This attribute display how long the system has been up and running";
         } // END of system-uptime definition.
 

@@ -23,33 +23,34 @@ module ipi-isis {
 
     import ipi-vrf {
         prefix ipi-vrf;
+        revision-date 2021-01-27;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-    }
-
-    import cml-data-types {
-        prefix cml-data-types;
+        revision-date 2020-12-15;
     }
 
     import ipi-isis-types {
         prefix ipi-isis-types;
+        revision-date 2020-12-15;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
-    include ipi-isis-extended;
-    include ipi-isis-lsp;
-    include ipi-isis-interface;
-    include ipi-isis-sr;
-    include ipi-isis-cspf;
+    include ipi-isis-extended { revision-date 2020-12-15;}
+    include ipi-isis-lsp { revision-date 2020-12-15;}
+    include ipi-isis-interface { revision-date 2020-12-15;}
+    include ipi-isis-sr { revision-date 2020-12-15;}
+    include ipi-isis-cspf { revision-date 2020-12-15;}
     organization
         "IP Infusion Inc.";
 
@@ -63,18 +64,12 @@ module ipi-isis {
         "Model for managing IS-IS Instance";
 
 
-    revision "2021-03-07" {
-        description " Added a separate objectlist for level runtime attributes and for isis topology nexthop data
-        ";
-        reference " 0.2.2.";
-    }
-
     revision "2021-01-11" {
         description " 1.JIRA-42469:changed redistribute-level-1-2 and redistribute-level-2-1 as objectlist with
                         enable as RDN
                         2.JIRA-42382:redistribute config is not retained after system upgrade from SP3.0.135 build to SP4.1.188 Nebula branch
         ";
-        reference " 0.2.1.";
+        reference " 0.3.0.";
     }
 
     revision "2020-12-15" {
@@ -115,7 +110,9 @@ module ipi-isis {
         } // END of pdu-length definition.
 
         leaf raw-pdu  {
-            type  cml-data-types:cml_raw_string_t;
+            type  string {
+                length "1..1965";
+            }
             config false;
             description "Received raw PDU";
         } // END of raw-pdu definition.
@@ -140,7 +137,7 @@ module ipi-isis {
 
         leaf reason  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             config false;
@@ -174,7 +171,7 @@ module ipi-isis {
             "Global Configuration items for ISIS";
         leaf instance  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to initiate an ISIS routing instance.Configure at
@@ -184,7 +181,7 @@ module ipi-isis {
         leaf distance  {
             type  uint8 {
                  range "1..255"  {
-                    description "range";
+                    description "1..255:range";
                  }
             }
             default "115";
@@ -233,7 +230,7 @@ module ipi-isis {
             if-feature feature-list:HAVE_ISIS_LFA;
             type  int32 {
                  range "100..100000"  {
-                    description "Set Hold On interval in milliseconds";
+                    description "100..100000:Set Hold On interval in milliseconds";
                  }
             }
             default "1000";
@@ -249,7 +246,7 @@ module ipi-isis {
 
         leaf-list net  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to add a Network Entity Title (NET) for the
@@ -299,7 +296,7 @@ module ipi-isis {
             if-feature feature-list:HAVE_WIDE_METRIC;
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Tag value";
+                    description "1..4294967295:Tag value";
                  }
             }
             description "Use this attribute to set a high priority tag value";
@@ -333,7 +330,7 @@ module ipi-isis {
         leaf maximum-area-addresses  {
             type  uint8 {
                  range "3..254"  {
-                    description "Maximum area address that can be supported";
+                    description "3..254:Maximum area address that can be supported";
                  }
             }
             default "3";
@@ -392,19 +389,16 @@ module ipi-isis {
         description
             "State items for ISIS Adjacency Counters";
         leaf system-level-1-adjacency-count  {
-            if-feature feature-list:HAVE_MPLS;
             type  uint32;
             description "System level 1 adjacency count";
         } // END of system-level-1-adjacency-count definition.
 
         leaf system-level-2-adjacency-count  {
-            if-feature feature-list:HAVE_MPLS;
             type  uint32;
             description "System level 2 adjacency count";
         } // END of system-level-2-adjacency-count definition.
 
         leaf system-total-adjacency-count  {
-            if-feature feature-list:HAVE_MPLS;
             type  uint32;
             description "System total adjacency count";
         } // END of system-total-adjacency-count definition.
@@ -430,7 +424,7 @@ module ipi-isis {
 
         leaf tunnel-endpoint  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Tunnel Endpoint";
@@ -453,8 +447,8 @@ module ipi-isis {
         leaf minimum-delay  {
             type  uint32 {
                  range "0..2147483647"  {
-                    description "Minimum Delay between receiving a change to SPF calculation in
-                            milliseconds";
+                    description "0..2147483647:Minimum Delay between receiving a change to SPF
+                            calculation in milliseconds";
                  }
             }
             description "Minimum delay between receiving a change to PRC calculation in
@@ -464,8 +458,8 @@ module ipi-isis {
         leaf maximum-delay  {
             type  uint32 {
                  range "0..2147483647"  {
-                    description "Maximum Delay between receiving a change to SPF calculation in
-                            milliseconds";
+                    description "0..2147483647:Maximum Delay between receiving a change to SPF
+                            calculation in milliseconds";
                  }
             }
             description "Maximum delay between receiving a change to PRC calculation in
@@ -478,7 +472,7 @@ module ipi-isis {
             "Configuration items for ISIS Area Authentication";
         leaf area-password  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             mandatory true;
@@ -505,7 +499,7 @@ module ipi-isis {
             "Configuration items for ISIS Domain Authentication";
         leaf domain-password  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             mandatory true;
@@ -548,7 +542,7 @@ module ipi-isis {
             "State items for ISIS Metric";
         leaf-list address  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Manual Area Addresses";
@@ -560,7 +554,7 @@ module ipi-isis {
             "State items for ISIS Recv Area Address";
         leaf-list address  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Rcv Area Addresses - other than already in Manual area addr list";
@@ -573,7 +567,7 @@ module ipi-isis {
         leaf lsp-refresh-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "LSP refresh time in seconds";
+                    description "1..65535:LSP refresh time in seconds";
                  }
             }
             default "900";
@@ -585,7 +579,7 @@ module ipi-isis {
         leaf lsp-lifetime-interval  {
             type  uint16 {
                  range "350..65535"  {
-                    description "Maximum LSP lifetime in seconds";
+                    description "350..65535:Maximum LSP lifetime in seconds";
                  }
             }
             default "1200";
@@ -622,7 +616,7 @@ module ipi-isis {
             "Configuration items for ISIS Passive Interface";
         leaf-list name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to suppress routing updates on all interfaces or on
@@ -649,7 +643,7 @@ module ipi-isis {
 
         leaf destination-path-type  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Destination Path Type";
@@ -689,7 +683,7 @@ module ipi-isis {
 
         leaf outgoing-interface  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Outgoing Port";
@@ -702,7 +696,7 @@ module ipi-isis {
 
         leaf source-identifier  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Nexthop neighbor source ID";
@@ -724,7 +718,7 @@ module ipi-isis {
 
         leaf destination-path-type  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Destination Path Type";
@@ -746,7 +740,7 @@ module ipi-isis {
 
         leaf outgoing-interface  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Outgoing Port";
@@ -770,7 +764,7 @@ module ipi-isis {
         leaf administrative-distance  {
             type  uint32 {
                  range "1..255"  {
-                    description "Distance range";
+                    description "1..255:Distance range";
                  }
             }
             default "115";
@@ -801,7 +795,7 @@ module ipi-isis {
 
         leaf level-1-acl  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to redistribute reachability information from one
@@ -824,7 +818,7 @@ module ipi-isis {
 
         leaf level-2-acl  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to redistribute reachability information from one
@@ -849,11 +843,12 @@ module ipi-isis {
         leaf route-map-name  {
             when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:address-family-ipv6/ipi-isis:default-route-information/ipi-isis:config/ipi-isis:originate ";
             type  string {
+                length "0..1965";
                 pattern "[^?' =,>|]*";
-                }
-                default "";
-                description "Route-map Name";
-            } // END of route-map-name definition.
+            }
+            default "";
+            description "Route-map Name";
+        } // END of route-map-name definition.
 
     } // END of isis-af-ipv6-default-info-config definition.
     grouping isis-ipv6-proto-redist-config {
@@ -878,7 +873,7 @@ module ipi-isis {
         leaf ipv6-metric-value  {
             type  uint32 {
                  range "0..16777215"  {
-                    description "IS-IS default metric";
+                    description "0..16777215:IS-IS default metric";
                  }
             }
             default "0";
@@ -895,11 +890,12 @@ module ipi-isis {
 
         leaf ipv6-route-map  {
             type  string {
+                length "0..1965";
                 pattern "[^?' =,>|]*";
-                }
-                default "";
-                description "Routemap name";
-            } // END of ipv6-route-map definition.
+            }
+            default "";
+            description "Routemap name";
+        } // END of ipv6-route-map definition.
 
     } // END of isis-ipv6-redist-config definition.
     grouping isis-summary-prefix-config {
@@ -922,7 +918,7 @@ module ipi-isis {
             when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:address-family-ipv6/ipi-isis:summary-prefix/ipi-isis:config/ipi-isis:prefix ";
             type  uint8 {
                  range "1..63"  {
-                    description "Metric Range";
+                    description "1..63:Metric Range";
                  }
             }
             description "Metric value";
@@ -951,30 +947,32 @@ module ipi-isis {
             "Configuration items for ISIS Distance";
         leaf system-id  {
             type  string {
+                length "0..1965";
                 pattern "[^?' =,>|]*";
-                }
-                description "System ID";
-            } // END of system-id definition.
+            }
+            description "System ID";
+        } // END of system-id definition.
 
-            leaf value  {
-                type  uint8 {
-                     range "1..255"  {
-                        description "range";
-                     }
-                }
-                mandatory true;
-                description "Distance Value";
-            } // END of value definition.
+        leaf value  {
+            type  uint8 {
+                 range "1..255"  {
+                    description "1..255:range";
+                 }
+            }
+            mandatory true;
+            description "Distance Value";
+        } // END of value definition.
 
-            leaf access-list-name  {
-                when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:distance/ipi-isis:config/ipi-isis:value ";
-                type  string {
-                    pattern "[^?' =,>|]*";
-                    }
-                    default "";
-                    description "Use this attribute to set the administrative distance for specific
-                                IPv4 routes.";
-                } // END of access-list-name definition.
+        leaf access-list-name  {
+            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:distance/ipi-isis:config/ipi-isis:value ";
+            type  string {
+                length "0..1965";
+                pattern "[^?' =,>|]*";
+            }
+            default "";
+            description "Use this attribute to set the administrative distance for specific
+                        IPv4 routes.";
+        } // END of access-list-name definition.
 
     } // END of isis-distance-config definition.
     grouping isis-lsp-overload-config {
@@ -1036,7 +1034,7 @@ module ipi-isis {
 
         leaf redistribute-timer-value  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Redistribution last performed";
@@ -1056,7 +1054,7 @@ module ipi-isis {
 
         leaf level1-acl  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to redistribute reachability information from one
@@ -1079,7 +1077,7 @@ module ipi-isis {
 
         leaf level2-acl  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to redistribute reachability information from one
@@ -1104,11 +1102,12 @@ module ipi-isis {
         leaf route-map-name  {
             when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:address-family-ipv4/ipi-isis:default-route-information/ipi-isis:config/ipi-isis:originate ";
             type  string {
+                length "0..1965";
                 pattern "[^?' =,>|]*";
-                }
-                default "";
-                description "Route Map Name Attribute";
-            } // END of route-map-name definition.
+            }
+            default "";
+            description "Route Map Name Attribute";
+        } // END of route-map-name definition.
 
     } // END of isis-af-ipv4-default-info-config definition.
     grouping isis-af-ipv4-redistribution-config {
@@ -1133,7 +1132,7 @@ module ipi-isis {
         leaf metric-value  {
             type  uint32 {
                  range "0..16777215"  {
-                    description "IS-IS default metric";
+                    description "0..16777215:IS-IS default metric";
                  }
             }
             default "0";
@@ -1148,11 +1147,12 @@ module ipi-isis {
 
         leaf route-map  {
             type  string {
+                length "0..1965";
                 pattern "[^?' =,>|]*";
-                }
-                default "";
-                description "Name of route-map";
-            } // END of route-map definition.
+            }
+            default "";
+            description "Name of route-map";
+        } // END of route-map definition.
 
     } // END of isis-af-ipv4-redistribution-configurations-config definition.
     grouping isis-af-ipv4-summary-prefix-config {
@@ -1175,7 +1175,7 @@ module ipi-isis {
             when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:address-family-ipv4/ipi-isis:summary-address/ipi-isis:config/ipi-isis:prefix ";
             type  uint8 {
                  range "1..63"  {
-                    description "Metric Range";
+                    description "1..63:Metric Range";
                  }
             }
             description "Metric value";
@@ -1187,7 +1187,7 @@ module ipi-isis {
             "Configuration items for ISIS AF IPv4 Redist ISIS";
         leaf id  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Instance ID";
@@ -1209,7 +1209,7 @@ module ipi-isis {
 
         leaf-list interface-hello  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to turn on debugging for ISIS Interface hello";
@@ -1217,7 +1217,7 @@ module ipi-isis {
 
         leaf-list system-id-hello  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to turn on debugging for ISIS SID hello";
@@ -1243,7 +1243,7 @@ module ipi-isis {
 
             leaf-list interface-hello  {
                 type  string {
-                    length "1..max";
+                    length "1..1965";
                     pattern "[^?' =,>|]+";
                 }
                 description "Use this attribute to turn on debugging for ISIS Interface hello";
@@ -1251,7 +1251,7 @@ module ipi-isis {
 
             leaf-list system-id-hello  {
                 type  string {
-                    length "1..max";
+                    length "1..1965";
                     pattern "[^?' =,>|]+";
                 }
                 description "Use this attribute to turn on debugging for ISIS SID hello";
@@ -2013,7 +2013,7 @@ module ipi-isis {
                 "Notification state information";
             leaf-list host-name  {
                 type  string {
-                    length "1..max";
+                    length "1..1965";
                     pattern "[^?' =,>|]+";
                 }
                 description "Hostname";
@@ -2406,7 +2406,7 @@ module ipi-isis {
         }
 
         leaf raw-pdu {
-            type cml-data-types:cml_raw_string_t;
+            type  string;
         description
             "Received raw PDU";
         }
@@ -2425,7 +2425,7 @@ module ipi-isis {
         }
 
         leaf raw-pdu {
-            type cml-data-types:cml_raw_string_t;
+            type  string;
         description
             "Received raw PDU";
         }
@@ -2464,7 +2464,7 @@ module ipi-isis {
         // severity "MINOR";
         // eventClass "STATE";
         leaf raw-pdu {
-            type cml-data-types:cml_raw_string_t;
+            type  string;
         description
             "Received raw PDU";
         }
@@ -2477,7 +2477,7 @@ module ipi-isis {
         // severity "MINOR";
         // eventClass "STATE";
         leaf raw-pdu {
-            type cml-data-types:cml_raw_string_t;
+            type  string;
         description
             "Received raw PDU";
         }
@@ -2496,7 +2496,7 @@ module ipi-isis {
         }
 
         leaf raw-pdu {
-            type cml-data-types:cml_raw_string_t;
+            type  string;
         description
             "Received raw PDU";
         }
@@ -2509,7 +2509,7 @@ module ipi-isis {
         // severity "MINOR";
         // eventClass "STATE";
         leaf raw-pdu {
-            type cml-data-types:cml_raw_string_t;
+            type  string;
         description
             "Received raw PDU";
         }
@@ -2522,7 +2522,7 @@ module ipi-isis {
         // severity "MINOR";
         // eventClass "STATE";
         leaf raw-pdu {
-            type cml-data-types:cml_raw_string_t;
+            type  string;
         description
             "Received raw PDU";
         }
@@ -2541,7 +2541,7 @@ module ipi-isis {
         // severity "MINOR";
         // eventClass "STATE";
         leaf raw-pdu {
-            type cml-data-types:cml_raw_string_t;
+            type  string;
         description
             "Received raw PDU";
         }
@@ -2566,7 +2566,7 @@ module ipi-isis {
         }
 
         leaf raw-pdu {
-            type cml-data-types:cml_raw_string_t;
+            type  string;
         description
             "Received raw PDU";
         }

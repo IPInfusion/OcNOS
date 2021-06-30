@@ -23,25 +23,30 @@ module ipi-ptp {
 
     import ietf-yang-types {
         prefix yang;
+        revision-date 2013-07-15;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-ptp-types {
         prefix ipi-ptp-types;
+        revision-date 2021-04-29;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
-    include ipi-ptp-notifications;
+    include ipi-ptp-notifications { revision-date 2020-12-17;}
     organization
         "IP Infusion Inc.";
 
@@ -54,6 +59,16 @@ module ipi-ptp {
     description
         "Datamodel for PTP configurations";
 
+
+    revision "2021-04-14" {
+        description "Added snmp oid and fix the gps-offset command.";
+        reference " 0.4.1.";
+    }
+
+    revision "2021-04-12" {
+        description "Added unset command for time-of-day.";
+        reference " 0.4.0.";
+    }
 
     revision "2021-03-02" {
         description "Added port-identity attribute to port dataset.";
@@ -143,7 +158,7 @@ module ipi-ptp {
         leaf profile  {
             type  ipi-ptp-types:ptp_profile_t;
             mandatory true;
-            description "Select PTP clock profile, g8275.1, g8275.2 or default";
+            description "Select PTP clock profile g8265.1, g8275.1, g8275.2 or default";
         } // END of profile definition.
 
     } // END of ptp-instance-base-config definition.
@@ -201,11 +216,14 @@ module ipi-ptp {
             uses ptp-port-data-set-clock-quality-top;
             uses ptp-asymmetry-delay-top;
             uses ptp-network-interface-top;
+            uses ptp-master-ipv4-address-top;
+            uses ptp-master-ipv6-address-top;
             uses ptp-port-statistics-top;
             uses ptp-foreign-data-set-top;
             uses ptp-peer-data-set-top;
             uses ptp-master-data-set-top;
             uses ptp-slave-data-set-top;
+            uses ptp-port-drop-counters-top;
         } // End of port-list
     } // END of ptp-port-data-set-top definition.
     grouping ptp-port-config {
@@ -214,7 +232,7 @@ module ipi-ptp {
         leaf port-number  {
             type  uint16 {
                  range "1..31"  {
-                    description "Port number range (default is 1)";
+                    description "1..31:Port number range (default is 1)";
                  }
             }
             default "1";
@@ -224,7 +242,7 @@ module ipi-ptp {
         leaf local-priority  {
             type  uint8 {
                  range "1..255"  {
-                    description "Local priority range (default is 128)";
+                    description "1..255:Local priority range (default is 128)";
                  }
             }
             default "128";
@@ -243,17 +261,6 @@ module ipi-ptp {
             description "Set transport type";
         } // END of transport-type definition.
 
-        leaf-list master-clock-source-ipv4-address  {
-            type  inet:ipv4-address;
-            description "Set master clock ipv4 source address";
-        } // END of master-clock-source-ipv4-address definition.
-
-        leaf-list master-clock-source-ipv6-address  {
-            if-feature feature-list:HAVE_IPV6;
-            type  inet:ipv6-address;
-            description "Set master clock ipv6 source address";
-        } // END of master-clock-source-ipv6-address definition.
-
         leaf source-ipv6-link-local-address  {
             if-feature feature-list:HAVE_IPV6;
             type  empty;
@@ -263,8 +270,8 @@ module ipi-ptp {
         leaf log-min-delay-req-interval  {
             type  int8 {
                  range "-7..5"  {
-                    description "log-min-delay-req-interval range (-7 to 0) def -6 for g8275.2 and
-                            range (0 to 5) def 0 for default profile";
+                    description "-7..5:log-min-delay-req-interval g8275.2 (-7 to 0) def -6 and default
+                            profile (0 to 5) def 0 and g8265.1 (-7 to 4) def -5";
                  }
             }
             default "-6";
@@ -275,8 +282,8 @@ module ipi-ptp {
         leaf log-announce-interval  {
             type  int8 {
                  range "-3..4"  {
-                    description "log-announce-interval range (-3 to 3) def -3 for g8275.2 and range (0
-                            to 4) def 1 for default profile";
+                    description "-3..4:log-announce-interval g8275.2 (-3 to 3) def -3 and default
+                            profile (0 to 4) def 1 and g8265.1 (-3 to 4) def 1";
                  }
             }
             default "-3";
@@ -287,7 +294,7 @@ module ipi-ptp {
         leaf announce-receipt-timeout  {
             type  uint8 {
                  range "2..10"  {
-                    description "announce-receipt-timeout range (default is 3)";
+                    description "2..10:announce-receipt-timeout range (default is 3)";
                  }
             }
             default "3";
@@ -298,9 +305,9 @@ module ipi-ptp {
 
         leaf log-sync-interval  {
             type  int8 {
-                 range "-7..1"  {
-                    description "log-sync-interval range (-7 to 0) def -6 for g8275.2 and range (-1 to
-                            1) def 0 for default profile";
+                 range "-7..4"  {
+                    description "-7..4:log-sync-interval g8275.2 (-7 to 0) def -6 and default
+                            profile(-1 to 1) def 0 and g8265.1 (-7 to 4) def -5";
                  }
             }
             default "-6";
@@ -310,7 +317,7 @@ module ipi-ptp {
         leaf time-to-live  {
             type  uint8 {
                  range "1..255"  {
-                    description "Setting ttl value (default is 64)";
+                    description "1..255:Setting ttl value (default is 64)";
                  }
             }
             default "64";
@@ -320,7 +327,7 @@ module ipi-ptp {
         leaf ip-dscp  {
             type  uint8 {
                  range "0..63"  {
-                    description "Setting dscp value (default is 56)";
+                    description "0..63:Setting dscp value (default is 56)";
                  }
             }
             default "56";
@@ -330,7 +337,7 @@ module ipi-ptp {
         leaf unicast-grant-duration  {
             type  uint16 {
                  range "60..1000"  {
-                    description "Unicast-grant-duration value (default is 300)";
+                    description "60..1000:Unicast-grant-duration value (default is 300)";
                  }
             }
             default "300";
@@ -358,7 +365,7 @@ module ipi-ptp {
         leaf grandmaster-priority-2  {
             type  uint8 {
                  range "0..255"  {
-                    description "Priority2 range (default is 128)";
+                    description "0..255:Priority2 range (default is 128)";
                  }
             }
             default "128";
@@ -366,6 +373,98 @@ module ipi-ptp {
         } // END of grandmaster-priority-2 definition.
 
     } // END of ptp-port-config definition.
+    grouping ptp-master-ipv4-address-top {
+        description
+            "Grouping for master ipv4 configuration";
+
+        list master-ipv4-address {
+            key "master-clock-source-ipv4-address";
+            description
+                "Port master-ipv4-address parameters";
+            leaf master-clock-source-ipv4-address  {
+                type  leafref {
+                    path  "../config/master-clock-source-ipv4-address";
+                }
+                description "Set master clock ipv4 source address";
+            } // END of master-clock-source-ipv4-address definition.
+
+            container config {
+                description
+                    "Configuration data";
+                uses ptp-master-ipv4-address-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ptp-master-ipv4-address-config;
+            } // END of state-container definition.
+        } // End of master-ipv4-address-list
+    } // END of ptp-master-ipv4-address-top definition.
+    grouping ptp-master-ipv4-address-config {
+        description
+            "Grouping for master ipv4 configuration";
+        leaf master-clock-source-ipv4-address  {
+            type  inet:ipv4-address;
+            description "Set master clock ipv4 source address";
+        } // END of master-clock-source-ipv4-address definition.
+
+        leaf master-ipv4-address-priority  {
+            type  uint8 {
+                 range "0..15"  {
+                    description "0..15:Priority value of master(Default is 0)";
+                 }
+            }
+            description "";
+        } // END of master-ipv4-address-priority definition.
+
+    } // END of ptp-master-ipv4-address-config definition.
+    grouping ptp-master-ipv6-address-top {
+        description
+            "Grouping for master ipv6 configuration";
+
+        list master-ipv6-address {
+            key "master-clock-source-ipv6-address";
+            description
+                "master-ipv6-address parameters";
+            leaf master-clock-source-ipv6-address  {
+                type  leafref {
+                    path  "../config/master-clock-source-ipv6-address";
+                }
+                description "Set master clock ipv6 source address";
+            } // END of master-clock-source-ipv6-address definition.
+
+            container config {
+                description
+                    "Configuration data";
+                uses ptp-master-ipv6-address-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ptp-master-ipv6-address-config;
+            } // END of state-container definition.
+        } // End of master-ipv6-address-list
+    } // END of ptp-master-ipv6-address-top definition.
+    grouping ptp-master-ipv6-address-config {
+        description
+            "Grouping for master ipv6 configuration";
+        leaf master-clock-source-ipv6-address  {
+            type  inet:ipv6-address;
+            description "Set master clock ipv6 source address";
+        } // END of master-clock-source-ipv6-address definition.
+
+        leaf master-ipv6-address-priority  {
+            type  uint8 {
+                 range "0..15"  {
+                    description "0..15:Priority value of master(Default is 0)";
+                 }
+            }
+            description "";
+        } // END of master-ipv6-address-priority definition.
+
+    } // END of ptp-master-ipv6-address-config definition.
     grouping ptp-port-variables-state {
         description
             "Grouping for ptp port variables";
@@ -390,7 +489,7 @@ module ipi-ptp {
             "Grouping for ptp port identity states";
         leaf port-identity  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "The identity of the port";
@@ -430,6 +529,94 @@ module ipi-ptp {
         } // END of packets-discarded definition.
 
     } // END of ptp-port-statistics-state definition.
+    grouping ptp-port-drop-counters-top {
+        description
+            "Grouping for ptp port drop counters";
+        container drop-counters {
+            description
+                "Set of PTP port drop counters";
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ptp-port-drop-counters-state;
+            } // END of state-container definition.
+        } // END of drop-counters-container definition.
+    } // END of ptp-port-drop-counters-top definition.
+    grouping ptp-port-drop-counters-state {
+        description
+            "Grouping for ptp port drop counters";
+        leaf domain-mismatch  {
+            type  yang:counter32;
+            description "PTP domain mismatch";
+        } // END of domain-mismatch definition.
+
+        leaf memory-alloc-failure  {
+            type  yang:counter32;
+            description "PTP memory alloc failure";
+        } // END of memory-alloc-failure definition.
+
+        leaf pkt-len-too-short  {
+            type  yang:counter32;
+            description "PTP pkt len too short";
+        } // END of pkt-len-too-short definition.
+
+        leaf pkt-rcvd-on-bad-port-state  {
+            type  yang:counter32;
+            description "PTP pkt rcvd on bad port state";
+        } // END of pkt-rcvd-on-bad-port-state definition.
+
+        leaf pkt-profile-mismatch  {
+            type  yang:counter32;
+            description "PTP profile mismatch";
+        } // END of pkt-profile-mismatch definition.
+
+        leaf clock-port-mismatch  {
+            type  yang:counter32;
+            description "PTP clock port mismatch";
+        } // END of clock-port-mismatch definition.
+
+        leaf ptp-packet-parsing-failure  {
+            type  yang:counter32;
+            description "PTP pkt parsing failure";
+        } // END of ptp-packet-parsing-failure definition.
+
+        leaf delreq-from-unknown-slave  {
+            type  yang:counter32;
+            description "PTP unicast delreq from unknown slave";
+        } // END of delreq-from-unknown-slave definition.
+
+        leaf announce-on-master-only-port  {
+            type  yang:counter32;
+            description "Announce on master only port";
+        } // END of announce-on-master-only-port definition.
+
+        leaf invalid-steps-removed-field  {
+            type  yang:counter32;
+            description "Invalid steps removed field";
+        } // END of invalid-steps-removed-field definition.
+
+        leaf unknown-unicast-master  {
+            type  yang:counter32;
+            description "PTP Unknown unicast master";
+        } // END of unknown-unicast-master definition.
+
+        leaf announce-on-gps-ptp-port  {
+            type  yang:counter32;
+            description "PTP Announce on gps ptp port";
+        } // END of announce-on-gps-ptp-port definition.
+
+        leaf sync-rcvd-invalid  {
+            type  yang:counter32;
+            description "Sync rcvd invalid";
+        } // END of sync-rcvd-invalid definition.
+
+        leaf sync-rcvd-without-master  {
+            type  yang:counter32;
+            description "Sync rcvd without master";
+        } // END of sync-rcvd-without-master definition.
+
+    } // END of ptp-port-drop-counters-state definition.
     grouping ptp-foreign-data-set-top {
         description
             "Grouping for PTP foreign dataset";
@@ -492,7 +679,7 @@ module ipi-ptp {
 
             leaf clock-identity  {
                 type  string {
-                    length "1..max";
+                    length "1..1965";
                     pattern "[^?' =,>|]+";
                 }
                 description "Identity of the clock";
@@ -500,7 +687,7 @@ module ipi-ptp {
 
             leaf port-id  {
                 type  string {
-                    length "1..max";
+                    length "1..1965";
                     pattern "[^?' =,>|]+";
                 }
                 description "Port id";
@@ -603,7 +790,7 @@ module ipi-ptp {
 
             leaf clock-identity  {
                 type  string {
-                    length "1..max";
+                    length "1..1965";
                     pattern "[^?' =,>|]+";
                 }
                 description "Identity of the clock";
@@ -784,7 +971,7 @@ module ipi-ptp {
 
         leaf clock-identity  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Identity of the clock";
@@ -839,7 +1026,7 @@ module ipi-ptp {
         leaf clock-class  {
             type  uint8 {
                  range "0..255"  {
-                    description "Clock class range (default is 6)";
+                    description "0..255:Clock class range (default is 6)";
                  }
             }
             default "6";
@@ -850,7 +1037,7 @@ module ipi-ptp {
         leaf clock-accuracy  {
             type  uint8 {
                  range "0..255"  {
-                    description "Clock accuracy range (default is 33)";
+                    description "0..255:Clock accuracy range (default is 33)";
                  }
             }
             default "33";
@@ -860,7 +1047,7 @@ module ipi-ptp {
         leaf offset-scaled-log-variance  {
             type  uint16 {
                  range "0..65535"  {
-                    description "Offset log variance range (default is 20061)";
+                    description "0..65535:Offset log variance range (default is 20061)";
                  }
             }
             default "20061";
@@ -896,7 +1083,7 @@ module ipi-ptp {
         leaf delay-asymmetry-msec  {
             type  int8 {
                  range "-100..100"  {
-                    description "Value of latency in msec. Default value is 0.";
+                    description "-100..100:Value of latency in msec. Default value is 0.";
                  }
             }
             mandatory true;
@@ -906,7 +1093,7 @@ module ipi-ptp {
         leaf delay-asymmetry-nsec  {
             type  int32 {
                  range "-1000000..1000000"  {
-                    description "Value of latency in nsec. Default value is 0.";
+                    description "-1000000..1000000:Value of latency in nsec. Default value is 0.";
                  }
             }
             mandatory true;
@@ -956,8 +1143,8 @@ module ipi-ptp {
         leaf vlan-id  {
             type  uint16 {
                  range "1..4094"  {
-                    description "VLAN ID 1-4094(valid range related to the value configured in
-                            reserved-vlan-base -default maximum valid value is 4063)";
+                    description "1..4094:VLAN ID 1-4094 (valid range related to the value configured in
+                            reserved-vlan-base - default maximum valid value is 4063)";
                  }
             }
             description "Reference to the configured underlying interface that is used by this
@@ -971,7 +1158,9 @@ module ipi-ptp {
         } // END of vlan-id definition.
 
         leaf vlan-physical-interface-name  {
-            type  cml-data-types:cml_ifname_t;
+            type  cml-data-types:cml_ifname_t {
+                length "1..1965";
+            }
             description "Reference to the configured underlying interface that is used by this
                         vlan interface PTP Port";
         } // END of vlan-physical-interface-name definition.
@@ -1001,7 +1190,7 @@ module ipi-ptp {
             "Grouping for ptp time of day configuration";
         leaf io-type  {
             type  ipi-ptp-types:ptp_clock_io_type_t;
-            description "Type of tod input/output";
+            description "Type of tod input/output. Default: output";
         } // END of io-type definition.
 
     } // END of ptp-time-of-day-config definition.
@@ -1034,8 +1223,8 @@ module ipi-ptp {
         leaf domain  {
             type  uint8 {
                  range "0..127"  {
-                    description "Domain number range (24-43) for g8275.1 and (44-63) for g8275.2 and
-                            (0-127) for default";
+                    description "0..127:Domain g.8265.1 (4-23) and g.8275.1 (24-43) and g.8275.2
+                            (44-63) and default (0-127)";
                  }
             }
             default "24";
@@ -1044,8 +1233,8 @@ module ipi-ptp {
 
         leaf external-clock-holdover-duration  {
             type  uint16 {
-                 range "0..1440"  {
-                    description "clock holdover range (0-1440) in minutes";
+                 range "0..10080"  {
+                    description "0..10080:clock holdover range (0-10080) in minutes";
                  }
             }
             default "120";
@@ -1055,27 +1244,54 @@ module ipi-ptp {
         leaf ptsf-wtr-duration  {
             type  uint16 {
                  range "1..1440"  {
-                    description "clock ptsf wait-to-restore duration range (1-1440) in minutes";
+                    description "1..1440:clock ptsf wait-to-restore duration range (1-1440) in minutes";
                  }
             }
             default "5";
             description "External clock holdover duration";
         } // END of ptsf-wtr-duration definition.
 
+        leaf g8265p1-wtr-duration  {
+            type  uint64 {
+                 range "0..3600"  {
+                    description "0..3600:Duration value of g8265.1 WTR master in sec";
+                 }
+            }
+            default "0";
+            description "g8265.1 master wtr";
+        } // END of g8265p1-wtr-duration definition.
+
+        leaf g8265p1-option  {
+            type  ipi-ptp-types:ptp_g8265p1_option_type_t;
+            default "1";
+            description "g8265.1 option";
+        } // END of g8265p1-option definition.
+
         leaf reserved-vlan-base  {
             type  uint16 {
                  range "1..4064"  {
-                    description "Base vlan ID";
+                    description "1..4064:Base vlan ID";
                  }
             }
             default "4064";
             description "Reserved vlan base index";
         } // END of reserved-vlan-base definition.
 
+        leaf two-step  {
+            if-feature feature-list:HAVE_PTP_HW_OFFLOAD_CUSTOM1;
+            type  empty;
+            description "two step";
+        } // END of two-step definition.
+
+        leaf one-way  {
+            type  empty;
+            description "For G.8265.1 one-way ptp";
+        } // END of one-way definition.
+
         leaf number-ports  {
             type  uint8 {
                  range "1..31"  {
-                    description "Number ports range (default is 1)";
+                    description "1..31:Number ports range (default is 1)";
                  }
             }
             default "1";
@@ -1085,7 +1301,7 @@ module ipi-ptp {
         leaf pps-pulse-offset  {
             type  int16 {
                  range "-2048..2048"  {
-                    description "Offset value in range. Default is 0";
+                    description "-2048..2048:Offset value in range in nanoseconds. Default is 0";
                  }
             }
             default "0";
@@ -1102,7 +1318,7 @@ module ipi-ptp {
             when " not(/ipi-ptp:ptp/ipi-ptp:ptp-instance/ipi-ptp:default-data-set/ipi-ptp:config/ipi-ptp:slave-only) ";
             type  uint8 {
                  range "0..255"  {
-                    description "Priority2 range (default is 128)";
+                    description "0..255:Priority2 range (default is 128)";
                  }
             }
             default "128";
@@ -1117,7 +1333,7 @@ module ipi-ptp {
         leaf local-priority  {
             type  uint8 {
                  range "1..255"  {
-                    description "Local priority range (default is 128)";
+                    description "1..255:Local priority range (default is 128)";
                  }
             }
             default "128";
@@ -1127,7 +1343,7 @@ module ipi-ptp {
         leaf max-steps-removed  {
             type  uint8 {
                  range "1..255"  {
-                    description "Max steps removed range (default is 255)";
+                    description "1..255:Max steps removed range (default is 255)";
                  }
             }
             default "255";
@@ -1168,8 +1384,8 @@ module ipi-ptp {
         leaf servo-history-interval  {
             type  uint8 {
                  range "1..60"  {
-                    description "Enable servo-history in intervals of 1-60 min. Default value is 15
-                            min.";
+                    description "1..60:Enable servo-history in intervals of 1-60 min. Default value is
+                            15 min.";
                  }
             }
             mandatory true;
@@ -1215,7 +1431,9 @@ module ipi-ptp {
         } // END of entry-id definition.
 
         leaf timestamp  {
-            type  cml-data-types:cml_raw_string_t;
+            type  string {
+                length "1..1965";
+            }
             description "PTP servo history data timestamp";
         } // END of timestamp definition.
 
@@ -1258,7 +1476,7 @@ module ipi-ptp {
             when " not(/ipi-ptp:ptp/ipi-ptp:ptp-instance/ipi-ptp:default-data-set/ipi-ptp:config/ipi-ptp:slave-only) ";
             type  uint8 {
                  range "0..255"  {
-                    description "Clock class range (default is 248)";
+                    description "0..255:Clock class range (default is 248)";
                  }
             }
             default "248";
@@ -1269,7 +1487,7 @@ module ipi-ptp {
         leaf clock-accuracy  {
             type  uint8 {
                  range "0..255"  {
-                    description "Clock accuracy range (default is 254)";
+                    description "0..255:Clock accuracy range (default is 254)";
                  }
             }
             default "254";
@@ -1279,7 +1497,7 @@ module ipi-ptp {
         leaf offset-scaled-log-variance  {
             type  uint16 {
                  range "0..65535"  {
-                    description "Offset log variance range (default is 65535)";
+                    description "0..65535:Offset log variance range (default is 65535)";
                  }
             }
             default "65535";
@@ -1315,7 +1533,7 @@ module ipi-ptp {
         leaf offset-seconds  {
             type  int8 {
                  range "-100..100"  {
-                    description "Offset value. Default value is 0.";
+                    description "-100..100:Offset value. Default value is 0.";
                  }
             }
             mandatory true;
@@ -1325,7 +1543,7 @@ module ipi-ptp {
         leaf offset-nano-seconds  {
             type  int16 {
                  range "-2048..2048"  {
-                    description "Offset value. Default value is 0.";
+                    description "-2048..2048:Offset value. Default value is 0.";
                  }
             }
             mandatory true;
@@ -1355,6 +1573,15 @@ module ipi-ptp {
             description "PTP servo config";
         } // END of config-state definition.
 
+        leaf servo-config  {
+            if-feature feature-list:HAVE_PTP_HW_OFFLOAD_CUSTOM1;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "PTP servo config freq/phase correction";
+        } // END of servo-config definition.
+
         leaf previous-state  {
             type  ipi-ptp-types:ptp_servo_state_t;
             description "Previous PTP servo state";
@@ -1365,55 +1592,68 @@ module ipi-ptp {
             description "Current PTP servo state";
         } // END of current-state definition.
 
+        leaf previous-servo-state  {
+            if-feature feature-list:HAVE_PTP_HW_OFFLOAD_CUSTOM1;
+            type  ipi-ptp-types:ptp_servo_state_custom_t;
+            description "Previous PTP servo state";
+        } // END of previous-servo-state definition.
+
+        leaf current-servo-state  {
+            if-feature feature-list:HAVE_PTP_HW_OFFLOAD_CUSTOM1;
+            type  ipi-ptp-types:ptp_servo_state_custom_t;
+            description "Current PTP servo state";
+        } // END of current-servo-state definition.
+
         leaf duration  {
             type  string {
+                length "1..1965";
                 pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
-                }
-                description "PTP servo state Duration";
-            } // END of duration definition.
+            }
+            description "PTP servo state Duration";
+        } // END of duration definition.
 
-            leaf apts-mode  {
-                type  ipi-ptp-types:ptp_servo_apts_mode_t;
-                description "PTP servo APTS mode";
-            } // END of apts-mode definition.
+        leaf apts-mode  {
+            type  ipi-ptp-types:ptp_servo_apts_mode_t;
+            description "PTP servo APTS mode";
+        } // END of apts-mode definition.
 
-            leaf freq-correction  {
-                type  decimal64 {
-                     fraction-digits 3;                }
-                description "PTP servo freq correction";
-            } // END of freq-correction definition.
+        leaf freq-correction  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            description "PTP servo freq correction";
+        } // END of freq-correction definition.
 
-            leaf phase-correction  {
-                type  decimal64 {
-                     fraction-digits 3;                }
-                description "PTP servo phase correction";
-            } // END of phase-correction definition.
+        leaf phase-correction  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            description "PTP servo phase correction";
+        } // END of phase-correction definition.
 
-            leaf mean-path-delay  {
-                type  ipi-ptp-types:ptp_time_interval_t;
-                description "Peer Mean path delay";
-            } // END of mean-path-delay definition.
+        leaf mean-path-delay  {
+            type  ipi-ptp-types:ptp_time_interval_t;
+            description "Peer Mean path delay";
+        } // END of mean-path-delay definition.
 
-            leaf apts-gps-to-ptp-offset  {
-                type  ipi-ptp-types:ptp_time_interval_t;
-                description "Offset from gps to ptp";
-            } // END of apts-gps-to-ptp-offset definition.
+        leaf apts-gps-to-ptp-offset  {
+            type  ipi-ptp-types:ptp_time_interval_t;
+            description "Offset from gps to ptp";
+        } // END of apts-gps-to-ptp-offset definition.
 
-            leaf offset-from-master  {
-                type  decimal64 {
-                     fraction-digits 3;                }
-                description "PTP offset from master";
-            } // END of offset-from-master definition.
+        leaf offset-from-master  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            description "PTP offset from master";
+        } // END of offset-from-master definition.
 
-            leaf sync-packet-rate  {
-                type  uint32;
-                description "Sync Packet Rate";
-            } // END of sync-packet-rate definition.
+        leaf sync-packet-rate  {
+            type  uint32;
+            description "Sync Packet Rate";
+        } // END of sync-packet-rate definition.
 
-            leaf delay-packet-rate  {
-                type  uint32;
-                description "Delay Packet Rate";
-            } // END of delay-packet-rate definition.
+        leaf delay-packet-rate  {
+            type  uint32;
+            description "Delay Packet Rate";
+        } // END of delay-packet-rate definition.
 
     } // END of ptp-servo-state definition.
     grouping ptp-current-data-set-top {
@@ -1525,7 +1765,7 @@ module ipi-ptp {
             "Grouping for ptp clock identity states";
         leaf clock-identity  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "The clock identity of the local clock";
@@ -1551,7 +1791,7 @@ module ipi-ptp {
             "Grouping for ptp parent port identity state";
         leaf clock-identity  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Identity of the clock";
@@ -1662,7 +1902,9 @@ module ipi-ptp {
         } // END of time-source definition.
 
         leaf ptp-time-of-day  {
-            type  cml-data-types:cml_raw_string_t;
+            type  string {
+                length "1..1965";
+            }
             description "PTP time of day expressed as Coordinated Universal Time (UTC)";
         } // END of ptp-time-of-day definition.
 
@@ -1727,6 +1969,7 @@ module ipi-ptp {
         "PTP clock";
     container ptp {
         if-feature feature-list:HAVE_PTP_HW_OFFLOAD;
+        if-feature feature-list:HAVE_DUNE;
         description
             "PTP clock";
         uses end-to-end-transparent-clock-top;
@@ -1735,7 +1978,20 @@ module ipi-ptp {
     } // END of ptp-container definition.
     } // END of ptp-grouping definition.
 
+    grouping  ptp-transparent-clock-grouping {
+    description
+        "PTP Transparent clock";
+    container ptp-transparent-clock {
+        if-feature feature-list:HAVE_PTP_HW_OFFLOAD;
+        if-feature feature-list:NOT_HAVE_DUNE;
+        description
+            "PTP Transparent clock";
+        uses end-to-end-transparent-clock-top;
+    } // END of ptp-transparent-clock-container definition.
+    } // END of ptp-transparent-clock-grouping definition.
+
     uses ptp-grouping;
+    uses ptp-transparent-clock-grouping;
 
     rpc ptp-clear-statistics {
         description "PTP clear statistics RPC";
@@ -1768,6 +2024,30 @@ module ipi-ptp {
 
         leaf current-state {
             type ipi-ptp-types:ptp_servo_state_t;
+        description
+            "Current PTP servo state";
+        }
+    }
+
+    notification ptp-servo-state-change-custom1-notify {
+
+        description "Notify when servo state change happens.";
+
+        // eventClass "STATE";
+        leaf instance-type {
+            type ipi-ptp-types:ptp_instance_t;
+        description
+            "PTP instance type";
+        }
+
+        leaf previous-servo-state {
+            type ipi-ptp-types:ptp_servo_state_custom_t;
+        description
+            "Previous PTP servo state";
+        }
+
+        leaf current-servo-state {
+            type ipi-ptp-types:ptp_servo_state_custom_t;
         description
             "Current PTP servo state";
         }

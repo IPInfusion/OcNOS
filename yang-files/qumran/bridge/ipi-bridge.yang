@@ -23,22 +23,27 @@ module ipi-bridge {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-bridge-types {
         prefix ipi-bridge-types;
+        revision-date 2021-01-27;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -53,6 +58,21 @@ module ipi-bridge {
     description
         "Layer-2 bridge configurations";
 
+
+    revision "2021-04-27" {
+        description "Data model changes done for JIRA-45490 ";
+        reference " 0.4.3.";
+    }
+
+    revision "2021-04-08" {
+        description "Data model changes done for ocmp-608";
+        reference " 0.4.2.";
+    }
+
+    revision "2021-03-30" {
+        description "Disabling YANG support for l2-protocol-destination-mac attribute";
+        reference " 0.4.1.";
+    }
 
     revision "2021-02-09" {
         description "JIRA-43764: dot1 encapsulation for switching and SVI routing";
@@ -88,12 +108,6 @@ module ipi-bridge {
             description "Enable/Disable a bridge to learn station location information for an
                         instance.This helps in making forwarding decisions";
         } // END of disable-dynamic-learning definition.
-
-        leaf l2-protocol-destination-mac  {
-            type  cml-data-types:cml_mac_addr_t;
-            default "0100.C2CD.CDD0";
-            description "This attribute changes L2 protocol destination MAC";
-        } // END of l2-protocol-destination-mac definition.
 
         leaf dot1q-encapsulation  {
             if-feature feature-list:HAVE_DUNE;
@@ -157,8 +171,18 @@ module ipi-bridge {
     grouping fdb-entry-config {
         description
             "Configuration data for FDB MAC address";
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            mandatory true;
+            description "The textual name of the interface";
+        } // END of interface-name definition.
+
         leaf mac-address  {
-            type  cml-data-types:cml_mac_addr_t;
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
             description "Use this attribute to configure the static forwarding table MAC entry
                         for the bridge";
         } // END of mac-address definition.
@@ -176,16 +200,9 @@ module ipi-bridge {
             "Top level grouping for FDB  configuration and state data";
 
         list entry {
-            key "interface-name mac-address";
+            key "mac-address";
             description
                 "List of FDB MAC entries";
-            leaf interface-name  {
-                type  leafref {
-                    path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-                }
-                description "The textual name of the interface";
-            } // END of interface-name definition.
-
             leaf mac-address  {
                 type  leafref {
                     path  "../config/mac-address";
@@ -219,8 +236,15 @@ module ipi-bridge {
     grouping fdb-interface-config {
         description
             "Grouping for FDB MAC address entries";
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "The textual name of the interface";
+        } // END of interface-name definition.
+
         leaf disable-mac-learning  {
-            type  cml-data-types:cml_enable_disable_t;
+            type  empty;
             mandatory true;
             description "Use this attribute to disable MAC learning on a interface";
         } // END of disable-mac-learning definition.
@@ -236,7 +260,7 @@ module ipi-bridge {
                 "List of FDB interface entries";
             leaf interface-name  {
                 type  leafref {
-                    path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+                    path  "../config/interface-name";
                 }
                 description "The textual name of the interface";
             } // END of interface-name definition.
@@ -263,11 +287,13 @@ module ipi-bridge {
             uses fdb-interface-top;
         } // END of interfaces-container definition.
     } // END of fdb-interfaces-top definition.
-    grouping dynamic-mac-table-state {
+    grouping dynamic-mac-table-entry-state {
         description
             "Dynamic learned MAC information";
         leaf mac-address  {
-            type  cml-data-types:cml_mac_addr_t;
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
             description "Dynamic learned MAC address";
         } // END of mac-address definition.
 
@@ -277,9 +303,8 @@ module ipi-bridge {
         } // END of cvlan-id definition.
 
         leaf interface-name  {
-            type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
             }
             description "MAC learned interface";
         } // END of interface-name definition.
@@ -296,17 +321,17 @@ module ipi-bridge {
                         MAC learned table";
         } // END of entry-time-out definition.
 
-    } // END of dynamic-mac-table-state definition.
-    grouping dynamic-mac-table-top {
+    } // END of dynamic-mac-table-entry-state definition.
+    grouping dynamic-mac-table-entry-top {
         description
             "Top level group for dynamic learned MAC address information";
 
-        list dynamic-mac-table {
+        list entry {
             if-feature feature-list:HAVE_HAL;
             key "mac-address cvlan-id";
             config false;
             description
-                "List of dynamic learned MAC addresses";
+                "List of dynamic learned MAC entries";
             leaf mac-address  {
                 type  leafref {
                     path  "../state/mac-address";
@@ -326,9 +351,18 @@ module ipi-bridge {
                 config false;
                 description
                     "dynamic learned operational state data";
-                uses dynamic-mac-table-state;
+                uses dynamic-mac-table-entry-state;
             } // END of state-container definition.
-        } // End of dynamic-mac-table-list
+        } // End of entry-list
+    } // END of dynamic-mac-table-entry-top definition.
+    grouping dynamic-mac-table-top {
+        description
+            "Top level grouping for FDB  configuration and state data";
+        container dynamic-mac-table {
+            description
+                "Dynamic MAC table information";
+            uses dynamic-mac-table-entry-top;
+        } // END of dynamic-mac-table-container definition.
     } // END of dynamic-mac-table-top definition.
     grouping fdb-top {
         description
@@ -346,7 +380,7 @@ module ipi-bridge {
             "Grouping for ethernet virtual conneciton data";
         leaf id  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Ethernet virtual conneciton ID";
@@ -355,7 +389,7 @@ module ipi-bridge {
         leaf maximum-uni  {
             type  uint32 {
                  range "1..32"  {
-                    description "Maximum UNI number for the EVC/SVLAN";
+                    description "1..32:Maximum UNI number for the EVC/SVLAN";
                  }
             }
             mandatory true;
@@ -401,90 +435,5 @@ module ipi-bridge {
         uses bridge-grouping;
     }
 
-
-    rpc clear-mac-address-table {
-        description "Use this rpc to clear fdb entry for given MAC/interface/vlan";
-        input  {
-            leaf mac-type  {
-                type ipi-bridge-types:bridge_mac_type_t;
-                mandatory true;
-                description "MAC address type";
-            }
-            leaf bridge-id  {
-                type string {
-                    pattern "([1-9]|[12][0-9]|3[0-2])";
-                }
-                mandatory true;
-                description "Bridge group number";
-            }
-            leaf interface-name  {
-                type string {
-                    length "1..33";
-                }
-                description "The textual name of the interface";
-            }
-            leaf mac-address  {
-                type cml-data-types:cml_mac_addr_t;
-                description "Interface MAC address";
-            }
-            leaf vlan-id  {
-                type uint16;
-                description "Vlan ID";
-            }
-        }
-    }
-
-    rpc clear-dynamic-mac-address-table {
-        description "Use this rpc to clear dynamic fdb entries for given interface/MAC/vlan";
-        input  {
-            leaf bridge-id  {
-                type string {
-                    pattern "([1-9]|[12][0-9]|3[0-2])";
-                }
-                mandatory true;
-                description "Bridge group number";
-            }
-            leaf mac-address  {
-                type cml-data-types:cml_mac_addr_t;
-                description "Interface MAC address";
-            }
-            leaf interface-name  {
-                type string {
-                    length "1..33";
-                }
-                description "The textual name of the interface";
-            }
-            leaf vlan-id  {
-                type uint16;
-                description "Vlan ID";
-            }
-        }
-    }
-
-    rpc clear-mstp-port-dynamic-mac-address-table {
-        description "Use this attribute clear dynamic mac address table entries for given
-                    MSTP instance";
-        input  {
-            leaf interface-name  {
-                type string {
-                    length "1..33";
-                }
-                mandatory true;
-                description "The textual name of the interface";
-            }
-            leaf instance-id  {
-                type uint32;
-                mandatory true;
-                description "MSTP instance ID";
-            }
-            leaf bridge-id  {
-                type string {
-                    pattern "([1-9]|[12][0-9]|3[0-2])";
-                }
-                mandatory true;
-                description "Bridge group number";
-            }
-        }
-    }
 
 }

@@ -23,10 +23,16 @@ module ipi-logging {
 
     import ipi-logging-types {
         prefix ipi-logging-types;
+        revision-date 2021-01-05;
     }
 
-    include ipi-logging-remote;
-    include ipi-logging-cli;
+    import feature-list {
+        prefix feature-list;
+        revision-date 2021-05-03;
+    }
+
+    include ipi-logging-remote { revision-date 2021-01-05;}
+    include ipi-logging-cli { revision-date 2021-01-05;}
     organization
         "IP Infusion Inc.";
 
@@ -39,6 +45,21 @@ module ipi-logging {
     description
         "Syslog Configurations";
 
+
+    revision "2021-05-08" {
+        description "Remove db-triggers for all option in the logging level";
+        reference " 0.4.1.";
+    }
+
+    revision "2021-03-30" {
+        description "Adding fault-management as submodule of ipi-logging";
+        reference " 0.4.0.";
+    }
+
+    revision "2021-03-06" {
+        description "Add a pattern validation for debug-logfile name";
+        reference " 0.3.0.";
+    }
 
     revision "2021-01-05" {
         description "Restructured module as per open-config";
@@ -70,6 +91,7 @@ module ipi-logging {
         description
             "Grouping for syslog configuration";
         container syslog {
+            if-feature feature-list:HAVE_SYSLOG;
             description
                 "Syslog configuration parameters";
             container config {
@@ -90,8 +112,8 @@ module ipi-logging {
             "Grouping for debug logging log file configuration";
         leaf file-name  {
             type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+                length "1..1965";
+                pattern "[a-zA-Z0-9_]*";
             }
             mandatory true;
             description "Set name of the debug log file.";
@@ -100,7 +122,7 @@ module ipi-logging {
         leaf max-file-size  {
             type  uint32 {
                  range "4096..4194304"  {
-                    description "Enter the logfile size in bytes";
+                    description "4096..4194304:Enter the logfile size in bytes";
                  }
             }
             units "bytes";
@@ -135,7 +157,7 @@ module ipi-logging {
             "Grouping for logging log file configuration";
         leaf file-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[a-zA-Z0-9_]*";
             }
             mandatory true;
@@ -152,7 +174,8 @@ module ipi-logging {
         leaf max-file-size  {
             type  uint32 {
                  range "4096..419430400"  {
-                    description "Enter the logfile size in bytes (Default size: 419430400)";
+                    description "4096..419430400:Enter the logfile size in bytes (Default size:
+                            419430400)";
                  }
             }
             units "bytes";

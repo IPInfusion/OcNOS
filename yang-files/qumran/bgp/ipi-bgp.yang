@@ -21,23 +21,42 @@ module ipi-bgp {
 
     prefix "ipi-bgp";
 
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
+        revision-date 2021-05-27;
+    }
+
+    import ipi-network-instance {
+        prefix ipi-network-instance;
+        revision-date 2020-12-15;
+    }
+
+    import ipi-vrf {
+        prefix ipi-vrf;
+        revision-date 2021-01-27;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
-    include ipi-bgp-instance;
-    include ipi-bgp-common;
-    include ipi-bgp-address-family;
-    include ipi-bgp-peer;
-    include ipi-bgp-address-family-vrf;
+    include ipi-bgp-instance { revision-date 2021-06-11;}
+    include ipi-bgp-common { revision-date 2021-06-11;}
+    include ipi-bgp-address-family { revision-date 2021-06-09;}
+    include ipi-bgp-peer-group { revision-date 2021-06-11;}
+    include ipi-bgp-peer { revision-date 2021-06-11;}
+    include ipi-bgp-address-family-vrf { revision-date 2021-06-11;}
     organization
         "IP Infusion Inc.";
 
@@ -50,6 +69,66 @@ module ipi-bgp {
     description
         "YANG version of the ipi-bgp";
 
+
+    revision "2021-06-21" {
+        description "Corrected the CLI for the RPC bgp-debug-updates-type-on";
+        reference " 0.6.8.";
+    }
+
+    revision "2021-06-11" {
+        description "Added dependency constraint between name and direction attrs for the distribute-list, prefix-list, filter-list and route-map CLI's Added dependency constraint for graceful-restart CLI's restart-time, stale-path-max-retention-time and graceful-reset";
+        reference " 0.6.7.";
+    }
+
+    revision "2021-06-09" {
+        description "Removal of default ipv4 unicast activate and fix for DB sync issues";
+        reference " 0.6.6.";
+    }
+
+    revision "2021-06-07" {
+        description "Deprecated 'connect-retry-interval', duplicate of 'peer-connect-interval'";
+        reference " 0.6.5.";
+    }
+
+    revision "2021-05-31" {
+        description "Deprecated prefix-list-count attribute and added length for route map name";
+        reference " 0.6.4.";
+    }
+
+    revision "2021-05-28" {
+        description "Changed type of the attribute default-originate-information-sent";
+        reference " 0.6.3.";
+    }
+
+    revision "2021-05-26" {
+        description "Deprecated the as-local-count run-time attribute is same as the configured local-as attribute";
+        reference " 0.6.2.";
+    }
+
+    revision "2021-05-13" {
+        description "Removed dependency validation on AF activate for allow-ebgp-vpn attribute";
+        reference " 0.6.1.";
+    }
+
+    revision "2021-05-05" {
+        description "Added change for bgp unnumbered feature ";
+        reference " 0.6.0.";
+    }
+
+    revision "2021-04-27" {
+        description "Added leafref for vrf-name in mpls-l3vpn-label-mode ";
+        reference " 0.6.0.";
+    }
+
+    revision "2021-04-09" {
+        description "Change related to Peer group remodelling";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-03-31" {
+        description "Added support for configuring BFD for BGP peer under VRF address family";
+        reference " 0.4.0.";
+    }
 
     revision "2021-03-05" {
         description "Community-list related changes";
@@ -119,7 +198,7 @@ module ipi-bgp {
             when " /ipi-bgp:bgp/ipi-bgp:global/ipi-bgp:config/ipi-bgp:enable-nexthop-tracking ";
             type  uint8 {
                  range "1..100"  {
-                    description "Nexthop Trigger Delay time interval between 1 and 100";
+                    description "1..100:Nexthop Trigger Delay time interval between 1 and 100";
                  }
             }
             default "5";
@@ -139,17 +218,6 @@ module ipi-bgp {
                         1771. Otherwise, the origin is always set to incomplete which is the
                         industry standard.";
         } // END of enable-rfc-1771-strict-origin definition.
-
-        leaf enable-multi-instance  {
-            type  empty;
-            description "Use this attribute to enable BGP multiple instance support";
-        } // END of enable-multi-instance definition.
-
-        leaf allow-same-peer-multi-instance  {
-            when " /ipi-bgp:bgp/ipi-bgp:global/ipi-bgp:config/ipi-bgp:enable-multi-instance ";
-            type  empty;
-            description "Use this attribute to allow same peer in BGP multiple instance.";
-        } // END of allow-same-peer-multi-instance definition.
 
         leaf config-type  {
             type  ipi-bgp-types:bgp_config_t;
@@ -186,7 +254,9 @@ module ipi-bgp {
         } // END of address-family-name definition.
 
         leaf vrf-name  {
-            type  ipi-bgp-types:bgp_vrf_type_t;
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
+            }
             description "Use this attribute to specify vrf name";
         } // END of vrf-name definition.
 
@@ -243,7 +313,7 @@ module ipi-bgp {
 
         leaf value  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?'=,>|]*";
             }
             description "Use the community-list to specify BGP community attributes. The
@@ -295,7 +365,7 @@ module ipi-bgp {
 
         leaf standard-number-value  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?'=,>|]*";
             }
             description "Use this attribute to specify a standard community list (1 to 99) that
@@ -346,7 +416,7 @@ module ipi-bgp {
         leaf standard-number  {
             type  uint32 {
                  range "1..99"  {
-                    description "Community list number (standard)";
+                    description "1..99:Community list number (standard)";
                  }
             }
             description "Community list standard number";
@@ -407,7 +477,7 @@ module ipi-bgp {
 
         leaf community-value-standard  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to specify standard community";
@@ -503,7 +573,7 @@ module ipi-bgp {
 
         leaf name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Community list standard name";
@@ -557,7 +627,9 @@ module ipi-bgp {
         } // END of action-expanded definition.
 
         leaf regular-expression-list  {
-            type  cml-data-types:cml_line_t;
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             description "Use this attribute to specify ordered list as a regular-expression.";
         } // END of regular-expression-list definition.
 
@@ -658,7 +730,9 @@ module ipi-bgp {
         } // END of extended-action-number definition.
 
         leaf extended-value  {
-            type  cml-data-types:cml_line_t;
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             description "Use this attribute to create an entry for a standard extended
                         community list (1 to 99) that specifies BGP community attributes.";
         } // END of extended-value definition.
@@ -707,7 +781,7 @@ module ipi-bgp {
         leaf standard-number  {
             type  uint32 {
                  range "1..99"  {
-                    description "Extended Community list number (standard)";
+                    description "1..99:Extended Community list number (standard)";
                  }
             }
             description "Extended Community list number";
@@ -760,7 +834,7 @@ module ipi-bgp {
 
         leaf value  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create an entry for a standard extended
@@ -819,7 +893,7 @@ module ipi-bgp {
             "bgp extended community standard config";
         leaf name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "extcommunity Community list name";
@@ -866,7 +940,9 @@ module ipi-bgp {
         } // END of action definition.
 
         leaf value  {
-            type  cml-data-types:cml_line_t;
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             description "Use this attribute to create an extended community list";
         } // END of value definition.
 
@@ -988,7 +1064,7 @@ module ipi-bgp {
             "bgp global access name configuration";
         leaf access-list-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to define a BGP Autonomous System (AS) path access
@@ -1004,7 +1080,9 @@ module ipi-bgp {
         } // END of access-list-action definition.
 
         leaf access-list-regular-expression  {
-            type  cml-data-types:cml_line_t;
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             description "Regular expression to match BGP AS paths";
         } // END of access-list-regular-expression definition.
 
@@ -1103,6 +1181,20 @@ module ipi-bgp {
         } // END of debug-update-type definition.
 
     } // END of bgp-global-debug-config definition.
+    grouping bgp-global-terminal-debug-state {
+        description
+            "Terminal debug status for bgp";
+        leaf debug-options  {
+            type  ipi-bgp-types:bgp_debug_type_t;
+            description "Terminal debug option";
+        } // END of debug-options definition.
+
+        leaf updates-debug-options  {
+            type  ipi-bgp-types:bgp_update_debug_type_t;
+            description "Terminal debug update type option";
+        } // END of updates-debug-options definition.
+
+    } // END of bgp-global-terminal-debug-state definition.
     grouping bgp-global-debug {
         description
             "bgp global debug configurations";
@@ -1118,6 +1210,12 @@ module ipi-bgp {
                 config false;
                 description
                     "state parameters relating to  bgp global debug container";
+                container terminal-debug-status {
+                    config false;
+                    description
+                        "Terminal debug status";
+                    uses bgp-global-terminal-debug-state;
+                } // END of terminal-debug-status-container definition.
                 uses bgp-global-debug-config;
             } // END of state-container definition.
         } // END of debug-container definition.
@@ -1154,7 +1252,7 @@ module ipi-bgp {
                 description "BGP address family identifier";
             }
             leaf safi  {
-                type ipi-bgp-types:bgp_safi_type_t;
+                type ipi-bgp-types:bgp_rpc_safi_type_t;
                 mandatory true;
                 description "BGP sub address family identifier";
             }
@@ -1195,7 +1293,7 @@ module ipi-bgp {
                 description "BGP address family identifier";
             }
             leaf safi  {
-                type ipi-bgp-types:bgp_safi_type_t;
+                type ipi-bgp-types:bgp_rpc_safi_type_t;
                 mandatory true;
                 description "BGP sub address family identifier";
             }
@@ -1232,7 +1330,7 @@ module ipi-bgp {
                 description "BGP address family identifier";
             }
             leaf safi  {
-                type ipi-bgp-types:bgp_safi_type_t;
+                type ipi-bgp-types:bgp_rpc_safi_type_t;
                 mandatory true;
                 description "BGP sub address family identifier";
             }
@@ -1326,7 +1424,7 @@ module ipi-bgp {
 
         // eventClass "STATE";
         leaf peer-address {
-            type cml-data-types:cml_hostname_t;
+            type ipi-bgp-types:bgp_ip_addr_t;
         description
             "Reference to the address of the BGP peer used as a key in the peer
                     list";
@@ -1353,7 +1451,7 @@ module ipi-bgp {
 
         // eventClass "STATE";
         leaf peer-address {
-            type cml-data-types:cml_hostname_t;
+            type ipi-bgp-types:bgp_ip_addr_t;
         description
             "Reference to the address of the BGP peer used as a key in the peer
                     list";

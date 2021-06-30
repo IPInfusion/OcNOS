@@ -23,22 +23,27 @@ module ipi-if-ethernet {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-if-types {
         prefix ipi-if-types;
+        revision-date 2021-03-16;
     }
 
     import ietf-yang-types {
         prefix yang;
+        revision-date 2013-07-15;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -54,6 +59,11 @@ module ipi-if-ethernet {
         "Model for managing Ethernet interfaces -- augments the OpenConfig
                 model for interface configuration and state.";
 
+
+    revision "2021-03-16" {
+        description "Added when tags to suppress attributes for subinterface";
+        reference " 0.4.0.";
+    }
 
     revision "2020-12-15" {
         description "Change to have data-types in lower case instead of camel case";
@@ -74,13 +84,13 @@ module ipi-if-ethernet {
         description
             "Configuration items for Ethernet interfaces";
         leaf duplex-mode  {
+            // when " contain(ipi-interface:interfaces/interface/name, 'vlan')  +                             contain(ipi-interface:interfaces/interface/name, 'pmsi')  +                             !contain(ipi-interface:interfaces/interface/name, '.') ";
             type  ipi-if-types:if_duplex_t;
-            description "Use this attribute to set the duplex mode for each interface
-                        When auto-negotiate is TRUE, this optionally sets the
-                        duplex mode that will be advertised to the peer.  If
-                        unspecified, the interface should negotiate the duplex mode
-                        directly (typically full-duplex).  When auto-negotiate is
-                        FALSE, this sets the duplex mode on the interface directly.";
+            description "Use this attribute to set the duplex mode for the interface.
+                        Auto-negotiation if enabled, is turned off when duplex mode is set for
+                        the interface.
+                        When auto-negotiation is enabled, the interface should negotiate the
+                        duplex mode directly (typically full-duplex).";
         } // END of duplex-mode definition.
 
         leaf mac-address  {
@@ -96,13 +106,13 @@ module ipi-if-ethernet {
         leaf port-speed  {
             if-feature feature-list:NOT_HAVE_TIBIT;
             type  ipi-if-types:if_interface_speed_t;
-            description "When auto-negotiate is TRUE, this optionally sets the
-                        port-speed mode that will be advertised to the peer for
-                        negotiation.  If unspecified, it is expected that the
-                        interface will select the highest speed available based on
-                        negotiation.  When auto-negotiate is set to FALSE, sets the
-                        link speed to a fixed value -- supported values are defined
-                        by ETHERNET_SPEED identities.";
+            description "This attribute is used to set the link speed for the interface.
+                        To enable auto-negotiation for the interface, set this attribute to
+                        value auto.
+                        When auto-negotiation is enabled, it is expected that the interface
+                        will select the highest speed available based on negotiation.
+                        When auto-negotiation is not enabled, sets the link speed to a fixed
+                        value -- supported values are defined by IF_INTERFACE_SPEED_T enum.";
         } // END of port-speed definition.
 
     } // END of ethernet-interface-config definition.
@@ -459,7 +469,9 @@ module ipi-if-ethernet {
         description
             "Grouping for defining Ethernet-specific operational state";
         leaf hw-mac-address  {
-            type  cml-data-types:cml_mac_addr_t;
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
             config false;
             description "Represenets the 'burned-in',  or system-assigned, MAC
                         address for the Ethernet interface.";

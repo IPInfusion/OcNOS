@@ -23,30 +23,37 @@ module ipi-if-extended {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-if-types {
         prefix ipi-if-types;
+        revision-date 2021-03-16;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import ipi-if-ethernet {
         prefix ipi-if-ethernet;
+        revision-date 2021-03-16;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import ietf-yang-types {
         prefix yang;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -62,13 +69,42 @@ module ipi-if-extended {
         "Datamodel for IPI Interface extended module";
 
 
+    revision "2021-06-10" {
+        description "Added new attribute hardware-applied-bcast-value, hardware-applied-mcast-value and hardware-applied-dlf-bcast-value to show hardware applied storm control value in netconf";
+        reference " 0.8.2.";
+    }
+
+    revision "2021-06-09" {
+        description "Added yang support for attribute storm-total-discards";
+        reference " 0.8.1.";
+    }
+
+    revision "2021-04-08" {
+        description "Added notification to remove interfaces from cross connects";
+        reference " 0.8.0.";
+    }
+
+    revision "2021-03-29" {
+        description "Changed container name of hardware-profile to hardware-profile-flexport";
+        reference " 0.7.0.";
+    }
+
+    revision "2021-03-16" {
+        description "Remodelled encapsulation, rewrite and cross-connects for sub-interface remodelling.";
+        reference " 0.6.0.";
+    }
+
     revision "2021-03-05" {
         description "Added dot1q-ether-type from mo_ipi-port.xml to make it independent of bridge";
         reference " 0.5.0.";
     }
 
-    revision "2021-03-03" {
-        description "Added support for changing process type for L2 protocols for an interface";
+    revision "2021-03-01" {
+        description "Added new atrribute in-bpdu-pkts, in-oamp-pkts, in-bfd-pkts, in-vrrp-rip-dhcp-pkts, in-rsvd-mc-pkts,
+                       in-link-local-pkts, in-icmp-pkts, in-icmp-redirect-pkts, in-misc-pkts.
+                       Removed attribute last-flap.
+                       Added support for changing process type for L2 protocols for an interface.
+        ";
         reference " 0.4.0.";
     }
 
@@ -101,6 +137,7 @@ module ipi-if-extended {
     description
         "Global configuration for Port-group";
         list port-group-speed-map {
+            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_HAL;
             if-feature feature-list:NOT_HAVE_SWFWDR;
             key "group-index";
@@ -129,15 +166,6 @@ module ipi-if-extended {
     grouping ipi-interface-extended-config {
         description
             "Grouping for interface-extended module config objects.";
-        leaf no-learning  {
-            if-feature feature-list:HAVE_L2;
-            if-feature feature-list:NOT_HAVE_BROADCOM;
-            if-feature feature-list:NOT_HAVE_POND;
-            type  boolean;
-            default false;
-            description "Disable self-learning on an interface";
-        } // END of no-learning definition.
-
         leaf disable-multicast  {
             type  empty;
             description "This attribute is used to set multicast flag for the interface. For a
@@ -152,15 +180,6 @@ module ipi-if-extended {
                         error-disable or not. If this is '0', then interface is not enabled.
                         Otherwise it is enabled.";
         } // END of link-flap-error-disable definition.
-
-        leaf dot1q-ether-type  {
-            if-feature feature-list:NOT_HAVE_SWFWDR;
-            type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
-            }
-            description "Attribute to change Ethertype value";
-        } // END of dot1q-ether-type definition.
 
         leaf mac-move-limit-error-disable  {
             type  empty;
@@ -183,7 +202,7 @@ module ipi-if-extended {
         leaf debounce-time  {
             type  uint16 {
                  range "250..5000"  {
-                    description "Timer value in milliseconds.";
+                    description "250..5000:Timer value in milliseconds.";
                  }
             }
             description "Use this attribute to set the interface debounce timer value";
@@ -237,93 +256,95 @@ module ipi-if-extended {
             description "This Object describes hardware type";
         } // END of hardware-type definition.
 
+        leaf storm-total-discards  {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_RATE_LIMIT;
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  yang:counter64;
+            description "This object describes total storm-discards";
+        } // END of storm-total-discards definition.
+
         leaf metric  {
             type  int32;
             description "This Object is used to check interface Metric";
         } // END of metric definition.
 
-        leaf last-flap  {
+        leaf if-type  {
+            type  ipi-if-types:if_interface_type_t;
+            description "This Object describes the interface type L2, L3, TDM";
+        } // END of if-type definition.
+
+        leaf trust-state  {
+            if-feature feature-list:HAVE_QOS;
+            type  ipi-if-types:if_trust_state_t;
+            description "This Object describes the trust interface state";
+        } // END of trust-state definition.
+
+        leaf monitor-port-grp  {
+            if-feature feature-list:HAVE_TFO;
+            type  boolean;
+            config false;
+            description "This attribute describes Monitor Port Groups (MPG) interface";
+        } // END of monitor-port-grp definition.
+
+        leaf failover-link-type  {
+            if-feature feature-list:HAVE_TFO;
+            type  ipi-if-types:if_tfo_link_type_t;
+            description "This attribute describes trigger failover(TFO) link type";
+        } // END of failover-link-type definition.
+
+        leaf udld-flush-transmitted  {
+            if-feature feature-list:HAVE_UDLD;
+            type  uint16;
+            description "This attribute describes interface udld Flush transmitted";
+        } // END of udld-flush-transmitted definition.
+
+        leaf debounce-flap-count  {
+            type  uint16;
+            config false;
+            description "This attribute describes number of flap within debounce time interval";
+        } // END of debounce-flap-count definition.
+
+        leaf debounce-last-flap-time  {
             type  yang:date-and-time {
                 pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
                 }
                 config false;
-                description "This Object describes the last interface flap";
-            } // END of last-flap definition.
+                description "This attribute describes the last debounce flap time";
+            } // END of debounce-last-flap-time definition.
 
-            leaf if-type  {
-                type  ipi-if-types:if_interface_type_t;
-                description "This Object describes the interface type L2, L3, TDM";
-            } // END of if-type definition.
-
-            leaf trust-state  {
-                if-feature feature-list:HAVE_QOS;
-                type  ipi-if-types:if_trust_state_t;
-                description "This Object describes the trust interface state";
-            } // END of trust-state definition.
-
-            leaf monitor-port-grp  {
-                if-feature feature-list:HAVE_TFO;
-                type  boolean;
+            leaf debounce-remain-time  {
+                type  yang:counter32;
                 config false;
-                description "This attribute describes Monitor Port Groups (MPG) interface";
-            } // END of monitor-port-grp definition.
+                description "This attribute describes the remaining  debounce time interval";
+            } // END of debounce-remain-time definition.
 
-            leaf failover-link-type  {
-                if-feature feature-list:HAVE_TFO;
-                type  ipi-if-types:if_tfo_link_type_t;
-                description "This attribute describes trigger failover(TFO) link type";
-            } // END of failover-link-type definition.
-
-            leaf udld-flush-transmitted  {
-                if-feature feature-list:HAVE_UDLD;
-                type  uint16;
-                description "This attribute describes interface udld Flush transmitted";
-            } // END of udld-flush-transmitted definition.
-
-            leaf debounce-flap-count  {
-                type  uint16;
+            leaf debounce-running-status  {
+                type  ipi-if-types:if_debounce_running_state;
                 config false;
-                description "This attribute describes number of flap within debounce time interval";
-            } // END of debounce-flap-count definition.
+                description "This attribute describes debounce time Running Status";
+            } // END of debounce-running-status definition.
 
-            leaf debounce-last-flap-time  {
-                type  yang:date-and-time {
-                    pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
-                    }
-                    config false;
-                    description "This attribute describes the last debounce flap time";
-                } // END of debounce-last-flap-time definition.
+            leaf debounce-config-status  {
+                type  ipi-if-types:if_debounce_running_state;
+                config false;
+                description "This attribute describes whether debounce is configured or not";
+            } // END of debounce-config-status definition.
 
-                leaf debounce-remain-time  {
-                    type  yang:counter32;
-                    config false;
-                    description "This attribute describes the remaining  debounce time interval";
-                } // END of debounce-remain-time definition.
+            leaf last-flapped  {
+                type  ipi-if-types:if_last_clear_time_t {
+                    length "1..1965";
+                }
+                description "This Object describes time when the interface last
+                            flapped.";
+            } // END of last-flapped definition.
 
-                leaf debounce-running-status  {
-                    type  ipi-if-types:if_debounce_running_state;
-                    config false;
-                    description "This attribute describes debounce time Running Status";
-                } // END of debounce-running-status definition.
-
-                leaf debounce-config-status  {
-                    type  ipi-if-types:if_debounce_running_state;
-                    config false;
-                    description "This attribute describes whether debounce is configured or not";
-                } // END of debounce-config-status definition.
-
-                leaf last-flapped  {
-                    type  ipi-if-types:if_last_clear_time_t;
-                    description "This Object describes time when the interface last
-                                flapped.";
-                } // END of last-flapped definition.
-
-                leaf auto-ipv6-link-local-address  {
-                    if-feature feature-list:HAVE_IPV6;
-                    type  inet:ipv6-prefix;
-                    description "This Object describes the default link local IPv6 address
-                                assigned to the interface.";
-                } // END of auto-ipv6-link-local-address definition.
+            leaf auto-ipv6-link-local-address  {
+                if-feature feature-list:HAVE_IPV6;
+                type  inet:ipv6-prefix;
+                description "This Object describes the default link local IPv6 address
+                            assigned to the interface.";
+            } // END of auto-ipv6-link-local-address definition.
 
     } // END of ipi-interface-extended-state definition.
     grouping port-monitor-config {
@@ -347,7 +368,7 @@ module ipi-if-extended {
         leaf warning-threshold  {
             type  uint8 {
                  range "1..100"  {
-                    description "warning level threshold value in percentage";
+                    description "1..100:warning level threshold value in percentage";
                  }
             }
             units "%";
@@ -360,7 +381,7 @@ module ipi-if-extended {
             when " ../warning-threshold ";
             type  uint8 {
                  range "1..100"  {
-                    description "recovery level threshold value in percentage";
+                    description "1..100:recovery level threshold value in percentage";
                  }
             }
             units "%";
@@ -374,84 +395,92 @@ module ipi-if-extended {
         description
             "Grouping for physical interface capabilities";
         leaf speed-half-duplex  {
-            type  cml-data-types:cml_raw_string_t {
+            type  string {
+                length "1..1965";
                 pattern "[^ ]*";
-                }
-                description "This Object describes the Interface Speed half duplex capability";
-            } // END of speed-half-duplex definition.
+            }
+            description "This Object describes the Interface Speed half duplex capability";
+        } // END of speed-half-duplex definition.
 
-            leaf speed-full-duplex  {
-                type  cml-data-types:cml_raw_string_t {
-                    pattern "[^ ]*";
-                    }
-                    description "This Object describes the Interface Speed full duplex capability";
-                } // END of speed-full-duplex definition.
+        leaf speed-full-duplex  {
+            type  string {
+                length "1..1965";
+                pattern "[^ ]*";
+            }
+            description "This Object describes the Interface Speed full duplex capability";
+        } // END of speed-full-duplex definition.
 
-                leaf pause  {
-                    type  ipi-if-types:if_raw_string_t {
-                        pattern "[^ ]*";
-                        }
-                        description "This Object describes the Interface pause Capability";
-                    } // END of pause definition.
+        leaf pause  {
+            type  ipi-if-types:if_raw_string_t {
+                length "1..1965";
+                pattern "[^ ]*";
+            }
+            description "This Object describes the Interface pause Capability";
+        } // END of pause definition.
 
-                    leaf interface-type  {
-                        type  ipi-if-types:if_raw_string_t {
-                            pattern "[^ ]*";
-                            }
-                            description "This Object describes the Interface Capability";
-                        } // END of interface-type definition.
+        leaf interface-type  {
+            type  ipi-if-types:if_raw_string_t {
+                length "1..1965";
+                pattern "[^ ]*";
+            }
+            description "This Object describes the Interface Capability";
+        } // END of interface-type definition.
 
-                        leaf medium  {
-                            type  ipi-if-types:if_raw_string_t {
-                                pattern "[^ ]*";
-                                }
-                                description "This Object describes the Interface medium Capability";
-                            } // END of medium definition.
+        leaf medium  {
+            type  ipi-if-types:if_raw_string_t {
+                length "1..1965";
+                pattern "[^ ]*";
+            }
+            description "This Object describes the Interface medium Capability";
+        } // END of medium definition.
 
-                            leaf loopback  {
-                                type  ipi-if-types:if_raw_string_t {
-                                    pattern "[^ ]*";
-                                    }
-                                    description "This Object describes the Interface loopback Capability";
-                                } // END of loopback definition.
+        leaf loopback  {
+            type  ipi-if-types:if_raw_string_t {
+                length "1..1965";
+                pattern "[^ ]*";
+            }
+            description "This Object describes the Interface loopback Capability";
+        } // END of loopback definition.
 
-                                leaf flags  {
-                                    type  string {
-                                        length "1..max";
-                                        pattern "[^?' =,>|]+";
-                                    }
-                                    description "This Object describes the Interface flags Capability";
-                                } // END of flags definition.
+        leaf flags  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This Object describes the Interface flags Capability";
+        } // END of flags definition.
 
-                                leaf eee  {
-                                    type  string {
-                                        length "1..max";
-                                        pattern "[^?' =,>|]+";
-                                    }
-                                    description "This Object describes the Interface eee Capability";
-                                } // END of eee definition.
+        leaf eee  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This Object describes the Interface eee Capability";
+        } // END of eee definition.
 
-                                leaf fcmap  {
-                                    type  string {
-                                        length "1..max";
-                                        pattern "[^?' =,>|]+";
-                                    }
-                                    description "This Object describes the Interface fcmap Capability";
-                                } // END of fcmap definition.
+        leaf fcmap  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This Object describes the Interface fcmap Capability";
+        } // END of fcmap definition.
 
-                                leaf encapsulation  {
-                                    type  ipi-if-types:if_raw_string_t {
-                                        pattern "[^ ]*";
-                                        }
-                                        description "This Object describes the Interface encapsulation Capability";
-                                    } // END of encapsulation definition.
+        leaf encapsulation  {
+            type  ipi-if-types:if_raw_string_t {
+                length "1..1965";
+                pattern "[^ ]*";
+            }
+            description "This Object describes the Interface encapsulation Capability";
+        } // END of encapsulation definition.
 
-                                    leaf fec  {
-                                        type  ipi-if-types:if_raw_string_t {
-                                            pattern "[^?' =>|]+";
-                                            }
-                                            description "This Object describes the Interface fec Capability";
-                                        } // END of fec definition.
+        leaf fec  {
+            type  ipi-if-types:if_raw_string_t {
+                length "1..1965";
+                pattern "[^?' =>|]+";
+            }
+            description "This Object describes the Interface fec Capability";
+        } // END of fec definition.
 
     } // END of capabilities-state definition.
     grouping extended-counters-state {
@@ -633,7 +662,8 @@ module ipi-if-extended {
             if-feature feature-list:HAVE_BROADCOM;
             type  uint16 {
                  range "30..300"  {
-                    description "Load period in multiples of 30 seconds (default is 300 seconds).";
+                    description "30..300:Load period in multiples of 30 seconds (default is 300
+                            seconds).";
                  }
             }
             default "300";
@@ -652,7 +682,7 @@ module ipi-if-extended {
 
         leaf default-speed  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This Object describes interface default link speed, bytes/s";
@@ -810,21 +840,23 @@ module ipi-if-extended {
 
         leaf-list endpoint-if  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute specifies the endpoint for cross-connect";
         } // END of endpoint-if definition.
 
         leaf xc-description  {
-            type  cml-data-types:cml_line_t;
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             description "This attribute secifies the description for cross-connect";
         } // END of xc-description definition.
 
-        leaf shutdown  {
-            type  boolean;
+        leaf admin-disable  {
+            type  empty;
             description "This attribute is used to temporarily shutdown the cross-connect";
-        } // END of shutdown definition.
+        } // END of admin-disable definition.
 
     } // END of subif-crossconnect-config definition.
     grouping port-group-config {
@@ -833,7 +865,7 @@ module ipi-if-extended {
         leaf group-index  {
             type  uint8 {
                  range "1..64"  {
-                    description "port group number";
+                    description "1..64:port group number";
                  }
             }
             description "This attribute specifies the port group number";
@@ -861,134 +893,16 @@ module ipi-if-extended {
                         object is 4.";
         } // END of error-disable-reason definition.
 
-        leaf arp-discard-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Arp Discard Packets(Applicable only for logical
-                        VxLAN-access ports)";
-        } // END of arp-discard-packets definition.
-
-        leaf tx-arp-discard-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Arp Out Discard Packets(Applicable only for
-                        logical VxLAN-access ports)";
-        } // END of tx-arp-discard-packets definition.
-
-        leaf rx-arp-request-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Arp request Received Packets(Applicable only for
-                        logical VxLAN-access ports)";
-        } // END of rx-arp-request-packets definition.
-
-        leaf rx-arp-reply-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Arp reply Received Packets(Applicable only for
-                        logical VxLAN-access ports)";
-        } // END of rx-arp-reply-packets definition.
-
-        leaf tx-arp-request-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Arp request Transmitted Packets(Applicable only
-                        for logical VxLAN-access ports)";
-        } // END of tx-arp-request-packets definition.
-
-        leaf tx-arp-reply-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Arp reply Transmitted Packets(Applicable only
-                        for logical VxLAN-access ports)";
-        } // END of tx-arp-reply-packets definition.
-
-        leaf nd-discard-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes ND Discard Packets(Applicable only for logical
-                        VxLAN-access ports)";
-        } // END of nd-discard-packets definition.
-
-        leaf tx-nd-discard-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes ND Out Discard Packets(Applicable only for
-                        logical VxLAN-access ports)";
-        } // END of tx-nd-discard-packets definition.
-
-        leaf rx-neighbor-solicitation-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes ND Solicitaion Received Packets(Applicable only
-                        for logical VxLAN-access ports)";
-        } // END of rx-neighbor-solicitation-packets definition.
-
-        leaf rx-neighbor-advertisement-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes ND Advertisement Received Packets(Applicable
-                        only for logical VxLAN-access ports)";
-        } // END of rx-neighbor-advertisement-packets definition.
-
-        leaf tx-neighbor-solicitation-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes ND Solicitaion Transmitted Packets(Applicable
-                        only for logical VxLAN-access ports)";
-        } // END of tx-neighbor-solicitation-packets definition.
-
-        leaf tx-neighbor-advertisement-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes ND Advertisement Transmitted Packets(Applicable
-                        only for logical VxLAN-access ports)";
-        } // END of tx-neighbor-advertisement-packets definition.
-
-        leaf rx-gratuitous-arp-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Gratuitous ARP  (Garp) Received
-                        Packets(Applicable only for logical VxLAN-access ports)";
-        } // END of rx-gratuitous-arp-packets definition.
-
-        leaf tx-gratuitous-arp-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Gratuitous ARP (Garp) Transmitted
-                        Packets(Applicable only for logical VxLAN-access ports)";
-        } // END of tx-gratuitous-arp-packets definition.
-
-        leaf rx-gratuitous-na-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Gratuitous NA (Gna) Received Packets(Applicable
-                        only for logical VxLAN-access ports)";
-        } // END of rx-gratuitous-na-packets definition.
-
-        leaf tx-gratuitous-na-packets  {
-            if-feature feature-list:HAVE_VXLAN;
-            type  yang:counter64;
-            description "This Object describes Gratuitous NA (Gna) Transmitted
-                        Packets(Applicable only for logical VxLAN-access ports)";
-        } // END of tx-gratuitous-na-packets definition.
-
     } // END of interface-counters-extended definition.
-    grouping hardware-profile-config {
+    grouping hardware-profile-flexport-config {
         description
-            "Grouping for Hardware-profile config";
+            "Grouping for Hardware Profile Flexport config";
         leaf port-mode  {
             type  ipi-if-types:if_hardware_portmode_t;
             description "This Object is to set port mode";
         } // END of port-mode definition.
 
-        leaf port-mode-bundle  {
-            if-feature feature-list:NOT_HAVE_TOMAHAWK;
-            type  ipi-if-types:if_hardware_profile_portmode_bundle_t;
-            description "This Object is to set port bundling/";
-        } // END of port-mode-bundle definition.
-
-    } // END of hardware-profile-config definition.
+    } // END of hardware-profile-flexport-config definition.
     grouping error-disable-config {
         description
             "Grouping for error-disable config";
@@ -1008,7 +922,8 @@ module ipi-if-extended {
         leaf timeout-interval  {
             type  uint32 {
                  range "0..1000000"  {
-                    description "timeout interval in seconds. Set 0 to disable automatic recovery.";
+                    description "0..1000000:timeout interval in seconds. Set 0 to disable automatic
+                            recovery.";
                  }
             }
             default "0";
@@ -1021,7 +936,7 @@ module ipi-if-extended {
             // when " ../reason >= '4' ";
             type  uint32 {
                  range "1..100"  {
-                    description "Allowed Flap count range";
+                    description "1..100:Allowed Flap count range";
                  }
             }
             default "5";
@@ -1034,7 +949,7 @@ module ipi-if-extended {
             // when " ../reason >= '4' ";
             type  uint32 {
                  range "1..1800"  {
-                    description "timeout interval in seconds";
+                    description "1..1800:timeout interval in seconds";
                  }
             }
             units "seconds";
@@ -1046,7 +961,7 @@ module ipi-if-extended {
             // when " ../reason >= '8' ";
             type  uint32 {
                  range "1..1000"  {
-                    description "Allowed Mac movement in 5 seconds";
+                    description "1..1000:Allowed Mac movement in 5 seconds";
                  }
             }
             units "seconds";
@@ -1080,7 +995,7 @@ module ipi-if-extended {
 
         leaf-list ether-type-value  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute is used to allow traffic of any Ethertype value (0x600
@@ -1112,101 +1027,155 @@ module ipi-if-extended {
         } // END of bytes definition.
 
     } // END of switchport-allowed-ether-types-stats definition.
-    grouping tpId-encapsulation-config {
+    grouping subif-encapsulation-config {
         description
             "Grouping for dot1q and dot1ad encapsulation data";
-        leaf encapsulation  {
-            type  ipi-if-types:if_subif_encap_t;
-            mandatory true;
-            description "This Object is used to configure encapsulation under a subinterface";
-        } // END of encapsulation definition.
-
         leaf encapsulation-type  {
+            when " ../outer-vlan-id ";
             type  ipi-if-types:if_subif_encap_type_t;
             mandatory true;
-            description "This attribute is used to configure the dot1q encapsulation type";
+            description "This attribute is used to configure the dot1q encapsulation type.
+                        To change the encapsulation config, delete and recreate the entire
+                        encapsulation config.";
         } // END of encapsulation-type definition.
 
-        leaf vlan-id  {
+        leaf outer-vlan-id  {
+            when " ../encapsulation-type ";
             type  cml-data-types:cml_range_t;
             mandatory true;
-            description "This attribute is used to configure the outer vlan tag.";
-        } // END of vlan-id definition.
+            description "This attribute is used to configure the outer vlan tag.
+                        To change the encapsulation config, delete and recreate the entire
+                        encapsulation config.";
+        } // END of outer-vlan-id definition.
 
-        leaf inner-vlan-Id  {
+        leaf inner-vlan-id  {
+            when " ../encapsulation-type and ../outer-vlan-id ";
             type  cml-data-types:cml_range_t;
-            mandatory true;
-            description "This Object is used to configure the inner vlan ID.";
-        } // END of inner-vlan-Id definition.
+            description "This Object is used to configure the inner vlan ID.
+                        To change the encapsulation config, delete and recreate the entire
+                        encapsulation config.";
+        } // END of inner-vlan-id definition.
 
-    } // END of tpId-encapsulation-config definition.
+    } // END of subif-encapsulation-config definition.
     grouping native-layer2-encapsulation-config {
         description
             "Grouping for dot1q and dot1ad encapsulation data";
-        leaf l2-encapsulation  {
-            type  ipi-if-types:if_subif_encap_t;
-            mandatory true;
-            description "This Object is used to configure encapsulation under a subinterface";
-        } // END of l2-encapsulation definition.
-
         leaf l2-encapsulation-type  {
             type  ipi-if-types:if_subif_l2_encap_type_t;
             mandatory true;
             description "This attribute is used to configure the l2 subinterface encapsulation
-                        type";
+                        type.
+                        To change the encapsulation config, delete and recreate the entire
+                        encapsulation config.";
         } // END of l2-encapsulation-type definition.
 
     } // END of native-layer2-encapsulation-config definition.
-    grouping rewrite-config {
+    grouping subif-rewrite-config {
         description
             "Grouping for dot1q and dot1ad encapsulation data";
         leaf vlan-action  {
+            when " ../enable-pop or ../push-tpid or ../translate-tpid ";
             type  ipi-if-types:if_subif_l2_vlan_actiontype_t;
             mandatory true;
-            description "This Object is used to configure the rewrite action to push or
-                        translate the outer VLAN-id";
+            description "This object is used to configure the rewrite action to push, pop or
+                        translate the outer VLAN-id.
+                        To change the rewrite config, delete and recreate the entire rewrite
+                        config.";
         } // END of vlan-action definition.
 
-        leaf rewrite-tpid  {
-            type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+        choice vlan-action-type {
+            description
+                "Vlan Action Types";
+            case pop {
+
+                description
+                    "Pop the outer and inner vid";
+
+                leaf enable-pop  {
+                    when " ../vlan-action='1' ";
+                    type  ipi-if-types:if_subif_rewrite_pop_type_t;
+                    mandatory true;
+                    description "This attribute is used to configure pop outer and inner tag.
+                                To change the rewrite config, delete and recreate the entire rewrite
+                                config.";
+                } // END of enable-pop definition.
+
             }
-            mandatory true;
-            description "This attribute is used to configure tpid";
-        } // END of rewrite-tpid definition.
+            case push {
 
-        leaf vlan-value  {
-            type  uint16 {
-                 range "1..4094"  {
-                    description "Vid range";
-                 }
+                description
+                    "Push the outer and inner vid for a tpid";
+
+                leaf push-tpid  {
+                    when " ../vlan-action='2' and ../push-outer-vlan-id ";
+                    type  string {
+                        length "1..1965";
+                        pattern "[^?' =,>|]+";
+                    }
+                    mandatory true;
+                    description "This attribute is used to configure tpid.
+                                To change the rewrite config, delete and recreate the entire rewrite
+                                config.";
+                } // END of push-tpid definition.
+
+                leaf push-outer-vlan-id  {
+                    when " ../vlan-action='2' and ../push-tpid ";
+                    type  uint16 {
+                         range "1..4094"  {
+                            description "1..4094:Vid range";
+                         }
+                    }
+                    mandatory true;
+                    description "This Object is used to configure outer vlan ID range for rewrite.
+                                To change the rewrite config, delete and recreate the entire rewrite
+                                config.";
+                } // END of push-outer-vlan-id definition.
+
+                leaf push-inner-vlan-id  {
+                    type  uint16 {
+                         range "1..4094"  {
+                            description "1..4094:inner-vlan";
+                         }
+                    }
+                    description "This Object is used to configure the inner vlan ID for rewrite.
+                                To change the rewrite config, delete and recreate the entire rewrite
+                                config.";
+                } // END of push-inner-vlan-id definition.
+
             }
-            mandatory true;
-            description "This Object is used to configure VLAN ID range for rewrite";
-        } // END of vlan-value definition.
+            case translate {
 
-    } // END of rewrite-config definition.
-    grouping evpn-config {
-        description
-            "Grouping for BGP EVPN configurations";
-        leaf evpn-segment-id  {
-            if-feature feature-list:HAVE_NVO;
-            type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+                description
+                    "Translate the outer vid for a tpid";
+
+                leaf translate-tpid  {
+                    when " ../vlan-action='3' and ../translate-vlan-id ";
+                    type  string {
+                        length "1..1965";
+                        pattern "[^?' =,>|]+";
+                    }
+                    mandatory true;
+                    description "This attribute is used to configure tpid.
+                                To change the rewrite config, delete and recreate the entire rewrite
+                                config.";
+                } // END of translate-tpid definition.
+
+                leaf translate-vlan-id  {
+                    when " ../vlan-action='3' and ../translate-tpid ";
+                    type  uint16 {
+                         range "1..4094"  {
+                            description "1..4094:Vid range";
+                         }
+                    }
+                    mandatory true;
+                    description "This Object is used to configure VLAN ID range for rewrite.
+                                To change the rewrite config, delete and recreate the entire rewrite
+                                config.";
+                } // END of translate-vlan-id definition.
+
             }
-            description "This Object is used to configure the evpn multi-homed Ethernet Segment
-                        Identifier value";
-        } // END of evpn-segment-id definition.
-
-        leaf system-mac  {
-            if-feature feature-list:HAVE_NVO;
-            type  cml-data-types:cml_mac_addr_t;
-            description "This Object is used to configure evpn multi-homed system-mac";
-        } // END of system-mac definition.
-
-    } // END of evpn-config definition.
+        } // END of vlan-action-type-choice definition.
+    } // END of subif-rewrite-config definition.
     grouping l2cp-config {
         description
             "Grouping for Layer2 Control Protocol configurations";
@@ -1237,7 +1206,7 @@ module ipi-if-extended {
             if-feature feature-list:HAVE_TDM_VC;
             type  uint16 {
                  range "1..500"  {
-                    description "Range for jitter buffer size in millisec";
+                    description "1..500:Range for jitter buffer size in millisec";
                  }
             }
             default "500";
@@ -1248,7 +1217,7 @@ module ipi-if-extended {
             if-feature feature-list:HAVE_TDM_VC;
             type  uint32 {
                  range "0..32768"  {
-                    description "Range for setting payload bytes";
+                    description "0..32768:Range for setting payload bytes";
                  }
             }
             default "0";
@@ -1274,7 +1243,7 @@ module ipi-if-extended {
         leaf error-period  {
             type  uint32 {
                  range "2000..10000"  {
-                    description "Range for setting the error-set period in millisec";
+                    description "2000..10000:Range for setting the error-set period in millisec";
                  }
             }
             mandatory true;
@@ -1294,7 +1263,7 @@ module ipi-if-extended {
         leaf error-clear-period  {
             type  uint32 {
                  range "2000..10000"  {
-                    description "Range for setting the error-clear period in millisec";
+                    description "2000..10000:Range for setting the error-clear period in millisec";
                  }
             }
             mandatory true;
@@ -1320,7 +1289,7 @@ module ipi-if-extended {
         leaf multicast-interface  {
             if-feature feature-list:HAVE_VXLAN;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute is used to configure egress multicast interface for
@@ -1340,7 +1309,7 @@ module ipi-if-extended {
         leaf tos-byte  {
             type  uint16 {
                  range "0..255"  {
-                    description "type of service byte";
+                    description "0..255:type of service byte";
                  }
             }
             description "This attribute is used to set type of service byte";
@@ -1349,7 +1318,7 @@ module ipi-if-extended {
         leaf ttl  {
             type  uint16 {
                  range "1..255"  {
-                    description "tunnel time to live";
+                    description "1..255:tunnel time to live";
                  }
             }
             description "This attribute is used to set time to live";
@@ -1363,7 +1332,7 @@ module ipi-if-extended {
         leaf dst-mac-address  {
             if-feature feature-list:HAVE_USER_HSL;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute is used to set next Hop Destination MAC Address of
@@ -1419,6 +1388,60 @@ module ipi-if-extended {
             type  yang:counter32;
             description "pim protocol packets received on the interface";
         } // END of in-pim-pkts definition.
+
+        leaf in-bpdu-pkts  {
+            if-feature feature-list:HAVE_DUNE;
+            type  yang:counter32;
+            description "bpdu protocol packets received on the interface";
+        } // END of in-bpdu-pkts definition.
+
+        leaf in-oamp-pkts  {
+            if-feature feature-list:HAVE_DUNE;
+            type  yang:counter32;
+            description "oamp protocol packets received on the interface";
+        } // END of in-oamp-pkts definition.
+
+        leaf in-bfd-pkts  {
+            if-feature feature-list:HAVE_DUNE;
+            type  yang:counter32;
+            description "bfd protocol packets received on the interface";
+        } // END of in-bfd-pkts definition.
+
+        leaf in-vrrp-rip-dhcp-pkts  {
+            if-feature feature-list:HAVE_DUNE;
+            type  yang:counter32;
+            description "vrrp-rip-dhcp protocol packets received on the interface";
+        } // END of in-vrrp-rip-dhcp-pkts definition.
+
+        leaf in-rsvd-mc-pkts  {
+            if-feature feature-list:HAVE_DUNE;
+            type  yang:counter32;
+            description "rsvd-mc protocol packets received on the interface";
+        } // END of in-rsvd-mc-pkts definition.
+
+        leaf in-link-local-pkts  {
+            if-feature feature-list:HAVE_DUNE;
+            type  yang:counter32;
+            description "link-local protocol packets received on the interface";
+        } // END of in-link-local-pkts definition.
+
+        leaf in-icmp-pkts  {
+            if-feature feature-list:HAVE_DUNE;
+            type  yang:counter32;
+            description "icmp protocol packets received on the interface";
+        } // END of in-icmp-pkts definition.
+
+        leaf in-icmp-redirect-pkts  {
+            if-feature feature-list:HAVE_DUNE;
+            type  yang:counter32;
+            description "icmp-redirect protocol packets received on the interface";
+        } // END of in-icmp-redirect-pkts definition.
+
+        leaf in-misc-pkts  {
+            if-feature feature-list:HAVE_DUNE;
+            type  yang:counter32;
+            description "misc protocol packets received on the interface";
+        } // END of in-misc-pkts definition.
 
         leaf in-total-pkts  {
             type  yang:counter32;
@@ -1558,7 +1581,7 @@ module ipi-if-extended {
 
             leaf queue-name  {
                 type  string {
-                    length "1..max";
+                    length "1..1965";
                     pattern "[^?' =,>|]+";
                 }
                 description "Queue Name corresponding to the Queue Id.";
@@ -1661,6 +1684,16 @@ module ipi-if-extended {
             description "This attribute is used to denote the broadcast Storm Discards";
         } // END of bcast-discards definition.
 
+        leaf hardware-applied-bcast-value  {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_RATE_LIMIT;
+            type  decimal64 {
+                 fraction-digits 3;            }
+            config false;
+            description "This attribute is used to denote the hardware applied storm control
+                        broadcast value when rate format is not set as level";
+        } // END of hardware-applied-bcast-value definition.
+
     } // END of broadcast-state definition.
     grouping multicast-config {
         description
@@ -1691,6 +1724,16 @@ module ipi-if-extended {
             config false;
             description "This attribute is used to denote Multicast Storm Discards";
         } // END of mcast-discards definition.
+
+        leaf hardware-applied-mcast-value  {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_RATE_LIMIT;
+            type  decimal64 {
+                 fraction-digits 3;            }
+            config false;
+            description "This attribute is used to denote the hardware applied storm control
+                        multicast value when rate format is not set as level";
+        } // END of hardware-applied-mcast-value definition.
 
     } // END of multicast-state definition.
     grouping dlf-broadcast-config {
@@ -1723,63 +1766,24 @@ module ipi-if-extended {
             description "This attribute is used to denote the DLF Bcast Storm Discards";
         } // END of dlf-bcast-discards definition.
 
+        leaf hardware-applied-dlf-bcast-value  {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_RATE_LIMIT;
+            type  decimal64 {
+                 fraction-digits 3;            }
+            config false;
+            description "This attribute is used to denote the hardware applied storm control
+                        dlf broadcast value when rate format is not set as level";
+        } // END of hardware-applied-dlf-bcast-value definition.
+
     } // END of dlf-broadcast-state definition.
-    grouping prefix-segment-config {
-        description
-            "Grouping for MPLS segment-route Prefix configurations";
-        leaf sid-absolute  {
-            type  uint32 {
-                 range "16000..23999"  {
-                    description "SID Absolute-value";
-                 }
-            }
-            description "This attribute is used to configure Segment Route Prefix SID absolute
-                        value";
-        } // END of sid-absolute definition.
-
-        leaf sid-index  {
-            type  uint32 {
-                 range "0..7999"  {
-                    description "SID Index-value";
-                 }
-            }
-            description "This attribute is used to configure Segment Route Prefix SID
-                        index-value";
-        } // END of sid-index definition.
-
-        leaf exp-null  {
-            type  ipi-if-types:if_sr_prefix_flag_t;
-            description "This attribute describes except Null";
-        } // END of exp-null definition.
-
-        leaf n-flag-clear  {
-            type  ipi-if-types:if_sr_n_flag_clear_t;
-            description "This attribute is used to set n-flag-clear";
-        } // END of n-flag-clear definition.
-
-        leaf sid-ipv6  {
-            type  ipi-if-types:if_sr_sid_t;
-            description "This attribute is used to set Segment Route IPv6 Prefix SID";
-        } // END of sid-ipv6 definition.
-
-        leaf exp-null-ipv6  {
-            type  ipi-if-types:if_sr_prefix_flag_t;
-            description "This attribute is used to set expNull for IPv6 Prefix SID";
-        } // END of exp-null-ipv6 definition.
-
-        leaf n-flag-clear-ipv6  {
-            type  ipi-if-types:if_sr_n_flag_clear_t;
-            description "This attribute is used to set n-flag-clear for ipv6";
-        } // END of n-flag-clear-ipv6 definition.
-
-    } // END of prefix-segment-config definition.
     grouping if-arbiter-config {
         description
             "Grouping for interface Arbiter global configuration";
         leaf if-arbiter  {
             type  uint32 {
                  range "1..65535"  {
-                    description "Seconds";
+                    description "1..65535:Seconds";
                  }
             }
             default "20";
@@ -1874,6 +1878,62 @@ module ipi-if-extended {
                 uses capabilities-state;
             } // END of state-container definition.
         } // END of capabilities-container definition.
+        container subinterface-encapsulation {
+            if-feature feature-list:HAVE_SUBINTERFACE;
+            description
+                "Container for dot1q and dot1ad encapsulation data";
+            container vlan-service {
+                description
+                    "Container for vlan service";
+                container config {
+                    presence "Enable dot1q and dot1ad encapsulation";
+                    description
+                        "Configuration data for dot1q and dot1ad encapsulation";
+                    uses subif-encapsulation-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for dot1q and dot1ad encapsulation";
+                    uses subif-encapsulation-config;
+                } // END of state-container definition.
+            } // END of vlan-service-container definition.
+            container native-layer2 {
+                description
+                    "Container for native L2 subinterface";
+                container config {
+                    presence "Enable native L2 encapsulation";
+                    description
+                        "Configuration data for native L2 encapsulation";
+                    uses native-layer2-encapsulation-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for native L2 subinterface";
+                    uses native-layer2-encapsulation-config;
+                } // END of state-container definition.
+            } // END of native-layer2-container definition.
+            container rewrite {
+                when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:vlan-service/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:native-layer2/ipi-if-extended:config/ipi-if-extended:l2-encapsulation-type ";
+                description
+                    "Container for rewrite action to push or translate the outer VLAN-id";
+                container config {
+                    presence "Enable rewrite action to push or translate the outer VLAN-id";
+                    description
+                        "Configuration data for rewrite action to push or translate the outer
+                                VLAN-id";
+                    uses subif-rewrite-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for rewrite action to push or translate the
+                                outer VLAN-id";
+                    uses subif-rewrite-config;
+                } // END of state-container definition.
+            } // END of rewrite-container definition.
+        } // END of subinterface-encapsulation-container definition.
     } // END of extended-container definition.
     } // END of extended-grouping definition.
 
@@ -2013,22 +2073,22 @@ module ipi-if-extended {
     container global {
         description
             "Top-level container for global interface-related module";
-        container hardware-profile {
+        container hardware-profile-flexport {
             if-feature feature-list:HAVE_FLEXPORT;
             description
-                "Global hardware-profile configuration container for router";
+                "Global Hardware Profile Flexport configuration container for router";
             container config {
                 description
                     "Global hardware-profile configuration parameters for the router";
-                uses hardware-profile-config;
+                uses hardware-profile-flexport-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "State data for global hardware-profile";
-                uses hardware-profile-config;
+                uses hardware-profile-flexport-config;
             } // END of state-container definition.
-        } // END of hardware-profile-container definition.
+        } // END of hardware-profile-flexport-container definition.
         container error-disable {
             description
                 "Global Error-Disable objects";
@@ -2046,6 +2106,41 @@ module ipi-if-extended {
         } // END of error-disable-container definition.
     } // END of global-container definition.
     } // END of global-grouping definition.
+
+    grouping  cross-connects-grouping {
+    description
+        "Global container for cross connect between subinterfaces";
+    container cross-connects {
+        description
+            "Global container for cross connect between subinterfaces";
+
+        list subinterface-cross-connect {
+            if-feature feature-list:HAVE_SUBINTERFACE;
+            key "xc-name";
+            description
+                "Global configuration for cross-connect between subinterfaces";
+            leaf xc-name  {
+                type  leafref {
+                    path  "../config/xc-name";
+                }
+                description "This attribute specifies the cross-connect name. Use this attribute to
+                            cross-connect between subinterfaces.";
+            } // END of xc-name definition.
+
+            container config {
+                description
+                    "Global configuration for cross-connect between subinterfaces";
+                uses subif-crossconnect-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State data for cross-connect between subinterfaces";
+                uses subif-crossconnect-config;
+            } // END of state-container definition.
+        } // End of subinterface-cross-connect-list
+    } // END of cross-connects-container definition.
+    } // END of cross-connects-grouping definition.
 
     grouping  tunnel-grouping {
     description
@@ -2106,6 +2201,12 @@ module ipi-if-extended {
         uses global-grouping;
     }
 
+    augment /ipi-interface:interfaces {
+        description
+            "Global container for cross connect between subinterfaces";
+        uses cross-connects-grouping;
+    }
+
     augment /ipi-interface:interfaces/ipi-interface:interface {
         description
             "Interface tunnel related data";
@@ -2141,10 +2242,6 @@ module ipi-if-extended {
                             counters for all interfaces";
             }
         }
-    }
-
-    rpc nsm-snmp-restart {
-        description "Use this RPC to restart SNMP for nsm";
     }
 
     notification interface-error-disable-notification {

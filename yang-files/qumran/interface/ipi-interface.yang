@@ -23,26 +23,32 @@ module ipi-interface {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ietf-yang-types {
         prefix yang;
+        revision-date 2013-07-15;
     }
 
     import ipi-if-types {
         prefix ipi-if-types;
+        revision-date 2021-03-16;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
+        revision-date 2021-01-27;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -57,6 +63,21 @@ module ipi-interface {
     description
         "Datamodel for interface object";
 
+
+    revision "2021-06-14" {
+        description "Moved attibute dot1q-ether-type from extended interface module to base interface module.";
+        reference " 0.5.1.";
+    }
+
+    revision "2021-03-16" {
+        description "Combined switchport with switchport-status and updated when tags for sub-interface remodelling.";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-03-01" {
+        description "Changed data-types of attribute mtu and ifindex to CML_UINT32_T";
+        reference " 0.4.0.";
+    }
 
     revision "2020-12-15" {
         description "Change to have data-types in lower case instead of camel case";
@@ -143,7 +164,7 @@ module ipi-interface {
         leaf vr-name  {
             if-feature feature-list:HAVE_VR;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute is used to associates an interface with a VR";
@@ -155,14 +176,6 @@ module ipi-interface {
             description "This attribute is used to enable port breakout";
         } // END of port-breakout definition.
 
-        leaf port-bundle  {
-            if-feature feature-list:HAVE_FLEXPORT;
-            if-feature feature-list:NOT_HAVE_TOMAHAWK;
-            type  boolean;
-            default false;
-            description "This attribute is used to enable port bundle";
-        } // END of port-bundle definition.
-
         leaf type  {
             type  ipi-if-types:if_iana_if_type_t;
             description "The type of the interface.
@@ -173,10 +186,10 @@ module ipi-interface {
         } // END of type definition.
 
         leaf mtu  {
-            type  int32 {
+            type  uint32 {
                  range "64..65536"  {
-                    description "MTU in bytes: (64-9416) for L2 packet (576-9216) for L3 IPv4 packet
-                            (1280-9216) for L3 IPv6 packet (576-65536) for IPv4 packet and
+                    description "64..65536:MTU in bytes: (64-9416) for L2 packet (576-9216) for L3 IPv4
+                            packet (1280-9216) for L3 IPv6 packet (576-65536) for IPv4 packet and
                             (1280-65536) for IPv6 packet on loopback interface";
                  }
             }
@@ -187,6 +200,16 @@ module ipi-interface {
                         be sent on the interface.";
         } // END of mtu definition.
 
+        leaf dot1q-ether-type  {
+            // when " !ipi-mlag:mlag-aggregation/config/mlag-id ";
+            if-feature feature-list:NOT_HAVE_SWFWDR;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Attribute to change Ethertype value";
+        } // END of dot1q-ether-type definition.
+
         uses interface-common-config;
     } // END of interface-phys-config definition.
     grouping interface-common-state {
@@ -194,7 +217,7 @@ module ipi-interface {
             "Operational state data (in addition to intended configuration) at the
                         global level for this interface";
         leaf ifindex  {
-            type  int32;
+            type  uint32;
             config false;
             description "System assigned number for each interface. A unique value,
                         greater
@@ -441,7 +464,9 @@ module ipi-interface {
             } // END of out-errors definition.
 
             leaf last-clear  {
-                type  ipi-if-types:if_last_clear_time_t;
+                type  ipi-if-types:if_last_clear_time_t {
+                    length "1..1965";
+                }
                 description "This Object describes the last counter clear";
             } // END of last-clear definition.
 

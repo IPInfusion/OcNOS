@@ -23,32 +23,41 @@ module ipi-platform {
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import ipi-platform-types {
         prefix ipi-platform-types;
+        revision-date 2021-01-25;
     }
 
     import ipi-platform-transceiver-types {
         prefix ipi-platform-transceiver-types;
-    }
-
-    import cml-data-types {
-        prefix cml-data-types;
+        revision-date 2020-12-15;
     }
 
     import ietf-yang-types {
         prefix yang;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
-    include ipi-platform-cpu;
-    include ipi-platform-storage;
-    include ipi-platform-ram;
-    include ipi-platform-transceiver;
+    include ipi-platform-temperature { revision-date 2021-03-18;}
+    include ipi-platform-cpu { revision-date 2021-04-28;}
+    include ipi-platform-storage { revision-date 2021-05-31;}
+    include ipi-platform-ram { revision-date 2020-12-15;}
+    include ipi-platform-transceiver { revision-date 2020-12-15;}
+    include ipi-platform-power-supply { revision-date 2021-03-18;}
+    include ipi-platform-fan { revision-date 2021-03-18;}
+    include ipi-platform-fan-tray { revision-date 2021-03-18;}
+    include ipi-platform-chassis { revision-date 2021-03-18;}
+    include ipi-platform-linecard { revision-date 2021-01-25;}
+    include ipi-platform-power-rail { revision-date 2021-01-25;}
+    include ipi-platform-profile { revision-date 2021-06-23;}
     organization
         "IP Infusion Inc.";
 
@@ -65,6 +74,46 @@ module ipi-platform {
                 relationship supported by the model is containment, e.g.,
                 components containing subcomponents.";
 
+
+    revision "2021-06-23" {
+        description "Updated submodule ipi-platform-profile for attribute ingress-bfd datatype changed.";
+        reference " 0.9.2.";
+    }
+
+    revision "2021-06-17" {
+        description "Updated submodule ipi-platform-profile for non-DNX Broadcom platform.";
+        reference " 0.9.1.";
+    }
+
+    revision "2021-06-11" {
+        description "Some BMC sensor attributes had the type changes from two decimal places to three.";
+        reference " 0.9.0.";
+    }
+
+    revision "2021-05-31" {
+        description "New attributes added for submodule ipi-platform-storage";
+        reference " 0.8.0.";
+    }
+
+    revision "2021-04-28" {
+        description "Submodule ipi-platform-cpu changed.";
+        reference " 0.7.0.";
+    }
+
+    revision "2021-03-30" {
+        description "Introduced new sub-modules ipi-platform-profile.";
+        reference " 0.6.0.";
+    }
+
+    revision "2021-03-18" {
+        description "Updated ipi-platform-power-supply sub-module. Removed pattern from string attributes.";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-01-25" {
+        description "Introduced new sub-modules ipi-platform-temperature, ipi-platform-power-supply, ipi-fan, ipi-fan-tray, ipi-chassis, ipi-linecard, and ipi-power-rail. Fixed attribute transceiver-code typo.";
+        reference " 0.4.0.";
+    }
 
     revision "2021-01-18" {
         description "Introduced new ipi-platform-cpu sub-module";
@@ -103,24 +152,21 @@ module ipi-platform {
             "Per-component board detail";
         leaf board-name  {
             type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+                length "1..1965";
             }
             description "Name of the Board";
         } // END of board-name definition.
 
         leaf board-serial-no  {
             type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+                length "1..1965";
             }
             description "Serial No of the device";
         } // END of board-serial-no definition.
 
         leaf board-mfg-name  {
             type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+                length "1..1965";
             }
             description "Device's manufacturer name";
         } // END of board-mfg-name definition.
@@ -139,7 +185,7 @@ module ipi-platform {
         leaf system-1min-load-avg-warning-threshold  {
             type  uint8 {
                  range "41..100"  {
-                    description "41-100";
+                    description "41..100:41-100";
                  }
             }
             description "System 1min average load threshold for warning";
@@ -148,7 +194,7 @@ module ipi-platform {
         leaf system-1min-load-avg-alarm  {
             type  uint8 {
                  range "51..100"  {
-                    description "51-100";
+                    description "51..100:51-100";
                  }
             }
             description "System 1min average load for alarm";
@@ -157,7 +203,7 @@ module ipi-platform {
         leaf system-5min-load-avg-alarm  {
             type  uint8 {
                  range "51..100"  {
-                    description "51-100";
+                    description "51..100:51-100";
                  }
             }
             description "System 5min average load for alarm";
@@ -166,7 +212,7 @@ module ipi-platform {
         leaf system-15min-load-avg-alarm  {
             type  uint8 {
                  range "51..100"  {
-                    description "51-100";
+                    description "51..100:51-100";
                  }
             }
             description "System 15min average load for alarm";
@@ -179,7 +225,7 @@ module ipi-platform {
         leaf warning-threshold  {
             type  uint8 {
                  range "51..100"  {
-                    description "51-100";
+                    description "51..100:51-100";
                  }
             }
             description "Cpu threshold for warning";
@@ -188,7 +234,7 @@ module ipi-platform {
         leaf alarm-threshold  {
             type  uint8 {
                  range "91..100"  {
-                    description "91-100";
+                    description "91..100:91-100";
                  }
             }
             description "Cpu threshold for alarm";
@@ -251,6 +297,7 @@ module ipi-platform {
                 description
                     "system level load operational data";
                 uses system-load;
+                uses temperature-grouping;
             } // END of state-container definition.
         } // End of system-load-average-threshold-list
 
@@ -283,6 +330,7 @@ module ipi-platform {
                 description
                     "system level load operational data";
                 uses cpu-threshold;
+                uses temperature-grouping;
             } // END of state-container definition.
         } // End of cpu-core-usage-threshold-list
     } // END of system-load-cpu-usage-global definition.
@@ -294,15 +342,26 @@ module ipi-platform {
             description "To enable DDM monitor for current transceiver.";
         } // END of monitor-port definition.
 
-        leaf transciever-code  {
+        leaf videopiu-port  {
+            if-feature feature-list:HAVE_VPIU_EMULATION;
+            type  ipi-platform-types:cmm_videopiu_state;
+            description "To enable VIDEO PIU for current transceiver.";
+        } // END of videopiu-port definition.
+
+        leaf transceiver-code  {
             type  ipi-platform-transceiver-types:ddm_transceiver_t;
             description "To set transceiver code for current transceiver.";
-        } // END of transciever-code definition.
+        } // END of transceiver-code definition.
 
         leaf wavelength  {
             type  ipi-platform-types:cml_wavelength_t;
             description "wavelength";
         } // END of wavelength definition.
+
+        leaf tx-disable  {
+            type  empty;
+            description "To disable laser tx for current transceiver.";
+        } // END of tx-disable definition.
 
     } // END of component-interface definition.
     grouping platform-component-interface-list {
@@ -331,6 +390,7 @@ module ipi-platform {
                 description
                     "Operational data for interface";
                 uses component-interface;
+                uses temperature-grouping;
             } // END of state-container definition.
         } // End of interface-list
     } // END of platform-component-interface-list definition.
@@ -362,8 +422,7 @@ module ipi-platform {
                 "Operational data for bmc-sensor";
             leaf sensor-name  {
                 type  string {
-                    length "1..max";
-                    pattern "[^?' =,>|]+";
+                    length "1..1965";
                 }
                 description "sensor name";
             } // END of sensor-name definition.
@@ -374,55 +433,59 @@ module ipi-platform {
             } // END of value definition.
 
             leaf units  {
-                type  cml-data-types:cml_line_t;
+                type  string {
+                    length "1..1965";
+                }
                 description "unit of sensor record";
             } // END of units definition.
 
             leaf lower-non-recoverable  {
                 type  decimal64 {
-                     fraction-digits 2;                }
+                     fraction-digits 3;                }
                 description "lower non recoverable sensor threshold.-100002 represents not
                             applicable";
             } // END of lower-non-recoverable definition.
 
             leaf lower-non-critical  {
                 type  decimal64 {
-                     fraction-digits 2;                }
+                     fraction-digits 3;                }
                 description "lower non critical sensor threshold.-100002 represents not applicable";
             } // END of lower-non-critical definition.
 
             leaf lower-critical  {
                 type  decimal64 {
-                     fraction-digits 2;                }
+                     fraction-digits 3;                }
                 description "lower non critical sensor threshold.-100002 represents not applicable";
             } // END of lower-critical definition.
 
             leaf upper-non-critical  {
                 type  decimal64 {
-                     fraction-digits 2;                }
+                     fraction-digits 3;                }
                 description "upper non critical sensor threshold.-100002 represents not applicable";
             } // END of upper-non-critical definition.
 
             leaf upper-critical  {
                 type  decimal64 {
-                     fraction-digits 2;                }
+                     fraction-digits 3;                }
                 description "upper critical sensor threshold.-100002 represents not applicable";
             } // END of upper-critical definition.
 
             leaf upper-non-recoverable  {
                 type  decimal64 {
-                     fraction-digits 2;                }
+                     fraction-digits 3;                }
                 description "upper critical sensor threshold.-100002 represents not applicable";
             } // END of upper-non-recoverable definition.
 
             leaf operational-status  {
-                type  cml-data-types:cml_line_t;
+                type  string {
+                    length "1..1965";
+                }
                 description "Sensor's operational state";
             } // END of operational-status definition.
 
             leaf threshold  {
                 type  decimal64 {
-                     fraction-digits 6;                }
+                     fraction-digits 3;                }
                 description "threshold for sensor notification";
             } // END of threshold definition.
 
@@ -431,6 +494,7 @@ module ipi-platform {
                 description "Type of event for sensor notification";
             } // END of event-type definition.
 
+            uses temperature-grouping;
         } // END of state-container definition.
     } // END of component-bmc-sensor-record-state definition.
     grouping component-hardware-debug {
@@ -439,7 +503,7 @@ module ipi-platform {
         leaf ddm-debug-enable  {
             if-feature feature-list:NOT_HAVE_TIBIT;
             type  empty;
-            description "Use this attribute to turn on debugging for digital diagonistic
+            description "Use this attribute to turn on debugging for digital diagnostic
                         monitoring";
         } // END of ddm-debug-enable definition.
 
@@ -450,7 +514,7 @@ module ipi-platform {
         leaf ddm-terminal-debug  {
             if-feature feature-list:NOT_HAVE_TIBIT;
             type  empty;
-            description "Use this attribute to see the debugging state for digital diagonistic
+            description "Use this attribute to see the debugging state for digital diagnostic
                         monitoring";
         } // END of ddm-terminal-debug definition.
 
@@ -467,8 +531,7 @@ module ipi-platform {
         leaf location  {
             if-feature feature-list:NOT_HAVE_TIBIT;
             type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+                length "1..1965";
             }
             description "System-supplied description of the location of the
                         component within the system. This could be a bay position,
@@ -480,8 +543,7 @@ module ipi-platform {
         leaf mfg-name  {
             if-feature feature-list:NOT_HAVE_TIBIT;
             type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+                length "1..1965";
             }
             description "System-supplied identifier for the manufacturer of the component.This
                         data is particularly useful when a component manufacturer is different
@@ -499,8 +561,7 @@ module ipi-platform {
             leaf description  {
                 if-feature feature-list:NOT_HAVE_TIBIT;
                 type  string {
-                    length "1..max";
-                    pattern "[^?' =,>|]+";
+                    length "1..1965";
                 }
                 description "System-supplied description of the component.";
             } // END of description definition.
@@ -508,8 +569,7 @@ module ipi-platform {
             leaf hardware-version  {
                 if-feature feature-list:NOT_HAVE_TIBIT;
                 type  string {
-                    length "1..max";
-                    pattern "[^?' =,>|]+";
+                    length "1..1965";
                 }
                 description "For hardware components, this is the hardware revision of the
                             component.";
@@ -518,8 +578,7 @@ module ipi-platform {
             leaf firmware-version  {
                 if-feature feature-list:NOT_HAVE_TIBIT;
                 type  string {
-                    length "1..max";
-                    pattern "[^?' =,>|]+";
+                    length "1..1965";
                 }
                 description "For hardware components, this is the version of associated firmware
                             that is running on the component, if applicable.";
@@ -528,8 +587,7 @@ module ipi-platform {
             leaf software-version  {
                 if-feature feature-list:NOT_HAVE_TIBIT;
                 type  string {
-                    length "1..max";
-                    pattern "[^?' =,>|]+";
+                    length "1..1965";
                 }
                 description "For software components such as operating system or other software
                             module,this is the version of the currently running software.";
@@ -538,8 +596,7 @@ module ipi-platform {
             leaf serial-no  {
                 if-feature feature-list:NOT_HAVE_TIBIT;
                 type  string {
-                    length "1..max";
-                    pattern "[^?' =,>|]+";
+                    length "1..1965";
                 }
                 description "System-assigned serial number of the component.";
             } // END of serial-no definition.
@@ -547,8 +604,7 @@ module ipi-platform {
             leaf part-no  {
                 if-feature feature-list:NOT_HAVE_TIBIT;
                 type  string {
-                    length "1..max";
-                    pattern "[^?' =,>|]+";
+                    length "1..1965";
                 }
                 description "System-assigned part number for the component.This should be present
                             in particular if the component is also an FRU(field replaceable unit).";
@@ -570,8 +626,7 @@ module ipi-platform {
             leaf product-name  {
                 if-feature feature-list:NOT_HAVE_TIBIT;
                 type  string {
-                    length "1..max";
-                    pattern "[^?' =,>|]+";
+                    length "1..1965";
                 }
                 description "Component's product name";
             } // END of product-name definition.
@@ -579,8 +634,7 @@ module ipi-platform {
             leaf asset-tag  {
                 if-feature feature-list:NOT_HAVE_TIBIT;
                 type  string {
-                    length "1..max";
-                    pattern "[^?' =,>|]+";
+                    length "1..1965";
                 }
                 description "Component's asset tag";
             } // END of asset-tag definition.
@@ -588,7 +642,7 @@ module ipi-platform {
             leaf-list component-additional-details  {
                 if-feature feature-list:NOT_HAVE_TIBIT;
                 type  string {
-                    length "1..max";
+                    length "1..1965";
                     pattern "[^?' =,>|]+";
                 }
                 description "Component's extra details";
@@ -631,11 +685,22 @@ module ipi-platform {
             if-feature feature-list:NOT_HAVE_TIBIT;
             type  uint16 {
                  range "60..3600"  {
-                    description "60-3600 seconds";
+                    description "60..3600:60-3600 seconds";
                  }
             }
+            default "60";
             description "To set DDM Monitor interval time.";
         } // END of ddm-monitor-time-interval definition.
+
+        leaf vpiu-control-vlan  {
+            if-feature feature-list:HAVE_VPIU_EMULATION;
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094:VLAN ID 2 4094";
+                 }
+            }
+            description "To set Video PIU Command VLAN.";
+        } // END of vpiu-control-vlan definition.
 
         leaf service-unsupported-transceiver  {
             if-feature feature-list:NOT_HAVE_TIBIT;
@@ -703,6 +768,7 @@ module ipi-platform {
                     "Global operational data";
                 uses component-generic-global;
                 uses component-hardware-global;
+                uses temperature-grouping;
             } // END of state-container definition.
             uses system-load-cpu-usage-global;
         } // END of global-container definition.
@@ -727,6 +793,7 @@ module ipi-platform {
                 uses component-hardware-debug;
                 uses component-generic-terminal-debug;
                 uses component-hardware-terminal-debug;
+                uses temperature-grouping;
             } // END of state-container definition.
         } // END of debug-container definition.
     } // END of platform-component-debug definition.
@@ -756,8 +823,7 @@ module ipi-platform {
                     "Operational state data for each component";
                 leaf name  {
                     type  string {
-                        length "1..max";
-                        pattern "[^?' =,>|]+";
+                        length "1..1965";
                     }
                     description "References the component name";
                 } // END of name definition.
@@ -765,12 +831,19 @@ module ipi-platform {
                 uses platform-component-state;
                 uses platform-component-memory-state;
                 uses platform-component-board-state;
+                uses temperature-grouping;
             } // END of state-container definition.
             uses platform-sensor-record;
             uses cpu-grouping;
             uses storage-grouping;
             uses ram-grouping;
             uses transceiver-grouping;
+            uses power-supply-grouping;
+            uses fan-grouping;
+            uses fan-tray-grouping;
+            uses chassis-grouping;
+            uses linecard-grouping;
+            uses power-rail-grouping;
         } // End of component-list
         uses platform-component-debug;
         uses platform-component-global;
@@ -779,6 +852,7 @@ module ipi-platform {
     } // END of components-grouping definition.
 
     uses components-grouping;
+    uses profiles-grouping;
 
     rpc ddm-clear-transceiver-alarm-all {
         description "Use ddm-clear-transceiver-alarm-all to clear alarms from all
@@ -791,25 +865,25 @@ module ipi-platform {
             leaf name  {
                 type string;
                 mandatory true;
-                description "Use this rpc attribute to clear transaceiver alarm";
+                description "Use this rpc attribute to clear transceiver alarm";
             }
         }
     }
 
     rpc debug-ddm-on {
-        description "Use debug-ddm-on to enable debug for digital diagonistic monitoring";
+        description "Use debug-ddm-on to enable debug for digital diagnostic monitoring";
     }
 
     rpc debug-ddm-off {
-        description "Use debug-ddm-off to disable debug for digital diagonistic monitoring";
+        description "Use debug-ddm-off to disable debug for digital diagnostic monitoring";
     }
 
     rpc debug-cmm-on {
-        description "Use debug-cmmm-on to enable debug for chassis monitoring";
+        description "Use debug-cmm-on to enable debug for chassis monitoring";
     }
 
     rpc debug-cmm-off {
-        description "Use debug-cmmm-off to disable debug for chassis monitoring";
+        description "Use debug-cmm-off to disable debug for chassis monitoring";
     }
 
     notification bmc-lower-non-critical-low-threshold-notification {
@@ -826,20 +900,20 @@ module ipi-platform {
 
         leaf lower-non-critical {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "lower non critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -865,20 +939,20 @@ module ipi-platform {
 
         leaf lower-non-critical {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "lower non critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -904,20 +978,20 @@ module ipi-platform {
 
         leaf lower-critical {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "lower non critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -943,20 +1017,20 @@ module ipi-platform {
 
         leaf lower-critical {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "lower non critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -982,7 +1056,7 @@ module ipi-platform {
 
         leaf lower-non-recoverable {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "lower non recoverable sensor threshold.-100002 represents not
                     applicable";
@@ -990,13 +1064,13 @@ module ipi-platform {
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -1022,7 +1096,7 @@ module ipi-platform {
 
         leaf lower-non-recoverable {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "lower non recoverable sensor threshold.-100002 represents not
                     applicable";
@@ -1030,13 +1104,13 @@ module ipi-platform {
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -1062,20 +1136,20 @@ module ipi-platform {
 
         leaf upper-non-critical {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "upper non critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -1101,20 +1175,20 @@ module ipi-platform {
 
         leaf upper-non-critical {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "upper non critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -1140,20 +1214,20 @@ module ipi-platform {
 
         leaf upper-critical {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "upper critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -1179,20 +1253,20 @@ module ipi-platform {
 
         leaf upper-critical {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "upper critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -1218,20 +1292,20 @@ module ipi-platform {
 
         leaf upper-non-recoverable {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "upper critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -1257,20 +1331,20 @@ module ipi-platform {
 
         leaf upper-non-recoverable {
             type  decimal64 {
-                 fraction-digits 2;            }
+                 fraction-digits 3;            }
         description
             "upper critical sensor threshold.-100002 represents not applicable";
         }
 
         leaf threshold {
             type  decimal64 {
-                 fraction-digits 6;            }
+                 fraction-digits 3;            }
         description
             "threshold for sensor notification";
         }
 
         leaf units {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "unit of sensor record";
         }
@@ -1295,9 +1369,225 @@ module ipi-platform {
         }
 
         leaf operational-status {
-            type cml-data-types:cml_line_t;
+            type  string;
         description
             "Sensor's operational state";
+        }
+    }
+
+    notification cpu-load-15min-alert {
+
+        description "This notification is sent when CPU utilization average during 15 minutes exceeds the alert threshold.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf cpu-15min-load-percentage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The arithmetic mean value of the percentage measure of the CPU load
+                    over 15 minutes interval";
+        }
+
+        leaf cpu-15min-alert-threshold {
+            type  uint8;
+        description
+            "CPU load threshold during 15 minutes interval for alert level";
+        }
+    }
+
+    notification cpu-load-15min-alert-recovery {
+
+        description "This notification is sent when CPU utilization average during 15 minutes falls bellow the alert threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf cpu-15min-load-percentage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The arithmetic mean value of the percentage measure of the CPU load
+                    over 15 minutes interval";
+        }
+
+        leaf cpu-15min-alert-threshold {
+            type  uint8;
+        description
+            "CPU load threshold during 15 minutes interval for alert level";
+        }
+    }
+
+    notification cpu-load-5min-alert {
+
+        description "This notification is sent when CPU utilization average during 5 minutes exceeds the alert threshold.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf cpu-5min-load-percentage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The arithmetic mean value of the percentage measure of the CPU load
+                    over 5 minutes interval";
+        }
+
+        leaf cpu-5min-alert-threshold {
+            type  uint8;
+        description
+            "CPU load threshold during 5 minutes interval for alert level";
+        }
+    }
+
+    notification cpu-load-5min-alert-recovery {
+
+        description "This notification is sent when CPU utilization average during 5 minutes falls bellow the alert threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf cpu-5min-load-percentage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The arithmetic mean value of the percentage measure of the CPU load
+                    over 5 minutes interval";
+        }
+
+        leaf cpu-5min-alert-threshold {
+            type  uint8;
+        description
+            "CPU load threshold during 5 minutes interval for alert level";
+        }
+    }
+
+    notification cpu-load-1min-critical {
+
+        description "This notification is sent when CPU utilization average during 1 minute exceeds the critical threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf cpu-1min-load-percentage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The arithmetic mean value of the percentage measure of the CPU load
+                    over 1 minute interval";
+        }
+
+        leaf cpu-1min-critical-threshold {
+            type  uint8;
+        description
+            "CPU load threshold during 1 minute interval for critical level";
+        }
+    }
+
+    notification cpu-load-1min-critical-recovery {
+
+        description "This notification is sent when CPU utilization average during 1 minute falls bellow the critical threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf cpu-1min-load-percentage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The arithmetic mean value of the percentage measure of the CPU load
+                    over 1 minute interval";
+        }
+
+        leaf cpu-1min-critical-threshold {
+            type  uint8;
+        description
+            "CPU load threshold during 1 minute interval for critical level";
+        }
+    }
+
+    notification cpu-load-1min-alert {
+
+        description "This notification is sent when CPU utilization average during 1 minute falls bellow the alert threshold.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf cpu-1min-load-percentage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The arithmetic mean value of the percentage measure of the CPU load
+                    over 1 minute interval";
+        }
+
+        leaf cpu-1min-alert-threshold {
+            type  uint8;
+        description
+            "CPU load threshold during 1 minute interval for alert level";
+        }
+    }
+
+    notification cpu-load-1min-alert-recovery {
+
+        description "This notification is sent when CPU utilization average during 1 minute falls bellow the alert threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf cpu-1min-load-percentage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The arithmetic mean value of the percentage measure of the CPU load
+                    over 1 minute interval";
+        }
+
+        leaf cpu-1min-alert-threshold {
+            type  uint8;
+        description
+            "CPU load threshold during 1 minute interval for alert level";
         }
     }
 
@@ -1328,7 +1618,7 @@ module ipi-platform {
         leaf mount-point {
             type  string;
         description
-            "Path of the mounted filesystem";
+            "A unique value for each mounted filesystem.";
         }
     }
 
@@ -1336,7 +1626,7 @@ module ipi-platform {
 
         description "Notification for storage when it exceeds critical threshold.";
 
-        // severity "CRITICAL";
+        // severity "MAJOR";
         // eventClass "STATE";
         leaf name {
             type  string;
@@ -1359,7 +1649,7 @@ module ipi-platform {
         leaf mount-point {
             type  string;
         description
-            "Path of the mounted filesystem";
+            "A unique value for each mounted filesystem.";
         }
     }
 
@@ -1390,7 +1680,7 @@ module ipi-platform {
         leaf mount-point {
             type  string;
         description
-            "Path of the mounted filesystem";
+            "A unique value for each mounted filesystem.";
         }
     }
 
@@ -1421,7 +1711,7 @@ module ipi-platform {
         leaf mount-point {
             type  string;
         description
-            "Path of the mounted filesystem";
+            "A unique value for each mounted filesystem.";
         }
     }
 
@@ -1522,6 +1812,264 @@ module ipi-platform {
             type  uint32;
         description
             "RAM usage threshold % for alert level.";
+        }
+    }
+
+    notification temperature-high {
+
+        description "This notification is sent when temperature sensor exceeds a given threshold.";
+
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf alarm-status {
+            type  boolean;
+        description
+            "A value of true indicates the alarm has been raised or asserted. The
+                    value should be false when the alarm is cleared.";
+        }
+
+        leaf alarm-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The threshold value that was crossed for this alarm.";
+        }
+
+        leaf instant {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The instantaneous temperature value.";
+        }
+    }
+
+    notification temperature-low {
+
+        description "This notification is sent when temperature sensor falls below a given threshold.";
+
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf alarm-status {
+            type  boolean;
+        description
+            "A value of true indicates the alarm has been raised or asserted. The
+                    value should be false when the alarm is cleared.";
+        }
+
+        leaf alarm-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The threshold value that was crossed for this alarm.";
+        }
+
+        leaf instant {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The instantaneous temperature value.";
+        }
+    }
+
+    notification power-supply-inserted {
+
+        description "This notification is sent when power supply unit is inserted.";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+    }
+
+    notification power-supply-removed {
+
+        description "This notification is sent when power supply unit is removed.";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+    }
+
+    notification power-supply-ac-failed {
+
+        description "This notification is sent when power supply unit has no input power.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+    }
+
+    notification power-supply-ac-recovery {
+
+        description "This notification is sent when power supply unit input power is restored.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+    }
+
+    notification power-supply-12v-failed {
+
+        description "This notification is sent when power supply unit has no output power.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+    }
+
+    notification power-supply-12v-recovery {
+
+        description "This notification is sent when power supply unit output power is restored..";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+    }
+
+    notification fan-status-alarm {
+
+        description "This notification is sent when fan is in alarm state.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf fan-index {
+            type  uint8;
+        description
+            "Fan identifier index in the system";
+        }
+
+        leaf fan-status {
+            type  cml_cmm_fan_status_t;
+        description
+            "The status of the fan";
+        }
+    }
+
+    notification fan-status-alarm-recovery {
+
+        description "This notification is sent when fan recovers from an alarm state.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf fan-index {
+            type  uint8;
+        description
+            "Fan identifier index in the system";
+        }
+
+        leaf fan-status {
+            type  cml_cmm_fan_status_t;
+        description
+            "The status of the fan";
+        }
+    }
+
+    notification fan-rpm-min-alert {
+
+        description "This notification is sent when fan RPM set to its minimum value..";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf minimum-rpm {
+            type  uint32;
+        description
+            "Value represents the minimum supported RPM of fan";
+        }
+    }
+
+    notification fan-rpm-max-alert {
+
+        description "This notification is sent when fan RPM set to its maximum value..";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf maximum-rpm {
+            type  uint32;
+        description
+            "Value represents the maximum supported RPM of fan";
+        }
+    }
+
+    notification fan-tray-inserted {
+
+        description "This notification is sent when fan tray is inserted.";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+    }
+
+    notification fan-tray-removed {
+
+        description "This notification is sent when fan tray is removed.";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
         }
     }
 

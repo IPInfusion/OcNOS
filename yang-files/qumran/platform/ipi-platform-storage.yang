@@ -19,10 +19,6 @@ submodule ipi-platform-storage {
 
     belongs-to  ipi-platform { prefix ipi-platform; }
 
-    import cml-data-types {
-        prefix cml-data-types;
-    }
-
     organization
         "IP Infusion Inc.";
 
@@ -37,6 +33,16 @@ submodule ipi-platform-storage {
                 datamodel";
 
 
+    revision "2021-05-31" {
+        description "New attributes added for harddisk filesystem mount-points";
+        reference " 0.4.0.";
+    }
+
+    revision "2021-03-18" {
+        description "Removed pattern from string attributes";
+        reference " 0.3.0.";
+    }
+
     revision "2020-12-15" {
         description "Change to have data-types in lower case instead of camel case";
         reference " 0.2.0.";
@@ -47,24 +53,86 @@ submodule ipi-platform-storage {
         reference " 0.1.0.";
     }
 
+    grouping storage-mounted-filesystem-state {
+        description
+            "storageCMLSEPmountedCMLSEPfilesystemCMLSEPstate";
+        leaf mount-point  {
+            type  string {
+                length "1..1965";
+            }
+            description "Path of the mounted filesystem.";
+        } // END of mount-point definition.
+
+        leaf total  {
+            type  uint64;
+            units "MB";
+            description "Total memory of the mounted filesystem.";
+        } // END of total definition.
+
+        leaf used  {
+            type  uint64;
+            units "MB";
+            description "Used memory of the mounted filesystem.";
+        } // END of used definition.
+
+        leaf free  {
+            type  uint64;
+            units "MB";
+            description "Free memory of the mounted filesystem.";
+        } // END of free definition.
+
+        leaf usage  {
+            type  uint8;
+            units "%";
+            description "Mounted filesystem usage in %.";
+        } // END of usage definition.
+
+    } // END of storage-mounted-filesystem-state definition.
+    grouping storage-mounted-filesystem-top {
+        description
+            "storageCMLSEPmountedCMLSEPfilesystemCMLSEPtop";
+
+        list mounted-filesystem {
+            key "mount-point";
+            config false;
+            description
+                "List to store operational data related to mounted filesystems";
+            leaf mount-point  {
+                type  leafref {
+                    path  "../state/mount-point";
+                }
+                description "A unique value for each mounted filesystem.";
+            } // END of mount-point definition.
+
+            container state {
+                config false;
+                description
+                    "Operational state data for mounted filesystem";
+                uses storage-mounted-filesystem-state;
+            } // END of state-container definition.
+        } // End of mounted-filesystem-list
+    } // END of storage-mounted-filesystem-top definition.
     grouping storage-state {
         description
             "Operational state data for storage components";
         leaf serial-number  {
             type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+                length "1..1965";
             }
             description "Hard disk's serial number.";
         } // END of serial-number definition.
 
         leaf model-number  {
-            type  cml-data-types:cml_line_t;
+            type  string {
+                length "1..1965";
+            }
             description "Hard disk's model number";
         } // END of model-number definition.
 
         leaf firmware-revision  {
-            type  cml-data-types:cml_line_t;
+            type  string {
+                length "1..1965";
+            }
             description "Hard disk's firmware revision";
         } // END of firmware-revision definition.
 
@@ -85,18 +153,17 @@ submodule ipi-platform-storage {
 
         leaf unformatted-bytes-or-track  {
             type  uint16;
-            description "Hard disk's unformated bytes or track.";
+            description "Hard disk's unformatted bytes or track.";
         } // END of unformatted-bytes-or-track definition.
 
         leaf unformatted-bytes-or-sector  {
             type  uint16;
-            description "Hard disk's unformated bytes or sector.";
+            description "Hard disk's unformatted bytes or sector.";
         } // END of unformatted-bytes-or-sector definition.
 
         leaf revision-number  {
             type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
+                length "1..1965";
             }
             description "Hard disk's Revision number. Blank indicates unavailable";
         } // END of revision-number definition.
@@ -128,14 +195,6 @@ submodule ipi-platform-storage {
             description "Hard disk's usage threshold %  for Alert Level.";
         } // END of usage-alert-threshold definition.
 
-        leaf mount-point  {
-            type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
-            }
-            description "Path of the mounted filesystem";
-        } // END of mount-point definition.
-
     } // END of storage-state definition.
 
     grouping  storage-grouping {
@@ -151,6 +210,12 @@ submodule ipi-platform-storage {
                 "Operational state data for storage component";
             uses storage-state;
         } // END of state-container definition.
+        container mounted-filesystems {
+            config false;
+            description
+                "Container for mounted filesystem state information";
+            uses storage-mounted-filesystem-top;
+        } // END of mounted-filesystems-container definition.
     } // END of storage-container definition.
     } // END of storage-grouping definition.
 

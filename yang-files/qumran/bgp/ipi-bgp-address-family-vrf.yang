@@ -21,18 +21,26 @@ submodule ipi-bgp-address-family-vrf {
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
     }
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
+        revision-date 2021-05-27;
     }
 
-    include ipi-bgp-common;
-    include ipi-bgp-address-family;
+    include ipi-bgp-common { revision-date 2021-06-11;}
+    include ipi-bgp-address-family { revision-date 2021-06-09;}
     organization
         "IP Infusion Inc.";
 
@@ -45,6 +53,41 @@ submodule ipi-bgp-address-family-vrf {
     description
         "";
 
+
+    revision "2021-06-11" {
+        description "Added dependency constraint between name and direction attrs for the distribute-list, prefix-list, filter-list and route-map CLI's";
+        reference " 0.5.5.";
+    }
+
+    revision "2021-06-09" {
+        description "Removal of default ipv4 unicast activate and fix for DB sync issues";
+        reference " 0.5.4.";
+    }
+
+    revision "2021-06-07" {
+        description "Deprecated 'connection-retry-interval', duplicate of 'peer-connection-interval'";
+        reference " 0.5.3.";
+    }
+
+    revision "2021-05-31" {
+        description "Added length for route map name";
+        reference " 0.5.2.";
+    }
+
+    revision "2021-05-13" {
+        description "Removed dependency validation on AF activate for allow-ebgp-vpn attribute";
+        reference " 0.5.1.";
+    }
+
+    revision "2021-04-09" {
+        description "Change related to Peer group remodelling";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-03-31" {
+        description "Added support for configuring BFD for BGP peer under VRF address family";
+        reference " 0.4.0.";
+    }
 
     revision "2021-03-05" {
         description "Excluded yang generation for BGP Add path attributes";
@@ -123,6 +166,7 @@ submodule ipi-bgp-address-family-vrf {
 
             list distance {
                 key "ebgp ibgp local";
+                max-elements 1;
                 description
                     "Container for Attributes related to Distance for routes";
                 leaf ebgp  {
@@ -325,8 +369,8 @@ submodule ipi-bgp-address-family-vrf {
                 } // End of bgp-password-list
 
                 list distribute-list-filter {
-                when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
-                    key "filter-direction access-list-identifier";
+                when " /bgp/bgp-instance/address-family-vrf/vrf-peer/distribute-list-filter/config/access-list-identifier ";
+                    key "filter-direction";
                     description
                         "List of Distribute list Filter";
                     leaf filter-direction  {
@@ -338,13 +382,6 @@ submodule ipi-bgp-address-family-vrf {
                                     particular BGP neighbor for specified address-family. Only one
                                     distribute-list per BGP neighbor.";
                     } // END of filter-direction definition.
-
-                    leaf access-list-identifier  {
-                        type  leafref {
-                            path  "../config/access-list-identifier";
-                        }
-                        description "Access List information";
-                    } // END of access-list-identifier definition.
 
                     container config {
                         description
@@ -360,8 +397,8 @@ submodule ipi-bgp-address-family-vrf {
                 } // End of distribute-list-filter-list
 
                 list as-list-filter {
-                when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
-                    key "as-list-direction as-access-list-identifier";
+                when " /bgp/bgp-instance/address-family-vrf/vrf-peer/as-list-filter/config/as-access-list-identifier ";
+                    key "as-list-direction";
                     description
                         "List of AS list Filter";
                     leaf as-list-direction  {
@@ -370,16 +407,6 @@ submodule ipi-bgp-address-family-vrf {
                         }
                         description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
                     } // END of as-list-direction definition.
-
-                    leaf as-access-list-identifier  {
-                        type  leafref {
-                            path  "../config/as-access-list-identifier";
-                        }
-                        description "Access-list number. This attribute sets a BGP filter. This attribute
-                                    specifies an access list filter on updates based on the BGP autonomous
-                                    system paths. Each filter is an access list based on regular
-                                    expressions";
-                    } // END of as-access-list-identifier definition.
 
                     container config {
                         description
@@ -395,7 +422,8 @@ submodule ipi-bgp-address-family-vrf {
                 } // End of as-list-filter-list
 
                 list prefix-list-filter {
-                    key "prefix-filter-direction prefix-list-name";
+                when " /bgp/bgp-instance/address-family-vrf/vrf-peer/prefix-list-filter/config/prefix-list-name ";
+                    key "prefix-filter-direction";
                     description
                         "List of Prefix list Filter";
                     leaf prefix-filter-direction  {
@@ -404,24 +432,6 @@ submodule ipi-bgp-address-family-vrf {
                         }
                         description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
                     } // END of prefix-filter-direction definition.
-
-                    leaf prefix-list-name  {
-                        type  leafref {
-                            path  "../config/prefix-list-name";
-                        }
-                        description "This attribute specify a prefix list for filtering BGP advertisements
-                                    for specified address-family. Filtering by prefix list matches the
-                                    prefixes of routes with those listed in the prefix list. If there is a
-                                    match, the route is used. An empty prefix list permits all prefixes.
-                                    If a given prefix does not match any entries of a prefix list, the
-                                    route is denied access. When multiple entries of a prefix list match a
-                                    prefix, the entry with the smallest sequence number is considered to
-                                    be a real match.
-                                    The router begins the search at the top of the prefix list, with the
-                                    sequence number 1. Once a match or deny occurs, the router does not
-                                    need to go through the rest of the prefix list. For efficiency the
-                                    most common matches or denies are listed at the top.";
-                    } // END of prefix-list-name definition.
 
                     container config {
                         description
@@ -437,8 +447,8 @@ submodule ipi-bgp-address-family-vrf {
                 } // End of prefix-list-filter-list
 
                 list route-map-filter {
-                when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
-                    key "route-map-direction route-map-name";
+                when " /bgp/bgp-instance/address-family-vrf/vrf-peer/route-map-filter/config/route-map-name ";
+                    key "route-map-direction";
                     description
                         "List of Route map Filter";
                     leaf route-map-direction  {
@@ -447,16 +457,6 @@ submodule ipi-bgp-address-family-vrf {
                         }
                         description "Use this attribute to configure the direction in which the route map.";
                     } // END of route-map-direction definition.
-
-                    leaf route-map-name  {
-                        type  leafref {
-                            path  "../config/route-map-name";
-                        }
-                        description "Use this attribute to apply a route map to incoming or outgoing
-                                    routes. This attribute filters updates and modifies attributes. A
-                                    route map is applied to inbound or outbound updates. Only the routes
-                                    that pass the route map are sent or accepted in updates.";
-                    } // END of route-map-name definition.
 
                     container config {
                         description
@@ -619,7 +619,6 @@ submodule ipi-bgp-address-family-vrf {
                         uses bgp-peer-run-time-attribute-index-state;
                     } // END of state-container definition.
                 } // END of peer-index-container definition.
-                uses bgp-address-family-vrf-peer-group;
             } // End of vrf-peer-list
             container config {
                 description
@@ -666,22 +665,22 @@ submodule ipi-bgp-address-family-vrf {
                 } // END of state-container definition.
             } // END of table-map-container definition.
             uses bgp-af-vrf-network-list;
+            uses bgp-address-family-vrf-peer-group;
         } // End of address-family-vrf-list
     } // END of address-family-vrf-grouping definition.
     grouping bgp-vrf-distribute-list-filter-config {
         description
             "Grouping for BGP distribute list filter configuration";
         leaf access-list-identifier  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
+            mandatory true;
             description "Access List information";
         } // END of access-list-identifier definition.
 
         leaf filter-direction  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  ipi-bgp-types:bgp_distribute_list_direction_t;
             description "This attribute sets the direction of the filter (0=FILTER_IN
                         |1=FILTER_OUT). This attribute is used to filter route updates from a
@@ -694,11 +693,11 @@ submodule ipi-bgp-address-family-vrf {
         description
             "Grouping for BGP AS list filter configuration";
         leaf as-access-list-identifier  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
+            mandatory true;
             description "Access-list number. This attribute sets a BGP filter. This attribute
                         specifies an access list filter on updates based on the BGP autonomous
                         system paths. Each filter is an access list based on regular
@@ -706,7 +705,6 @@ submodule ipi-bgp-address-family-vrf {
         } // END of as-access-list-identifier definition.
 
         leaf as-list-direction  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  ipi-bgp-types:bgp_distribute_list_direction_t;
             description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
         } // END of as-list-direction definition.
@@ -716,11 +714,11 @@ submodule ipi-bgp-address-family-vrf {
         description
             "Grouping for BGP prefix list filter configuration";
         leaf prefix-list-name  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
+            mandatory true;
             description "This attribute specify a prefix list for filtering BGP advertisements
                         for specified address-family. Filtering by prefix list matches the
                         prefixes of routes with those listed in the prefix list. If there is a
@@ -728,15 +726,13 @@ submodule ipi-bgp-address-family-vrf {
                         If a given prefix does not match any entries of a prefix list, the
                         route is denied access. When multiple entries of a prefix list match a
                         prefix, the entry with the smallest sequence number is considered to
-                        be a real match.
-                        The router begins the search at the top of the prefix list, with the
-                        sequence number 1. Once a match or deny occurs, the router does not
-                        need to go through the rest of the prefix list. For efficiency the
-                        most common matches or denies are listed at the top.";
+                        be a real match.The router begins the search at the top of the prefix
+                        list, with the sequence number 1. Once a match or deny occurs, the
+                        router does not need to go through the rest of the prefix list. For
+                        efficiency the most common matches or denies are listed at the top.";
         } // END of prefix-list-name definition.
 
         leaf prefix-filter-direction  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  ipi-bgp-types:bgp_distribute_list_direction_t;
             description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
         } // END of prefix-filter-direction definition.
@@ -746,11 +742,11 @@ submodule ipi-bgp-address-family-vrf {
         description
             "Grouping for BGP route map filter configuration";
         leaf route-map-name  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  string {
-                length "1..max";
+                length "1..63";
                 pattern "[^?' =,>|]+";
             }
+            mandatory true;
             description "Use this attribute to apply a route map to incoming or outgoing
                         routes. This attribute filters updates and modifies attributes. A
                         route map is applied to inbound or outbound updates. Only the routes
@@ -758,7 +754,6 @@ submodule ipi-bgp-address-family-vrf {
         } // END of route-map-name definition.
 
         leaf route-map-direction  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  ipi-bgp-types:bgp_distribute_list_direction_t;
             description "Use this attribute to configure the direction in which the route map
                         is to be applied. Direction of the filter (0=FILTER_IN |1=FILTER_OUT).";
@@ -769,10 +764,9 @@ submodule ipi-bgp-address-family-vrf {
         description
             "Configuration parameters for peer maximum prefixes";
         leaf prefix-count  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  uint32 {
                  range "1..4294967295"  {
-                    description "maximum no. of prefix limit";
+                    description "1..4294967295:maximum no. of prefix limit";
                  }
             }
             description "This attribute specifies number of prefixes that a BGP router is
@@ -782,13 +776,11 @@ submodule ipi-bgp-address-family-vrf {
         } // END of prefix-count definition.
 
         leaf stop-update  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  empty;
             description "Stop installing the routes when limit is exceeded.";
         } // END of stop-update definition.
 
         leaf maximum-prefix-warning  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  empty;
             description "This attribute when enabled only give warning message when limit is
                         exceeded. When it is not set and extra prefixes are received, the
@@ -796,10 +788,9 @@ submodule ipi-bgp-address-family-vrf {
         } // END of maximum-prefix-warning definition.
 
         leaf threshold-percentage  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  uint8 {
                  range "1..100"  {
-                    description "threshold-value, 1 to 100 percent";
+                    description "1..100:threshold-value, 1 to 100 percent";
                  }
             }
             default "75";
@@ -812,7 +803,6 @@ submodule ipi-bgp-address-family-vrf {
         } // END of threshold-percentage definition.
 
         leaf warning-only  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  empty;
             description "Throw warning if exceeds threshold-value";
         } // END of warning-only definition.
@@ -822,10 +812,10 @@ submodule ipi-bgp-address-family-vrf {
         description
             "Configuration parameters common for peer VRFs";
         leaf bgp-port  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint16 {
                  range "0..65535"  {
-                    description "TCP port number";
+                    description "0..65535:TCP port number";
                  }
             }
             default "179";
@@ -840,7 +830,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of activate definition.
 
         leaf default-peer-route-map-name  {
-            when " not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-route-map-orig-name) ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-route-map-orig-name) ";
             type  empty;
             description "This attribute allows a BGP local router to send the default route
                         0.0.0.0 to a neighbor for use as a default route for specified
@@ -848,9 +838,9 @@ submodule ipi-bgp-address-family-vrf {
         } // END of default-peer-route-map-name definition.
 
         leaf peer-route-map-orig-name  {
-            when " not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/default-peer-route-map-name) ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/default-peer-route-map-name) ";
             type  string {
-                length "1..max";
+                length "1..63";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute configures route map to be used for a BGP local router
@@ -860,7 +850,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-route-map-orig-name definition.
 
         leaf soft-reconfig-inbound  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "This attribute stores updates for inbound soft reconfiguration for
                         specified address-family. Soft-reconfiguration may be used in lieu of
@@ -872,10 +862,10 @@ submodule ipi-bgp-address-family-vrf {
         } // END of soft-reconfig-inbound definition.
 
         leaf weight  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint16 {
                  range "0..65535"  {
-                    description "Configure weight";
+                    description "0..65535:Configure weight";
                  }
             }
             default "0";
@@ -892,7 +882,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of weight definition.
 
         leaf peer-route-reflector  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate   + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  empty;
             description "This attribute configures the router as a BGP route reflector and
                         configure the specified neighbor as its client for specified
@@ -906,7 +896,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-route-reflector definition.
 
         leaf peer-remove-private-as  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  empty;
             description "This attribute removes the private Autonomous System (AS) number from
                         outbound updates. Private AS numbers are not advertised to the
@@ -916,32 +906,32 @@ submodule ipi-bgp-address-family-vrf {
                         the system treats it as an error.";
         } // END of peer-remove-private-as definition.
 
-        leaf send-community  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+        leaf no-send-community  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  empty;
             description "This attribute specifies if a community attribute should be sent to a
                         BGP neighbor for specified address-family. The community attribute
                         groups destinations in a certain community and applies routing
                         decisions according to those communities. By default, both standard
                         and extended community attributes are sent to a neighbor";
-        } // END of send-community definition.
+        } // END of no-send-community definition.
 
-        leaf send-community-type  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+        leaf no-send-community-type  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  ipi-bgp-types:bgp_send_commu_type_t;
             description "This attribute specifies the type of community attribute to be sent to
                         a BGP neighbor.";
-        } // END of send-community-type definition.
+        } // END of no-send-community-type definition.
 
         leaf neighbor-attribute-unchanged  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  ipi-bgp-types:bgp_attribute_unchanged_type_t;
             description "This attribute advertises unchanged BGP AS path, next hop and med to
                         the specified neighbor.";
         } // END of neighbor-attribute-unchanged definition.
 
         leaf orf-prefix-capability  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  ipi-bgp-types:bgp_orf_prefix_type_t;
             description "This attribute enables Outbound Router Filtering (ORF), and advertise
                         the ORF capability to its neighbors. The ORFs send and receive
@@ -952,7 +942,6 @@ submodule ipi-bgp-address-family-vrf {
         } // END of orf-prefix-capability definition.
 
         leaf peer-allow-ebgp-vpn  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             if-feature feature-list:HAVE_VRF;
             type  empty;
             description "This attribute allows an eBGP neighbor to be a VPN peer. By default,
@@ -962,10 +951,10 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-allow-ebgp-vpn definition.
 
         leaf allow-as-number  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint32 {
                  range "1..10"  {
-                    description "Number of occurrences of AS number";
+                    description "1..10:Number of occurrences of AS number";
                  }
             }
             default "3";
@@ -1000,10 +989,24 @@ submodule ipi-bgp-address-family-vrf {
                         the neighbor routers the capability of graceful restart.";
         } // END of capability-graceful-restart definition.
 
-        leaf unsuppress-route-map-name  {
+        leaf mapped-peer-group-tag-af  {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  string {
-                length "1..max";
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "BGP peer group name. Adds  a neighbor to an existing peer group.
+                        Neighbors with the same update policies are grouped into peer groups.
+                        This facilitates the updates of various policies, such as distribute
+                        and filter lists. The peer group is then configured easily with any of
+                        the neighbor attributes. Any changes made to the peer group affect all
+                        members.";
+        } // END of mapped-peer-group-tag-af definition.
+
+        leaf unsuppress-route-map-name  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
+            type  string {
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "unsuppress map name. This attribute is used to selectively leak
@@ -1017,7 +1020,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf map-name  {
             if-feature feature-list:HAVE_BGP_TABLE_MAP;
             type  string {
-                length "1..max";
+                length "1..63";
                 pattern "[^?' =,>|]+";
             }
             mandatory true;
@@ -1051,7 +1054,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf peer-confederation-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Set routing domain confederation AS";
+                    description "1..4294967295:Set routing domain confederation AS";
                  }
             }
             description "Use this attribute to configure the Autonomous Systems (AS) that
@@ -1063,19 +1066,271 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-confederation-identifier definition.
 
     } // END of bgp-af-vrf-confederation-config definition.
-    grouping bgp-address-family-vrf-peer-group-config {
-        description
-            "Configuration parameters common for BGP address family VRF peer groups";
-    } // END of bgp-address-family-vrf-peer-group-config definition.
     grouping bgp-address-family-vrf-peer-group {
         description
-            "Grouping for peer-group container";
+            "Grouping for peer-group list";
+
+        list peer-group {
+            key "peer-group-tag";
+            description
+                "List of peer-groups";
+            leaf peer-group-tag  {
+                type  leafref {
+                    path  "../config/peer-group-tag";
+                }
+                description "Creates a peer group. Neighbors with the same update policies are
+                            grouped into peer groups. This facilitates the updates of various
+                            policies, such as distribute and filter lists. The peer group is then
+                            configured easily with any of the neighbor attributes. Any changes
+                            made to the peer group affect all members.";
+            } // END of peer-group-tag definition.
+
+
+            list bgp-password {
+                key "password auth-key-encrypt";
+                max-elements 1;
+                description
+                    "list for BGP password";
+                leaf password  {
+                    type  leafref {
+                        path  "../config/password";
+                    }
+                    description "Use this attribute to specify BGP encrypted password";
+                } // END of password definition.
+
+                leaf auth-key-encrypt  {
+                    type  leafref {
+                        path  "../config/auth-key-encrypt";
+                    }
+                    description "Use this attribute to configure the authentication key to specify if
+                                the password is to be encrypted or not.";
+                } // END of auth-key-encrypt definition.
+
+                container config {
+                    description
+                        "Configuration parameters relating to the BGP password";
+                    uses bgp-password-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State parameters relating to the BGP password";
+                    uses bgp-password-config;
+                } // END of state-container definition.
+            } // End of bgp-password-list
+
+            list maximum-prefixes {
+            when " /bgp/bgp-instance/address-family-vrf/peer-group/config/activate ";
+                key "prefix-count";
+                max-elements 1;
+                description
+                    "list for Prefix related configuration";
+                leaf prefix-count  {
+                    type  leafref {
+                        path  "../config/prefix-count";
+                    }
+                    description "This attribute specifies number of prefixes that a BGP router is
+                                allowed to receive from a neighbor. When the maximum-prefix-warning
+                                attribute is not set and extra prefixes are received, the router ends
+                                the peering.";
+                } // END of prefix-count definition.
+
+                container config {
+                    description
+                        "Configuration parameters relating to the number of prefixes that can
+                                be received from a neighbor";
+                    uses bgp-address-family-vrf-maximum-prefixes-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State parameters relating to the VRF address family";
+                    uses bgp-address-family-vrf-maximum-prefixes-config;
+                } // END of state-container definition.
+            } // End of maximum-prefixes-list
+            container config {
+                description
+                    "Configuration parameters relating to the VRF address family";
+                uses bgp-address-family-peer-group-vrf-config;
+                uses bgp-address-family-vrf-peer-group-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State parameters relating to the VRF address family";
+                uses bgp-address-family-peer-group-vrf-config;
+                uses bgp-address-family-vrf-peer-group-config;
+            } // END of state-container definition.
+            container optional-as-lists {
+                description
+                    "List of optional AS";
+
+                list optional-as-list {
+                    key "optional-as";
+                    description
+                        "List of optional AS";
+                    leaf optional-as  {
+                        type  leafref {
+                            path  "../config/optional-as";
+                        }
+                        description "Use this attribute to specify optional AS for BGP dynamic peer-group";
+                    } // END of optional-as definition.
+
+                    container config {
+                        description
+                            "Configuration of optional AS list";
+                        uses bgp-optional-as-list-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State parameters of optional AS list";
+                        uses bgp-optional-as-list-config;
+                    } // END of state-container definition.
+                } // End of optional-as-list-list
+            } // END of optional-as-lists-container definition.
+            container timers {
+                description
+                    "container for bgp timers";
+                container config {
+                    presence "To configure timers";
+                    description
+                        "configuration parameters relating to timers";
+                    uses bgp-peer-timers-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state parameters relating to timers";
+                    uses bgp-peer-timers-config;
+                } // END of state-container definition.
+            } // END of timers-container definition.
+            container distribute-list-filters {
+                description
+                    "Container for distribute list filters";
+
+                list distribute-list-filter {
+                when " /bgp/bgp-instance/address-family-vrf/peer-group/config/activate + /bgp/bgp-instance/address-family-vrf/peer-group/distribute-list-filters/distribute-list-filter/config/access-list-identifier ";
+                    key "filter-direction";
+                    description
+                        "List of Distribute list Filter";
+                    leaf filter-direction  {
+                        type  leafref {
+                            path  "../config/filter-direction";
+                        }
+                        description "This attribute sets the direction of the filter (0=FILTER_IN
+                                    |1=FILTER_OUT). This attribute is used to filter route updates from a
+                                    particular BGP neighbor for specified address-family. Only one
+                                    distribute-list per BGP neighbor.";
+                    } // END of filter-direction definition.
+
+                    container config {
+                        description
+                            "Configuration parameters relating to BGP Distribute list Filter";
+                        uses bgp-vrf-distribute-list-filter-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State parameters relating to BGP Distribute list Filter";
+                        uses bgp-vrf-distribute-list-filter-config;
+                    } // END of state-container definition.
+                } // End of distribute-list-filter-list
+            } // END of distribute-list-filters-container definition.
+            container as-list-filters {
+                description
+                    "Container for  AS list Filters";
+
+                list as-list-filter {
+                when " /bgp/bgp-instance/address-family-vrf/peer-group/config/activate + /bgp/bgp-instance/address-family-vrf/peer-group/as-list-filters/as-list-filter/config/as-access-list-identifier ";
+                    key "as-list-direction";
+                    description
+                        "List of AS list Filter";
+                    leaf as-list-direction  {
+                        type  leafref {
+                            path  "../config/as-list-direction";
+                        }
+                        description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
+                    } // END of as-list-direction definition.
+
+                    container config {
+                        description
+                            "Configuration parameters relating to BGP AS list Filter";
+                        uses bgp-vrf-as-list-filter-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State parameters relating to BGP AS list Fileter";
+                        uses bgp-vrf-as-list-filter-config;
+                    } // END of state-container definition.
+                } // End of as-list-filter-list
+            } // END of as-list-filters-container definition.
+            container prefix-list-filters {
+                description
+                    "Container for Prefix list Filters";
+
+                list prefix-list-filter {
+                when " /bgp/bgp-instance/address-family-vrf/peer-group/config/activate + /bgp/bgp-instance/address-family-vrf/peer-group/prefix-list-filters/prefix-list-filter/config/prefix-list-name ";
+                    key "prefix-filter-direction";
+                    description
+                        "List of Prefix list Filter";
+                    leaf prefix-filter-direction  {
+                        type  leafref {
+                            path  "../config/prefix-filter-direction";
+                        }
+                        description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
+                    } // END of prefix-filter-direction definition.
+
+                    container config {
+                        description
+                            "Configuration parameters relating to BGP Prefix list Filter";
+                        uses bgp-vrf-prefix-list-filter-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State parameters relating to BGP Prefix list Filter";
+                        uses bgp-vrf-prefix-list-filter-config;
+                    } // END of state-container definition.
+                } // End of prefix-list-filter-list
+            } // END of prefix-list-filters-container definition.
+            container route-map-filters {
+                description
+                    "Container for Route map Filters";
+
+                list route-map-filter {
+                when " /bgp/bgp-instance/address-family-vrf/peer-group/config/activate + /bgp/bgp-instance/address-family-vrf/peer-group/route-map-filters/route-map-filter/config/route-map-name ";
+                    key "route-map-direction";
+                    description
+                        "List of Route map Filter";
+                    leaf route-map-direction  {
+                        type  leafref {
+                            path  "../config/route-map-direction";
+                        }
+                        description "Use this attribute to configure the direction in which the route map.";
+                    } // END of route-map-direction definition.
+
+                    container config {
+                        description
+                            "Configuration parameters relating to BGP Route map Filter";
+                        uses bgp-vrf-route-map-filter-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State parameters relating to BGP Route map Filter";
+                        uses bgp-vrf-route-map-filter-config;
+                    } // END of state-container definition.
+                } // End of route-map-filter-list
+            } // END of route-map-filters-container definition.
+        } // End of peer-group-list
     } // END of bgp-address-family-vrf-peer-group definition.
     grouping bgp-address-family-vrf-peer-config {
         description
             "Configuration parameters common for BGP address family VRF peers";
         leaf peer-address  {
-            type  cml-data-types:cml_hostname_t;
+            type  inet:ip-address;
             description "The peer address or Tag of a neighbor. This attribute adds a neighbor.
                         The specified neighbor when activated using the activate attribute
                         exchanges routing information.";
@@ -1084,7 +1339,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf peer-as  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "AS number";
+                    description "1..4294967295:AS number";
                  }
             }
             description "This attribute specifies a neighbors autonomous system number. If the
@@ -1094,8 +1349,9 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-as definition.
 
         leaf source-identifier  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             default "NULL";
@@ -1109,9 +1365,10 @@ submodule ipi-bgp-address-family-vrf {
         } // END of source-identifier definition.
 
         leaf peer-local-as  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint32 {
                  range "1..4294967295"  {
-                    description "AS number";
+                    description "1..4294967295:AS number";
                  }
             }
             description "Use this attribute to specify an AS (autonomous system) number to use
@@ -1129,9 +1386,10 @@ submodule ipi-bgp-address-family-vrf {
         } // END of bgp-version definition.
 
         leaf peer-connection-interval  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint32 {
                  range "1..65535"  {
-                    description "Connect timer";
+                    description "1..65535:Connect timer";
                  }
             }
             default "1";
@@ -1145,12 +1403,14 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-connection-interval definition.
 
         leaf enforce-multihop  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "This attribute turns on the enforcement of eBGP neighbors perform
                         multihop.";
         } // END of enforce-multihop definition.
 
         leaf peer-shutdown  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "This attribute disables a neighbor administratively.
                         Use this attribute to terminate any active session for a specified
@@ -1160,14 +1420,16 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-shutdown definition.
 
         leaf neighbor-passive  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Use this attribute to set a BGP neighbor as passive.";
         } // END of neighbor-passive definition.
 
         leaf ebgp-maximum-hop-count  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint8 {
                  range "1..255"  {
-                    description "maximum hop count";
+                    description "1..255:maximum hop count";
                  }
             }
             default "255";
@@ -1178,6 +1440,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of ebgp-maximum-hop-count definition.
 
         leaf enable-ebgp-multihop  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  empty;
             description "Use this attribute to accept and attempt BGP connections to external
                         peers on indirectly connected networks. Multihop is not established if
@@ -1186,6 +1449,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of enable-ebgp-multihop definition.
 
         leaf disable-capability-negotiation  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  empty;
             description "Use this attribute to disable capability negotiation. The capability
                         negotiation is performed by default. This attribute is used to allow
@@ -1193,18 +1457,8 @@ submodule ipi-bgp-address-family-vrf {
                         parameters used in open messages between peers.";
         } // END of disable-capability-negotiation definition.
 
-        leaf connection-retry-interval  {
-            type  int32 {
-                 range "1..65535"  {
-                    description "Connect timer";
-                 }
-            }
-            default "120";
-            description "Connect timer value. Sets the connection retry time for a specific BGP
-                        neighbor.";
-        } // END of connection-retry-interval definition.
-
         leaf enable-dynamic-capability  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Use this attribute to enable the dynamic capability for a specific
                         peer. This attribute allows a BGP speaker to advertise or withdraw an
@@ -1212,9 +1466,10 @@ submodule ipi-bgp-address-family-vrf {
         } // END of enable-dynamic-capability definition.
 
         leaf min-route-advertisement-interval  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint32 {
                  range "0..65535"  {
-                    description "time in seconds";
+                    description "0..65535:time in seconds";
                  }
             }
             default "0";
@@ -1226,9 +1481,10 @@ submodule ipi-bgp-address-family-vrf {
         } // END of min-route-advertisement-interval definition.
 
         leaf peer-as-origin-interval  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint32 {
                  range "1..65535"  {
-                    description "time in seconds";
+                    description "1..65535:time in seconds";
                  }
             }
             default "1";
@@ -1239,6 +1495,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-as-origin-interval definition.
 
         leaf neighbor-as-override  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  empty;
             description "Use this attribute to configure a PE router to override the Autonomous
                         System Number (ASN) of a site with the ASN of a provider. BGP normally
@@ -1256,27 +1513,32 @@ submodule ipi-bgp-address-family-vrf {
         } // END of neighbor-as-override definition.
 
         leaf peer-interface-name  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_VRF;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Interface name. Configures IP address or IPv6 address on interface";
         } // END of peer-interface-name definition.
 
         leaf peer-description  {
-            type  cml-data-types:cml_line_t;
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             description "Use this attribute to associate a description with a neighbor. This
                         attribute helps in identifying a neighbor quickly. It is useful for an
                         ISP that has multiple neighbor relationships.";
         } // END of peer-description definition.
 
         leaf peer-restart-time  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_RESTART;
             if-feature feature-list:HAVE_VRF;
             type  uint32 {
                  range "1..3600"  {
-                    description "BGP peer g-shut time in secs";
+                    description "1..3600:BGP peer g-shut time in secs";
                  }
             }
             description "This attribute sets a different restart-time other than the global
@@ -1288,9 +1550,10 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-restart-time definition.
 
         leaf site-origin-identifier  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_VRF;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to enable the site-of-origin (SOO) feature. If the
@@ -1299,6 +1562,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of site-origin-identifier definition.
 
         leaf graceful-shut  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  empty;
             description "Use this attribute to start a graceful shutdown for the BGP session of
                         the specified BGP neighbor. The BGP session for this neighbor is shut
@@ -1310,15 +1574,29 @@ submodule ipi-bgp-address-family-vrf {
         } // END of graceful-shut definition.
 
         leaf graceful-shut-timer  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint32 {
                  range "10..65535"  {
-                    description "BGP peer g-shut time in secs";
+                    description "10..65535:BGP peer g-shut time in secs";
                  }
             }
             description "Use this attribute to configure the value of the graceful shutdown
                         timer. After the timer expires, the BGP session initiated for graceful
                         shutdown is shut down.";
         } // END of graceful-shut-timer definition.
+
+        leaf enable-peer-bfd  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
+            type  empty;
+            description "Enable bidirectional forwarding detection (BFD) for the BGP peer";
+        } // END of enable-peer-bfd definition.
+
+        leaf enable-peer-bfd-multihop  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/enable-peer-bfd ";
+            type  empty;
+            description "Enable bidirectional forwarding detection (BFD) for the BGP peer with
+                        multihop";
+        } // END of enable-peer-bfd-multihop definition.
 
     } // END of bgp-address-family-vrf-peer-config definition.
     grouping bgp-address-family-vrf-config {
@@ -1336,7 +1614,7 @@ submodule ipi-bgp-address-family-vrf {
 
         leaf vrf-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "vrf name";
@@ -1357,7 +1635,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf graceful-shutdown-local-preference  {
             type  uint32 {
                  range "0..4294967295"  {
-                    description "g-shut local preference value";
+                    description "0..4294967295:g-shut local preference value";
                  }
             }
             default "0";
@@ -1372,7 +1650,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf confederation-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Set routing domain confederation AS";
+                    description "1..4294967295:Set routing domain confederation AS";
                  }
             }
             description "This attribute to specifies a BGP confederation identifier.";

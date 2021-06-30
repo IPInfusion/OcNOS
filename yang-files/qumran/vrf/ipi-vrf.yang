@@ -23,18 +23,22 @@ module ipi-vrf {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -76,9 +80,20 @@ module ipi-vrf {
         } // END of vrf-name definition.
 
         leaf description  {
-            type  cml-data-types:cml_line_t;
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             description "VRF-specific description";
         } // END of description definition.
+
+        leaf tunnel-select-policy  {
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            type  string {
+                length "1..127";
+                pattern "[^?' =,>|]+";
+            }
+            description "tunnel policy to be configured";
+        } // END of tunnel-select-policy definition.
 
         leaf router-id  {
             type  inet:ipv4-address;
@@ -90,7 +105,7 @@ module ipi-vrf {
             if-feature feature-list:HAVE_NVO;
             type  uint32 {
                  range "1..16777215"  {
-                    description "L3 VNID. Cannot be same as L2 VNID";
+                    description "1..16777215:L3 VNID. Cannot be same as L2 VNID";
                  }
             }
             description "L3 VXLAN Identifier";

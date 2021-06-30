@@ -21,26 +21,37 @@ submodule ipi-dhcp-relay {
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     import ipi-dhcp-relay-types {
         prefix ipi-dhcp-relay-types;
+        revision-date 2020-12-15;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
+    }
+
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
+        revision-date 2021-01-27;
     }
 
     organization
@@ -105,6 +116,13 @@ submodule ipi-dhcp-relay {
             description "IPv6 address of a DHCP server";
         } // END of dhcpv6-server-address definition.
 
+        leaf enable-dhcpv6-pd-route-injection  {
+            if-feature feature-list:HAVE_IPV6;
+            type  empty;
+            description "Enable the route installation from the prefixes learned through prefix
+                        delegation.";
+        } // END of enable-dhcpv6-pd-route-injection definition.
+
         leaf remote-id  {
             when " /dhcp/relay/relay-agent/config/enable-option82 ";
             type  ipi-dhcp-relay-types:dhcp_remote_id_t;
@@ -143,6 +161,150 @@ submodule ipi-dhcp-relay {
         } // END of ipv6-uplink-interface definition.
 
     } // END of relay-interface-config definition.
+    grouping relay-stats {
+        description
+            "DHCP Relay statistics";
+        leaf bogus-giaddr-drops  {
+            type  uint32;
+            description "Packets sent to us to relay back to a client, but with a bogus giaddr";
+        } // END of bogus-giaddr-drops definition.
+
+        leaf client-packets-relayed  {
+            type  uint32;
+            description "Packets relayed from client to server";
+        } // END of client-packets-relayed definition.
+
+        leaf server-packet-errors  {
+            type  uint32;
+            description "Errors sending packets to servers";
+        } // END of server-packet-errors definition.
+
+        leaf server-packets-relayed  {
+            type  uint32;
+            description "Packets relayed from server to client";
+        } // END of server-packets-relayed definition.
+
+        leaf client-packet-errors  {
+            type  uint32;
+            description "Errors sending packets to clients";
+        } // END of client-packet-errors definition.
+
+        leaf agent-option-errors  {
+            type  uint32;
+            description "Number of packets forwarded without agent options because there was no
+                        room";
+        } // END of agent-option-errors definition.
+
+        leaf corrupt-agent-options  {
+            type  uint32;
+            description "Number of packets dropped because relay agent information option was
+                        bad";
+        } // END of corrupt-agent-options definition.
+
+        leaf missing-agent-option  {
+            type  uint32;
+            description "Number of packets dropped because no RAI option matching our ID was
+                        found";
+        } // END of missing-agent-option definition.
+
+        leaf bad-circuit-id  {
+            type  uint32;
+            description "Circuit ID option in matching RAI option did not match any known
+                        circuit ID";
+        } // END of bad-circuit-id definition.
+
+        leaf missing-circuit-id  {
+            type  uint32;
+            description "Circuit ID option in matching RAI option was missing";
+        } // END of missing-circuit-id definition.
+
+        leaf circuit-id  {
+            type  string {
+                length "0..1965";
+                pattern "[^?' =,>|]*";
+            }
+            description "Circuit ID";
+        } // END of circuit-id definition.
+
+    } // END of relay-stats definition.
+    grouping relay-delegated-prefixes {
+        description
+            "DHCPv6 Prefix Delegation learnt prefix details";
+
+        list dhcpv6-delegated-prefixes {
+            if-feature feature-list:HAVE_IPV6;
+            key "interface-name";
+            config false;
+            description
+                "Delegated prefix list";
+            leaf interface-name  {
+                type  leafref {
+                    path  "../state/interface-name";
+                }
+                description "DHCP client facing interface, which is part of the LAN network";
+            } // END of interface-name definition.
+
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses dhcpv6-delegated-prefixes-attrs;
+            } // END of state-container definition.
+        } // End of dhcpv6-delegated-prefixes-list
+    } // END of relay-delegated-prefixes definition.
+    grouping dhcpv6-delegated-prefixes-attrs {
+        description
+            "DHCPv6 Prefix Delegation learnt prefix attrs";
+        leaf interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "DHCP client facing interface, which is part of the LAN network";
+        } // END of interface-name definition.
+
+        leaf next-hop  {
+            type  inet:ipv6-address;
+            description "DHCP client interface linklocal adddress";
+        } // END of next-hop definition.
+
+        leaf prefix  {
+            type  inet:ipv6-prefix;
+            description "Delegated prefix";
+        } // END of prefix definition.
+
+        leaf preferred-lifetime  {
+            type  uint32;
+            units "seconds";
+            description "Specifies how long the prefix remains preferred in seconds";
+        } // END of preferred-lifetime definition.
+
+        leaf maximum-lifetime  {
+            type  uint32;
+            units "seconds";
+            description "Specifies how long the prefix remains validin seconds";
+        } // END of maximum-lifetime definition.
+
+        leaf prefix-start-time  {
+            type  yang:date-and-time {
+                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                }
+                description "The time when the prefix was learned";
+            } // END of prefix-start-time definition.
+
+            leaf prefix-expiry-time  {
+                type  yang:date-and-time {
+                    pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                    }
+                    description "The time when the prefix would expire";
+                } // END of prefix-expiry-time definition.
+
+                leaf state  {
+                    type  ipi-dhcp-relay-types:dhcp6_pd_route_state_t;
+                    description "Notification route add/delete input";
+                } // END of state definition.
+
+    } // END of dhcpv6-delegated-prefixes-attrs definition.
     grouping relay-interface-top {
         description
             "DHCP relay interface level information grouping";
@@ -154,7 +316,7 @@ submodule ipi-dhcp-relay {
             // when " !ipi-if-aggregate:member-aggregation ";
                 key "name";
                 description
-                    "List of interfaces mapped with dhcp-client";
+                    "List of interfaces mapped with dhcp relay";
                 leaf name  {
                     type  leafref {
                         path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
@@ -212,7 +374,9 @@ submodule ipi-dhcp-relay {
                 description
                     "Operational state data";
                 uses relay-global-vrf-config;
+                uses relay-stats;
             } // END of state-container definition.
+            uses relay-delegated-prefixes;
         } // End of relay-agent-list
         container global {
             description

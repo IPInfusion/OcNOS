@@ -23,30 +23,37 @@ module ipi-rib-vrf {
 
     import ipi-rib-types {
         prefix ipi-rib-types;
+        revision-date 2021-03-15;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import ipi-rib-common {
         prefix ipi-rib-common;
+        revision-date 2021-03-15;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
+        revision-date 2021-01-27;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -61,6 +68,11 @@ module ipi-rib-vrf {
     description
         "Datamodel for VRF RIB object";
 
+
+    revision "2021-04-12" {
+        description "Addition of static route for leaking into VRF";
+        reference " 0.5.0.";
+    }
 
     revision "2021-03-15" {
         description "Removed configuration of Interface name as nexthop for ipv6 mroute commands";
@@ -118,7 +130,7 @@ module ipi-rib-vrf {
 
         leaf interface-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create an IPv4 static route where nexthop is
@@ -142,12 +154,18 @@ module ipi-rib-vrf {
 
         leaf-list interface-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create an IPv6 static route where nexthop is
                         interface name.";
         } // END of interface-name definition.
+
+        leaf enable-ipv6-global-table-lookup  {
+            type  empty;
+            description "To create an IPv6 vrf static route with gateway in default vrf table
+                        with global keyword";
+        } // END of enable-ipv6-global-table-lookup definition.
 
     } // END of rib-vrf-ipv6-gateway-config definition.
     grouping rib-vrf-ipv6-interface-config {
@@ -160,7 +178,7 @@ module ipi-rib-vrf {
 
         leaf interface-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create an IPv6 static route where nexthop is
@@ -173,6 +191,7 @@ module ipi-rib-vrf {
             "Configuration attributes related to bfd for vrf static routes";
         leaf bfd-state  {
             when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-rib-vrf:static-routes/ipi-rib-vrf:ipv4/ipi-rib-vrf:route/ipi-rib-vrf:gateway-interface-route/ipi-rib-vrf:interface-name ";
+            if-feature feature-list:HAVE_BFD;
             type  ipi-rib-types:rib_static_bfd_enable_disable_t;
             description "Use this attribute to set fall-over detection.";
         } // END of bfd-state definition.
@@ -182,6 +201,7 @@ module ipi-rib-vrf {
         description
             "Configuration attributes related to bfd for vrf static routes";
         leaf bfd-state  {
+            if-feature feature-list:HAVE_BFD;
             type  ipi-rib-types:rib_static_bfd_enable_disable_t;
             description "Use this attribute to set fall-over detection.";
         } // END of bfd-state definition.
@@ -191,11 +211,13 @@ module ipi-rib-vrf {
         description
             "Global BFD Configuration attributes";
         leaf ipv4-enable-bfd-all-interfaces  {
+            if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Use this attribute to enable static BFD on all interfaces.";
         } // END of ipv4-enable-bfd-all-interfaces definition.
 
         leaf ipv6-enable-bfd-all-interfaces  {
+            if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Use this attribute to enable ipv6 static BFD on all interfaces.";
         } // END of ipv6-enable-bfd-all-interfaces definition.
@@ -229,6 +251,61 @@ module ipi-rib-vrf {
         } // END of enable-global-table-lookup definition.
 
     } // END of rib-vrf-ipv4-interface-global-config definition.
+    grouping rib-vrf-ipv6-interface-global-config {
+        description
+            "Configuration attributes for ipv6 static route with interface in
+                        global vrf";
+        leaf destination-prefix  {
+            type  inet:ipv6-prefix;
+            description "IPV6 destination prefix  (e.g. 3ffe:506::/32)";
+        } // END of destination-prefix definition.
+
+        leaf interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to create an IPv6 static route where nexthop is a
+                        global interface.";
+        } // END of interface-name definition.
+
+        leaf enable-ipv6-global-table-lookup  {
+            type  empty;
+            description "To create an IPv6 vrf static route with gateway in default vrf table
+                        with global keyword";
+        } // END of enable-ipv6-global-table-lookup definition.
+
+    } // END of rib-vrf-ipv6-interface-global-config definition.
+    grouping rib-vrf-ipv6-prefix-gw-interface-global-config {
+        description
+            "Configuration attributes for ipv6 static route with interface in
+                        global vrf";
+        leaf destination-prefix  {
+            type  inet:ipv6-prefix;
+            description "IPV6 destination prefix  (e.g. 3ffe:506::/32)";
+        } // END of destination-prefix definition.
+
+        leaf gateway-address  {
+            type  inet:ipv6-address;
+            description "Use this attribute to create an IPv6 static route for a subnet.";
+        } // END of gateway-address definition.
+
+        leaf interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to create an IPv6 static route where nexthop is a
+                        global interface.";
+        } // END of interface-name definition.
+
+        leaf enable-ipv6-global-table-lookup  {
+            type  empty;
+            description "To create an IPv6 vrf static route with gateway in default vrf table
+                        with global keyword";
+        } // END of enable-ipv6-global-table-lookup definition.
+
+    } // END of rib-vrf-ipv6-prefix-gw-interface-global-config definition.
 
     grouping  global-grouping {
     description
@@ -447,6 +524,95 @@ module ipi-rib-vrf {
             if-feature feature-list:HAVE_IPV6;
             description
                 "VRF IPV6 Static Route configurations";
+
+            list interface-route-global {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-rib-vrf:static-routes/ipi-rib-vrf:ipv6/ipi-rib-vrf:interface-route-global/ipi-rib-vrf:config/ipi-rib-vrf:interface-name ";
+                key "destination-prefix interface-name enable-ipv6-global-table-lookup";
+                description
+                    "IPV6 VRF static route with global gateway";
+                leaf destination-prefix  {
+                    type  leafref {
+                        path  "../config/destination-prefix";
+                    }
+                    description "IPv6 destination prefix (e.g. 3ffe:506::/32)";
+                } // END of destination-prefix definition.
+
+                leaf interface-name  {
+                    type  leafref {
+                        path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+                    }
+                    description "Use this attribute to create an IPv6 static route where nexthop is a
+                                globalinterface.";
+                } // END of interface-name definition.
+
+                leaf enable-ipv6-global-table-lookup  {
+                    type  leafref {
+                        path  "../config/enable-ipv6-global-table-lookup";
+                    }
+                    description "To create an IPv6 vrf static route with gateway in default vrf table
+                                with global keyword";
+                } // END of enable-ipv6-global-table-lookup definition.
+
+                container config {
+                    description
+                        "configuration attributes for static route with global interface";
+                    uses rib-vrf-ipv6-interface-global-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational data for static route with global interface";
+                    uses rib-vrf-ipv6-interface-global-config;
+                } // END of state-container definition.
+            } // End of interface-route-global-list
+
+            list gateway-interface-route-global {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-rib-vrf:static-routes/ipi-rib-vrf:ipv6/ipi-rib-vrf:gateway-interface-route-global/ipi-rib-vrf:config/ipi-rib-vrf:interface-name ";
+                key "destination-prefix gateway-address interface-name enable-ipv6-global-table-lookup";
+                description
+                    "IPV6 VRF static route with global gateway";
+                leaf destination-prefix  {
+                    type  leafref {
+                        path  "../config/destination-prefix";
+                    }
+                    description "IPv6 destination prefix (e.g. 3ffe:506::/32)";
+                } // END of destination-prefix definition.
+
+                leaf gateway-address  {
+                    type  leafref {
+                        path  "../config/gateway-address";
+                    }
+                    description "Use this attribute to create an IPv6 static route for a subnet.";
+                } // END of gateway-address definition.
+
+                leaf interface-name  {
+                    type  leafref {
+                        path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+                    }
+                    description "Use this attribute to create an IPv6 static route where nexthop is a
+                                globalinterface.";
+                } // END of interface-name definition.
+
+                leaf enable-ipv6-global-table-lookup  {
+                    type  leafref {
+                        path  "../config/enable-ipv6-global-table-lookup";
+                    }
+                    description "To create an IPv6 vrf static route with gateway in default vrf table
+                                with global keyword";
+                } // END of enable-ipv6-global-table-lookup definition.
+
+                container config {
+                    description
+                        "configuration attributes for static route with global interface";
+                    uses rib-vrf-ipv6-prefix-gw-interface-global-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational data for static route with global interface";
+                    uses rib-vrf-ipv6-prefix-gw-interface-global-config;
+                } // END of state-container definition.
+            } // End of gateway-interface-route-global-list
 
             list route {
             when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-rib-vrf:static-routes/ipi-rib-vrf:ipv6/ipi-rib-vrf:route/ipi-rib-vrf:config/ipi-rib-vrf:interface-name ";

@@ -21,20 +21,24 @@ submodule ipi-bgp-instance {
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
+        revision-date 2021-05-27;
     }
 
-    include ipi-bgp-common;
-    include ipi-bgp-address-family;
-    include ipi-bgp-peer;
-    include ipi-bgp-address-family-vrf;
+    include ipi-bgp-common { revision-date 2021-06-11;}
+    include ipi-bgp-address-family { revision-date 2021-06-09;}
+    include ipi-bgp-peer-group { revision-date 2021-06-11;}
+    include ipi-bgp-peer { revision-date 2021-06-11;}
+    include ipi-bgp-address-family-vrf { revision-date 2021-06-11;}
     organization
         "IP Infusion Inc.";
 
@@ -47,6 +51,16 @@ submodule ipi-bgp-instance {
     description
         "";
 
+
+    revision "2021-06-11" {
+        description "Added dependency constraint for graceful-restart CLI's restart-time, stale-path-max-retention-time and graceful-reset";
+        reference " 0.4.1.";
+    }
+
+    revision "2021-06-09" {
+        description "Removal of default ipv4 unicast activate";
+        reference " 0.4.0.";
+    }
 
     revision "2021-03-05" {
         description "Excluded yang generation for BGP Add path attributes";
@@ -288,6 +302,7 @@ submodule ipi-bgp-instance {
             } // END of rib-container definition.
             uses bgp-allocate-label-top;
             uses address-family-grouping;
+            uses peer-group-grouping;
             uses peer-grouping;
             uses address-family-vrf-grouping;
         } // End of bgp-instance-list
@@ -319,7 +334,7 @@ submodule ipi-bgp-instance {
 
         leaf route-distinguisher  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             config false;
@@ -341,7 +356,7 @@ submodule ipi-bgp-instance {
             when " not(/bgp/bgp-instance/allocate-label/config/all-routes) ";
             if-feature feature-list:HAVE_BGP_LU;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to allocate label to those advertised routes that
@@ -381,7 +396,7 @@ submodule ipi-bgp-instance {
         leaf distance  {
             type  uint8 {
                  range "1..255"  {
-                    description "Administrative distance";
+                    description "1..255:Administrative distance";
                  }
             }
             mandatory true;
@@ -391,7 +406,7 @@ submodule ipi-bgp-instance {
         leaf access-list-name  {
             when " /bgp/bgp-instance/administrative-distance/config/distance ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to define an administrative distance along with ip
@@ -487,7 +502,7 @@ submodule ipi-bgp-instance {
         leaf confederation-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Set routing domain confederation AS";
+                    description "1..4294967295:Set routing domain confederation AS";
                  }
             }
             description "Use this attribute to specify a BGP confederation identifier";
@@ -496,7 +511,7 @@ submodule ipi-bgp-instance {
         leaf local-preference  {
             type  uint32 {
                  range "0..4294967295"  {
-                    description "Configure default local preference value";
+                    description "0..4294967295:Configure default local preference value";
                  }
             }
             default "100";
@@ -524,7 +539,7 @@ submodule ipi-bgp-instance {
         leaf graceful-shutdown-local-preference  {
             type  uint32 {
                  range "0..4294967295"  {
-                    description "g-shut local preference value";
+                    description "0..4294967295:g-shut local preference value";
                  }
             }
             default "0";
@@ -564,7 +579,7 @@ submodule ipi-bgp-instance {
         leaf scan-interval  {
             type  uint32 {
                  range "0..60"  {
-                    description "Scan interval (sec) [Default:60; Disable:0]";
+                    description "0..60:Scan interval (sec) [Default:60; Disable:0]";
                  }
             }
             default "60";
@@ -585,12 +600,6 @@ submodule ipi-bgp-instance {
             description "Use this attribute to always select a preferred older route even when
                         the bestpathCompareRouterId attribute is      configured";
         } // END of no-best-path-tie-break definition.
-
-        leaf no-ipv4-unicast  {
-            type  empty;
-            description "Use this attribute to configure BGP defaults and activate IPv4-unicast
-                        for a peer by default. This affects the BGP global configuration.";
-        } // END of no-ipv4-unicast definition.
 
         leaf enable-deterministic-med  {
             type  empty;
@@ -629,7 +638,7 @@ submodule ipi-bgp-instance {
         leaf local-as-count  {
             type  uint8 {
                  range "2..64"  {
-                    description "Number of times local-as to be prepended";
+                    description "2..64:Number of times local-as to be prepended";
                  }
             }
             description "Use this attribute to set the number of times the local-AS (Autonomous
@@ -674,7 +683,7 @@ submodule ipi-bgp-instance {
         leaf-list peer-as-number  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "AS number";
+                    description "1..4294967295:AS number";
                  }
             }
             description "Use this attribute to specify peer AS number in BGP confederation";
@@ -684,54 +693,6 @@ submodule ipi-bgp-instance {
     grouping bgp-graceful-restart-config {
         description
             "attributes realting to graceful restart";
-        leaf restart-time  {
-            if-feature feature-list:HAVE_RESTART;
-            type  uint32 {
-                 range "1..3600"  {
-                    description "Delay value (seconds)";
-                 }
-            }
-            default "90";
-            description "Use this attribute to enable BGP graceful-restart capabilities. The
-                        restart-time parameter is used for setting the maximum time that a
-                        graceful-restart neighbor waits to come back up after a restart. This
-                        value is applied to all neighbors unless you explicitly override it by
-                        configuring the corresponding value on the neighbor.";
-        } // END of restart-time definition.
-
-        leaf stale-path-max-retention-time  {
-            if-feature feature-list:HAVE_RESTART;
-            type  uint32 {
-                 range "1..3600"  {
-                    description "Delay value (seconds)";
-                 }
-            }
-            default "360";
-            description "Use this attribute to enable BGP graceful-restart capabilities. The
-                        stalepath-time parameter is used to set the maximum time to preserve
-                        stale paths from a gracefully restarted neighbor. All stalepaths,
-                        unless reinstated by the neighbor after a re-establishment, will be
-                        deleted at the expiration of this timer.";
-        } // END of stale-path-max-retention-time definition.
-
-        leaf route-selection-max-defer-time  {
-            if-feature feature-list:HAVE_RESTART;
-            type  uint32 {
-                 range "1..3600"  {
-                    description "Delay value (seconds)";
-                 }
-            }
-            default "120";
-            description "Use this attribute to specify the update-delay value for a
-                        graceful-restart capable router. The update-delay value is the maximum
-                        time a graceful-restart capable router, which is restarting, will
-                        defer route-selection and advertisements to all its graceful-restart
-                        capable neighbors. This maximum time starts from the instance the
-                        first neighbor attains established state after restart. The restarting
-                        router prematurely terminates this timer when end-of-rib markers are
-                        received from all its graceful-restart capable neighbors.";
-        } // END of route-selection-max-defer-time definition.
-
         leaf enable-graceful-restart  {
             if-feature feature-list:HAVE_RESTART;
             type  empty;
@@ -746,8 +707,55 @@ submodule ipi-bgp-instance {
                         deleted at the expiration of this timer.";
         } // END of enable-graceful-restart definition.
 
+        leaf restart-time  {
+            if-feature feature-list:HAVE_RESTART;
+            type  uint32 {
+                 range "1..3600"  {
+                    description "1..3600:Delay value (seconds)";
+                 }
+            }
+            default "90";
+            description "Use this attribute to enable BGP graceful-restart capabilities. The
+                        restart-time parameter is used for setting the maximum time that a
+                        graceful-restart neighbor waits to come back up after a restart. This
+                        value is applied to all neighbors unless you explicitly override it by
+                        configuring the corresponding value on the neighbor.";
+        } // END of restart-time definition.
+
+        leaf stale-path-max-retention-time  {
+            if-feature feature-list:HAVE_RESTART;
+            type  uint32 {
+                 range "1..3600"  {
+                    description "1..3600:Delay value (seconds)";
+                 }
+            }
+            default "360";
+            description "Use this attribute to enable BGP graceful-restart capabilities. The
+                        stalepath-time parameter is used to set the maximum time to preserve
+                        stale paths from a gracefully restarted neighbor. All stalepaths,
+                        unless reinstated by the neighbor after a re-establishment, will be
+                        deleted at the expiration of this timer.";
+        } // END of stale-path-max-retention-time definition.
+
+        leaf route-selection-max-defer-time  {
+            if-feature feature-list:HAVE_RESTART;
+            type  uint32 {
+                 range "1..3600"  {
+                    description "1..3600:Delay value (seconds)";
+                 }
+            }
+            default "120";
+            description "Use this attribute to specify the update-delay value for a
+                        graceful-restart capable router. The update-delay value is the maximum
+                        time a graceful-restart capable router, which is restarting, will
+                        defer route-selection and advertisements to all its graceful-restart
+                        capable neighbors. This maximum time starts from the instance the
+                        first neighbor attains established state after restart. The restarting
+                        router prematurely terminates this timer when end-of-rib markers are
+                        received from all its graceful-restart capable neighbors.";
+        } // END of route-selection-max-defer-time definition.
+
         leaf graceful-reset  {
-            when " /bgp/bgp-instance/graceful-restart/config/enable-graceful-restart ";
             type  empty;
             description "Use this attribute to enable BGP graceful-restart capabilities. The
                         restart-time parameter is used for setting the maximum time that a
@@ -799,7 +807,7 @@ submodule ipi-bgp-instance {
             "View configuration attributes of bgp instance";
         leaf view-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute for multiple bgp";
@@ -812,7 +820,7 @@ submodule ipi-bgp-instance {
         leaf bgp-as  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "AS number";
+                    description "1..4294967295:AS number";
                  }
             }
             description "Use this attribute to start a BGP process.";
@@ -825,7 +833,7 @@ submodule ipi-bgp-instance {
         leaf keep-alive  {
             type  uint16 {
                  range "0..65535"  {
-                    description "Keepalive interval in seconds";
+                    description "0..65535:Keepalive interval in seconds";
                  }
             }
             mandatory true;
@@ -836,7 +844,7 @@ submodule ipi-bgp-instance {
         leaf hold-time  {
             type  uint16 {
                  range "0..65535"  {
-                    description "Holdtime in seconds";
+                    description "0..65535:Holdtime in seconds";
                  }
             }
             mandatory true;

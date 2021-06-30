@@ -21,21 +21,25 @@ submodule ipi-rsvp-trunk {
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-rsvp-types {
         prefix ipi-rsvp-types;
+        revision-date 2021-01-27;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
-    include ipi-rsvp-session;
+    include ipi-rsvp-session { revision-date 2021-03-27;}
     organization
         "IP Infusion Inc.";
 
@@ -48,6 +52,16 @@ submodule ipi-rsvp-trunk {
     description
         "Resource Reservation Protocol";
 
+
+    revision "2021-06-21" {
+        description "Modified the attribute name from dscp-exp-max-exp-val to dscp-exp-map-exp-val";
+        reference " 0.5.1.";
+    }
+
+    revision "2021-03-31" {
+        description "Addition of PCEP-RSVP related attributes";
+        reference " 0.5.0.";
+    }
 
     revision "2021-03-22" {
         description "Added SRLG related attribute";
@@ -74,7 +88,7 @@ submodule ipi-rsvp-trunk {
             "configuration parameters for rsvp path";
         leaf path-name  {
             type  string {
-                length "1..max";
+                length "1..32";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create a new RSVP path or to enter the Path
@@ -134,7 +148,7 @@ submodule ipi-rsvp-trunk {
         leaf link-id  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Range for the link ID";
+                    description "1..4294967295:Range for the link ID";
                  }
             }
             description "Use this attribute to define an link ID for the unnumbered interface";
@@ -183,7 +197,7 @@ submodule ipi-rsvp-trunk {
             "configuration parameters for rsvp bypass trunk";
         leaf bypass-name  {
             type  string {
-                length "1..max";
+                length "1..32";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create a new RSVP Bypass Tunnel or to modify the
@@ -210,7 +224,7 @@ submodule ipi-rsvp-trunk {
         leaf retry-count  {
             type  uint16 {
                  range "1..65535"  {
-                    description "Number of times a Path message should be retried";
+                    description "1..65535:Number of times a Path message should be retried";
                  }
             }
             description "Use this attribute to specify a retry count for an RSVP Trunk.";
@@ -219,7 +233,7 @@ submodule ipi-rsvp-trunk {
         leaf retry-interval  {
             type  uint16 {
                  range "1..600"  {
-                    description "Specify a retry interval for this LSP";
+                    description "1..600:Specify a retry interval for this LSP";
                  }
             }
             default "30";
@@ -249,7 +263,7 @@ submodule ipi-rsvp-trunk {
             if-feature feature-list:HAVE_CSPF;
             type  uint16 {
                  range "1..65535"  {
-                    description "Number of times CSPF should retry for this LSP";
+                    description "1..65535:Number of times CSPF should retry for this LSP";
                  }
             }
             description "Use this attribute to specify the number of retries that CSPF should
@@ -260,7 +274,7 @@ submodule ipi-rsvp-trunk {
             if-feature feature-list:HAVE_CSPF;
             type  uint16 {
                  range "1..600"  {
-                    description "Timeout in seconds between successive retries";
+                    description "1..600:Timeout in seconds between successive retries";
                  }
             }
             default "30";
@@ -292,7 +306,7 @@ submodule ipi-rsvp-trunk {
             "configuration parameters for the bypass session psb";
         leaf path-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to specify an RSVP path to be used.The PATHNAME in
@@ -307,7 +321,7 @@ submodule ipi-rsvp-trunk {
         leaf hold-priority  {
             type  uint8 {
                  range "0..7"  {
-                    description "Value for hold priority";
+                    description "0..7:Value for hold priority";
                  }
             }
             default "0";
@@ -318,7 +332,7 @@ submodule ipi-rsvp-trunk {
         leaf setup-priority  {
             type  uint8 {
                  range "0..7"  {
-                    description "Value for setup priority";
+                    description "0..7:Value for setup priority";
                  }
             }
             default "7";
@@ -335,7 +349,7 @@ submodule ipi-rsvp-trunk {
         leaf hop-limit  {
             type  uint16 {
                  range "1..255"  {
-                    description "Number of acceptable hops";
+                    description "1..255:Number of acceptable hops";
                  }
             }
             default "255";
@@ -356,7 +370,7 @@ submodule ipi-rsvp-trunk {
             "configuration parameters for the bypass session psb";
         leaf fast-reroute-bandwidth  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to reserve the primary/secondary bandwidth in bits
@@ -369,7 +383,7 @@ submodule ipi-rsvp-trunk {
             "configuration parameters for the bypass session psb";
         leaf bandwidth  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to reserve the primary/secondary bandwidth in bits
@@ -380,26 +394,27 @@ submodule ipi-rsvp-trunk {
     grouping rsvp-bypass-trunk-dscp-exp-max-config {
         description
             "rsvp ds-info dscp exp max config for the bypass trunk";
-        leaf dscp-exp-max-exp-val  {
+        leaf dscp-exp-map-exp-val  {
             type  int32 {
                  range "0..7"  {
-                    description "EXP bit value";
+                    description "0..7:EXP bit value";
                  }
             }
             description "Use this attribute to configure the private PHB-EXP (Per-Hop
                         Behavior-Experimental) mapping only used by this ELSP
                         (EXP-Inferred-PSC LSP). This mapping is different from the node level
                         PHB-EXP mapping.";
-        } // END of dscp-exp-max-exp-val definition.
+        } // END of dscp-exp-map-exp-val definition.
 
-        leaf dscp-exp-max-class-name  {
+        leaf dscp-exp-map-class-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
-            description "Use this attribute to configure the dsinfo class name for the
-                        class-to-exp-bit";
-        } // END of dscp-exp-max-class-name definition.
+            mandatory true;
+            description "Use this attribute to configure Diffserv class alias like be ef af11
+                        for the class-to-exp-bit mapping";
+        } // END of dscp-exp-map-class-name definition.
 
     } // END of rsvp-bypass-trunk-dscp-exp-max-config definition.
     grouping rsvp-bypass-trunk-dsinfo-llsp-config {
@@ -407,7 +422,7 @@ submodule ipi-rsvp-trunk {
             "rsvp ds-info llsp information for the bypass trunk";
         leaf llsp-class  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "to configure a Differentiated Services Label-Only-Inferred-PSC
@@ -428,7 +443,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class1  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -438,7 +453,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class2  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -448,7 +463,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class3  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -458,7 +473,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class4  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -468,7 +483,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class5  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -478,7 +493,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class6  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -488,7 +503,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class7  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -500,26 +515,27 @@ submodule ipi-rsvp-trunk {
     grouping rsvp-trunk-dscp-exp-max-config {
         description
             "rsvp ds-info dscp exp max config for the rsvp trunk";
-        leaf dscp-exp-max-exp-val  {
+        leaf dscp-exp-map-exp-val  {
             type  int32 {
                  range "0..7"  {
-                    description "EXP bit value";
+                    description "0..7:EXP bit value";
                  }
             }
             description "Use this attribute to configure the private PHB-EXP (Per-Hop
                         Behavior-Experimental) mapping only used by this ELSP
                         (EXP-Inferred-PSC LSP). This mapping is different from the node level
                         PHB-EXP mapping.";
-        } // END of dscp-exp-max-exp-val definition.
+        } // END of dscp-exp-map-exp-val definition.
 
-        leaf dscp-exp-max-class-name  {
+        leaf dscp-exp-map-class-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
-            description "Use this attribute to configure the dsinfo class name for the
-                        class-to-exp-bit";
-        } // END of dscp-exp-max-class-name definition.
+            mandatory true;
+            description "Use this attribute to configure the Diffserv class alias like be ef
+                        af11 for the class-to-exp-bit mapping";
+        } // END of dscp-exp-map-class-name definition.
 
     } // END of rsvp-trunk-dscp-exp-max-config definition.
     grouping rsvp-trunk-dsinfo-llsp-config {
@@ -528,7 +544,7 @@ submodule ipi-rsvp-trunk {
         leaf llsp-class  {
             if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "to configure a Differentiated Services Label-Only-Inferred-PSC
@@ -549,7 +565,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class1  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -559,7 +575,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class2  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -569,7 +585,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class3  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -579,7 +595,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class4  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -589,7 +605,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class5  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -599,7 +615,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class6  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -609,7 +625,7 @@ submodule ipi-rsvp-trunk {
 
         leaf elsp-signal-class7  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a primary Diff-Serv (Differentiated
@@ -643,15 +659,6 @@ submodule ipi-rsvp-trunk {
     grouping rsvp-trunk-pce-config {
         description
             "configuration parameters for rsvp path computation element";
-        leaf bsid-value  {
-            type  uint32 {
-                 range "16..15999"  {
-                    description "MPLS label";
-                 }
-            }
-            description "configurable value for static binding sid";
-        } // END of bsid-value definition.
-
         leaf path-option-dynamic  {
             if-feature feature-list:HAVE_PCEP_RSVP;
             type  cml-data-types:cml_pcep_path_dyn_t;
@@ -663,7 +670,7 @@ submodule ipi-rsvp-trunk {
             if-feature feature-list:HAVE_PCEP_RSVP;
             type  uint8 {
                  range "1..255"  {
-                    description "PCE Entity ID";
+                    description "1..255:PCE Entity ID";
                  }
             }
             description "Use this attribute to assign PCE Entity ID for the tunnel";
@@ -671,65 +678,96 @@ submodule ipi-rsvp-trunk {
 
         leaf pce-state-report  {
             if-feature feature-list:HAVE_PCEP_RSVP;
-            type  boolean;
+            type  empty;
             description "Use this attribute to enable or disable lsp state report to PCE";
         } // END of pce-state-report definition.
 
         leaf pce-lsp-delegate  {
             if-feature feature-list:HAVE_PCEP_RSVP;
-            type  boolean;
+            type  empty;
             description "Use this attribute to enable or disable lsp delegation to PCE";
         } // END of pce-lsp-delegate definition.
 
     } // END of rsvp-trunk-pce-config definition.
-    grouping rsvp-ecmp-config {
+    grouping rsvp-multipath-config {
         description
-            "configuration parameters for rsvp ecmp";
-        leaf ecmp-name  {
-            if-feature feature-list:HAVE_RSVP_ECMP;
+            "configuration parameters for rsvp multipath";
+        leaf multipath-name  {
+            if-feature feature-list:HAVE_RSVP_MULTIPATH;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
-            description "Use this attribute to create a new RSVP ECMP group or to enter the
-                        ECMP configure mode. In this mode, you can add or delete description
-                        for the ECMP group.";
-        } // END of ecmp-name definition.
+            description "Use this attribute to create a new RSVP multipath group or to enter
+                        the multipath configure mode. In this mode, you can add or delete
+                        description for the multipath group.";
+        } // END of multipath-name definition.
 
-    } // END of rsvp-ecmp-config definition.
-    grouping rsvp-ecmp-common-config {
+    } // END of rsvp-multipath-config definition.
+    grouping rsvp-multipath-common-config {
         description
-            "configuration parameters for rsvp ecmp";
-        leaf ecmp-description  {
-            type  cml-data-types:cml_line_t;
-            description "Use this attribute to add description for ECMP group";
-        } // END of ecmp-description definition.
+            "configuration parameters for rsvp multipath";
+        leaf multipath-description  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to add description for multipath group";
+        } // END of multipath-description definition.
 
-        leaf ecmp-destination  {
+        leaf multipath-destination  {
             type  inet:ipv4-address;
-            description "Use this attribute to add destination prefix for ECMP group";
-        } // END of ecmp-destination definition.
+            description "Use this attribute to add destination prefix for multipath group";
+        } // END of multipath-destination definition.
 
-    } // END of rsvp-ecmp-common-config definition.
-    grouping rsvp-trunk-ecmp-config {
+    } // END of rsvp-multipath-common-config definition.
+    grouping rsvp-trunk-multipath-config {
         description
-            "configuration parameters for rsvp ecmp config";
-        leaf ecmp-group  {
-            if-feature feature-list:HAVE_RSVP_ECMP;
+            "configuration parameters for rsvp multipath config";
+        leaf multipath-group  {
+            if-feature feature-list:HAVE_RSVP_MULTIPATH;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
-            description "Use this attribute to configure a ECMP group name for the RSVP Trunk";
-        } // END of ecmp-group definition.
+            description "Use this attribute to configure a multipath group name for the RSVP
+                        Trunk";
+        } // END of multipath-group definition.
 
-    } // END of rsvp-trunk-ecmp-config definition.
+    } // END of rsvp-trunk-multipath-config definition.
+    grouping rsvp-trunk-color-config {
+        description
+            "configuration parameter for rsvp trunk color";
+        leaf trunk-color  {
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            type  uint32 {
+                 range "1..4294967295"  {
+                    description "1..4294967295:Color code to be used";
+                 }
+            }
+            description "Use this attribute to configure color for RSVP Trunk";
+        } // END of trunk-color definition.
+
+    } // END of rsvp-trunk-color-config definition.
+    grouping rsvp-trunk-binding-config {
+        description
+            "configuration parameter for rsvp binding label";
+        leaf bsid-value  {
+            type  uint32 {
+                 range "16..15999"  {
+                    description "16..15999:MPLS label";
+                 }
+            }
+            description "Use this attribute to configure static binding segment identifier
+                        value";
+        } // END of bsid-value definition.
+
+    } // END of rsvp-trunk-binding-config definition.
     grouping rsvp-trunk-config {
         description
             "configuration parameters for rsvp trunk";
         leaf trunk-name  {
             type  string {
-                length "1..max";
+                length "1..32";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create a new RSVP trunk. When the trunk is
@@ -757,7 +795,7 @@ submodule ipi-rsvp-trunk {
         leaf absolute-metric  {
             type  uint32 {
                  range "1..65535"  {
-                    description "Set absolute metric <1-65535>";
+                    description "1..65535:Set absolute metric <1-65535>";
                  }
             }
             description "Use this attribute to set LSP absolute metric metric for IGP Shortcut
@@ -767,7 +805,8 @@ submodule ipi-rsvp-trunk {
         leaf relative-metric  {
             type  int32 {
                  range "-65535..0 | 1..65535"  {
-                    description "Set relative metric <1-65535>";
+                    description "-65535..0:Set relative metric <-65535-0>,1..65535:Set relative metric
+                            <1-65535>";
                  }
             }
             description "Use this attribute to set LSP relative metric metric for IGP Shortcut
@@ -777,7 +816,7 @@ submodule ipi-rsvp-trunk {
         leaf revert-timer  {
             type  uint32 {
                  range "1..65535"  {
-                    description "Revert timer value";
+                    description "1..65535:Revert timer value";
                  }
             }
             default "60";
@@ -815,7 +854,7 @@ submodule ipi-rsvp-trunk {
         leaf name  {
             if-feature feature-list:HAVE_DIFFSERV;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             mandatory true;
@@ -830,7 +869,7 @@ submodule ipi-rsvp-trunk {
         leaf secondary-priority  {
             type  int32 {
                  range "1..5"  {
-                    description "Secondary-Priority value";
+                    description "1..5:Secondary-Priority value";
                  }
             }
             description "Use this attribute to configure the secondary priorities of the RSVP
@@ -839,7 +878,7 @@ submodule ipi-rsvp-trunk {
 
         leaf priority-path  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure the secondary priority path for the
@@ -856,7 +895,7 @@ submodule ipi-rsvp-trunk {
         leaf hold-priority  {
             type  uint8 {
                  range "0..7"  {
-                    description "Value for hold priority";
+                    description "0..7:Value for hold priority";
                  }
             }
             default "0";
@@ -867,7 +906,7 @@ submodule ipi-rsvp-trunk {
         leaf setup-priority  {
             type  uint8 {
                  range "0..7"  {
-                    description "Value for setup priority";
+                    description "0..7:Value for setup priority";
                  }
             }
             default "7";
@@ -884,7 +923,7 @@ submodule ipi-rsvp-trunk {
         leaf hop-limit  {
             type  uint16 {
                  range "1..255"  {
-                    description "Number of acceptable hops";
+                    description "1..255:Number of acceptable hops";
                  }
             }
             default "255";
@@ -906,7 +945,7 @@ submodule ipi-rsvp-trunk {
         leaf start-label-range  {
             type  int32 {
                  range "16..1048575"  {
-                    description "Start of the Range value within <16-1048575>";
+                    description "16..1048575:Start of the Range value within <16-1048575>";
                  }
             }
             mandatory true;
@@ -916,7 +955,7 @@ submodule ipi-rsvp-trunk {
         leaf end-label-range  {
             type  int32 {
                  range "16..1048575"  {
-                    description "End of the Range value within <16-1048575>";
+                    description "16..1048575:End of the Range value within <16-1048575>";
                  }
             }
             mandatory true;
@@ -945,7 +984,7 @@ submodule ipi-rsvp-trunk {
         leaf frr-hold-priority  {
             type  uint32 {
                  range "0..7"  {
-                    description "Value for hold priority";
+                    description "0..7:Value for hold priority";
                  }
             }
             default "0";
@@ -956,7 +995,7 @@ submodule ipi-rsvp-trunk {
         leaf frr-setup-priority  {
             type  uint32 {
                  range "0..7"  {
-                    description "Value for setup priority";
+                    description "0..7:Value for setup priority";
                  }
             }
             default "7";
@@ -967,7 +1006,7 @@ submodule ipi-rsvp-trunk {
         leaf frr-hop-limit  {
             type  uint32 {
                  range "1..255"  {
-                    description "Number of acceptable hops";
+                    description "1..255:Number of acceptable hops";
                  }
             }
             default "255";
@@ -1030,7 +1069,7 @@ submodule ipi-rsvp-trunk {
             "configuration parameters for rsvp admin group";
         leaf admin-group-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure administrative groups for use with a
@@ -1056,7 +1095,7 @@ submodule ipi-rsvp-trunk {
             "configuration parameters for rsvp admin group";
         leaf name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "iUse this attribute to configure primary administrative groups.
@@ -1079,7 +1118,7 @@ submodule ipi-rsvp-trunk {
             "configuration parameters for rsvp psb session";
         leaf path-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure the path";
@@ -1088,7 +1127,7 @@ submodule ipi-rsvp-trunk {
         leaf class-type-name  {
             if-feature feature-list:HAVE_DSTE;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to configure a Class-Type for an LSP session.";
@@ -1112,7 +1151,7 @@ submodule ipi-rsvp-trunk {
         leaf forward-label-value  {
             type  uint32 {
                  range "16..1048575"  {
-                    description "Label value : range 16-1048575";
+                    description "16..1048575:Label value : range 16-1048575";
                  }
             }
             mandatory true;
@@ -1134,7 +1173,7 @@ submodule ipi-rsvp-trunk {
         leaf reverse-label-value  {
             type  uint32 {
                  range "16..1048575"  {
-                    description "Label value : range 16-1048575";
+                    description "16..1048575:Label value : range 16-1048575";
                  }
             }
             mandatory true;
@@ -1161,6 +1200,7 @@ submodule ipi-rsvp-trunk {
             "container for the rsvp path";
 
         list rsvp-path {
+        when " /rsvp-te/rsvp-paths/rsvp-path/config/path-type ";
             key "path-name";
             description
                 "list of rsvp path";
@@ -1386,15 +1426,16 @@ submodule ipi-rsvp-trunk {
                         "configuration container for rsvp bypass trunk diff serve information";
 
                     list dscp-exp-map {
-                        key "dscp-exp-max-exp-val";
+                    when " /rsvp-te/trunks/bypass-trunk/session/diff-serv-info/dscp-exp-map/config/dscp-exp-map-class-name ";
+                        key "dscp-exp-map-exp-val";
                         description
                             "Top Level list for dscp exp";
-                        leaf dscp-exp-max-exp-val  {
+                        leaf dscp-exp-map-exp-val  {
                             type  leafref {
-                                path  "../config/dscp-exp-max-exp-val";
+                                path  "../config/dscp-exp-map-exp-val";
                             }
                             description "rsvp trunk dsinfo exp val";
-                        } // END of dscp-exp-max-exp-val definition.
+                        } // END of dscp-exp-map-exp-val definition.
 
                         container config {
                             description
@@ -1529,18 +1570,38 @@ submodule ipi-rsvp-trunk {
             container config {
                 description
                     "configuration container for rsvp ingress trunk";
+                uses rsvp-trunk-binding-config;
+                uses rsvp-trunk-color-config;
                 uses rsvp-trunk-common-config;
                 uses rsvp-trunk-config;
-                uses rsvp-trunk-ecmp-config;
+                uses rsvp-trunk-multipath-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "state container for rsvp ingress trunk";
+                uses rsvp-trunk-binding-config;
+                uses rsvp-trunk-color-config;
                 uses rsvp-trunk-common-config;
                 uses rsvp-trunk-config;
-                uses rsvp-trunk-ecmp-config;
+                uses rsvp-trunk-multipath-config;
             } // END of state-container definition.
+            container path-computation-element {
+                if-feature feature-list:HAVE_PCEP_RSVP;
+                description
+                    "Top level configuration container for path computation element";
+                container config {
+                    description
+                        "configuration container for rsvp path computation element";
+                    uses rsvp-trunk-pce-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state container for rsvp path computation element";
+                    uses rsvp-trunk-pce-config;
+                } // END of state-container definition.
+            } // END of path-computation-element-container definition.
             container sessions {
                 description
                     "configuration container for rsvp ingress trunk sessions container";
@@ -1634,15 +1695,16 @@ submodule ipi-rsvp-trunk {
                             "configuration container for rsvp ingress trunk diff serve information";
 
                         list dscp-exp-map {
-                            key "dscp-exp-max-exp-val";
+                        when " /rsvp-te/trunks/ingress-trunk/sessions/session/diff-serv-info/dscp-exp-map/config/dscp-exp-map-class-name ";
+                            key "dscp-exp-map-exp-val";
                             description
                                 "Top Level list for dscp exp";
-                            leaf dscp-exp-max-exp-val  {
+                            leaf dscp-exp-map-exp-val  {
                                 type  leafref {
-                                    path  "../config/dscp-exp-max-exp-val";
+                                    path  "../config/dscp-exp-map-exp-val";
                                 }
                                 description "rsvp trunk dsinfo exp val";
-                            } // END of dscp-exp-max-exp-val definition.
+                            } // END of dscp-exp-map-exp-val definition.
 
                             container config {
                                 description

@@ -23,30 +23,37 @@ module ipi-mpls-rib {
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
+        revision-date 2021-01-27;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
+        revision-date 2021-05-13;
     }
 
     import ipi-mpls-types {
         prefix ipi-mpls-types;
+        revision-date 2021-02-12;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -62,8 +69,38 @@ module ipi-mpls-rib {
         "Data model for MPLS RIB";
 
 
+    revision "2021-06-24" {
+        description "Added Service Mapping runtime attributes for FTN Entries";
+        reference " 0.6.3.";
+    }
+
+    revision "2021-05-27" {
+        description "Added tunnel-id as RDN for ipv4/ipv6 global/vrf ftn tables, introduced evpn-id";
+        reference " 0.6.2.";
+    }
+
+    revision "2021-04-18" {
+        description "Added ELC runtime attribute for FTN Entries";
+        reference " 0.6.1.";
+    }
+
+    revision "2021-03-22" {
+        description "Added IPv6 MPLS RIB run time attributes";
+        reference " 0.6.0.";
+    }
+
+    revision "2021-03-15" {
+        description "Change for restructuring LSP-Tunnel";
+        reference " 0.5.0.";
+    }
+
     revision "2021-03-04" {
         description "Added attribute pseudowire-id";
+        reference " 0.4.0.";
+    }
+
+    revision "2021-02-12" {
+        description "Netconf datamodel restructuring for Static ILM/FTN";
         reference " 0.4.0.";
     }
 
@@ -110,7 +147,7 @@ module ipi-mpls-rib {
                         "Per VRF IPv4 FTN entries";
 
                     list ipv4-ftn-entry {
-                        key "fec-prefix owner lsp-type";
+                        key "fec-prefix owner lsp-type tunnel-id";
                         config false;
                         description
                             "IPv4 FTN entry";
@@ -134,6 +171,13 @@ module ipi-mpls-rib {
                             }
                             description "Type of Label Switched Path";
                         } // END of lsp-type definition.
+
+                        leaf tunnel-id  {
+                            type  leafref {
+                                path  "../state/tunnel-id";
+                            }
+                            description "RSVP tunnel id for which this entry is added";
+                        } // END of tunnel-id definition.
 
 
                         list nhlfe-entry {
@@ -171,6 +215,77 @@ module ipi-mpls-rib {
                             uses mpls-rib-ip-ftn-entry-state;
                         } // END of state-container definition.
                     } // End of ipv4-ftn-entry-list
+
+                    list ipv6-ftn-entry {
+                        if-feature feature-list:HAVE_IPV6;
+                        key "fec-prefix6 owner lsp-type tunnel-id";
+                        config false;
+                        description
+                            "IPv6 FTN entry";
+                        leaf fec-prefix6  {
+                            type  leafref {
+                                path  "../state/fec-prefix6";
+                            }
+                            description "Forwarding Equivalence Class for IP packet network";
+                        } // END of fec-prefix6 definition.
+
+                        leaf owner  {
+                            type  leafref {
+                                path  "../state/owner";
+                            }
+                            description "The protocol module which installed this entry";
+                        } // END of owner definition.
+
+                        leaf lsp-type  {
+                            type  leafref {
+                                path  "../state/lsp-type";
+                            }
+                            description "Type of Label Switched Path";
+                        } // END of lsp-type definition.
+
+                        leaf tunnel-id  {
+                            type  leafref {
+                                path  "../state/tunnel-id";
+                            }
+                            description "RSVP tunnel id for which this entry is added";
+                        } // END of tunnel-id definition.
+
+
+                        list nhlfe-entry {
+                            key "out-interface out-label";
+                            config false;
+                            description
+                                "NHLFE entry";
+                            leaf out-interface  {
+                                type  leafref {
+                                    path  "../state/out-interface";
+                                }
+                                description "Interface through which the packet should be forwarded";
+                            } // END of out-interface definition.
+
+                            leaf out-label  {
+                                type  leafref {
+                                    path  "../state/out-label";
+                                }
+                                description "Label value that is pushed to the outgoing MPLS header";
+                            } // END of out-label definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "Container for FTN NHLFE operational state";
+                                uses mpls-rib-ipv6-ftn-nhlfe-entry-state;
+                                uses mpls-rib-ip-ftn-nhlfe-entry-state;
+                            } // END of state-container definition.
+                        } // End of nhlfe-entry-list
+                        container state {
+                            config false;
+                            description
+                                "Container for FTN entry operational state";
+                            uses mpls-rib-ipv6-ftn-entry-state;
+                            uses mpls-rib-ip-ftn-entry-state;
+                        } // END of state-container definition.
+                    } // End of ipv6-ftn-entry-list
                 } // END of ftn-table-container definition.
                 uses mpls-vrf-entry-state;
             } // END of rib-container definition.
@@ -190,6 +305,20 @@ module ipi-mpls-rib {
         } // END of owner definition.
 
     } // END of mpls-rib-ipv4-ftn-entry-state definition.
+    grouping mpls-rib-ipv6-ftn-entry-state {
+        description
+            "mplsCMLSEPribCMLSEPipv6CMLSEPftnCMLSEPentryCMLSEPstate";
+        leaf fec-prefix6  {
+            type  inet:ipv6-prefix;
+            description "Forwarding Equivalence Class";
+        } // END of fec-prefix6 definition.
+
+        leaf owner  {
+            type  ipi-mpls-types:mpls_rib_entry_owner_t;
+            description "The protocol module which installed this entry";
+        } // END of owner definition.
+
+    } // END of mpls-rib-ipv6-ftn-entry-state definition.
     grouping mpls-rib-ip-ftn-entry-state {
         description
             "mplsCMLSEPribCMLSEPipCMLSEPftnCMLSEPentryCMLSEPstate";
@@ -223,9 +352,14 @@ module ipi-mpls-rib {
             description "QoS exp bit that is mapped to this entry";
         } // END of qos-exp-bits definition.
 
+        leaf is-entropy-label  {
+            type  boolean;
+            description "Entropy Label Capability Flag";
+        } // END of is-entropy-label definition.
+
         leaf in-dscp-class-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Incoming DSCP value that is mapped to this entry";
@@ -246,6 +380,21 @@ module ipi-mpls-rib {
             type  uint32;
             description "Qos resource id";
         } // END of qos-resource-id definition.
+
+        leaf color  {
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            type  uint32;
+            description "Tunnel FTN color";
+        } // END of color definition.
+
+        leaf tunnel-policy-name  {
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Tunnel policy name that the Service FTN associated";
+        } // END of tunnel-policy-name definition.
 
     } // END of mpls-rib-ip-ftn-entry-state definition.
     grouping mpls-rib-ipv4-ftn-nhlfe-entry-state {
@@ -269,6 +418,27 @@ module ipi-mpls-rib {
         } // END of nexthop-address definition.
 
     } // END of mpls-rib-ipv4-ftn-nhlfe-entry-state definition.
+    grouping mpls-rib-ipv6-ftn-nhlfe-entry-state {
+        description
+            "mplsCMLSEPribCMLSEPipv6CMLSEPftnCMLSEPnhlfeCMLSEPentryCMLSEPstate";
+        leaf out-interface  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Interface through which the packet should be forwarded";
+        } // END of out-interface definition.
+
+        leaf out-label  {
+            type  uint32;
+            description "Label value that is pushed to the outgoing MPLS header";
+        } // END of out-label definition.
+
+        leaf nexthop-address  {
+            type  inet:ip-address;
+            description "IP address of the next hop";
+        } // END of nexthop-address definition.
+
+    } // END of mpls-rib-ipv6-ftn-nhlfe-entry-state definition.
     grouping mpls-rib-ip-ftn-nhlfe-entry-state {
         description
             "mplsCMLSEPribCMLSEPipCMLSEPftnCMLSEPnhlfeCMLSEPentryCMLSEPstate";
@@ -418,6 +588,13 @@ module ipi-mpls-rib {
             description "pseudowire for which this ILM entry is added";
         } // END of pseudowire-id definition.
 
+        leaf evpn-id  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            if-feature feature-list:HAVE_NVO;
+            type  uint32;
+            description "EVPN id for which this ILM entry is added";
+        } // END of evpn-id definition.
+
     } // END of mpls-rib-ip-ilm-entry-state definition.
     grouping mpls-static-ipv4-map-route-config {
         description
@@ -447,7 +624,7 @@ module ipi-mpls-rib {
 
         leaf mapped-tunnel-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             mandatory true;
@@ -456,6 +633,185 @@ module ipi-mpls-rib {
         } // END of mapped-tunnel-name definition.
 
     } // END of mpls-tp-ipv4-map-route-config definition.
+    grouping mpls-static-ipv4-lsp-tunnel-config {
+        description
+            "MPLS Static IPv4 LSP tunnel Configurations";
+        leaf in-interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Incoming Interface Name. Use this attribute to choose the transit LSP
+                        and a locally configured LSP tunnel for carrying the transit LSP";
+        } // END of in-interface-name definition.
+
+        leaf incoming-label  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Incoming Label - Use this attribute to choose the transit LSP and a
+                        locally configured LSP tunnel for carrying the transit LSP";
+        } // END of incoming-label definition.
+
+        leaf pushed-label  {
+            type  uint32 {
+                 range "16..1048575"  {
+                    description "16..1048575:Out-going Label <16-1048575>";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to specify the pushed label for the tunnel";
+        } // END of pushed-label definition.
+
+        leaf fec-prefix  {
+            type  inet:ipv4-prefix;
+            mandatory true;
+            description "Use this attribute to specify the FEC prefix for the tunnel";
+        } // END of fec-prefix definition.
+
+    } // END of mpls-static-ipv4-lsp-tunnel-config definition.
+    grouping mpls-ipv4-static-ftn-config {
+        description
+            "MPLS Static IPv4 FTN Configurations";
+        leaf fec-prefix  {
+            type  inet:ipv4-prefix;
+            description "Forwarding Equivalence Class";
+        } // END of fec-prefix definition.
+
+        leaf pushed-label  {
+            type  uint32 {
+                 range "16..1048575"  {
+                    description "16..1048575:Out-going Label <16-1048575>";
+                 }
+            }
+            description "Outgoing label value";
+        } // END of pushed-label definition.
+
+        leaf nexthop-ip-address  {
+            type  inet:ipv4-address;
+            description "Nexthop IP address";
+        } // END of nexthop-ip-address definition.
+
+        leaf out-interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Outgoing interface name";
+        } // END of out-interface-name definition.
+
+    } // END of mpls-ipv4-static-ftn-config definition.
+    grouping mpls-static-ftn-tunnel-config {
+        description
+            "MPLS Static FTN Tunnel Configurations";
+        leaf tunnel-id  {
+            type  uint32 {
+                 range "1..5000"  {
+                    description "1..5000:Tunnel Id";
+                 }
+            }
+            description "FTN tunnel-id value";
+        } // END of tunnel-id definition.
+
+        leaf fec-prefix  {
+            type  inet:ip-prefix;
+            description "Forwarding Equivalence Class";
+        } // END of fec-prefix definition.
+
+        leaf pushed-label  {
+            type  uint32 {
+                 range "16..1048575"  {
+                    description "16..1048575:Out-going Label <16-1048575>";
+                 }
+            }
+            description "Outgoing label value";
+        } // END of pushed-label definition.
+
+        leaf nexthop-ip-address  {
+            type  inet:ip-address;
+            description "Nexthop IP address";
+        } // END of nexthop-ip-address definition.
+
+        leaf out-interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Outgoing interface name";
+        } // END of out-interface-name definition.
+
+        leaf is-primary  {
+            type  ipi-mpls-types:mpls_vpls_ftn_entry_lsp_type_t;
+            description "Primary FTN entry";
+        } // END of is-primary definition.
+
+    } // END of mpls-static-ftn-tunnel-config definition.
+    grouping mpls-static-ilm-pop-config {
+        description
+            "MPLS Static ILM POP Entries";
+        leaf enable-pop-label  {
+            type  empty;
+            mandatory true;
+            description "Use this attribute to create an ILM entry in the ILM table to which a
+                        POP incoming interface is bound. Upon receipt of  a labeled packet on
+                        an MPLS-enabled router, a lookup is done based on the incoming label
+                        in the ILM table. If a match is found, the packet may either be
+                        label-switched downstream, or popped and passed over IP. In a pop
+                        operation, an outgoing label is not needed as is either accepted or
+                        forwarded over IP. The nexthop option is also not mandatory because
+                        the FEC IP address could be a local IP address";
+        } // END of enable-pop-label definition.
+
+    } // END of mpls-static-ilm-pop-config definition.
+    grouping mpls-static-ilm-swap-config {
+        description
+            "MPLS Static ILM SWAP Entries";
+        leaf in-interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Incoming Interface Name";
+        } // END of in-interface-name definition.
+
+        leaf swapped-label  {
+            type  uint32 {
+                 range "16..1048575"  {
+                    description "16..1048575:Out-going Label <16-1048575>";
+                 }
+            }
+            description "Outgoing Label";
+        } // END of swapped-label definition.
+
+        leaf out-interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Outgoing Interface Name";
+        } // END of out-interface-name definition.
+
+        leaf nexthop-ip-address  {
+            type  inet:ip-address;
+            description "Nexthop IP Address";
+        } // END of nexthop-ip-address definition.
+
+        leaf fec-prefix  {
+            type  inet:ip-prefix;
+            description "FEC Prefix for which the ILM entry is configured";
+        } // END of fec-prefix definition.
+
+    } // END of mpls-static-ilm-swap-config definition.
+    grouping mpls-static-ilm-config {
+        description
+            "MPLS Static ILM Entries";
+        leaf incoming-label  {
+            type  uint32 {
+                 range "16..1048575"  {
+                    description "16..1048575:in-coming Label <16-1048575>";
+                 }
+            }
+            description "Incoming Label";
+        } // END of incoming-label definition.
+
+    } // END of mpls-static-ilm-config definition.
 
     grouping  rib-grouping {
     description
@@ -471,7 +827,7 @@ module ipi-mpls-rib {
                 "Global FTN table";
 
             list ipv4-ftn-entry {
-                key "fec-prefix owner lsp-type";
+                key "fec-prefix owner lsp-type tunnel-id";
                 config false;
                 description
                     "Global IPv4 FTN entries";
@@ -495,6 +851,13 @@ module ipi-mpls-rib {
                     }
                     description "Type of Label Switched Path";
                 } // END of lsp-type definition.
+
+                leaf tunnel-id  {
+                    type  leafref {
+                        path  "../state/tunnel-id";
+                    }
+                    description "RSVP tunnel id for which this entry is added";
+                } // END of tunnel-id definition.
 
 
                 list nhlfe-entry {
@@ -532,6 +895,77 @@ module ipi-mpls-rib {
                     uses mpls-rib-ip-ftn-entry-state;
                 } // END of state-container definition.
             } // End of ipv4-ftn-entry-list
+
+            list ipv6-ftn-entry {
+                if-feature feature-list:HAVE_IPV6;
+                key "fec-prefix6 owner lsp-type tunnel-id";
+                config false;
+                description
+                    "Global IPv6 FTN entries";
+                leaf fec-prefix6  {
+                    type  leafref {
+                        path  "../state/fec-prefix6";
+                    }
+                    description "Forwarding Equivalence Class for IP packet network";
+                } // END of fec-prefix6 definition.
+
+                leaf owner  {
+                    type  leafref {
+                        path  "../state/owner";
+                    }
+                    description "The protocol module which installed this entry";
+                } // END of owner definition.
+
+                leaf lsp-type  {
+                    type  leafref {
+                        path  "../state/lsp-type";
+                    }
+                    description "Type of Label Switched Path";
+                } // END of lsp-type definition.
+
+                leaf tunnel-id  {
+                    type  leafref {
+                        path  "../state/tunnel-id";
+                    }
+                    description "RSVP tunnel id for which this entry is added";
+                } // END of tunnel-id definition.
+
+
+                list nhlfe-entry {
+                    key "out-interface out-label";
+                    config false;
+                    description
+                        "NHLFE entry";
+                    leaf out-interface  {
+                        type  leafref {
+                            path  "../state/out-interface";
+                        }
+                        description "Interface through which the packet should be forwarded";
+                    } // END of out-interface definition.
+
+                    leaf out-label  {
+                        type  leafref {
+                            path  "../state/out-label";
+                        }
+                        description "Label value that is pushed to the outgoing MPLS header";
+                    } // END of out-label definition.
+
+                    container state {
+                        config false;
+                        description
+                            "Container for FTN NHLFE entry operational state";
+                        uses mpls-rib-ipv6-ftn-nhlfe-entry-state;
+                        uses mpls-rib-ip-ftn-nhlfe-entry-state;
+                    } // END of state-container definition.
+                } // End of nhlfe-entry-list
+                container state {
+                    config false;
+                    description
+                        "Container for FTN entry operational state";
+                    uses mpls-rib-ipv6-ftn-entry-state;
+                    uses mpls-rib-ip-ftn-entry-state;
+                } // END of state-container definition.
+            } // End of ipv6-ftn-entry-list
         } // END of global-ftn-table-container definition.
         container ilm-table {
             config false;
@@ -621,6 +1055,207 @@ module ipi-mpls-rib {
                 } // END of state-container definition.
             } // End of static-ipv4-map-route-list
         } // END of map-route-container definition.
+        container static-lsps {
+            description
+                "MPLS LSP Entries";
+
+            list ipv4-static-ftn-entry {
+                key "fec-prefix pushed-label nexthop-ip-address out-interface-name";
+                description
+                    "MPLS Static IPv4 FTN Entries";
+                leaf fec-prefix  {
+                    type  leafref {
+                        path  "../config/fec-prefix";
+                    }
+                    description "Forwarding Equivalence Class";
+                } // END of fec-prefix definition.
+
+                leaf pushed-label  {
+                    type  leafref {
+                        path  "../config/pushed-label";
+                    }
+                    description "Outgoing label value";
+                } // END of pushed-label definition.
+
+                leaf nexthop-ip-address  {
+                    type  leafref {
+                        path  "../config/nexthop-ip-address";
+                    }
+                    description "Nexthop IP address";
+                } // END of nexthop-ip-address definition.
+
+                leaf out-interface-name  {
+                    type  leafref {
+                        path  "../config/out-interface-name";
+                    }
+                    description "Outgoing interface name";
+                } // END of out-interface-name definition.
+
+                container config {
+                    description
+                        "Config Container for MPLS Static IPv4 FTN Entries";
+                    uses mpls-ipv4-static-ftn-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State Container for MPLS Static IPv4 FTN Entries";
+                    uses mpls-ipv4-static-ftn-config;
+                } // END of state-container definition.
+            } // End of ipv4-static-ftn-entry-list
+
+            list static-ftn-tunnel {
+                if-feature feature-list:NOT_HAVE_MPLS_TUNNEL;
+                key "tunnel-id fec-prefix pushed-label nexthop-ip-address out-interface-name is-primary";
+                description
+                    "MPLS Static IPv4/IPv6 FTN Tunnel Entries";
+                leaf tunnel-id  {
+                    type  leafref {
+                        path  "../config/tunnel-id";
+                    }
+                    description "FTN tunnel-id value";
+                } // END of tunnel-id definition.
+
+                leaf fec-prefix  {
+                    type  leafref {
+                        path  "../config/fec-prefix";
+                    }
+                    description "Forwarding Equivalence Class";
+                } // END of fec-prefix definition.
+
+                leaf pushed-label  {
+                    type  leafref {
+                        path  "../config/pushed-label";
+                    }
+                    description "Outgoing label value";
+                } // END of pushed-label definition.
+
+                leaf nexthop-ip-address  {
+                    type  leafref {
+                        path  "../config/nexthop-ip-address";
+                    }
+                    description "Nexthop IP address";
+                } // END of nexthop-ip-address definition.
+
+                leaf out-interface-name  {
+                    type  leafref {
+                        path  "../config/out-interface-name";
+                    }
+                    description "Outgoing interface name";
+                } // END of out-interface-name definition.
+
+                leaf is-primary  {
+                    type  leafref {
+                        path  "../config/is-primary";
+                    }
+                    description "Primary FTN entry";
+                } // END of is-primary definition.
+
+                container config {
+                    description
+                        "Config Container for MPLS Static FTN Tunnel Entries";
+                    uses mpls-static-ftn-tunnel-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State Container for MPLS Static FTN Tunnel Entries";
+                    uses mpls-static-ftn-tunnel-config;
+                } // END of state-container definition.
+            } // End of static-ftn-tunnel-list
+
+            list static-ilm-entry {
+                key "incoming-label";
+                description
+                    "MPLS Static IPv4/IPv6 ILM Entries";
+                leaf incoming-label  {
+                    type  leafref {
+                        path  "../config/incoming-label";
+                    }
+                    description "Incoming Label";
+                } // END of incoming-label definition.
+
+
+                list swap {
+                    key "in-interface-name swapped-label out-interface-name nexthop-ip-address fec-prefix";
+                    description
+                        "MPLS ILM SWAP Entries";
+                    leaf in-interface-name  {
+                        type  leafref {
+                            path  "../config/in-interface-name";
+                        }
+                        description "Incoming Interface Name";
+                    } // END of in-interface-name definition.
+
+                    leaf swapped-label  {
+                        type  leafref {
+                            path  "../config/swapped-label";
+                        }
+                        description "Outgoing Label";
+                    } // END of swapped-label definition.
+
+                    leaf out-interface-name  {
+                        type  leafref {
+                            path  "../config/out-interface-name";
+                        }
+                        description "Outgoing Interface Name";
+                    } // END of out-interface-name definition.
+
+                    leaf nexthop-ip-address  {
+                        type  leafref {
+                            path  "../config/nexthop-ip-address";
+                        }
+                        description "Nexthop IP Address";
+                    } // END of nexthop-ip-address definition.
+
+                    leaf fec-prefix  {
+                        type  leafref {
+                            path  "../config/fec-prefix";
+                        }
+                        description "FEC Prefix for which the ILM entry is configured";
+                    } // END of fec-prefix definition.
+
+                    container config {
+                        description
+                            "Config Container for MPLS ILM Swap Interface Entries";
+                        uses mpls-static-ilm-swap-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State Container for MPLS ILM Swap Interface Entries";
+                        uses mpls-static-ilm-swap-config;
+                    } // END of state-container definition.
+                } // End of swap-list
+                container config {
+                    description
+                        "Config Container for MPLS Static ILM Entries";
+                    uses mpls-static-ilm-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State Container for MPLS Static ILM Entries";
+                    uses mpls-static-ilm-config;
+                } // END of state-container definition.
+                container pop {
+                    description
+                        "MPLS ILM POP Entries";
+                    container config {
+                        presence "To configure ILM POP Entries";
+                        description
+                            "Config Container for MPLS ILM POP Entries";
+                        uses mpls-static-ilm-pop-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State Container for MPLS ILM POP Entries";
+                        uses mpls-static-ilm-pop-config;
+                    } // END of state-container definition.
+                } // END of pop-container definition.
+            } // End of static-ilm-entry-list
+        } // END of static-lsps-container definition.
     } // END of rib-container definition.
     } // END of rib-grouping definition.
 

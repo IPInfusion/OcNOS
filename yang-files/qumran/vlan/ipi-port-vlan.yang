@@ -23,34 +23,42 @@ module ipi-port-vlan {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-port-vlan-types {
         prefix ipi-port-vlan-types;
+        revision-date 2021-05-20;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import ipi-vlan {
         prefix ipi-vlan;
+        revision-date 2021-04-08;
     }
 
     import ipi-if-aggregate {
         prefix ipi-if-aggregate;
+        revision-date 2020-12-15;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
+        revision-date 2021-04-27;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -65,6 +73,21 @@ module ipi-port-vlan {
     description
         "Port vlan configuration";
 
+
+    revision "2021-04-27" {
+        description "Data model changes done for JIRA-44181";
+        reference " 0.6.3.";
+    }
+
+    revision "2021-04-08" {
+        description "Data model changes done for ocmp-608";
+        reference " 0.6.2.";
+    }
+
+    revision "2021-03-30" {
+        description "Disabled YANG support for port-security feature";
+        reference " 0.6.1.";
+    }
 
     revision "2021-03-05" {
         description "Removed dot1q-ether-type attribute and moved to mo_ipi-if-extended.xml file";
@@ -106,7 +129,7 @@ module ipi-port-vlan {
 
         leaf oep-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "oep mapping table name";
@@ -123,7 +146,7 @@ module ipi-port-vlan {
         leaf vlan-id  {
             type  uint16 {
                  range "2..4094"  {
-                    description "VLAN id";
+                    description "2..4094:VLAN id";
                  }
             }
             description "Use this attribute to creates or deletes a mapping between an MSTI
@@ -203,7 +226,9 @@ module ipi-port-vlan {
         description
             "Port security configuration with MAC default vlan";
         leaf mac-address  {
-            type  cml-data-types:cml_mac_addr_t;
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
             description "Use this attribute to configure the static forwarding entry for
                         port-security";
         } // END of mac-address definition.
@@ -213,7 +238,9 @@ module ipi-port-vlan {
         description
             "Port security configuration with MAC CVLAN or MAC SVLAN";
         leaf mac-address  {
-            type  cml-data-types:cml_mac_addr_t;
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
             description "Use this attribute to configure the static forwarding entry for
                         port-security";
         } // END of mac-address definition.
@@ -229,7 +256,9 @@ module ipi-port-vlan {
         description
             "Port security configuration with MAC CVLAN SVLAN";
         leaf mac-address  {
-            type  cml-data-types:cml_mac_addr_t;
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
             description "Use this attribute to configure the static forwarding entry for
                         port-security";
         } // END of mac-address definition.
@@ -339,7 +368,7 @@ module ipi-port-vlan {
         leaf maximum-limit  {
             type  uint16 {
                  range "1..1000"  {
-                    description "Port security maximum limit";
+                    description "1..1000:Port security maximum limit";
                  }
             }
             default "1";
@@ -355,42 +384,25 @@ module ipi-port-vlan {
     grouping port-security-top {
         description
             "Top level grouping for port security";
-        container port-security {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
-            description
-                "Configuration and state data for port security";
-            container config {
-                presence "Configure port security mode";
-                description
-                    "Configuration data for port security";
-                uses port-security-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data for port-security";
-                uses port-security-config;
-            } // END of state-container definition.
-            uses port-security-mac-top;
-        } // END of port-security-container definition.
     } // END of port-security-top definition.
     grouping allowed-vlan-config {
         description
             "Configuration data for port allowed vlan";
         leaf allowed-vlan-id  {
-            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:allowed-vlan/ipi-port-vlan:config/ipi-port-vlan:egress-tagging-enabled-vlans) + not(/ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:allowed-vlan/ipi-port-vlan:config/ipi-port-vlan:egress-tagging-disabled-vlans) ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode != '2' + /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode != '42' ";
             type  cml-data-types:cml_range_t;
             description "Use this attribute to create a single/range of VLANs on the VLAN aware
                         bridges";
         } // END of allowed-vlan-id definition.
 
         leaf egress-tagging-enabled-vlans  {
-            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:allowed-vlan/ipi-port-vlan:config/ipi-port-vlan:allowed-vlan-id) ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '2'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '42' ";
             type  cml-data-types:cml_range_t;
             description "Egress tagging per vlan";
         } // END of egress-tagging-enabled-vlans definition.
 
         leaf egress-tagging-disabled-vlans  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '2'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '42' ";
             type  cml-data-types:cml_range_t;
             description "Egress tagging per vlan";
         } // END of egress-tagging-disabled-vlans definition.
@@ -422,7 +434,7 @@ module ipi-port-vlan {
         leaf cvlan-id  {
             type  uint16 {
                  range "1..4095"  {
-                    description "C-VLAN ID range";
+                    description "1..4095:C-VLAN ID range";
                  }
             }
             description "Specifies to be translated customer vlan identifier";
@@ -431,7 +443,7 @@ module ipi-port-vlan {
         leaf svlan-id  {
             type  uint16 {
                  range "1..4095"  {
-                    description "S-VLAN ID range";
+                    description "1..4095:S-VLAN ID range";
                  }
             }
             description "Specifies to be translated service vlan identifier";
@@ -440,7 +452,7 @@ module ipi-port-vlan {
         leaf translated-cvlan-id  {
             type  uint16 {
                  range "1..4095"  {
-                    description "Translated C-VLAN ID range";
+                    description "1..4095:Translated C-VLAN ID range";
                  }
             }
             mandatory true;
@@ -450,7 +462,7 @@ module ipi-port-vlan {
         leaf translated-svlan-id  {
             type  uint16 {
                  range "1..4095"  {
-                    description "Translated S-VLAN ID range";
+                    description "1..4095:Translated S-VLAN ID range";
                  }
             }
             mandatory true;
@@ -461,7 +473,7 @@ module ipi-port-vlan {
             if-feature feature-list:NOT_HAVE_DUNE;
             type  int8 {
                  range "0..7"  {
-                    description "Specify COS value 0-7";
+                    description "0..7:Specify COS value 0-7";
                  }
             }
             mandatory true;
@@ -472,7 +484,7 @@ module ipi-port-vlan {
             if-feature feature-list:NOT_HAVE_DUNE;
             type  int8 {
                  range "0..1"  {
-                    description "Specify CFI value 0-1";
+                    description "0..1:Specify CFI value 0-1";
                  }
             }
             mandatory true;
@@ -483,7 +495,7 @@ module ipi-port-vlan {
             if-feature feature-list:NOT_HAVE_DUNE;
             type  int8 {
                  range "0..7"  {
-                    description "Specify COS value 0-7";
+                    description "0..7:Specify COS value 0-7";
                  }
             }
             mandatory true;
@@ -494,7 +506,7 @@ module ipi-port-vlan {
             if-feature feature-list:NOT_HAVE_DUNE;
             type  int8 {
                  range "0..1"  {
-                    description "Specify CFI value 0-1";
+                    description "0..1:Specify CFI value 0-1";
                  }
             }
             mandatory true;
@@ -583,6 +595,48 @@ module ipi-port-vlan {
             } // END of state-container definition.
         } // End of isolated-vlan-list
     } // END of isolated-vlan-top definition.
+    grouping default-vlan-config {
+        description
+            "Grouping for port switched vlan configuration data";
+        leaf vlan-id  {
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094:vlan range";
+                 }
+            }
+            description "vlan identifier";
+        } // END of vlan-id definition.
+
+        leaf native-vlan-id  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '3' ";
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094:vlan range";
+                 }
+            }
+            description "Native Vlan Id";
+        } // END of native-vlan-id definition.
+
+    } // END of default-vlan-config definition.
+    grouping vlans-top {
+        description
+            "Top level grouping for port vlans";
+        container vlans {
+            description
+                "Configuration and state data for port vlans";
+            container config {
+                description
+                    "Configuration data for port vlans";
+                uses default-vlan-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses default-vlan-config;
+            } // END of state-container definition.
+        } // END of vlans-container definition.
+    } // END of vlans-top definition.
     grouping switched-vlan-config {
         description
             "Grouping for port switched vlan configuration data";
@@ -591,25 +645,8 @@ module ipi-port-vlan {
             description "Set the interface to access or trunk or hybrid mode for VLANs";
         } // END of interface-mode definition.
 
-        leaf vlan-id  {
-            type  uint16 {
-                 range "2..4094"  {
-                    description "vlan range";
-                 }
-            }
-            description "vlan identifier";
-        } // END of vlan-id definition.
-
-        leaf native-vlan-id  {
-            type  uint16 {
-                 range "2..4094"  {
-                    description "vlan range";
-                 }
-            }
-            description "Native Vlan Id";
-        } // END of native-vlan-id definition.
-
         leaf ingress-filter  {
+            if-feature feature-list:NOT_HAVE_DUNE;
             type  cml-data-types:cml_enable_disable_t;
             description "Use this attribute to set the switching characteristics of the
                         interface as hybrid, and classify both tagged and untagged frames.
@@ -651,6 +688,7 @@ module ipi-port-vlan {
                     "Operational state data";
                 uses switched-vlan-config;
             } // END of state-container definition.
+            uses vlans-top;
             uses allowed-vlan-top;
             uses isolated-vlan-top;
             uses ce-vlan-translation-top;
@@ -663,7 +701,7 @@ module ipi-port-vlan {
             "Top-level grouping for cvlan registation configuration data";
         leaf table-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "cvlan registration table";
@@ -679,7 +717,7 @@ module ipi-port-vlan {
             "Grouping for uni ID configuration";
         leaf id  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "ethernet uni id";
@@ -692,7 +730,7 @@ module ipi-port-vlan {
         leaf id  {
             if-feature feature-list:HAVE_SWFWDR;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "ethernet uni id";
@@ -714,7 +752,7 @@ module ipi-port-vlan {
             "Grouping for EVC configuration";
         leaf evc-id  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specifies Ethernet Virtual Connection identifier";
@@ -812,7 +850,7 @@ module ipi-port-vlan {
             when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
             type  uint32 {
                  range "1..4094"  {
-                    description "enter the maximum number of EVCs for the UNI";
+                    description "1..4094:enter the maximum number of EVCs for the UNI";
                  }
             }
             description "ethernet uni maximum number of EVC";
@@ -908,11 +946,12 @@ module ipi-port-vlan {
 
         leaf ether-type  {
             type  string {
+                length "0..1965";
                 pattern "[^?' =,>|]*";
-                }
-                default "";
-                description "Attribute to select ether type for vlan tagging";
-            } // END of ether-type definition.
+            }
+            default "";
+            description "Attribute to select ether type for vlan tagging";
+        } // END of ether-type definition.
 
     } // END of vlan-stacking-config definition.
     grouping port-vlan-stacking-top {
@@ -946,8 +985,18 @@ module ipi-port-vlan {
     grouping mac-table-config {
         description
             "Grouping for vlan static FDB data";
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            mandatory true;
+            description "The textual name of the interface";
+        } // END of interface-name definition.
+
         leaf mac-address  {
-            type  cml-data-types:cml_mac_addr_t;
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
             description "Use this attribute to configure the static forwarding table entry for
                         the bridge";
         } // END of mac-address definition.
@@ -960,10 +1009,8 @@ module ipi-port-vlan {
         } // END of action definition.
 
         leaf vlan-id  {
-            type  uint16 {
-                 range "2..4094"  {
-                    description "vlan range";
-                 }
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:vlan-id";
             }
             description "Specifies vlan identifier for static MAC entry";
         } // END of vlan-id definition.
@@ -973,9 +1020,9 @@ module ipi-port-vlan {
         description
             "Top level grouping for vlan static mac table information";
 
-        list mac-table {
+        list entry {
         when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:vlan-id ";
-            key "mac-address interface-name vlan-id";
+            key "mac-address vlan-id";
             description
                 "List of vlan static fdb mac table configuration and state data";
             leaf mac-address  {
@@ -985,13 +1032,6 @@ module ipi-port-vlan {
                 description "Use this attribute to configure the static forwarding table entry for
                             the bridge";
             } // END of mac-address definition.
-
-            leaf interface-name  {
-                type  leafref {
-                    path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-                }
-                description "The textual name of the interface";
-            } // END of interface-name definition.
 
             leaf vlan-id  {
                 type  leafref {
@@ -1011,7 +1051,7 @@ module ipi-port-vlan {
                     "Operational state data";
                 uses mac-table-config;
             } // END of state-container definition.
-        } // End of mac-table-list
+        } // End of entry-list
     } // END of mac-table-top definition.
 
     grouping  port-vlan-grouping {

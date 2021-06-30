@@ -23,26 +23,32 @@ module ipi-bgp-vrf {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
+        revision-date 2021-05-27;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
+        revision-date 2021-01-27;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -459,7 +465,9 @@ module ipi-bgp-vrf {
         } // END of delay-time definition.
 
         leaf received-message-count  {
-            type  cml-data-types:cml_line_t;
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             default "0";
             config false;
             description "Recvd Msg count from RIB/NSM";
@@ -493,7 +501,7 @@ module ipi-bgp-vrf {
             "Configuration data for bgp vrf";
         leaf import-map  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute assigns a route map to the VRF. This map is applied for
@@ -508,7 +516,7 @@ module ipi-bgp-vrf {
 
         leaf export-map  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "export map name";
@@ -531,15 +539,13 @@ module ipi-bgp-vrf {
         description
             "Configuration data for bgp vrf route target";
         leaf rt-rd-string  {
-            type  string {
-                length "1..32";
-                pattern "[^?' =,>|]+";
-            }
+            type  ipi-bgp-types:bgp_route_target_type_t;
             description "Use this attribute to assign route target (RT) for the VRF.";
         } // END of rt-rd-string definition.
 
         leaf direction  {
             type  ipi-bgp-types:bgp_target_route_type_t;
+            mandatory true;
             description "Use this attribute to add a list of import and export route-target
                         extended communities to the VRF.
                         This attribute creates lists of import and export route-target
@@ -555,8 +561,8 @@ module ipi-bgp-vrf {
             "Grouping for route target information";
 
         list route-target {
-        when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-bgp-vrf:bgp-vrf/ipi-bgp-vrf:config/ipi-bgp-vrf:rd-string ";
-            key "rt-rd-string direction";
+        when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-bgp-vrf:bgp-vrf/ipi-bgp-vrf:route-target/ipi-bgp-vrf:config/ipi-bgp-vrf:direction + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-bgp-vrf:bgp-vrf/ipi-bgp-vrf:config/ipi-bgp-vrf:rd-string ";
+            key "rt-rd-string";
             description
                 "Route target information";
             leaf rt-rd-string  {
@@ -565,14 +571,6 @@ module ipi-bgp-vrf {
                 }
                 description "Assigns Route distinguisher for the VRF";
             } // END of rt-rd-string definition.
-
-            leaf direction  {
-                type  leafref {
-                    path  "../config/direction";
-                }
-                description "Use this attribute to add a list of import and export route-target
-                            extended communities to the VRF.";
-            } // END of direction definition.
 
             container config {
                 description

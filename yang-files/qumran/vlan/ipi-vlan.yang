@@ -23,34 +23,37 @@ module ipi-vlan {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-vlan-types {
         prefix ipi-vlan-types;
+        revision-date 2021-04-08;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
+        revision-date 2021-04-27;
     }
 
     import ietf-inet-types {
         prefix inet;
-    }
-
-    import ipi-qos {
-        prefix ipi-qos;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -65,6 +68,21 @@ module ipi-vlan {
     description
         "vlan configuration";
 
+
+    revision "2021-04-08" {
+        description "Data model chagnes done for ocmp-608";
+        reference " 0.4.1.";
+    }
+
+    revision "2021-04-01" {
+        description "Restructured current VLAN Classifier hierarchy to OpenConfig style.";
+        reference " 0.4.0.";
+    }
+
+    revision "2021-03-30" {
+        description "Cleared pyang lint reported warnings";
+        reference " 0.3.1.";
+    }
 
     revision "2021-01-27" {
         description "Change to have descriptions for individual leafs";
@@ -131,7 +149,7 @@ module ipi-vlan {
         } // END of operational-status definition.
 
         leaf tagged-interface  {
-            type  cml-data-types:cml_line_t;
+            type  ipi-vlan-types:vlan_tagged_interface_t;
             description "Vlan tagged interface";
         } // END of tagged-interface definition.
 
@@ -291,44 +309,69 @@ module ipi-vlan {
             uses private-vlan-top;
         } // End of vlan-list
     } // END of vlan-top definition.
-    grouping rule-config {
+    grouping rule-criteria-config {
         description
-            "Grouping for vlan classifier rule configuration";
-        leaf rule-id  {
-            type  uint32 {
-                 range "1..256"  {
-                    description "Vlan classifier rule id";
-                 }
+            "Grouping for VLAN classifier rule criteria configuration";
+        leaf mac-address  {
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
             }
-            description "Classifier rule id";
-        } // END of rule-id definition.
-
-        leaf mac-addr  {
-            type  cml-data-types:cml_mac_addr_t;
             description "Use this attribute to configure classifier for given MAC address";
-        } // END of mac-addr definition.
+        } // END of mac-address definition.
 
-        leaf ipv4-addr  {
+        leaf ipv4-address  {
             type  inet:ipv4-prefix;
-            description "Use this attribute to configure classifier for given ipv4 address";
-        } // END of ipv4-addr definition.
+            description "Use this attribute to configure classifier for given IPv4 address";
+        } // END of ipv4-address definition.
 
         leaf ether-type  {
-            type  ipi-vlan-types:vlan_ethertype_t;
+            type  ipi-vlan-types:vlan_classifier_ethertype_t;
             description "Use this attribute to configure classifier for protocols based on
-                        ether type value";
+                        Ethertype value";
         } // END of ether-type definition.
+
+    } // END of rule-criteria-config definition.
+    grouping rule-criteria-top {
+        description
+            "Top level grouping for VLAN classifier rule criteria data";
+        container rule-criteria {
+            description
+                "List for VLAN classifier rule criterias configuration and state data";
+            container config {
+                description
+                    "Configuration data for classifier rule criteria";
+                uses rule-criteria-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for classifier rule criteria";
+                uses rule-criteria-config;
+            } // END of state-container definition.
+        } // END of rule-criteria-container definition.
+    } // END of rule-criteria-top definition.
+    grouping rule-config {
+        description
+            "Grouping for VLAN classifier rule configuration";
+        leaf rule-id  {
+            type  uint16 {
+                 range "1..256"  {
+                    description "1..256:VLAN classifier rule ID";
+                 }
+            }
+            description "Classifier rule ID";
+        } // END of rule-id definition.
 
     } // END of rule-config definition.
     grouping rule-top {
         description
-            "Top level goruping for vlan classifier rule data";
+            "Top level grouping for VLAN classifier rule data";
 
-        list rule {
-        when " /ipi-vlan:vlan-classifier/ipi-vlan:rule/ipi-vlan:config/ipi-vlan:mac-addr    or /ipi-vlan:vlan-classifier/ipi-vlan:rule/ipi-vlan:config/ipi-vlan:ipv4-addr   or /ipi-vlan:vlan-classifier/ipi-vlan:rule/ipi-vlan:config/ipi-vlan:ether-type ";
+        list classifier-rule {
+        when " /ipi-vlan:vlan-classifier/ipi-vlan:classifier-rule/ipi-vlan:rule-criteria/ipi-vlan:config/ipi-vlan:mac-address  or /ipi-vlan:vlan-classifier/ipi-vlan:classifier-rule/ipi-vlan:rule-criteria/ipi-vlan:config/ipi-vlan:ipv4-address  or /ipi-vlan:vlan-classifier/ipi-vlan:classifier-rule/ipi-vlan:rule-criteria/ipi-vlan:config/ipi-vlan:ether-type ";
             key "rule-id";
             description
-                "List for vlan classifier rule configuration and state data";
+                "List for VLAN classifier rule configuration and state data";
             leaf rule-id  {
                 type  leafref {
                     path  "../config/rule-id";
@@ -344,71 +387,63 @@ module ipi-vlan {
             container state {
                 config false;
                 description
-                    "Operational state data";
+                    "Operational state data for classifier rule";
                 uses rule-config;
             } // END of state-container definition.
-        } // End of rule-list
+            uses rule-criteria-top;
+        } // End of classifier-rule-list
     } // END of rule-top definition.
     grouping group-config {
         description
             "Grouping for classifier group configuration";
         leaf group-id  {
-            when " /ipi-vlan:vlan-classifier/ipi-vlan:rule/ipi-vlan:rule-id ";
-            type  uint32 {
+            type  uint8 {
                  range "1..16"  {
-                    description "Vlan classifier group id";
+                    description "1..16:VLAN classifier group ID";
                  }
             }
-            description "Vlan classifier group id";
+            description "VLAN classifier group ID";
         } // END of group-id definition.
 
         leaf rule-id  {
-            type  uint32 {
-                 range "1..256"  {
-                    description "Vlan classifier rule id";
-                 }
+            type  leafref {
+                path  "/vlan-classifier/classifier-rule/rule-id";
             }
-            description "Vlan classifier rule id";
+            description "VLAN classifier rule ID";
         } // END of rule-id definition.
-
-        leaf bind  {
-            type  ipi-vlan-types:vlan_bind_t;
-            description "Specifies to add or delete vlan to given classifier";
-        } // END of bind definition.
 
     } // END of group-config definition.
     grouping group-top {
         description
-            "Top level goruping for vlan classifier group data";
+            "Top level grouping for VLAN classifier group data";
 
         list classifier-group {
-        when " /ipi-vlan:vlan-classifier/ipi-vlan:rule/ipi-vlan:rule-id ";
             key "group-id rule-id";
             description
-                "List for classifier group configuration and state data";
+                "List for VLAN classifier group configuration and state data";
             leaf group-id  {
                 type  leafref {
                     path  "../config/group-id";
                 }
-                description "Classifier group id";
+                description "Classifier group ID";
             } // END of group-id definition.
 
             leaf rule-id  {
                 type  leafref {
                     path  "../config/rule-id";
                 }
-                description "Classifier rule id";
+                description "Classifier rule ID";
             } // END of rule-id definition.
 
             container config {
                 description
-                    "Configuration data for vlan classifier group";
+                    "Configuration data for VLAN classifier group";
                 uses group-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
-                    "Operational state data";
+                    "Operational state data for VLAN classifier group";
                 uses group-config;
             } // END of state-container definition.
         } // End of classifier-group-list
@@ -416,55 +451,62 @@ module ipi-vlan {
     grouping port-config {
         description
             "Grouping for classifier port configuration";
-        leaf group-id  {
-            type  uint32 {
-                 range "1..16"  {
-                    description "Vlan classifier rule id";
-                 }
+        leaf port-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
             }
-            description "Vlan classifier group id";
+            description "Port mapped with VLAN classifier";
+        } // END of port-name definition.
+
+        leaf group-id  {
+            type  leafref {
+                path  "/vlan-classifier/classifier-group/group-id";
+            }
+            description "VLAN classifier group ID";
         } // END of group-id definition.
 
-        leaf vlan-id  {
-            type  cml-data-types:cml_range_t;
-            description "Use this attribute to map vlan id with classifier group";
-        } // END of vlan-id definition.
+        leaf port-vlan-id  {
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/vlans/vlan/vlan-id";
+            }
+            mandatory true;
+            description "Use this attribute to map VLAN ID with classifier group";
+        } // END of port-vlan-id definition.
 
     } // END of port-config definition.
     grouping port-top {
         description
-            "Top level goruping for port vlan classifier data";
+            "Top level grouping for port VLAN classifier data";
 
         list port {
-        when " /ipi-vlan:vlan-classifier/ipi-vlan:port/ipi-vlan:config/ipi-vlan:vlan-id ";
+        when " /ipi-vlan:vlan-classifier/ipi-vlan:port/ipi-vlan:config/ipi-vlan:port-vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-bridge:bridge-ports/ipi-bridge:interface/ipi-bridge:config/ipi-bridge:name ";
             key "port-name group-id";
-            max-elements 1;
             description
-                "List for port mapping with vlan classifier configuration and state
+                "List for port mapping with VLAN classifier configuration and state
                             data";
             leaf port-name  {
                 type  leafref {
-                    path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+                    path  "../config/port-name";
                 }
-                description "Port mapped with vlan classifier";
+                description "Port mapped with VLAN classifier";
             } // END of port-name definition.
 
             leaf group-id  {
                 type  leafref {
                     path  "../config/group-id";
                 }
-                description "Vlan classifier group id";
+                description "VLAN classifier group ID";
             } // END of group-id definition.
 
             container config {
                 description
-                    "Configuration data for port vlan classifier";
+                    "Configuration data for port VLAN classifier";
                 uses port-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
-                    "Operational state data";
+                    "Operational state data for port VLAN classifier";
                 uses port-config;
             } // END of state-container definition.
         } // End of port-list
@@ -474,7 +516,7 @@ module ipi-vlan {
             "Grouping for OEP configuration";
         leaf id  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Operator Virtual Connection identifier";
@@ -482,7 +524,7 @@ module ipi-vlan {
 
         leaf oep-id  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "OVC end point identifier";
@@ -523,7 +565,7 @@ module ipi-vlan {
         leaf svlan-id  {
             type  uint16 {
                  range "2..4094"  {
-                    description "S-VLAN ID";
+                    description "2..4094:S-VLAN ID";
                  }
             }
             description "Servivce vlan identifier";
@@ -531,7 +573,7 @@ module ipi-vlan {
 
         leaf evc-id  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Ethernet Virtual Connection identifier";
@@ -540,7 +582,7 @@ module ipi-vlan {
         leaf maximum-uni-number  {
             type  uint32 {
                  range "1..32"  {
-                    description "enter the number of max uni for the EVC/SVLAN";
+                    description "1..32:enter the number of max uni for the EVC/SVLAN";
                  }
             }
             description "Specifies maximum mumber of UNIs for the given EVC/SVLAN";
@@ -553,7 +595,7 @@ module ipi-vlan {
         leaf ovc-id  {
             when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:operator-virtual-connection/ipi-vlan:config/ipi-vlan:svlan-id ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Operator Virtual Connection identifier";
@@ -585,7 +627,7 @@ module ipi-vlan {
 
         leaf oep-id  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             mandatory true;
@@ -633,7 +675,7 @@ module ipi-vlan {
             "Grouping for OVC end point mapping configuration";
         leaf oep-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "OVC end-point mapping name";
@@ -645,7 +687,7 @@ module ipi-vlan {
             "Grouping for access group matching configuration data";
         leaf group-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Attribute specifies access list name to set actions by action-type";
@@ -750,7 +792,7 @@ module ipi-vlan {
             "Grouping for access vlan mapping configuration data";
         leaf mapping-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "([1-9]|[12][0-9]|3[0-2])";
             }
             description "Attribute to create, update or delete a vlan access-map with default
@@ -806,7 +848,7 @@ module ipi-vlan {
             "Grouping access vlan sequence mapping data";
         leaf mapping-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "([1-9]|[12][0-9]|3[0-2])";
             }
             description "Attribute to create, update or delete a vlan access-map with default
@@ -817,7 +859,7 @@ module ipi-vlan {
         leaf sequence-number  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Enter sequence number";
+                    description "1..4294967295:Enter sequence number";
                  }
             }
             description "Attribute to create, update or deletes a vlan access-map with
@@ -873,19 +915,13 @@ module ipi-vlan {
     } // END of access-vlan-mapping-sequence-top definition.
     grouping access-vlan-top {
         description
-            "Top level grouping for VLAN classifier data";
-        container access-vlan {
-            if-feature feature-list:HAVE_ACL;
-            description
-                "Container for access VLAN configuration and state data";
-            uses access-vlan-mapping-top;
-            uses access-vlan-mapping-sequence-top;
-        } // END of access-vlan-container definition.
+            "Top level grouping for access VLAN configuration data";
     } // END of access-vlan-top definition.
     grouping layer2-global-config {
         description
             "Grouping for Layer-2 Global Configuration data";
         leaf disable-vlan-classifier-feature  {
+            if-feature feature-list:HAVE_VLAN_CLASS;
             type  empty;
             description "Use this command to enable or disable VLAN classifier feature.";
         } // END of disable-vlan-classifier-feature definition.
@@ -909,16 +945,38 @@ module ipi-vlan {
 
     grouping  vlan-classifier-grouping {
     description
-        "Top level container for vlan classifier configuration and state data";
+        "Top level container for VLAN classifier configuration and state data";
     container vlan-classifier {
+        when " not(/ipi-vlan:layer2-global/ipi-vlan:config/ipi-vlan:disable-vlan-classifier-feature) ";
         if-feature feature-list:HAVE_VLAN_CLASS;
         description
-            "Top level container for vlan classifier configuration and state data";
+            "Top level container for VLAN classifier configuration and state data";
         uses rule-top;
         uses group-top;
         uses port-top;
     } // END of vlan-classifier-container definition.
     } // END of vlan-classifier-grouping definition.
+
+    grouping  layer2-global-grouping {
+    description
+        "Top level container for Layer2 global configuration and state data";
+    container layer2-global {
+        description
+            "Top level container for Layer2 global configuration and state data";
+        container config {
+            description
+                "Layer-2 global configuration data";
+            uses layer2-global-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Layer-2 global operational state data";
+            uses layer2-global-config;
+        } // END of state-container definition.
+        uses access-vlan-top;
+    } // END of layer2-global-container definition.
+    } // END of layer2-global-grouping definition.
 
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge {
         description
@@ -927,5 +985,6 @@ module ipi-vlan {
     }
 
     uses vlan-classifier-grouping;
+    uses layer2-global-grouping;
 
 }

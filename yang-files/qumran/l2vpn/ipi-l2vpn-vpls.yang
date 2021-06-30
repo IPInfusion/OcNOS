@@ -23,34 +23,42 @@ module ipi-l2vpn-vpls {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-vpls-types {
         prefix ipi-vpls-types;
+        revision-date 2020-08-11;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
+        revision-date 2020-12-15;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
+        revision-date 2021-05-13;
     }
 
     import ipi-qos {
         prefix ipi-qos;
+        revision-date 2021-06-10;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -66,9 +74,14 @@ module ipi-l2vpn-vpls {
         "YANG version of the ipi-l2vpn-vpls";
 
 
+    revision "2021-03-08" {
+        description "Added Read-only attributes for vpls info, mac-addresses learnt, vpls-peer and statistics info";
+        reference " 0.2.0.";
+    }
+
     revision "2020-11-30" {
         description "Initial Version";
-        reference "Initial Version";
+        reference " 0.1.0.";
     }
 
     grouping vpls-service-template-mapping-top {
@@ -139,7 +152,7 @@ module ipi-l2vpn-vpls {
 
         leaf vpls-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specify VPLS instance name";
@@ -151,7 +164,9 @@ module ipi-l2vpn-vpls {
         } // END of admin-status definition.
 
         leaf attachment-circuit-description  {
-            type  cml-data-types:cml_line_t;
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             description "Specify description of VPLS AC";
         } // END of attachment-circuit-description definition.
 
@@ -164,6 +179,13 @@ module ipi-l2vpn-vpls {
             type  empty;
             description "Specify allowed L2 packts through VPLS network";
         } // END of allow-layer2-bridge-pdu definition.
+
+        leaf-list static-mac-address  {
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
+            description "Specify static-mac to be added on AC";
+        } // END of static-mac-address definition.
 
     } // END of vpls-service-template-mapping-config definition.
     grouping virtual-circuit-quality-of-service-top {
@@ -213,13 +235,158 @@ module ipi-l2vpn-vpls {
 
         leaf profile-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specify profile name for map profile";
         } // END of profile-name definition.
 
     } // END of vpls-quality-of-service-config definition.
+    grouping vpls-mac-learning-table-state {
+        description
+            "Top level grouping for Mac Learning table";
+        leaf mac-address  {
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
+            description "Attribute to acquire mac-address learnt on VPLS instance";
+        } // END of mac-address definition.
+
+        leaf vpls-identifier  {
+            type  uint32;
+            description "Attribute to acquire vpls-id for a VPLS instance";
+        } // END of vpls-identifier definition.
+
+        leaf learning-source-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Attribute to acquire interface name from where mac-address is learnt
+                        on VPLS instance";
+        } // END of learning-source-interface definition.
+
+        leaf matched-vlan  {
+            type  uint16;
+            description "Attribute to acquire matched vlan value for the mac-address learnt";
+        } // END of matched-vlan definition.
+
+        leaf peer-address  {
+            type  inet:ipv4-address;
+            description "Attribute to acquire mesh peer address from whom mac-address is learnt";
+        } // END of peer-address definition.
+
+        leaf ageing-timeout  {
+            type  uint32;
+            units "seconds";
+            description "Attribute to acquire ageing timeout for the learnt mac-address in VPLS
+                        instance";
+        } // END of ageing-timeout definition.
+
+    } // END of vpls-mac-learning-table-state definition.
+    grouping vpls-mac-learning-table-top {
+        description
+            "Top level grouping for Mac Learning table";
+
+        list mac-learning-table {
+            key "mac-address";
+            config false;
+            description
+                "";
+            leaf mac-address  {
+                type  leafref {
+                    path  "../state/mac-address";
+                }
+                description "";
+            } // END of mac-address definition.
+
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses vpls-mac-learning-table-state;
+            } // END of state-container definition.
+        } // End of mac-learning-table-list
+    } // END of vpls-mac-learning-table-top definition.
+    grouping vpls-peer-list-state {
+        description
+            "Top level grouping for Operational Peer list";
+        leaf peer-address  {
+            type  inet:ipv4-address;
+            description "Attribute to acquire destination peer address of a VPLS pseudowire";
+        } // END of peer-address definition.
+
+        leaf vpls-identifier  {
+            type  uint32;
+            description "Attribute to acquire vpls-id for a VPLS instance";
+        } // END of vpls-identifier definition.
+
+        leaf tunnel-label  {
+            type  uint32;
+            description "Attribute to acquire tunnel-label to be used for VPLS pseudowire";
+        } // END of tunnel-label definition.
+
+        leaf pseudowire-in-label  {
+            type  uint32;
+            description "Attribute to acquire incoming VC label for VPLS pseudowire";
+        } // END of pseudowire-in-label definition.
+
+        leaf pseudowire-out-label  {
+            type  uint32;
+            description "Attribute to acquire outgoing VC label for VPLS pseudowire";
+        } // END of pseudowire-out-label definition.
+
+        leaf peer-state  {
+            type  ipi-vpls-types:vpls_peer_state_t;
+            description "Attribute to acquire state of mesh peer pseudowire";
+        } // END of peer-state definition.
+
+        leaf pseudowire-status  {
+            type  ipi-vpls-types:vpls_pseudowire_status_t;
+            description "Attribute to acquire pseudowire status of a VPLS instance";
+        } // END of pseudowire-status definition.
+
+        leaf network-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Attribute to acquire the network interface name using which
+                        mesh-pseudowire is created";
+        } // END of network-interface definition.
+
+        leaf signaling-protocol  {
+            type  ipi-vpls-types:vpls_signaling_type_t;
+            default "NA";
+            description "Attribute to acquire the signaling protocol used for establishment of
+                        vpls pseudowire";
+        } // END of signaling-protocol definition.
+
+    } // END of vpls-peer-list-state definition.
+    grouping vpls-peer-list-top {
+        description
+            "Top level grouping for Operational Peer list";
+
+        list peer-list {
+            key "peer-address";
+            config false;
+            description
+                "";
+            leaf peer-address  {
+                type  leafref {
+                    path  "../state/peer-address";
+                }
+                description "";
+            } // END of peer-address definition.
+
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses vpls-peer-list-state;
+            } // END of state-container definition.
+        } // End of peer-list-list
+    } // END of vpls-peer-list-top definition.
     grouping vpls-quality-of-service-top {
         description
             "Top level grouping for VPLS QOS Profile on AC";
@@ -268,14 +435,14 @@ module ipi-l2vpn-vpls {
                 "List for Static VPLS Forwarding Information Base";
             leaf vpls-identifier  {
                 type  leafref {
-                    path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/vpls-instance/config/vpls-identifier";
+                    path  "../config/vpls-identifier";
                 }
                 description "VPLS Instance Identifier for static VPLS signaling";
             } // END of vpls-identifier definition.
 
             leaf peer-address  {
                 type  leafref {
-                    path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/vpls-instance/vpls-peers/vpls-peer/config/peer-address";
+                    path  "../config/peer-address";
                 }
                 description "Specify VPLS peer IPv4 address";
             } // END of peer-address definition.
@@ -284,12 +451,14 @@ module ipi-l2vpn-vpls {
                 description
                     "Configuration data for Static VPLS";
                 uses vpls-static-forwarding-config;
+                uses vpls-static-forwarding-keys-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operation state data for Static VPLS";
                 uses vpls-static-forwarding-config;
+                uses vpls-static-forwarding-keys-config;
             } // END of state-container definition.
         } // End of static-vpls-list
     } // END of vpls-static-vpls-top definition.
@@ -304,14 +473,14 @@ module ipi-l2vpn-vpls {
                 "List for Configuration data of Static Forwarding for HVPLS";
             leaf vpls-identifier  {
                 type  leafref {
-                    path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/vpls-instance/config/vpls-identifier";
+                    path  "../config/vpls-identifier";
                 }
                 description "Specify VPLS identifier";
             } // END of vpls-identifier definition.
 
             leaf spoke-pseudowire-name  {
                 type  leafref {
-                    path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/vpls-instance/spoke-pseudowire/config/pseudowire-name";
+                    path  "../config/spoke-pseudowire-name";
                 }
                 description "Specify spoke virtual circuit name";
             } // END of spoke-pseudowire-name definition.
@@ -320,22 +489,60 @@ module ipi-l2vpn-vpls {
                 description
                     "Configuration data for Static HVPLS";
                 uses vpls-static-forwarding-config;
+                uses vpls-static-forwarding-hvpls-keys-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operation state data for Static HVPLS";
                 uses vpls-static-forwarding-config;
+                uses vpls-static-forwarding-hvpls-keys-config;
             } // END of state-container definition.
         } // End of static-hierarchical-vpls-list
     } // END of vpls-static-hvpls-top definition.
+    grouping vpls-static-forwarding-keys-config {
+        description
+            "Grouping for VPLS static forwarding configuration attributes";
+        leaf vpls-identifier  {
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/vpls-instance/config/vpls-identifier";
+            }
+            description "VPLS Instance Identifier for static VPLS signaling";
+        } // END of vpls-identifier definition.
+
+        leaf peer-address  {
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/vpls-instance/vpls-peers/vpls-peer/config/peer-address";
+            }
+            description "Specify VPLS peer IPv4 address";
+        } // END of peer-address definition.
+
+    } // END of vpls-static-forwarding-keys-config definition.
+    grouping vpls-static-forwarding-hvpls-keys-config {
+        description
+            "Grouping for VPLS static forwarding configuration attributes";
+        leaf vpls-identifier  {
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/vpls-instance/config/vpls-identifier";
+            }
+            description "Specify VPLS identifier";
+        } // END of vpls-identifier definition.
+
+        leaf spoke-pseudowire-name  {
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/vpls-instance/spoke-pseudowire/config/pseudowire-name";
+            }
+            description "Specify spoke virtual circuit name";
+        } // END of spoke-pseudowire-name definition.
+
+    } // END of vpls-static-forwarding-hvpls-keys-config definition.
     grouping vpls-static-forwarding-config {
         description
             "Grouping for VPLS static forwarding configuration attributes";
         leaf in-label  {
             type  uint32 {
                  range "16..15999"  {
-                    description "In-coming Label";
+                    description "16..15999:In-coming Label";
                  }
             }
             mandatory true;
@@ -345,7 +552,7 @@ module ipi-l2vpn-vpls {
         leaf out-label  {
             type  uint32 {
                  range "16..15999"  {
-                    description "Out-going Label <16-15999>";
+                    description "16..15999:Out-going Label <16-15999>";
                  }
             }
             mandatory true;
@@ -354,7 +561,7 @@ module ipi-l2vpn-vpls {
 
         leaf out-interface-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             mandatory true;
@@ -362,13 +569,71 @@ module ipi-l2vpn-vpls {
         } // END of out-interface-name definition.
 
     } // END of vpls-static-forwarding-config definition.
+    grouping vpls-instance-global-state {
+        description
+            "Grouping for VPLS Instance global runtime attributes";
+        leaf signaling-protocol  {
+            type  ipi-vpls-types:vpls_signaling_type_t;
+            default "NA";
+            description "This attribute acquires signaling protocol used to establish VPLS
+                        service";
+        } // END of signaling-protocol definition.
+
+        leaf route-distinguisher  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute acquires the RD value if signaling-protocol is BGP";
+        } // END of route-distinguisher definition.
+
+        leaf route-target  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute acquires RT value if signaling-protocol is BGP";
+        } // END of route-target definition.
+
+        leaf vpls-edge-id  {
+            type  uint32;
+            description "This attribute acquires ve-id value if signaling-protocol is BGP";
+        } // END of vpls-edge-id definition.
+
+        leaf attachment-circuit-status  {
+            type  ipi-vpls-types:vpls_ac_status_t;
+            description "This attribute acquires AC status which is mapped to VPLS instance";
+        } // END of attachment-circuit-status definition.
+
+        leaf vpls-type  {
+            type  ipi-vpls-types:vpls_vc_type_t;
+            description "This attribute acquires VPLS type as ethernet or vlan";
+        } // END of vpls-type definition.
+
+        leaf service-vlan-id  {
+            type  uint16;
+            description "This attribute acquires service vlan identifier value";
+        } // END of service-vlan-id definition.
+
+        leaf group-identifier  {
+            type  uint32;
+            description "This attribute acquires group identifier for pseudowire";
+        } // END of group-identifier definition.
+
+        leaf total-mac-addresses-learnt  {
+            type  uint32;
+            description "This attribute acquires the total number of mac-addresses learnt by
+                        this VPLS Instance";
+        } // END of total-mac-addresses-learnt definition.
+
+    } // END of vpls-instance-global-state definition.
     grouping vpls-instance-global-config {
         description
             "Grouping for VPLS Instance global configuration  attributes";
         leaf vpls-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "Identifying value for VPLS";
+                    description "1..4294967295:Identifying value for VPLS";
                  }
             }
             mandatory true;
@@ -383,7 +648,7 @@ module ipi-l2vpn-vpls {
         leaf maximum-transmission-unit  {
             type  uint16 {
                  range "576..65535"  {
-                    description "Identifying value for VPLS";
+                    description "576..65535:Identifying value for VPLS";
                  }
             }
             default "1500";
@@ -392,7 +657,9 @@ module ipi-l2vpn-vpls {
         } // END of maximum-transmission-unit definition.
 
         leaf vpls-description  {
-            type  cml-data-types:cml_line_t;
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
             default "NULL";
             description "Specify a description for this VPLS instance";
         } // END of vpls-description definition.
@@ -412,7 +679,7 @@ module ipi-l2vpn-vpls {
             if-feature feature-list:NOT_HAVE_TRIDENT2PLUS;
             type  uint32 {
                  range "5..32767"  {
-                    description "Mac learning limit value";
+                    description "5..32767:Mac learning limit value";
                  }
             }
             default "32767";
@@ -460,7 +727,7 @@ module ipi-l2vpn-vpls {
             "Grouping for H-VPLS spoke-pseudowire configuration attributes";
         leaf pseudowire-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specify pseudowire name to be added";
@@ -473,62 +740,6 @@ module ipi-l2vpn-vpls {
         } // END of pseudowire-type definition.
 
     } // END of vpls-spoke-pseudowire-config definition.
-    grouping vpls-static-mac-address-top {
-        description
-            "Top level grouping for H-VPLS spoke-pseudowire";
-
-        list static-mac-address {
-            key "mac-address interface-name";
-            description
-                "Static Mac Address list for VPLS";
-            leaf mac-address  {
-                type  leafref {
-                    path  "../config/mac-address";
-                }
-                description "Specify mac address";
-            } // END of mac-address definition.
-
-            leaf interface-name  {
-                type  leafref {
-                    path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-                }
-                description "Specify customer edge egress interface name for static MAC entry";
-            } // END of interface-name definition.
-
-            container config {
-                description
-                    "Configuration data for static mac-address";
-                uses vpls-static-mac-address-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operation state data for static mac-address";
-                uses vpls-static-mac-address-config;
-            } // END of state-container definition.
-        } // End of static-mac-address-list
-    } // END of vpls-static-mac-address-top definition.
-    grouping vpls-static-mac-address-config {
-        description
-            "Grouping for static mac-address configuration attributes";
-        leaf mac-address  {
-            type  string {
-                length "1..max";
-                pattern "[0-9a-fA-F]{4}\\.[0-9a-f]{4}\\.[0-9a-f]{4}";
-            }
-            description "Specify mac address";
-        } // END of mac-address definition.
-
-        leaf vlan-identifier  {
-            type  uint16 {
-                 range "1..4094"  {
-                    description "Vlan ID";
-                 }
-            }
-            description "Specify customer facing egress VLAN identifier for static MAC entry";
-        } // END of vlan-identifier definition.
-
-    } // END of vpls-static-mac-address-config definition.
     grouping vpls-peer-top {
         description
             "Top level grouping for VPLS Peer";
@@ -605,12 +816,29 @@ module ipi-l2vpn-vpls {
             description "Specify VPLS peer address";
         } // END of peer-address definition.
 
-        leaf tunnel-identifier  {
+        leaf tunnel-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
-            description "Specify tunnel identifier value";
+            description "Specify tunnel name";
+        } // END of tunnel-name definition.
+
+        leaf tunnel-policy  {
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            type  string {
+                length "1..127";
+                pattern "[^?' =,>|]+";
+            }
+            description "Specify tunnel selection policy name";
+        } // END of tunnel-policy definition.
+
+        leaf tunnel-identifier  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Specify static tunnel identifier value";
         } // END of tunnel-identifier definition.
 
         leaf peer-type  {
@@ -670,36 +898,51 @@ module ipi-l2vpn-vpls {
         description
             "Configuration attributes for genfec based VPLS peer";
         leaf attachment-group-identifier  {
-            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-ldp) ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specify the Address Group Identifier";
         } // END of attachment-group-identifier definition.
 
         leaf source-attachment-individual-identifier  {
-            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-ldp) ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specify the Source Attachment Individual Identifier";
         } // END of source-attachment-individual-identifier definition.
 
         leaf target-attachment-individual-identifier  {
-            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-ldp) ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specify the Target Attachment Individual Identifier";
         } // END of target-attachment-individual-identifier definition.
 
-        leaf tunnel-identifier  {
+        leaf tunnel-name  {
             when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-ldp) ";
             type  string {
-                length "1..max";
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Specify tunnel id value";
+        } // END of tunnel-name definition.
+
+        leaf tunnel-policy  {
+            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-ldp) ";
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            type  string {
+                length "1..127";
+                pattern "[^?' =,>|]+";
+            }
+            description "Specify tunnel selection policy name";
+        } // END of tunnel-policy definition.
+
+        leaf tunnel-identifier  {
+            type  string {
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specify tunnel id value";
@@ -739,13 +982,161 @@ module ipi-l2vpn-vpls {
         leaf vpls-edge-identifier  {
             type  int32 {
                  range "1..1000"  {
-                    description "VE ID Range";
+                    description "1..1000:VE ID Range";
                  }
             }
             description "Specify VPLS edge identifier value";
         } // END of vpls-edge-identifier definition.
 
+        leaf tunnel-policy  {
+            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            type  string {
+                length "1..127";
+                pattern "[^?' =,>|]+";
+            }
+            description "Specify tunnel selection policy name";
+        } // END of tunnel-policy definition.
+
     } // END of vpls-bgp-config definition.
+    grouping vpls-access-interface-counters-state {
+        description
+            "Top level grouping for access-interface-counters";
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Attribute to acquire access interface name";
+        } // END of interface-name definition.
+
+        leaf vpls-identifier  {
+            type  uint32;
+            description "Attribute to acquire vpls-id for a VPLS instance";
+        } // END of vpls-identifier definition.
+
+        leaf service-template-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Attribute to acquire Customer Service Template name mapped to this
+                        vpls AC interface";
+        } // END of service-template-name definition.
+
+        leaf in-packets  {
+            type  uint64;
+            description "Attribute to acquire number of received(Rx) packets on this AC
+                        interface";
+        } // END of in-packets definition.
+
+        leaf in-bytes  {
+            type  uint64;
+            description "Attribute to acquire number of received(Rx) bytes on this AC interface";
+        } // END of in-bytes definition.
+
+        leaf out-packets  {
+            type  uint64;
+            description "Attribute to acquire number of sent(Tx) packets on this AC interface";
+        } // END of out-packets definition.
+
+        leaf out-bytes  {
+            type  uint64;
+            description "Attribute to acquire number of sent(Tx) bytes on this AC interface";
+        } // END of out-bytes definition.
+
+    } // END of vpls-access-interface-counters-state definition.
+    grouping vpls-network-interface-counters-state {
+        description
+            "Top level grouping for network-interface-counters";
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Attribute to acquire network interface name";
+        } // END of interface-name definition.
+
+        leaf vpls-identifier  {
+            type  uint32;
+            description "Attribute to acquire vpls-id for a VPLS instance";
+        } // END of vpls-identifier definition.
+
+        leaf peer-address  {
+            type  inet:ipv4-address;
+            description "Attribute to acquire mac-address learnt on VPLS instance";
+        } // END of peer-address definition.
+
+        leaf peer-state  {
+            type  ipi-vpls-types:vpls_peer_state_t;
+            description "Attribute to acquire vpls-id for a VPLS instance";
+        } // END of peer-state definition.
+
+        leaf in-packets  {
+            type  uint64;
+            description "Attribute to acquire number of received(Rx) packets on this AC
+                        interface";
+        } // END of in-packets definition.
+
+        leaf in-bytes  {
+            type  uint64;
+            description "Attribute to acquire number of received(Rx) bytes on this AC interface";
+        } // END of in-bytes definition.
+
+        leaf out-packets  {
+            type  uint64;
+            description "Attribute to acquire number of sent(Tx) packets on this AC interface";
+        } // END of out-packets definition.
+
+        leaf out-bytes  {
+            type  uint64;
+            description "Attribute to acquire number of sent(Tx) bytes on this AC interface";
+        } // END of out-bytes definition.
+
+    } // END of vpls-network-interface-counters-state definition.
+    grouping vpls-counters-top {
+        description
+            "Top level grouping for Counters";
+
+        list access-interface-counters {
+            if-feature feature-list:HAVE_MPLS_STATS;
+            key "interface-name";
+            config false;
+            description
+                "";
+            leaf interface-name  {
+                type  leafref {
+                    path  "../state/interface-name";
+                }
+                description "";
+            } // END of interface-name definition.
+
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses vpls-access-interface-counters-state;
+            } // END of state-container definition.
+        } // End of access-interface-counters-list
+
+        list network-interface-counters {
+            if-feature feature-list:HAVE_MPLS_STATS;
+            key "interface-name";
+            config false;
+            description
+                "";
+            leaf interface-name  {
+                type  leafref {
+                    path  "../state/interface-name";
+                }
+                description "";
+            } // END of interface-name definition.
+
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses vpls-network-interface-counters-state;
+            } // END of state-container definition.
+        } // End of network-interface-counters-list
+    } // END of vpls-counters-top definition.
 
     grouping  vpls-grouping {
     description
@@ -784,12 +1175,15 @@ module ipi-l2vpn-vpls {
             description
                 "Operation state data for VPLS-Instance";
             uses vpls-instance-global-config;
+            uses vpls-instance-global-state;
         } // END of state-container definition.
         uses vpls-spoke-pseudowire-top;
-        uses vpls-static-mac-address-top;
         uses vpls-peer-top;
         uses vpls-bgp-top;
         uses vpls-quality-of-service-top;
+        uses vpls-mac-learning-table-top;
+        uses vpls-peer-list-top;
+        uses vpls-counters-top;
     } // END of vpls-instance-container definition.
     } // END of vpls-instance-grouping definition.
 

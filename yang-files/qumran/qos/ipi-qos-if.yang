@@ -23,26 +23,37 @@ module ipi-qos-if {
 
     import ietf-yang-types {
         prefix yang;
+        revision-date 2013-07-15;
     }
 
     import ipi-qos {
         prefix ipi-qos;
+        revision-date 2021-06-10;
     }
 
     import ipi-qos-types {
         prefix ipi-qos-types;
+        revision-date 2021-06-09;
     }
 
     import ipi-if-aggregate {
         prefix ipi-if-aggregate;
+        revision-date 2020-12-15;
     }
 
     import ipi-interface {
         prefix ipi-interface;
+        revision-date 2021-06-14;
+    }
+
+    import ipi-mpls {
+        prefix ipi-mpls;
+        revision-date 2021-05-13;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
     organization
@@ -57,6 +68,36 @@ module ipi-qos-if {
     description
         "Quality of Service (QoS) interface information";
 
+
+    revision "2021-06-09" {
+        description "Merged 'type-qos' and 'type-queuing' with 'policy-map-name'.";
+        reference "Initial Version";
+    }
+
+    revision "2021-06-05" {
+        description "Added dscp-encap and exp-to-queue profiles.";
+        reference "Initial Version";
+    }
+
+    revision "2021-06-04" {
+        description "Changed notification type to ALARM";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-06" {
+        description "Added type attr in service-policy";
+        reference "Initial Version";
+    }
+
+    revision "2021-05-05" {
+        description "Added length in policies names";
+        reference "Initial Version";
+    }
+
+    revision "2021-03-23" {
+        description "Removed mutation-map related objects";
+        reference "Initial Version";
+    }
 
     revision "2020-12-04" {
         description "Restructured module as per open-config style";
@@ -75,7 +116,7 @@ module ipi-qos-if {
             when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
             type  uint8 {
                  range "0..7"  {
-                    description "Untagged priority values";
+                    description "0..7:Untagged priority values";
                  }
             }
             description "Use this attribute to set internal priority for untagged traffic on L2
@@ -83,6 +124,7 @@ module ipi-qos-if {
         } // END of untagged-priority definition.
 
         leaf trust-dscp  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status ";
             type  empty;
             description "Use this command to classify the ingress traffic based on DSCP map on
                         L2 interface";
@@ -96,7 +138,8 @@ module ipi-qos-if {
             when " ../rate-unit ";
             type  uint64 {
                  range "1..1000000000"  {
-                    description "Specify egress traffic rate limit from 52 Kbps to 1000 Gbps";
+                    description "1..1000000000:Specify egress traffic rate limit from 52 Kbps to 1000
+                            Gbps";
                  }
             }
             mandatory true;
@@ -116,7 +159,8 @@ module ipi-qos-if {
             if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  uint64 {
                  range "1..1000000"  {
-                    description "Specify egress traffic rate burst size from 1 Kbits to 1 Gbits";
+                    description "1..1000000:Specify egress traffic rate burst size from 1 Kbits to
+                            1000000 kbits (1 Gbits)";
                  }
             }
             mandatory true;
@@ -174,8 +218,15 @@ module ipi-qos-if {
                         map";
         } // END of cos definition.
 
+        leaf dei  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status ";
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            type  ipi-qos-types:cml_remark_state_t;
+            description "Use this command to enable/disable remarking of DEI set by the egress
+                        map";
+        } // END of dei definition.
+
         leaf dscp  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
             type  ipi-qos-types:cml_remark_state_t;
             description "Use this command to enable/disable remarking of DSCP set by the egress
                         map";
@@ -188,7 +239,7 @@ module ipi-qos-if {
         leaf cos-to-queue  {
             when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attibute to attach a CoS to queue profile to the interface";
@@ -198,7 +249,7 @@ module ipi-qos-if {
             when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attibute to attach a DSCP to DSCP profile to the interface";
@@ -207,32 +258,64 @@ module ipi-qos-if {
         leaf dscp-to-queue  {
             when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attibute to attach a DSCP to queue profile to the interface";
         } // END of dscp-to-queue definition.
 
         leaf exp-encapsulation  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
             if-feature feature-list:HAVE_DIFFSERV;
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attibute to attach a MPLS experimental encapsulation profile
                         to the interface";
         } // END of exp-encapsulation definition.
 
+        leaf dscp-encapsulation  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attibute to attach a MPLS dscp encapsulation profile to the
+                        interface";
+        } // END of dscp-encapsulation definition.
+
         leaf queue-color-to-cos  {
             when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attibute to attach a queue color to CoS profile to the
                         interface";
         } // END of queue-color-to-cos definition.
+
+        leaf queue-color-to-dscp  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attibute to attach a queue color to DSCP profile to the
+                        interface";
+        } // END of queue-color-to-dscp definition.
+
+        leaf queue-to-exp  {
+            if-feature feature-list:HAVE_DIFFSERV;
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attibute to attach a queue to exp profile to the interface";
+        } // END of queue-to-exp definition.
 
     } // END of qos-map-profile-ref-config definition.
     grouping qos-map-profile-ref-top {
@@ -255,17 +338,6 @@ module ipi-qos-if {
             } // END of state-container definition.
         } // END of map-profile-container definition.
     } // END of qos-map-profile-ref-top definition.
-    grouping qos-interface-mutation-map-top {
-        description
-            "Grouping for interface QoS mutation map";
-        container mutation-map {
-            if-feature feature-list:NOT_HAVE_QOS_MAPPING_PROFILE;
-            description
-                "Configuration data for interface QoS mutation map";
-            uses ipi-qos:qos-map-cos;
-            uses ipi-qos:qos-map-dscp;
-        } // END of mutation-map-container definition.
-    } // END of qos-interface-mutation-map-top definition.
     grouping qos-qos-statistics-state {
         description
             "Grouping for QoS qos statistics state";
@@ -311,7 +383,6 @@ module ipi-qos-if {
             "Grouping for QoS queue statistics state";
 
         list queue {
-            if-feature feature-list:HAVE_SERVICE_QUEUING_2;
             key "id";
             config false;
             description
@@ -418,7 +489,7 @@ module ipi-qos-if {
                         "Operational state data for QoS statistics level 1";
                     leaf class-map-name-level-1  {
                         type  string {
-                            length "1..max";
+                            length "1..1965";
                             pattern "[^?' =,>|]+";
                         }
                         description "Name of the class-map attached to the interface";
@@ -454,7 +525,7 @@ module ipi-qos-if {
                                 "Operational state data for QoS statistics level 2";
                             leaf class-map-name-level-2  {
                                 type  string {
-                                    length "1..max";
+                                    length "1..1965";
                                     pattern "[^?' =,>|]+";
                                 }
                                 description "Name of the class-map attached to the interface";
@@ -490,7 +561,7 @@ module ipi-qos-if {
                                         "Operational state data for QoS statistics level 3";
                                     leaf class-map-name-level-3  {
                                         type  string {
-                                            length "1..max";
+                                            length "1..1965";
                                             pattern "[^?' =,>|]+";
                                         }
                                         description "Name of the class-map attached to the interface";
@@ -536,7 +607,7 @@ module ipi-qos-if {
                         "Operational state data for QoS statistics level one";
                     leaf class-map-name-level-1  {
                         type  string {
-                            length "1..max";
+                            length "1..1965";
                             pattern "[^?' =,>|]+";
                         }
                         description "Name of the class-map attached to the interface";
@@ -572,7 +643,7 @@ module ipi-qos-if {
                                 "Operational state data for QoS statistics level two";
                             leaf class-map-name-level-2  {
                                 type  string {
-                                    length "1..max";
+                                    length "1..1965";
                                     pattern "[^?' =,>|]+";
                                 }
                                 description "Name of the class-map attached to the interface";
@@ -608,7 +679,7 @@ module ipi-qos-if {
                                         "Operational state data for QoS statistics level three";
                                     leaf class-map-name-level-3  {
                                         type  string {
-                                            length "1..max";
+                                            length "1..1965";
                                             pattern "[^?' =,>|]+";
                                         }
                                         description "Name of the class-map attached to the interface";
@@ -631,16 +702,39 @@ module ipi-qos-if {
     grouping qos-service-policy-config {
         description
             "Grouping for QoS service policy configuration";
-        leaf policy-map-name  {
+        leaf type-qos-policy-map-name  {
             type  string {
-                length "1..max";
+                length "1..32";
                 pattern "[^?' =,>|]+";
             }
-            description "Use this attribute to attach a service-policy of type qos or queue to
-                        the interface";
-        } // END of policy-map-name definition.
+            description "Use this attribute to attach a service-policy of type qos to the
+                        interface";
+        } // END of type-qos-policy-map-name definition.
 
     } // END of qos-service-policy-config definition.
+    grouping qos-service-policy-egress-config {
+        description
+            "Grouping for QoS service policy egress configuration";
+        leaf type-qos-policy-map-name  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to attach a service-policy of type qos to the
+                        interface";
+        } // END of type-qos-policy-map-name definition.
+
+        leaf type-queuing-policy-map-name  {
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to attach a service-policy of type queue to the
+                        interface";
+        } // END of type-queuing-policy-map-name definition.
+
+    } // END of qos-service-policy-egress-config definition.
     grouping qos-service-policy-ingress-top {
         description
             "Grouping for QoS input service policy";
@@ -670,13 +764,13 @@ module ipi-qos-if {
             container config {
                 description
                     "Configuration data for QoS output service policy";
-                uses qos-service-policy-config;
+                uses qos-service-policy-egress-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operational state data for QoS output service policy";
-                uses qos-service-policy-config;
+                uses qos-service-policy-egress-config;
             } // END of state-container definition.
             uses qos-service-policy-egress-state;
         } // END of egress-container definition.
@@ -725,7 +819,6 @@ module ipi-qos-if {
             uses qos-interface-remark-top;
             uses qos-traffic-shape-top;
             uses qos-map-profile-ref-top;
-            uses qos-interface-mutation-map-top;
             uses qos-service-policy-top;
         } // End of interface-list
     } // END of interfaces-container definition.
@@ -744,11 +837,10 @@ module ipi-qos-if {
         description "Add default policy on subif in DB.";
 
         // severity "INFO";
-        // eventClass "CONFIG";
-        leaf name {
-            type  string;
-        description
-            "Interface name for which QoS is being configured";
+        // eventClass "MESSAGE";
+        leaf message {
+            type string;
+            description " alarm message notification";
         }
     }
 
@@ -757,11 +849,10 @@ module ipi-qos-if {
         description "Delete default policy on subif in DB.";
 
         // severity "INFO";
-        // eventClass "CONFIG";
-        leaf name {
-            type  string;
-        description
-            "Interface name for which QoS is being configured";
+        // eventClass "MESSAGE";
+        leaf message {
+            type string;
+            description " alarm message notification";
         }
     }
 
@@ -770,11 +861,10 @@ module ipi-qos-if {
         description "Add port shaper from subif in DB.";
 
         // severity "INFO";
-        // eventClass "CONFIG";
-        leaf name {
-            type  string;
-        description
-            "Interface name for which QoS is being configured";
+        // eventClass "MESSAGE";
+        leaf message {
+            type string;
+            description " alarm message notification";
         }
     }
 
@@ -783,11 +873,10 @@ module ipi-qos-if {
         description "Delete port shaper from subif in DB.";
 
         // severity "INFO";
-        // eventClass "CONFIG";
-        leaf name {
-            type  string;
-        description
-            "Interface name for which QoS is being configured";
+        // eventClass "MESSAGE";
+        leaf message {
+            type string;
+            description " alarm message notification";
         }
     }
 

@@ -23,23 +23,27 @@ module ipi-ldp {
 
     import cml-data-types {
         prefix cml-data-types;
+        revision-date 2021-05-03;
     }
 
     import ipi-ldp-types {
         prefix ipi-ldp-types;
+        revision-date 2020-12-15;
     }
 
     import ietf-inet-types {
         prefix inet;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
+        revision-date 2021-05-03;
     }
 
-    include ipi-ldp-l2vpn;
-    include ipi-ldp-interface;
-    include ipi-ldp-peer;
+    include ipi-ldp-l2vpn { revision-date 2020-12-15;}
+    include ipi-ldp-interface { revision-date 2020-12-15;}
+    include ipi-ldp-peer { revision-date 2020-12-15;}
     organization
         "IP Infusion Inc.";
 
@@ -52,6 +56,11 @@ module ipi-ldp {
     description
         "Datamodel for LDP protocol";
 
+
+    revision "2021-06-01" {
+        description "Added dependency constraint between peer authentication password and password-type attrs";
+        reference " 0.2.1.";
+    }
 
     revision "2020-12-15" {
         description "Change to have data-types in lower case instead of camel case";
@@ -103,6 +112,11 @@ module ipi-ldp {
                         enabled for LDP. This is used for autodiscovery of LDP peers on
                         directly connected networks. This option is enabled by default.";
         } // END of multicast-hello-disable definition.
+
+        leaf advertise-label-for-default-route  {
+            type  empty;
+            description "Advertise the label for default route.";
+        } // END of advertise-label-for-default-route definition.
 
         leaf import-bgp-routes  {
             type  boolean;
@@ -228,7 +242,7 @@ module ipi-ldp {
         leaf request-retry-timeout  {
             type  uint16 {
                  range "1..65535"  {
-                    description "Loop detection hop count";
+                    description "1..65535:Loop detection hop count";
                  }
             }
             default "5";
@@ -249,7 +263,7 @@ module ipi-ldp {
 
         leaf label-request-policy-ipv4  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to send LDP Label Request Message for certain IPv4
@@ -258,7 +272,7 @@ module ipi-ldp {
 
         leaf label-request-policy-ipv6  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to send LDP Label Request Message for certain IPv6
@@ -283,7 +297,7 @@ module ipi-ldp {
         leaf path-vector-limit  {
             type  uint32 {
                  range "1..255"  {
-                    description "Loop detection hop count";
+                    description "1..255:Loop detection hop count";
                  }
             }
             default "255";
@@ -300,7 +314,7 @@ module ipi-ldp {
         leaf hop-count-limit  {
             type  uint32 {
                  range "1..255"  {
-                    description "Loop detection hop count";
+                    description "1..255:Loop detection hop count";
                  }
             }
             default "255";
@@ -389,7 +403,7 @@ module ipi-ldp {
         list peer-authentication-list {
         when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
             if-feature feature-list:HAVE_TCP_MD5SIG;
-            key "peer-address authentication-type password-type";
+            key "peer-address";
             description
                 "list for ldp peer authentication information";
             leaf peer-address  {
@@ -398,21 +412,6 @@ module ipi-ldp {
                 }
                 description "Use this attribute to configure neighbors of LDP for authentication.";
             } // END of peer-address definition.
-
-            leaf authentication-type  {
-                type  leafref {
-                    path  "../config/authentication-type";
-                }
-                description "Use this attribute to configure authentication type (md5)";
-            } // END of authentication-type definition.
-
-            leaf password-type  {
-                type  leafref {
-                    path  "../config/password-type";
-                }
-                description "Use this attribute to configure password type for LDP peer
-                            authentication.";
-            } // END of password-type definition.
 
             container config {
                 description
@@ -435,26 +434,30 @@ module ipi-ldp {
             description "Use this attribute to configure neighbors of LDP for authentication.";
         } // END of peer-address definition.
 
-        leaf authentication-type  {
-            type  string {
-                length "1..max";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to configure authentication type (md5)";
-        } // END of authentication-type definition.
-
         leaf password-type  {
+            when " /ipi-ldp:ldp/ipi-ldp:peer-authentication-list/ipi-ldp:config/ipi-ldp:password ";
             type  cml-data-types:cml_md5_encrypt_password_t;
+            mandatory true;
             description "Use this attribute to configure password type for LDP peer
                         authentication.";
         } // END of password-type definition.
 
         leaf password  {
-            type  cml-data-types:cml_md5_password_t;
+            when " /ipi-ldp:ldp/ipi-ldp:peer-authentication-list/ipi-ldp:config/ipi-ldp:password-type ";
+            type  cml-data-types:cml_md5_password_t {
+                length "1..1965";
+            }
             mandatory true;
             description "Use this attribute to configure password of LDP peer for
                         authentication.";
         } // END of password definition.
+
+        leaf encrypt  {
+            when " ../password-type='7' ";
+            type  empty;
+            description "Use this attribute to configure password of LDP peer for
+                        authentication.";
+        } // END of encrypt definition.
 
     } // END of ldp-authentication-config definition.
     grouping ldp-label-mapping-access-control-top {
@@ -513,7 +516,7 @@ module ipi-ldp {
             "Grouping for LDP prefix-ACL name configuration";
         leaf prefix-access-control-list-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to prevent the distribution of any locally assigned
@@ -526,7 +529,7 @@ module ipi-ldp {
             "Grouping for LDP label-advertisement-peer list name configuration";
         leaf peer-access-control-list-name  {
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this command to prevent the distribution of any locally assigned
@@ -566,7 +569,7 @@ module ipi-ldp {
         leaf inter-area-acl-name  {
             if-feature feature-list:HAVE_LDP_INTER_AREA;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to enable creation of inter-area LSPs.";
@@ -575,7 +578,7 @@ module ipi-ldp {
         leaf inter-area-enable  {
             if-feature feature-list:HAVE_LDP_INTER_AREA;
             type  string {
-                length "1..max";
+                length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to enable creation of inter-area LSPs.";
@@ -586,7 +589,6 @@ module ipi-ldp {
         description
             "Grouping for LDP Inter-Area configuration";
         leaf graceful-restart-enable  {
-            if-feature feature-list:HAVE_RESTART;
             type  ipi-ldp-types:ldp_helper_mode_t;
             description "Use this attribute with the enable option to enable Graceful Restart
                         capability on a router. This is a global command. LDP decides whether
@@ -597,17 +599,15 @@ module ipi-ldp {
         } // END of graceful-restart-enable definition.
 
         leaf helper-mode-enable  {
-            if-feature feature-list:HAVE_RESTART;
             type  boolean;
             default false;
             description "Use this attribute to enable helper mode";
         } // END of helper-mode-enable definition.
 
         leaf neighbor-liveness-timer  {
-            if-feature feature-list:HAVE_RESTART;
             type  int32 {
                  range "5..300"  {
-                    description "Set the hold time for a targeted LDP peer";
+                    description "5..300:Set the hold time for a targeted LDP peer";
                  }
             }
             default "120";
@@ -619,10 +619,9 @@ module ipi-ldp {
         } // END of neighbor-liveness-timer definition.
 
         leaf recovery-timer  {
-            if-feature feature-list:HAVE_RESTART;
             type  int32 {
                  range "15..600"  {
-                    description "Interval until which LDP preserves routes after Peer Restart";
+                    description "15..600:Interval until which LDP preserves routes after Peer Restart";
                  }
             }
             default "120";
@@ -658,7 +657,7 @@ module ipi-ldp {
         leaf redundancy-group-identifier  {
             type  uint32 {
                  range "0..65535"  {
-                    description "Group ID value";
+                    description "0..65535:Group ID value";
                  }
             }
             mandatory true;
@@ -673,7 +672,7 @@ module ipi-ldp {
         leaf iccp-startup-delay-timer  {
             type  uint32 {
                  range "0..180"  {
-                    description "timer value";
+                    description "0..180:timer value";
                  }
             }
             description "This attribute is used to configure startup delay timer";
@@ -691,7 +690,7 @@ module ipi-ldp {
     description
         "LDP global level container";
     container ldp {
-        when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
+        when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config + /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config/ipi-ldp:ldp-instance + /ipi-ldp:ldp/ipi-ldp:global ";
         description
             "LDP global level container";
         container global {
@@ -835,7 +834,7 @@ module ipi-ldp {
             leaf prefix  {
                 type string;
                 mandatory true;
-                description "prefix access control list name";
+                description "prefix-list that have their labels advertised";
             }
         }
     }
@@ -846,7 +845,7 @@ module ipi-ldp {
             leaf prefix  {
                 type string;
                 mandatory true;
-                description "prefix access control list name";
+                description "prefix-list that have their labels advertised";
             }
             leaf peer  {
                 type string;

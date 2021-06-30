@@ -21,8 +21,18 @@ module ipi-dhcp {
 
     prefix "ipi-dhcp";
 
-    include ipi-dhcp-relay;
-    include ipi-dhcp-client;
+    import ipi-dhcp-relay-types {
+        prefix ipi-dhcp-relay-types;
+        revision-date 2020-12-15;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+
+    include ipi-dhcp-relay { revision-date 2020-12-15;}
+    include ipi-dhcp-client { revision-date 2020-12-15;}
     organization
         "IP Infusion Inc.";
 
@@ -35,6 +45,11 @@ module ipi-dhcp {
     description
         "feature_dhcp_configuration";
 
+
+    revision "2021-04-01" {
+        description "Included new attributes as part of DHCPv6 Relay PD Auto Route injection feature";
+        reference " 0.3.0.";
+    }
 
     revision "2020-12-15" {
         description "Change to have data-types in lower case instead of camel case";
@@ -88,5 +103,61 @@ module ipi-dhcp {
     } // END of dhcp-grouping definition.
 
     uses dhcp-grouping;
+
+    rpc clear-relay-stats {
+        description "Use this RPC to clear dhcp relay statistics";
+    }
+
+    rpc clear-relay-option-stats {
+        description "Use this RPC to clear dhcp relay option82 statistics";
+    }
+
+    rpc clear-dhcpv6-pd-route {
+        description "Use this RPC to clear the dhcp routes";
+        input  {
+            leaf vrf-name  {
+                type string;
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    notification dhcpv6-relay-pd-route {
+
+        description "Notification when PD injected routes are added/deleted.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf vrf-name {
+            type  string;
+        description
+            "VPN routing/forwarding Instance name";
+        }
+
+        leaf interface-name {
+            type  string;
+        description
+            "DHCP client facing interface, which is part of the LAN network";
+        }
+
+        leaf state {
+            type ipi-dhcp-relay-types:dhcp6_pd_route_state_t;
+        description
+            "Notification route add/delete input";
+        }
+
+        leaf prefix {
+            type  inet:ipv6-prefix;
+        description
+            "Delegated prefix";
+        }
+
+        leaf next-hop {
+            type  inet:ipv6-address;
+        description
+            "DHCP client interface linklocal adddress";
+        }
+    }
 
 }
