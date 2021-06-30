@@ -1040,8 +1040,8 @@ ifFecStatsEntry    OBJECT-TYPE
 IfFecStatsEntry  ::=
     SEQUENCE {
              ifFecMode                INTEGER,
-             ifFecCorrectedBlocks     Counter32,
-             ifFecUncorrectedBlocks   Counter32
+             ifFecCorrectedBlocks     Counter64,
+             ifFecUncorrectedBlocks   Counter64
              }
 
 ifFecMode OBJECT-TYPE
@@ -1745,25 +1745,24 @@ cpuTxMcastQDropsLastIncrementTime  OBJECT-TYPE
              This is Updated at every 5sec interval."
     ::= { cpuPortDropStatsEntry 52 }
 
-
-cpuQStatsTable     OBJECT-TYPE
-    SYNTAX      SEQUENCE OF CpuQStatsEntry
+cpuQInfoTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF CpuQInfoEntry
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
-            "A Table object containing drop statistics for CPU interface."
+             "A Table object containing information about Queues on CPU interface."
     ::= { cpuStatsObjects 2 }
 
-cpuQStatsEntry    OBJECT-TYPE
-    SYNTAX      CpuQStatsEntry
+cpuQInfoEntry    OBJECT-TYPE
+    SYNTAX      CpuQInfoEntry
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
-            "An entry containing drop statistics for CPU interface."
+            "An entry containing information about a CPU Queue."
     INDEX   { cpuId, cpuqueueId }
-    ::= { cpuQStatsTable 1 }
+    ::= { cpuQInfoTable 1 }
 
-CpuQStatsEntry ::=
+CpuQInfoEntry ::=
     SEQUENCE {
              cpuqueueId                        Integer32,
              cpuQueueName                      DisplayString,
@@ -1776,7 +1775,10 @@ CpuQStatsEntry ::=
              cpuTxDroppedPktsLastIncrementTime DateAndTime,
              cpuTxRatePercent                  Integer32,
              cpuTxBps                          Integer32,
-             cpuTxPps                          Integer32
+             cpuTxPps                          Integer32,
+             cpuQueueConfRate                  Integer32,
+             cpuQueueLossy                     TruthValue,
+             cpuQueueMonitor                   TruthValue
              }
 
 cpuqueueId OBJECT-TYPE
@@ -1785,7 +1787,7 @@ cpuqueueId OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "cpuqueueId is a unique number representing each queue in CPU."
-    ::= { cpuQStatsEntry 1 }
+    ::= { cpuQInfoEntry 1 }
 
 cpuQueueName  OBJECT-TYPE
     SYNTAX      DisplayString
@@ -1793,7 +1795,7 @@ cpuQueueName  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "CPU Queue Name corresponding to the QueueId."
-    ::= { cpuQStatsEntry 2 }
+    ::= { cpuQInfoEntry 2 }
 
 cpuQueueSize  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1801,7 +1803,7 @@ cpuQueueSize  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "CPU Queue Size corresponding to the QueueId."
-    ::= { cpuQStatsEntry 3 }
+    ::= { cpuQInfoEntry 3 }
 
 cpuTxPkts  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1809,7 +1811,7 @@ cpuTxPkts  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "The number of Tx Pkts transmitted from the corresponding CPU queue."
-    ::= { cpuQStatsEntry 4 }
+    ::= { cpuQInfoEntry 4 }
 
 cpuTxBytes  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1817,7 +1819,7 @@ cpuTxBytes  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "The number of Tx Bytes transmitted from the corresponding CPU queue."
-    ::= { cpuQStatsEntry 5 }
+    ::= { cpuQInfoEntry 5 }
 
 cpuTxDroppedPkts  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1825,7 +1827,7 @@ cpuTxDroppedPkts  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "The number of Dropped Pkts in the corresponding CPU queue."
-    ::= { cpuQStatsEntry 6 }
+    ::= { cpuQInfoEntry 6 }
 
 cpuTxDroppedBytes  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1833,7 +1835,7 @@ cpuTxDroppedBytes  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "The number of Dropped Bytes in the corresponding CPU queue."
-    ::= { cpuQStatsEntry 7 }
+    ::= { cpuQInfoEntry 7 }
 
 cpuTxDroppedPktsLastIncrement  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1842,7 +1844,7 @@ cpuTxDroppedPktsLastIncrement  OBJECT-TYPE
     DESCRIPTION
            "The number of Last Dropped Pkts in the corresponding CPU queue.
             This is Updated at every 5sec interval."
-    ::= { cpuQStatsEntry 8 }
+    ::= { cpuQInfoEntry 8 }
 
 cpuTxDroppedPktsLastIncrementTime  OBJECT-TYPE
     SYNTAX      DateAndTime
@@ -1851,7 +1853,7 @@ cpuTxDroppedPktsLastIncrementTime  OBJECT-TYPE
     DESCRIPTION
             "Last increment time of Tx Dropped Packets in CPU Queue.
              This is Updated at every 5sec interval."
-    ::= { cpuQStatsEntry 9 }
+    ::= { cpuQInfoEntry 9 }
 
 cpuTxRatePercent  OBJECT-TYPE
     SYNTAX      Integer32
@@ -1860,23 +1862,56 @@ cpuTxRatePercent  OBJECT-TYPE
     DESCRIPTION
            "Percentage of control packets transmitted in the CPU queue.
             Value of -1 indicates rate percentage is not applicable."
-    ::= { cpuQStatsEntry 10 }
+    ::= { cpuQInfoEntry 10 }
 
 cpuTxBps  OBJECT-TYPE
     SYNTAX      Integer32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-           "Transmitted bytes in bits/sec in the corresponding CPU queue."
-    ::= { cpuQStatsEntry 11 }
+           "Transmitted bits/sec for the CPU queue."
+    ::= { cpuQInfoEntry 11 }
 
 cpuTxPps  OBJECT-TYPE
     SYNTAX      Integer32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-           "Transmitted bytes in packets/sec in the corresponding CPU queue."
-    ::= { cpuQStatsEntry 12 }
+           "Transmitted packets packets/sec for the CPU queue."
+    ::= { cpuQInfoEntry 12 }
+
+cpuQueueConfRate    OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "pps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "CPU queue configured uplift rate."
+    ::= { CpuQInfoEntry 13 }
+
+cpuQueueLossy    OBJECT-TYPE
+    SYNTAX      TruthValue { false(0),
+                             true(1)
+                           }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "CPU queue lossy mode.
+            If this object is set to true (1) then the queue is in lossy mode,
+            else lossless."
+    ::= { CpuQInfoEntry 14 }
+
+cpuQueueMonitor    OBJECT-TYPE
+    SYNTAX      TruthValue { false(0),
+                             true(1)
+                           }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "CPU queue monitor state.
+            If this object is set to true (1) then the queue monitor is enabled,
+            else disabled."
+    ::= { CpuQInfoEntry 15 }
 
     --
     -- ## Notifications

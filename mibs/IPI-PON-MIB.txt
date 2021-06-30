@@ -26,7 +26,7 @@ IMPORTS
       ipi  FROM IPI-MODULE-MIB;
 
 ipiPonMIB MODULE-IDENTITY
-   LAST-UPDATED "202010060000Z"
+   LAST-UPDATED "202102150000Z"
    ORGANIZATION "IP Infusion Inc."
    CONTACT-INFO
        "postal: 3965 Freedom Circle, Suite 200, Santa Clara, CA 95054
@@ -40,6 +40,11 @@ ipiPonMIB MODULE-IDENTITY
    REVISION      "202010090000Z"
    DESCRIPTION
       "Initial Version"
+
+   REVISION      "202102150000Z"
+   DESCRIPTION
+      "Additional 10 traps are added."
+
    ::= { ipi  112 }
 
 
@@ -55,7 +60,7 @@ ipiPonMIB MODULE-IDENTITY
     DISPLAY-HINT    "d"
     STATUS          current
     DESCRIPTION
-        "An id specifying a particular OLT/ONU/FLOW."
+        "This is a value to specify MTU on particular interface."
 
     SYNTAX      Unsigned32 (64..65536)
 
@@ -132,7 +137,7 @@ ipiPonMIB MODULE-IDENTITY
         MAX-ACCESS   accessible-for-notify
         STATUS       current
         DESCRIPTION
-           "UNI Port Name."
+           "UNI Port ID."
        ::= { ipiPonNotifVariables 5 }
 
     ipiPonLinkState OBJECT-TYPE
@@ -172,12 +177,12 @@ ipiPonMIB MODULE-IDENTITY
             "Provisioning mode options."
         ::= { ipiPonNotifVariables 9 }
 
-    ipiPonOltNniMtu OBJECT-TYPE
+    ipiPonOltMtu OBJECT-TYPE
         SYNTAX       IpiPonMtuValue
         MAX-ACCESS   accessible-for-notify
         STATUS       current
         DESCRIPTION
-            "MTU for NNI interface."
+            "MTU for an interface."
         ::= { ipiPonNotifVariables 10 }
 
     ipiPonFecStatus OBJECT-TYPE
@@ -199,6 +204,16 @@ ipiPonMIB MODULE-IDENTITY
         DESCRIPTION
             "TC layer encryption option for an onu profile."
         ::= { ipiPonNotifVariables 12 }
+
+    ipiPonUniLinkStatus OBJECT-TYPE
+        SYNTAX       INTEGER {
+                        unlocked (0),
+                           locked (1) }
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+            "Uni Link state for an uni port."
+        ::= { ipiPonNotifVariables 13 }
 
     -- PON Traps
 
@@ -291,7 +306,7 @@ ipiPonMIB MODULE-IDENTITY
         OBJECTS {
                     ipiPonOltId,
                     ipiPonOltNniPortName,
-                    ipiPonOltNniMtu
+                    ipiPonOltMtu
                 }
         STATUS             current
         DESCRIPTION
@@ -299,16 +314,13 @@ ipiPonMIB MODULE-IDENTITY
            has been changed through CLI."
        ::= { ipiPonMIBOltNotifs 9 }
 
-    ipiPonUsBandwidthExceeded NOTIFICATION-TYPE
+    ipiPonOltDown NOTIFICATION-TYPE
         OBJECTS {
-                    ipiPonOltId,
-                    ipiPonOltPonPortName,
-                    ipiPonOnuId
+                    ipiPonOltId
                 }
         STATUS             current
         DESCRIPTION
-           "A ponUsBandwidthExceeded trap signifies that committed US bw
-           on a PON port is exceeded beyond 10G."
+           "A ponOltDown trap signifies that OLT state is down."
        ::= { ipiPonMIBOltNotifs 10 }
 
     ipiPonOnuProvChange NOTIFICATION-TYPE
@@ -345,6 +357,7 @@ ipiPonMIB MODULE-IDENTITY
 
     ipiPonOltRogueOntDetectedSerial NOTIFICATION-TYPE
         OBJECTS {
+                    ipiPonOltId,
                     ipiPonOltPonPortName,
                     ipiPonOnuSerialNumber
                 }
@@ -357,6 +370,7 @@ ipiPonMIB MODULE-IDENTITY
 
     ipiPonOltRogueOntDetectedPortOnly NOTIFICATION-TYPE
         OBJECTS {
+                    ipiPonOltId,
                     ipiPonOltPonPortName
                 }
         STATUS             current
@@ -369,7 +383,6 @@ ipiPonMIB MODULE-IDENTITY
     ipiPonOntConfigFailed NOTIFICATION-TYPE
         OBJECTS {
                     ipiPonOltId,
-                    ipiPonOltPonPortName,
                     ipiPonOnuId
                 }
         STATUS             current
@@ -380,6 +393,8 @@ ipiPonMIB MODULE-IDENTITY
 
     ipiPonOntDiscovered NOTIFICATION-TYPE
         OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOltPonPortName,
                     ipiPonOnuId
                 }
         STATUS             current
@@ -390,6 +405,7 @@ ipiPonMIB MODULE-IDENTITY
 
     ipiPonOntResetIndication NOTIFICATION-TYPE
         OBJECTS {
+                    ipiPonOltId,
                     ipiPonOnuId
                 }
         STATUS             current
@@ -411,6 +427,7 @@ ipiPonMIB MODULE-IDENTITY
 
     ipiPonOltUsFecChange NOTIFICATION-TYPE
         OBJECTS {
+                    ipiPonOltId,
                     ipiPonOnuId,
                     ipiPonFecStatus
                 }
@@ -422,7 +439,9 @@ ipiPonMIB MODULE-IDENTITY
 
     ipiPonOltTcLayerOnuEncEnable NOTIFICATION-TYPE
         OBJECTS {
+                    ipiPonOltId,
                     ipiPonOnuId,
+                    ipiPonOltPonPortName,
                     ipiPonTcEncryptStatus
                 }
         STATUS             current
@@ -447,7 +466,7 @@ ipiPonMIB MODULE-IDENTITY
                     ipiPonOltId,
                     ipiPonOnuId,
                     ipiPonOnuUniId,
-                    ipiPonLinkState
+                    ipiPonUniLinkStatus
                 }
         STATUS             current
         DESCRIPTION
@@ -520,6 +539,73 @@ ipiPonMIB MODULE-IDENTITY
            "A ponOnuSufi trap signifies that SUFi (Start-up failure) alarm has
            been raised on for an ONU."
        ::= { ipiPonMIBOnuNotifs 16 }
+
+    ipiPonOnuReboot NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuReboot trap signifies that ONU reboot has been initiated
+            through CLI."
+       ::= { ipiPonMIBOnuNotifs 17 }
+
+    ipiPonOnuDown NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuDown trap signifies that ONU state went to DOWN."
+       ::= { ipiPonMIBOnuNotifs 18 }
+
+    ipiPonOnuUp NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuUp trap signifies that ONU state went UP."
+       ::= { ipiPonMIBOnuNotifs 19 }
+
+    ipiPonOnuUniMtuChange NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId,
+                    ipiPonOnuUniId,
+                    ipiPonOltMtu
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuUniMtuChange trap signifies that MTU for an uni port
+            has been changed through CLI."
+       ::= { ipiPonMIBOnuNotifs 20 }
+
+    ipiPonOnuUniLanLos NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId,
+                    ipiPonOnuUniId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuUniLanLos trap signifies that LOS(Loss of Signal)
+            alarm has been raised for uni port."
+       ::= { ipiPonMIBOnuNotifs 21 }
+
+    ipiPonOnuUsBandwidthExceeded NOTIFICATION-TYPE
+        OBJECTS {
+                    ipiPonOltId,
+                    ipiPonOnuId
+                }
+        STATUS             current
+        DESCRIPTION
+           "A ponOnuUsBandwidthExceeded trap signifies that committed US bw
+           on a PON port is exceeded beyond 10G."
+       ::= { ipiPonMIBOnuNotifs 22 }
 
     ipiPonOltFlowConfigFailed NOTIFICATION-TYPE
         OBJECTS {

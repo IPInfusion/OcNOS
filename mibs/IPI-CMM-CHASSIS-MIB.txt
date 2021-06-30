@@ -86,6 +86,26 @@
                         power(6),
                         software(7)
                         }
+    ErrorFigures ::= TEXTUAL-CONVENTION
+       STATUS         current
+       DESCRIPTION
+          " Frame Error Rate (FER)/Uncorrecter BER. This parameter measures the
+            uncorrected/errored RS(544,514) equivalent frames per second. This
+            is an uncorrected rate; i.e. the bit error rate of frames that
+            cannot be corrected by the FEC.
+
+            Pre-FEC Bit Error Ratio (BER). This is the total number of errored
+            bits that were corrected by the FEC during an interval divided by
+            the total number of bits received in the interval.
+
+            Post-FEC Bit Error Ratio (BER). This is the total number of errored
+            bits that were corrected by the FEC during an interval divided by
+            the total number of bits received in the interval.
+
+            Example: a mantissa value of 2.7 and an exponent value of -34
+            indicates 2.7e-34"
+       SYNTAX         OCTET STRING
+
     -- ### Chassis Information
 
       cmmNumStackUnits     OBJECT-TYPE
@@ -2365,7 +2385,8 @@
           cmmSysPSFan2Rpm              INTEGER,
           cmmSysPS12VPg                INTEGER,
           cmmSysPSAcAlert              INTEGER,
-          cmmSysPSParamsSupport        BITS
+          cmmSysPSParamsSupport        BITS,
+          cmmSysPSCapacity             INTEGER
        }
 
         cmmSysPSUIndex    OBJECT-TYPE
@@ -2573,6 +2594,17 @@
              0 - not supported (values only for information)
              1 - supported (values can be used for monitoring)."
         ::= { cmmSysPowerSupplyEntry 17 }
+
+        cmmSysPSCapacity    OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "W"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+        "Output Power of Power supply.
+        '-100001' indicates unavailable.
+        '-100002' indicates not-applicable."
+        ::= { cmmSysPowerSupplyEntry 18 }
 
     -- ## Power Rail Table
 
@@ -3074,7 +3106,10 @@
           cmmSysTempAlertThresholdMin        INTEGER,
           cmmSysTempAlertThresholdMax        INTEGER,
           cmmSysTempCriticalThresholdMin     INTEGER,
-          cmmSysTempCriticalThresholdMax     INTEGER
+          cmmSysTempCriticalThresholdMax     INTEGER,
+          cmmSysTempMinValue                 INTEGER,
+          cmmSysTempMaxValue                 INTEGER,
+          cmmSysTempAverageValue             INTEGER
         }
 
         cmmSysTemperatureSensorIndex    OBJECT-TYPE
@@ -3163,6 +3198,36 @@
             "Value represents Temperature Sensor Max Critical threshold.
              '-100001' indicates unavailable"
         ::= { cmmSysTemperatureEntry 9 }
+
+        cmmSysTempMinValue               OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.01 C"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents Temperature Sensor Min value since 72hrs.
+             '-100001' indicates unavailable"
+        ::= { cmmSysTemperatureEntry 10 }
+
+        cmmSysTempMaxValue               OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.01 C"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents Temperature Sensor Max value since 72hrs.
+             '-100001' indicates unavailable"
+        ::= { cmmSysTemperatureEntry 11 }
+
+        cmmSysTempAverageValue               OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.01 C"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Value represents Temperature Sensor Average value since 72hrs.
+             '-100001' indicates unavailable"
+        ::= { cmmSysTemperatureEntry 12 }
 
 -- ## Component Status Table
         cmmSysComponentStatusTable OBJECT-TYPE
@@ -4253,6 +4318,415 @@
              Blank indicates unavailable"
         ::= { cmmSysCpldEntry 4 }
 
+    -- ## DDMPage20h21h Entry
+     cmmTransDDMPage20h21hTable OBJECT-TYPE
+     SYNTAX        SEQUENCE OF CmmTransDDMPage20h21hEntry
+     MAX-ACCESS    not-accessible
+     STATUS        current
+     DESCRIPTION
+         "Information about Digital Optical Monitoring for page 20 and 21."
+     ::= { cmmSysObjects 20 }
+
+      cmmTransDDMPage20h21hEntry OBJECT-TYPE
+        SYNTAX        CmmTransDDMPage20h21hEntry
+        MAX-ACCESS    not-accessible
+        STATUS        current
+        DESCRIPTION
+            "Information about Digital Optical Monitoring for page 20 and 21."
+        INDEX    { cmmStackUnitIndex,
+                   cmmTransIndex,
+                   cmmTransChannelIndex
+                 }
+        ::= { cmmTransDDMPage20h21hTable 1 }
+
+      CmmTransDDMPage20h21hEntry    ::=
+        SEQUENCE {
+           cmmTransPreFecBerVal                       ErrorFigures,
+           cmmTransPreFecBerCriticMin                 ErrorFigures,
+           cmmTransPreFecBerCriticMax                 ErrorFigures,
+           cmmTransPreFecBerAlertMin                  ErrorFigures,
+           cmmTransPreFecBerAlertMax                  ErrorFigures,
+           cmmTransUncorrectedBerVal                  ErrorFigures,
+           cmmTransUncorrectedBerValCriticMin         ErrorFigures,
+           cmmTransUncorrectedBerValCriticMax         ErrorFigures,
+           cmmTransUncorrectedBerValAlertMin          ErrorFigures,
+           cmmTransUncorrectedBerValAlertMax          ErrorFigures,
+           cmmTransSnrVal                             INTEGER,
+           cmmTransSnrCriticMin                       INTEGER,
+           cmmTransSnrCriticMax                       INTEGER,
+           cmmTransSnrAlertMin                        INTEGER,
+           cmmTransSnrAlertMax                        INTEGER,
+           cmmTransResIsiVal                          INTEGER,
+           cmmTransResIsiCriticMin                    INTEGER,
+           cmmTransResIsiCriticMax                    INTEGER,
+           cmmTransResIsiAlertMin                     INTEGER,
+           cmmTransResIsiAlertMax                     INTEGER,
+           cmmTransLvlTransVal                        INTEGER,
+           cmmTransLvlTransCriticMin                  INTEGER,
+           cmmTransLvlTransCriticMax                  INTEGER,
+           cmmTransLvlTransAlertMin                   INTEGER,
+           cmmTransLvlTransAlertMax                   INTEGER,
+           cmmTransTecCurrErrVal                      INTEGER,
+           cmmTransTecCurrErrCriticMin                INTEGER,
+           cmmTransTecCurrErrCriticMax                INTEGER,
+           cmmTransTecCurrErrAlertMin                 INTEGER,
+           cmmTransTecCurrErrAlertMax                 INTEGER,
+           cmmTransLaserTempVal                       INTEGER,
+           cmmTransLaserTempCriticMin                 INTEGER,
+           cmmTransLaserTempCriticMax                 INTEGER,
+           cmmTransLaserTempAlertMin                  INTEGER,
+           cmmTransLaserTempAlertMax                  INTEGER
+         }
+
+        cmmTransPreFecBerVal  OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Forward error correction bit error rate value.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 1 }
+
+        cmmTransPreFecBerCriticMin  OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Min critical value for pre-forward error correction ber.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 2 }
+
+        cmmTransPreFecBerCriticMax     OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Max critical value for pre-forward error correction ber
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 3}
+
+        cmmTransPreFecBerAlertMin  OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Min alert value for pre-forward error correction ber.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 4 }
+
+        cmmTransPreFecBerAlertMax     OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Max alert value for pre-forward error correction ber.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 5 }
+
+        cmmTransUncorrectedBerVal     OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Frame error rate value.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 6 }
+
+        cmmTransUncorrectedBerValCriticMin     OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Min critical value for Frame error rate.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 7 }
+
+        cmmTransUncorrectedBerValCriticMax  OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Max critical value for Frame error rate.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 8 }
+
+        cmmTransUncorrectedBerValAlertMin     OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Min alert value for Frame error rate.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 9}
+
+        cmmTransUncorrectedBerValAlertMax  OBJECT-TYPE
+        SYNTAX        ErrorFigures
+        UNITS         "BER"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Max alert value for Frame error rate.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 10}
+
+        cmmTransSnrVal  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Signal to noise ratio on ingress lane.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 11 }
+
+        cmmTransSnrCriticMin  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Min critical value for signal-to-noise ratio on ingress lane.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 12 }
+
+        cmmTransSnrCriticMax     OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+             "Max critical value for signal-to-noise ratio on ingress lane.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 13 }
+
+        cmmTransSnrAlertMin  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Min alert value for signal-to-noise ratio on ingress lane.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 14 }
+
+        cmmTransSnrAlertMax     OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+             "Max alert value for signal-to-noise ratio on ingress lane.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 15 }
+
+        cmmTransResIsiVal     OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 ps/nm"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+             "Residual-isi value.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 16 }
+
+        cmmTransResIsiCriticMin     OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 ps/nm"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+             "Min critical value for residual-isi.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 17 }
+
+        cmmTransResIsiCriticMax  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 ps/nm"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Max critical value for residual-isi.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 18 }
+
+        cmmTransResIsiAlertMin     OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 ps/nm"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Min alert value for residual-isi.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 19 }
+
+        cmmTransResIsiAlertMax  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 ps/nm"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Max alert value for residual-isi.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 20 }
+
+        cmmTransLvlTransVal  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Level transition value.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 21 }
+
+        cmmTransLvlTransCriticMin  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Min critical value for level transition.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 22 }
+
+        cmmTransLvlTransCriticMax     OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Max critical value for level transition.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 23 }
+
+        cmmTransLvlTransAlertMin  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Min alert value for level transition.
+            '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 24 }
+
+        cmmTransLvlTransAlertMax     OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 dB"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+             "Max alert value for level transition.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 25 }
+
+        cmmTransTecCurrErrVal     OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "0.001 mA"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+             "Thermo-elecrical cooler current value.
+             '-100002' indicates not-applicable."
+        ::= { cmmTransDDMPage20h21hEntry 26 }
+
+       cmmTransTecCurrErrCriticMin     OBJECT-TYPE
+       SYNTAX        INTEGER
+       UNITS         "0.001 mA"
+       MAX-ACCESS    read-only
+       STATUS        current
+       DESCRIPTION
+           "Min critical value for thermo-elecrical cooler current.
+           '-100002' indicates not-applicable."
+       ::= { cmmTransDDMPage20h21hEntry 27 }
+
+       cmmTransTecCurrErrCriticMax  OBJECT-TYPE
+       SYNTAX        INTEGER
+       UNITS         "0.001 mA"
+       MAX-ACCESS    read-only
+       STATUS        current
+       DESCRIPTION
+            "Max critical value for thermo-elecrical cooler current.
+            '-100002' indicates not-applicable."
+       ::= { cmmTransDDMPage20h21hEntry 28 }
+
+       cmmTransTecCurrErrAlertMin     OBJECT-TYPE
+       SYNTAX        INTEGER
+       UNITS         "0.001 mA"
+       MAX-ACCESS    read-only
+       STATUS        current
+       DESCRIPTION
+           "Min alert value for thermo-elecrical cooler current.
+           '-100002' indicates not-applicable."
+       ::= { cmmTransDDMPage20h21hEntry 29 }
+
+       cmmTransTecCurrErrAlertMax  OBJECT-TYPE
+       SYNTAX        INTEGER
+       UNITS         "0.001 mA"
+       MAX-ACCESS    read-only
+       STATUS        current
+       DESCRIPTION
+            "Max alert value for thermo-elecrical cooler current.
+            '-100002' indicates not-applicable."
+       ::= { cmmTransDDMPage20h21hEntry 30 }
+
+       cmmTransLaserTempVal  OBJECT-TYPE
+       SYNTAX        INTEGER
+       UNITS         "0.001 C"
+       MAX-ACCESS    read-only
+       STATUS        current
+       DESCRIPTION
+           "Laser Temparature value.
+           '-100002' indicates not-applicable."
+       ::= { cmmTransDDMPage20h21hEntry 31 }
+
+       cmmTransLaserTempCriticMin  OBJECT-TYPE
+       SYNTAX        INTEGER
+       UNITS         "0.001 C"
+       MAX-ACCESS    read-only
+       STATUS        current
+       DESCRIPTION
+            "Min critical value for Laser Temperature.
+            '-100002' indicates not-applicable."
+       ::= { cmmTransDDMPage20h21hEntry 32 }
+
+       cmmTransLaserTempCriticMax     OBJECT-TYPE
+       SYNTAX        INTEGER
+       UNITS         "0.001 C"
+       MAX-ACCESS    read-only
+       STATUS        current
+       DESCRIPTION
+           "Max critical value for Laser Temperature.
+           '-100002' indicates not-applicable."
+       ::= { cmmTransDDMPage20h21hEntry 33 }
+
+       cmmTransLaserTempAlertMin  OBJECT-TYPE
+       SYNTAX        INTEGER
+       UNITS         "0.001 C"
+       MAX-ACCESS    read-only
+       STATUS        current
+       DESCRIPTION
+           "Min alert value for Laser Temperature.
+           '-100002' indicates not-applicable."
+       ::= { cmmTransDDMPage20h21hEntry 34 }
+
+       cmmTransLaserTempAlertMax     OBJECT-TYPE
+       SYNTAX        INTEGER
+       UNITS         "0.001 C"
+       MAX-ACCESS    read-only
+       STATUS        current
+       DESCRIPTION
+           "Max alert value for Laser Temperature.
+           '-100002' indicates not-applicable."
+       ::= { cmmTransDDMPage20h21hEntry 35 }
 
     --
     -- ## Notifications 
@@ -5506,4 +5980,522 @@
         DESCRIPTION
             "Set when the transceiver has recovered from TEC Fault."
         ::= { cmmTransMibNotifications 77 }
+
+cmmTransCriticalPreFecBerErrHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransPreFecBerVal,
+                  cmmTransPreFecBerCriticMin,
+                  cmmTransPreFecBerCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when FEC bit error rate falls above critical max value."
+    ::= { cmmTransMibNotifications 81}
+
+cmmTransCriticalPreFecBerErrLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransPreFecBerVal,
+                  cmmTransPreFecBerCriticMin,
+                  cmmTransPreFecBerCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when FEC bit error rate falls below critical min value."
+    ::= { cmmTransMibNotifications 82}
+
+cmmTransAlertPreFecBerErrHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransPreFecBerVal,
+                  cmmTransPreFecBerAlertMin,
+                  cmmTransPreFecBerAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when FEC bit error rate falls above alert max value."
+    ::= { cmmTransMibNotifications 83}
+
+cmmTransAlertPreFecBerErrLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransPreFecBerVal,
+                  cmmTransPreFecBerAlertMin,
+                  cmmTransPreFecBerAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when FEC bit error rate falls below alert min value."
+    ::= { cmmTransMibNotifications 84}
+
+
+cmmTransNotifyTransceiverPreFecBerRecovered   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransPreFecBerVal
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Set when FEC bit error rate of transceiver is recovered from BER fault."
+    ::= { cmmTransMibNotifications 85}
+
+
+cmmTransCriticalUncorrectedBerHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransUncorrectedBerVal,
+                  cmmTransUncorrectedBerValCriticMin,
+                  cmmTransUncorrectedBerValCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when Frame Error Rate falls above critical max value."
+    ::= { cmmTransMibNotifications 91}
+
+cmmTransCriticalUncorrectedBerLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransUncorrectedBerVal,
+                  cmmTransUncorrectedBerValCriticMin,
+                  cmmTransUncorrectedBerValCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when Frame Error Rate falls below critical min value."
+    ::= { cmmTransMibNotifications 92}
+
+
+cmmTransAlertUncorrectedBerHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransUncorrectedBerVal,
+                  cmmTransUncorrectedBerValAlertMin,
+                  cmmTransUncorrectedBerValAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when Frame Error Rate falls above alert max value."
+    ::= { cmmTransMibNotifications 93}
+
+cmmTransAlertUncorrectedBerLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransUncorrectedBerVal,
+                  cmmTransUncorrectedBerValAlertMin,
+                  cmmTransUncorrectedBerValAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when Frame Error Rate falls below alert min value."
+    ::= { cmmTransMibNotifications 94}
+
+
+cmmTransNotifyTransceiverUncorrectedBerRecovered   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransUncorrectedBerVal
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Set when Frame Error Rate transceiver is recovered from uncorrected BER fault."
+    ::= { cmmTransMibNotifications 95}
+
+
+cmmTransCriticalSnrHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransSnrVal,
+                  cmmTransSnrCriticMin,
+                  cmmTransSnrCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when SNR falls above critical max value."
+    ::= { cmmTransMibNotifications 101}
+
+cmmTransCriticalSnrLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransSnrVal,
+                  cmmTransSnrCriticMin,
+                  cmmTransSnrCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when SNR falls below critical min value."
+    ::= { cmmTransMibNotifications 102}
+
+cmmTransAlertSnrHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransSnrVal,
+                  cmmTransSnrAlertMin,
+                  cmmTransSnrAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when SNR falls above alert max value."
+    ::= { cmmTransMibNotifications 103}
+
+cmmTransAlertSnrLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransSnrVal,
+                  cmmTransSnrAlertMin,
+                  cmmTransSnrAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when SNR falls below alert min value."
+    ::= { cmmTransMibNotifications 104}
+
+cmmTransNotifyTransceiverSnrRecovered   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransSnrVal
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Set when SNR of transceiver is recovered from SNR fault."
+    ::= { cmmTransMibNotifications 105}
+
+cmmTransCriticalresIsiHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransResIsiVal,
+                  cmmTransResIsiCriticMin,
+                  cmmTransResIsiCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when residual-isi falls above critical max value."
+    ::= { cmmTransMibNotifications 111}
+
+cmmTransCriticalresIsiLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransResIsiVal,
+                  cmmTransResIsiCriticMin,
+                  cmmTransResIsiCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when residual-isi falls below critical min value."
+    ::= { cmmTransMibNotifications 112}
+
+cmmTransAlertResIsiHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransResIsiVal,
+                  cmmTransResIsiAlertMin,
+                  cmmTransResIsiAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when residual-isi falls above alert max value."
+    ::= { cmmTransMibNotifications 113}
+
+cmmTransAlertResIsiLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransResIsiVal,
+                  cmmTransResIsiAlertMin,
+                  cmmTransResIsiAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when residual-isi falls below alert min value."
+    ::= { cmmTransMibNotifications 114}
+
+cmmTransNotifyTransceiverResIsiRecovered   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransResIsiVal
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Set when residual-isi of transceiver is recovered from residual-isi fault."
+    ::= { cmmTransMibNotifications 115}
+
+
+cmmTransCriticalLvlTranHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLvlTransVal,
+                  cmmTransLvlTransCriticMin,
+                  cmmTransLvlTransCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when level transition falls above critical max value."
+    ::= { cmmTransMibNotifications 121}
+
+cmmTransCriticalLvlTranLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLvlTransVal,
+                  cmmTransLvlTransCriticMin,
+                  cmmTransLvlTransCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when level transition falls below critical min value."
+    ::= { cmmTransMibNotifications 122}
+
+cmmTransAlertLvlTranHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLvlTransVal,
+                  cmmTransLvlTransAlertMin,
+                  cmmTransLvlTransAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when level transition falls above alert max value."
+    ::= { cmmTransMibNotifications 123}
+
+cmmTransAlertLvlTranLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLvlTransVal,
+                  cmmTransLvlTransAlertMin,
+                  cmmTransLvlTransAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when level transition falls below alert min value."
+    ::= { cmmTransMibNotifications 124}
+
+cmmTransNotifyTransceiverLvlTranRecovered   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLvlTransVal
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Set when level transition of transceiver is recovered from level transition fault."
+    ::= { cmmTransMibNotifications 125}
+
+cmmTransCriticalTecCurrErrHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransTecCurrErrVal,
+                  cmmTransTecCurrErrCriticMin,
+                  cmmTransTecCurrErrCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when thermo-electric cooler current falls above critical max value."
+    ::= { cmmTransMibNotifications 131}
+
+cmmTransCriticalTecCurrErrLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransTecCurrErrVal,
+                  cmmTransTecCurrErrCriticMin,
+                  cmmTransTecCurrErrCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when thermo-electric cooler current falls below critical min value."
+    ::= { cmmTransMibNotifications 132}
+
+cmmTransAlertTecCurrErrHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransTecCurrErrVal,
+                  cmmTransTecCurrErrAlertMin,
+                  cmmTransTecCurrErrAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when thermo-electric cooler current falls above alert max value."
+    ::= { cmmTransMibNotifications 133}
+
+cmmTransAlertTecCurrErrLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransTecCurrErrVal,
+                  cmmTransTecCurrErrAlertMin,
+                  cmmTransTecCurrErrAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when thermo-electric cooler current falls below alert min value."
+    ::= { cmmTransMibNotifications 134}
+
+cmmTransNotifyTransceiverTecCurrErrRecovered   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransTecCurrErrVal
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Set when thermo-electric cooler current of transceiver is recovered thermo-electric cooler current fault."
+    ::= { cmmTransMibNotifications 135}
+
+cmmTransCriticalLaserTempValHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLaserTempVal,
+                  cmmTransLaserTempCriticMin,
+                  cmmTransLaserTempCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when laser temperature falls above crictical max value."
+    ::= { cmmTransMibNotifications 141}
+
+cmmTransCriticalLaserTempValLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLaserTempVal,
+                  cmmTransLaserTempCriticMin,
+                  cmmTransLaserTempCriticMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when laser temperature falls below critical min value."
+    ::= { cmmTransMibNotifications 142}
+
+cmmTransAlertLaserTempValHigh   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLaserTempVal,
+                  cmmTransLaserTempAlertMin,
+                  cmmTransLaserTempAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when laser temperature falls above alert max value."
+    ::= { cmmTransMibNotifications 143}
+
+cmmTransAlertLaserTempValLow   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLaserTempVal,
+                  cmmTransLaserTempAlertMin,
+                  cmmTransLaserTempAlertMax
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Notification sent when laser temperature falls below alert min value."
+    ::= { cmmTransMibNotifications 144}
+
+cmmTransNotifyTransceiverLaserTempRecovered   NOTIFICATION-TYPE
+    OBJECTS      {
+                  cmmStackUnitIndex,
+                  cmmTransIndex,
+                  cmmTransType,
+                  cmmTransChannelIndex,
+                  cmmTransLaserTempVal
+                 }
+    STATUS       current
+    DESCRIPTION
+        "Set when laser temperature of transceiver is recovered from temperature fault."
+    ::= { cmmTransMibNotifications 145}
+
    END
