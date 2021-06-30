@@ -1,0 +1,138 @@
+IPI-IF-EXTENDED-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+      OBJECT-TYPE, MODULE-IDENTITY,
+      Gauge32, Counter32, Integer32, Unsigned32,
+      IpAddress, Counter64,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC
+      ipi  FROM IPI-MODULE-MIB;
+
+ipi-if-extended MODULE-IDENTITY
+   LAST-UPDATED "202106100000Z"
+   ORGANIZATION "IP Infusion Inc."
+   CONTACT-INFO 
+       "postal: 3965 Freedom Circle, Suite 200, Santa Clara, CA 95054
+
+        email: support@ipinfusion.com
+
+        telephone: +1 408-400-1900
+        website: http://www.ipinfusion.com/"
+   DESCRIPTION 
+      "This MIB module is for managing Datamodel for IPI Interface extended module"
+
+   REVISION      "202106100000Z"
+   DESCRIPTION 
+      "Added new attribute hardware-applied-bcast-value, hardware-applied-mcast-value and hardware-applied-dlf-bcast-value to show hardware applied storm control value in netconf"
+
+   REVISION      "202106090000Z"
+   DESCRIPTION 
+      "Added yang support for attribute storm-total-discards"
+
+   REVISION      "202104080000Z"
+   DESCRIPTION 
+      "Added notification to remove interfaces from cross connects"
+
+   REVISION      "202103290000Z"
+   DESCRIPTION 
+      "Changed container name of hardware-profile to hardware-profile-flexport"
+
+   REVISION      "202103160000Z"
+   DESCRIPTION 
+      "Remodelled encapsulation, rewrite and cross-connects for sub-interface remodelling."
+
+   REVISION      "202103050000Z"
+   DESCRIPTION 
+      "Added dot1q-ether-type from mo_ipi-port.xml to make it independent of bridge"
+
+   REVISION      "202103010000Z"
+   DESCRIPTION 
+      "Added new atrribute in-bpdu-pkts, in-oamp-pkts, in-bfd-pkts, in-vrrp-rip-dhcp-pkts, in-rsvd-mc-pkts,
+                       in-link-local-pkts, in-icmp-pkts, in-icmp-redirect-pkts, in-misc-pkts.
+                       Removed attribute last-flap.
+                       Added support for changing process type for L2 protocols for an interface.
+        "
+
+   REVISION      "202101270000Z"
+   DESCRIPTION 
+      "Changed attribute multicast to disable-multicast and datatype from boolean to empty,
+                       Removed attribute enable and added two attribute enable-speed and enable-queue-drops
+                       and changed datatype to empty,
+                       Removed attribute mac-learn-limit, mdi-crossover, autonegotiation-fault-advertised, autonegotiation-bits-advertised,
+                       default-auto-negotiation and auto-negotiation,
+                       Added new atrribute last-flapped and auto-ipv6-link-local-address,
+                       Changed attribute snmp-trap-link-status to disable-snmp-trap-link-status and datatype from boolean to empty,
+                       Added vxlan dependency on tunnel mode attribute.
+        "
+
+   REVISION      "202012150000Z"
+   DESCRIPTION 
+      "Change to have data-types in lower case instead of camel case"
+
+   REVISION      "202011130000Z"
+   DESCRIPTION 
+      "Initial Version"
+   ::= { ipi  403 } 
+
+
+ipiIfExtendedExtendedCountersTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiIfExtendedExtendedCountersEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for A collection of extended interface-related statistics counters"
+	::= { ipi-if-extended 1 }
+
+ipiIfExtendedExtendedCountersEntry OBJECT-TYPE
+	SYNTAX IpiIfExtendedExtendedCountersEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for A collection of extended interface-related statistics counters"
+	INDEX { ipiInterfaceName }
+	::= { ipiIfExtendedExtendedCountersTable 1 }
+
+IpiIfExtendedExtendedCountersEntry::= SEQUENCE {
+	ipiInterfaceName OCTET STRING	}
+
+ipiInterfaceName OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"
+            The textual name of the interface. The value of this object should
+            be the name of the interface as assigned by the local device and
+            should be suitable for use in commands entered at the device's
+            `console'. This might be a text name, such as `le0' or a simple
+            port number, such as `1', depending on the interface naming syntax
+            of the device. If several entries in the ifTable together represent
+            a single interface as named by the device, then each will have the
+            same value of name. Note that for an agent which responds to SNMP
+            queries concerning an interface on some other (proxied) device,
+            then the value of name for such an interface is the proxied
+            device's local name for it. If there is no local name, or this
+            object is otherwise not applicable, then this object contains a
+            zero-length string.
+          "
+	::= { ipiIfExtendedExtendedCountersEntry 1 }
+
+
+--
+-- Notifications
+--
+
+ipiCMLSEPifCMLSEPextendedNotificationsPrefix OBJECT IDENTIFIER ::=
+        { ipi-if-extended 0 }
+END
