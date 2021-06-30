@@ -1,0 +1,473 @@
+IPI-LAYER-2-VPN-STATS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+   MODULE-IDENTITY, OBJECT-TYPE, enterprises, Gauge32,
+   Counter64, Integer32
+      FROM SNMPv2-SMI                    -- [RFC2578]
+   DisplayString
+      FROM SNMPv2-TC
+   ifIndex
+      FROM IF-MIB
+   ipi FROM IPI-MODULE-MIB;
+
+ipiL2VpnStatsMib   MODULE-IDENTITY
+      LAST-UPDATED "202004181200Z"
+      ORGANIZATION "IP Infusion"
+      CONTACT-INFO "www.ipinfusion.com"
+      DESCRIPTION
+            "The MIB module for statistics of Layer-2 VPN services.
+             Services covered in this MIB are psuedo-wire (PW) and VPLS."
+      ::= { ipi 104 }
+
+ipiPwStatsObjects OBJECT IDENTIFIER ::= { ipiL2VpnStatsMib 1 }
+
+ipiVplsStatsObjects OBJECT IDENTIFIER ::= { ipiL2VpnStatsMib 2 }
+
+-- PwStatsEntry
+
+ipiPwStatsTable        OBJECT-TYPE
+   SYNTAX              SEQUENCE OF IPIPwStatsEntry
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+            "A Table object containing statistics per psuedo-wire
+             instance identified by the pseudo-wire index."
+   ::= { ipiPwStatsObjects 1 }
+
+ipiPwStatsEntry        OBJECT-TYPE
+   SYNTAX              IPIPwStatsEntry
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+            "A Table entry containing statistics per psuedo-wire
+             instance identified by the psuedo-wire index."
+   INDEX   { pwIndex }
+   ::= { ipiPwStatsTable 1 }
+
+IPIPwStatsEntry::=
+    SEQUENCE {
+               pwIndex                Unsigned32,
+               pwName                 DisplayString,
+               pwAccessRxPkts         Counter64,
+               pwAccessRxBytes        Counter64,
+               pwAccessTxPkts         Counter64,
+               pwAccessTxBytes        Counter64,
+               pwNetworkRxPkts        Counter64,
+               pwNetworkRxBytes       Counter64,
+               pwNetworkTxPkts        Counter64,
+               pwNetworkTxBytes       Counter64
+             }
+
+pwIndex                OBJECT-TYPE
+   SYNTAX              Unsigned32 (1..4294967295)
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+           "A unique index which identifies the psuedo-wire
+            configured on the node."
+   ::= { ipiPwStatsEntry 1 }
+
+pwName                 OBJECT-TYPE
+     SYNTAX            DisplayString
+     MAX-ACCESS        read-only
+     STATUS            current
+     DESCRIPTION
+         "The canonical name assigned to the PW. This object MAY be
+          changed at any time."
+   ::= { ipiPwStatsEntry 2 }
+
+pwAccessRxPkts         OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets received on the access interface."
+   ::= { ipiPwStatsEntry 3 }
+
+pwAccessRxBytes        OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of bytes received on the access interface."
+   ::= { ipiPwStatsEntry 4 }
+
+pwAccessTxPkts         OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets transmitted out of
+            the access interface."
+   ::= { ipiPwStatsEntry 5 }
+
+pwAccessTxBytes        OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of bytes transmitted out of
+            the access interface."
+   ::= { ipiPwStatsEntry 6 }
+
+pwNetworkRxPkts        OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets received on the network interface."
+   ::= { ipiPwStatsEntry 7 }
+
+pwNetworkRxBytes       OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of bytes received on the network interface."
+   ::= { ipiPwStatsEntry 8 }
+
+pwNetworkTxPkts        OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets transmitted out of
+            the network interface."
+   ::= { ipiPwStatsEntry 9 }
+
+pwNetworkTxBytes       OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of bytes transmitted out of
+            the network interface."
+   ::= { ipiPwStatsEntry 10 }
+
+
+-- VplsStatsEntry
+
+ipiVplsStatsTable      OBJECT-TYPE
+   SYNTAX              SEQUENCE OF IPIVplsStatsEntry
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+            "A Table object containing statistics per VPLS
+             instance indetified by the VPLS identifier."
+   ::= { ipiVplsStatsObjects 1 }
+
+ipiVplsStatsEntry      OBJECT-TYPE
+   SYNTAX              IPIVplsStatsEntry
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+            "A Table entry containing statistics per VPLS
+             instance identified by the VPLS identifer."
+   INDEX   { vplsId }
+   ::= { ipiVplsStatsTable 1 }
+
+IPIVplsStatsEntry::=
+    SEQUENCE {
+               vplsId                   Unsigned32,
+               vplsName                 DisplayString,
+               vplsMeshPeerTotal        Gauge32,
+               vplsSpokePeerTotal       Gauge32
+             }
+
+vplsId                 OBJECT-TYPE
+   SYNTAX              Unsigned32 (1..4294967295)
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+           "A unique index corresponding to a VPLS instance
+            configured on the node."
+   ::= { ipiVplsStatsEntry 1 }
+
+vplsName               OBJECT-TYPE
+   SYNTAX              DisplayString
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+         "The canonical name assigned to the VPLS instance.
+          This object MAY be changed at any time."
+   ::= { ipiVplsStatsEntry 2 }
+
+vplsMeshPeerTotal      OBJECT-TYPE
+   SYNTAX              Gauge32
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+        "The total number of mesh peers configured within a
+         VPLS instance in the system."
+   ::= { ipiVplsStatsEntry 3 }
+
+vplsSpokePeerTotal     OBJECT-TYPE
+   SYNTAX              Gauge32
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+        "The total number of spoke peers configured within a
+         VPLS instance in the system."
+   ::= { ipiVplsStatsEntry 4 }
+
+
+-- VplsAcStatsEntry
+
+ipiVplsAcStatsTable    OBJECT-TYPE
+   SYNTAX              SEQUENCE OF IPIVplsAcStatsEntry
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+            "A Table object containing statistics per attachment-circuit
+             instance identified by a AC identifier, mapped to a
+             VPLS instance."
+   ::= { ipiVplsStatsObjects 2 }
+
+ipiVplsAcStatsEntry    OBJECT-TYPE
+   SYNTAX              IPIVplsAcStatsEntry
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+            "A Table entry containing statistics per attachment-circuit
+             instance identified by a VC identifier, mapped to a
+             VPLS instance."
+   INDEX   { vplsId, ifIndex, svcId }
+   ::= { ipiVplsAcStatsTable 1 }
+
+IPIVplsAcStatsEntry::=
+    SEQUENCE {
+               svcId                    Unsigned32,
+               svcName                  DisplayString,
+               vplsAcRxPkts             Counter64,
+               vplsAcRxBytes            Counter64,
+               vplsAcTxPkts             Counter64,
+               vplsAcTxBytes            Counter64
+             }
+
+svcId                  OBJECT-TYPE
+   SYNTAX              Unsigned32 (1..4294967295)
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+           "A unique number corresponding to a service-template with match
+            criteria mapped to a VPLS instance."
+   ::= { ipiVplsAcStatsEntry 1 }
+
+svcName                OBJECT-TYPE
+   SYNTAX              DisplayString
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+         "The service template name mapped to attachment-circuit
+          instance. This object MAY be changed at any time."
+   ::= { ipiVplsAcStatsEntry 2 }
+
+vplsAcRxPkts           OBJECT-TYPE
+     SYNTAX            Counter64
+     MAX-ACCESS        read-only
+     STATUS            current
+     DESCRIPTION
+           "The total number of packets received on the
+            access interface of the attachment-circuit instance."
+    ::= { ipiVplsAcStatsEntry 3 }
+
+vplsAcRxBytes          OBJECT-TYPE
+     SYNTAX            Counter64
+     MAX-ACCESS        read-only
+     STATUS            current
+     DESCRIPTION
+           "The total number of bytes received on the
+            access interface of the attachment-circuit instance."
+    ::= { ipiVplsAcStatsEntry 4 }
+
+vplsAcTxPkts           OBJECT-TYPE
+     SYNTAX            Counter64
+     MAX-ACCESS        read-only
+     STATUS            current
+     DESCRIPTION
+           "The total number of packets transmitted out of
+            access interface of the attachment-circuit instance."
+    ::= { ipiVplsAcStatsEntry 5 }
+
+vplsAcTxBytes          OBJECT-TYPE
+     SYNTAX            Counter64
+     MAX-ACCESS        read-only
+     STATUS            current
+     DESCRIPTION
+           "The total number of bytes transmitted out of
+            access interface of the attachment-circuit instance."
+    ::= { ipiVplsAcStatsEntry 6 }
+
+
+-- VplsMeshPeerStatsEntry
+
+ipiVplsMeshPeerStatsTable    OBJECT-TYPE
+   SYNTAX                    SEQUENCE OF IPIVplsMeshPeerStatsEntry
+   MAX-ACCESS                not-accessible
+   STATUS                    current
+   DESCRIPTION
+            "A Table object containing statistics per mesh peer
+             instance mapped to a VPLS instance."
+   ::= { ipiVplsStatsObjects 3 }
+
+ipiVplsMeshPeerStatsEntry    OBJECT-TYPE
+   SYNTAX                    IPIVplsMeshPeerStatsEntry
+   MAX-ACCESS                not-accessible
+   STATUS                    current
+   DESCRIPTION
+            "A Table entry containing statistics per mesh peer
+             instance mapped to a VPLS instance."
+   INDEX   { vplsId, vplsMeshPeerId }
+   ::= { ipiVplsMeshPeerStatsTable 1 }
+
+IPIVplsMeshPeerStatsEntry::=
+    SEQUENCE {
+               vplsMeshPeerId                 Unsigned32,
+               vplsMeshPeerAddr               DisplayString,
+               vplsMeshPeerRxPkts             Counter64,
+               vplsMeshPeerRxBytes            Counter64,
+               vplsMeshPeerTxPkts             Counter64,
+               vplsMeshPeerTxBytes            Counter64
+             }
+
+vplsMeshPeerId         OBJECT-TYPE
+   SYNTAX              Unsigned32 (1..4294967295)
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+           "A unique number corresponding to a mesh peer
+            mapped to a VPLS instance."
+   ::= { ipiVplsMeshPeerStatsEntry 1 }
+
+vplsMeshPeerAddr       OBJECT-TYPE
+   SYNTAX              DisplayString
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+         "The address string mapped to the mesh peer mapped
+          to a VPLS instance."
+   ::= { ipiVplsMeshPeerStatsEntry 2 }
+
+vplsMeshPeerRxPkts     OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets received on
+            the network interface of the mesh peer."
+   ::= { ipiVplsMeshPeerStatsEntry 3 }
+
+vplsMeshPeerRxBytes    OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of bytes received on
+            the network interface of the mesh peer."
+   ::= { ipiVplsMeshPeerStatsEntry 4 }
+
+vplsMeshPeerTxPkts     OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets transmitted out of
+            the network interface of the mesh peer."
+   ::= { ipiVplsMeshPeerStatsEntry 5 }
+
+vplsMeshPeerTxBytes    OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets transmitted out of
+            the network interface of the mesh peer."
+   ::= { ipiVplsMeshPeerStatsEntry 6 }
+
+
+-- VplsSpokePeerStatsEntry
+
+ipiVplsSpokePeerStatsTable   OBJECT-TYPE
+   SYNTAX                    SEQUENCE OF IPIVplsSpokePeerStatsEntry
+   MAX-ACCESS                not-accessible
+   STATUS                    current
+   DESCRIPTION
+            "A Table object containing statistics per Spoke peer
+             instance mapped to a VPLS instance."
+   ::= { ipiVplsStatsObjects 4 }
+
+ipiVplsSpokePeerStatsEntry   OBJECT-TYPE
+   SYNTAX                    IPIVplsSpokePeerStatsEntry
+   MAX-ACCESS                not-accessible
+   STATUS                    current
+   DESCRIPTION
+            "A Table entry containing statistics per Spoke peer
+             instance mapped to a VPLS instance."
+   INDEX   { vplsId, vplsSpokePeerId }
+   ::= { ipiVplsSpokePeerStatsTable 1 }
+
+IPIVplsSpokePeerStatsEntry::=
+    SEQUENCE {
+               vplsSpokePeerId                Unsigned32,
+               vplsSpokePeerName              DisplayString,
+               vplsSpokePeerRxPkts            Counter64,
+               vplsSpokePeerRxBytes           Counter64,
+               vplsSpokePeerTxPkts            Counter64,
+               vplsSpokePeerTxBytes           Counter64
+             }
+
+vplsSpokePeerId        OBJECT-TYPE
+   SYNTAX              Unsigned32 (1..4294967295)
+   MAX-ACCESS          not-accessible
+   STATUS              current
+   DESCRIPTION
+           "A unique number corresponding to a spoke peer
+            mapped to a VPLS instance."
+   ::= { ipiVplsSpokePeerStatsEntry 1 }
+
+vplsSpokePeerName      OBJECT-TYPE
+   SYNTAX              DisplayString
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+         "The canonical name assigned to the spoke peer mapped to
+          a VPLS instance. This object MAY be changed at any time."
+   ::= { ipiVplsSpokePeerStatsEntry 2 }
+
+vplsSpokePeerRxPkts    OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets received on
+            the network interface of the spoke peer."
+   ::= { ipiVplsSpokePeerStatsEntry 3 }
+
+vplsSpokePeerRxBytes   OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of bytes received on
+            the network interface of the spoke peer."
+   ::= { ipiVplsSpokePeerStatsEntry 4 }
+
+vplsSpokePeerTxPkts    OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets transmitted out of
+            the network interface of the spoke peer."
+   ::= { ipiVplsSpokePeerStatsEntry 5 }
+
+vplsSpokePeerTxBytes   OBJECT-TYPE
+   SYNTAX              Counter64
+   MAX-ACCESS          read-only
+   STATUS              current
+   DESCRIPTION
+           "The total number of packets transmitted out of
+            the network interface of the spoke peer."
+   ::= { ipiVplsSpokePeerStatsEntry 6 }
+
+END

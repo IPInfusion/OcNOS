@@ -2,12 +2,12 @@ IPI-PORT-XC-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE, enterprises, Counter64, Unsigned32
-     FROM SNMPv2-SMI
+     FROM SNMPv2-SMI-MIB
     DisplayString
-     FROM SNMPv2-TC
+     FROM SNMPv2-TC-MIB
     ifIndex
      FROM IF-MIB
-    ipi FROM OCNOS-IPI-MODULE-MIB;
+    ipi FROM IPI-MODULE-MIB;
 
     ipiXCMib MODULE-IDENTITY
     LAST-UPDATED "202101071200Z"  -- Jan 07, 2021 11:30:00 GMT
@@ -47,6 +47,8 @@ IpiPortXCEntry ::=
                  portXCName              DisplayString,
                  portXCEp1               DisplayString,
                  portXCEp2               DisplayString,
+                 portXCBkpEp1            DisplayString,
+                 portXCBkpEp2            DisplayString,
                  portXCAdminStatus       INTEGER,
                  portXCOperStatus        INTEGER,
                  portEP1RXPKTS           Counter64,
@@ -56,7 +58,17 @@ IpiPortXCEntry ::=
                  portEP2RXPKTS           Counter64,
                  portEP2RXBYTES          Counter64,
                  portEP2TXPKTS           Counter64,
-                 portEP2TXBYTES          Counter64
+                 portEP2TXBYTES          Counter64,
+                 portBKPEP1RXPKTS        Counter64,
+                 portBKPEP1RXBYTES       Counter64,
+                 portBKPEP1TXPKTS        Counter64,
+                 portBKPEP1TXBYTES       Counter64,
+                 portBKPEP2RXPKTS        Counter64,
+                 portBKPEP2RXBYTES       Counter64,
+                 portBKPEP2TXPKTS        Counter64,
+                 portBKPEP2TXBYTES       Counter64,
+                 portXCRevertive         INTEGER,
+                 portXCLfpt              INTEGER
              }
 
 portXCIndex  OBJECT-TYPE
@@ -91,6 +103,21 @@ portXCEp2 OBJECT-TYPE
             "XC Endpoint2 name."
     ::= { ipiPortXCEntry 4 }
 
+portXCBkpEp1 OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "XC Backup Endpoint1 name."
+    ::= { ipiPortXCEntry 5 }
+
+portXCBkpEp2 OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "XC Backup Endpoint2 name."
+    ::= { ipiPortXCEntry 6 }
 portXCAdminStatus OBJECT-TYPE
     SYNTAX      INTEGER {
                     up(0),       -- ready to pass packets
@@ -100,7 +127,7 @@ portXCAdminStatus OBJECT-TYPE
     STATUS      current
     DESCRIPTION
             "This object specifies admin status of XC."
-    ::= { ipiPortXCEntry 5 }
+    ::= { ipiPortXCEntry 7 }
 
 portXCOperStatus OBJECT-TYPE
     SYNTAX      INTEGER {
@@ -111,7 +138,7 @@ portXCOperStatus OBJECT-TYPE
     STATUS      current
     DESCRIPTION
             "This object specifies operational status of XC."
-    ::= { ipiPortXCEntry 6 }
+    ::= { ipiPortXCEntry 8 }
 
 portEP1RXPKTS          OBJECT-TYPE
      SYNTAX            Counter64
@@ -120,7 +147,7 @@ portEP1RXPKTS          OBJECT-TYPE
      DESCRIPTION
            "The total number of packets received on EP1. Applicable for port
            cross-connect entry."
-    ::= { ipiPortXCEntry 7 }
+    ::= { ipiPortXCEntry 9 }
 
 portEP1RXBYTES         OBJECT-TYPE
      SYNTAX            Counter64
@@ -129,7 +156,7 @@ portEP1RXBYTES         OBJECT-TYPE
      DESCRIPTION
            "The total number of bytes received on EP1. Applicable for port
            cross-connect entry"
-    ::= { ipiPortXCEntry 8 }
+    ::= { ipiPortXCEntry 10 }
 
 portEP1TXPKTS          OBJECT-TYPE
      SYNTAX            Counter64
@@ -138,7 +165,7 @@ portEP1TXPKTS          OBJECT-TYPE
      DESCRIPTION
            "The total number of packets transmitted from EP1. Applicable for
            port cross-connect entry."
-    ::= { ipiPortXCEntry 9 }
+    ::= { ipiPortXCEntry 11 }
 
 portEP1TXBYTES         OBJECT-TYPE
      SYNTAX            Counter64
@@ -147,7 +174,7 @@ portEP1TXBYTES         OBJECT-TYPE
      DESCRIPTION
            "The total number of bytes transmitted from EP1. Applicable for port
            cross-connect entry."
-    ::= { ipiPortXCEntry 10 }
+    ::= { ipiPortXCEntry 12 }
 
 portEP2RXPKTS          OBJECT-TYPE
      SYNTAX            Counter64
@@ -156,7 +183,7 @@ portEP2RXPKTS          OBJECT-TYPE
      DESCRIPTION
            "The total number of packets received on EP2. Applicable for port
            cross-connect entry."
-    ::= { ipiPortXCEntry 11 }
+    ::= { ipiPortXCEntry 13 }
 
 portEP2RXBYTES         OBJECT-TYPE
      SYNTAX            Counter64
@@ -165,7 +192,7 @@ portEP2RXBYTES         OBJECT-TYPE
      DESCRIPTION
            "The total number of bytes received on EP2. Applicable for port
            cross-connect entry."
-    ::= { ipiPortXCEntry 12 }
+    ::= { ipiPortXCEntry 14 }
 
 portEP2TXPKTS          OBJECT-TYPE
      SYNTAX            Counter64
@@ -174,16 +201,110 @@ portEP2TXPKTS          OBJECT-TYPE
      DESCRIPTION
            "The total number of packets transmitted from EP2. Applicable for
            port cross-connect entry."
-    ::= { ipiPortXCEntry 13 }
+    ::= { ipiPortXCEntry 15 }
 
 portEP2TXBYTES         OBJECT-TYPE
      SYNTAX            Counter64
      MAX-ACCESS        read-only
      STATUS            current
      DESCRIPTION
-           "The total number of packets transmitted from EP2. Applicable for
+           "The total number of bytes transmitted from EP2. Applicable for
            port cross-connect entry."
-    ::= { ipiPortXCEntry 14 }
+    ::= { ipiPortXCEntry 16 }
+
+portBKPEP1RXPKTS          OBJECT-TYPE
+     SYNTAX               Counter64
+     MAX-ACCESS           read-only
+     STATUS               current
+     DESCRIPTION
+           "The total number of packets received on Backup EP1. Applicable
+           for port cross-connect entry."
+    ::= { ipiPortXCEntry 17 }
+
+portBKPEP1RXBYTES         OBJECT-TYPE
+     SYNTAX               Counter64
+     MAX-ACCESS           read-only
+     STATUS               current
+     DESCRIPTION
+           "The total number of bytes received on Backup EP1. Applicable
+           for port cross-connect entry"
+    ::= { ipiPortXCEntry 18 }
+
+portBKPEP1TXPKTS          OBJECT-TYPE
+     SYNTAX               Counter64
+     MAX-ACCESS           read-only
+     STATUS               current
+     DESCRIPTION
+           "The total number of packets transmitted from Backup EP1. Applicable
+           for port cross-connect entry."
+    ::= { ipiPortXCEntry 19 }
+
+portBKPEP1TXBYTES         OBJECT-TYPE
+     SYNTAX               Counter64
+     MAX-ACCESS           read-only
+     STATUS               current
+     DESCRIPTION
+           "The total number of bytes transmitted from Backup EP1. Applicable
+           for port cross-connect entry."
+    ::= { ipiPortXCEntry 20 }
+
+portBKPEP2RXPKTS          OBJECT-TYPE
+     SYNTAX               Counter64
+     MAX-ACCESS           read-only
+     STATUS               current
+     DESCRIPTION
+           "The total number of packets received on Backup EP2. Applicable
+           for port cross-connect entry."
+    ::= { ipiPortXCEntry 21 }
+
+portBKPEP2RXBYTES         OBJECT-TYPE
+     SYNTAX               Counter64
+     MAX-ACCESS           read-only
+     STATUS               current
+     DESCRIPTION
+           "The total number of bytes received on Backup EP2. Applicable
+           for port cross-connect entry."
+    ::= { ipiPortXCEntry 22 }
+
+portBKPEP2TXPKTS          OBJECT-TYPE
+     SYNTAX               Counter64
+     MAX-ACCESS           read-only
+     STATUS               current
+     DESCRIPTION
+           "The total number of packets transmitted from Backup EP2. Applicable
+           for port cross-connect entry."
+    ::= { ipiPortXCEntry 23 }
+
+portBKPEP2TXBYTES         OBJECT-TYPE
+     SYNTAX               Counter64
+     MAX-ACCESS           read-only
+     STATUS               current
+     DESCRIPTION
+           "The total number of bytes transmitted from Backup EP2. Applicable
+           for port cross-connect entry."
+    ::= { ipiPortXCEntry 24 }
+
+portXCRevertive OBJECT-TYPE
+    SYNTAX      INTEGER {
+                    disable (0),
+                    enable  (1)
+                }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "This object specifies switchmode of XC."
+    ::= { ipiPortXCEntry 25 }
+
+portXCLfpt OBJECT-TYPE
+    SYNTAX      INTEGER {
+                    enable (1),       -- Link-fault pass through enable.
+                    disable (0)        -- Link-fault pass through disable.
+                }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "This object specifies lfpt status of XC."
+    ::= { ipiPortXCEntry 26 }
 
 ipiVlanXcTable    OBJECT-TYPE
     SYNTAX        SEQUENCE OF IPIVlanXcEntry
@@ -365,5 +486,16 @@ vlanEP2TXBYTES         OBJECT-TYPE
    DESCRIPTION
         "Trap to send operational state change of cross-connect entity"
    ::= { xcAlarmMibNotifications 1 }
+
+   xcSwitchEp     NOTIFICATION-TYPE
+   OBJECTS      {
+                 portXCName,
+                 portXCEp1,
+                 portXCEp2
+                }
+   STATUS       current
+   DESCRIPTION
+        "Trap to send endpoint change of cross-connect entity"
+   ::= { xcAlarmMibNotifications 2 }
 
 END
