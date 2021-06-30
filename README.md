@@ -1,5 +1,5 @@
 # OcNOS™ Network Operating System 
-OcNOS SP 3.1 Refers to ocnos-sp-4.1 branch Release (Build #153)
+OcNOS SP 4.2 Refers to ocnos-sp-4.2 branch Release (Build #158 EFT)
 
 Contains the SNMP MIB files, Yang files, Ansible modules etc. to use with OcNOS. (There are no changes to SNMP MIB, Yang files and Ansible modules in this patch release)
 
