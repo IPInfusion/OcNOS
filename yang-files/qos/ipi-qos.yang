@@ -28,7 +28,7 @@ module ipi-qos {
 
     import ipi-qos-types {
         prefix ipi-qos-types;
-        revision-date 2021-06-09;
+        revision-date 2021-06-30;
     }
 
     import feature-list {
@@ -48,6 +48,11 @@ module ipi-qos {
     description
         "Quality of Service (QoS)";
 
+
+    revision "2021-06-30" {
+        description "Modify CIR attribute description and enumeration values descriptions for QOS_RATE_UNIT_T type.";
+        reference "Initial Version";
+    }
 
     revision "2021-06-10" {
         description "Changed data type to CML_RANGE_T for attributes 'port', 'vlan', 'inner-vlan', 'rtp'.";
@@ -561,7 +566,6 @@ module ipi-qos {
         } // END of rtp definition.
 
         leaf mpls-exp  {
-            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
             if-feature feature-list:HAVE_DIFFSERV;
             type  cml-data-types:cml_range_t;
             description "Use this attribute to classify traffic based on the MPLS experimental
@@ -579,7 +583,6 @@ module ipi-qos {
         } // END of dscp definition.
 
         leaf ipv6-dscp  {
-            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  cml-data-types:cml_range_t;
             description "Use this attribute to classify traffic based on the Differentiated
@@ -599,7 +602,6 @@ module ipi-qos {
         } // END of precedence definition.
 
         leaf ipv6-precedence  {
-            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  cml-data-types:cml_range_t;
             description "Use this attribute to classify IPv6 traffic based on the precedence
@@ -2331,6 +2333,7 @@ module ipi-qos {
         description
             "Grouping for QoS queue scheduler";
         container scheduler-mode {
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             description
                 "Configuration data for QoS queue scheduler";
@@ -2458,7 +2461,6 @@ module ipi-qos {
                 description
                     "Operational state data for QoS queue";
                 uses qos-queue-mode-config;
-                uses qos-queue-mode-state;
             } // END of state-container definition.
             uses qos-queue-mode-red-top;
             uses qos-queue-mode-tail-drop-top;
@@ -2504,7 +2506,6 @@ module ipi-qos {
         } // END of strict-priority-enabled definition.
 
         leaf priority-level  {
-            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:queue-mode/ipi-qos:config/ipi-qos:weighted-fair-queueing-queue-weight) ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..7"  {
@@ -2516,7 +2517,6 @@ module ipi-qos {
         } // END of priority-level definition.
 
         leaf weighted-fair-queueing-queue-weight  {
-            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:queue-mode/ipi-qos:config/ipi-qos:priority-level) ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "1..63"  {
@@ -2528,20 +2528,6 @@ module ipi-qos {
         } // END of weighted-fair-queueing-queue-weight definition.
 
     } // END of qos-queue-mode-config definition.
-    grouping qos-queue-mode-state {
-        description
-            "Grouping for QoS queue state";
-        leaf scheduler-queue  {
-            type  ipi-qos-types:qos_scheduler_queue_t;
-            description "This attribute returns the type of scheduler for the queuing.";
-        } // END of scheduler-queue definition.
-
-        leaf type-queue  {
-            type  ipi-qos-types:qos_type_queue_t;
-            description "This attribute returns the type of configuration for QoS queue.";
-        } // END of type-queue definition.
-
-    } // END of qos-queue-mode-state definition.
     grouping qos-queue-mode-red-top {
         description
             "Grouping for QoS queue random early detection";
@@ -2568,8 +2554,8 @@ module ipi-qos {
             "Grouping for QoS queue random early detection";
         leaf weight  {
             type  uint8 {
-                 range "0..31"  {
-                    description "0..31:Weight values";
+                 range "0..15"  {
+                    description "0..15:Weight values";
                  }
             }
             description "Use this attribute to set weight for Weighted Random Early Detection";
@@ -2689,7 +2675,11 @@ module ipi-qos {
         description
             "Grouping for QoS queue weighted random early detection configuration";
         leaf min-threshold  {
-            type  uint32;
+            type  uint32 {
+                 range "1..524288"  {
+                    description "1..524288:Minimal threshold values";
+                 }
+            }
             mandatory true;
             description "Use this attribute to set Weighted Random Early Detection minimum
                         threshold";
@@ -2833,8 +2823,8 @@ module ipi-qos {
             "Grouping for QoS queue tail-drop configuration";
         leaf max-threshold  {
             type  uint32 {
-                 range "1..629145600"  {
-                    description "1..629145600:Maximum threshold values";
+                 range "1..524288"  {
+                    description "1..524288:Maximum threshold values";
                  }
             }
             description "Use this attribute to set tail drop limits on egress queue";
@@ -2972,7 +2962,6 @@ module ipi-qos {
                 description
                     "Operational state data for QoS qos";
                 uses qos-qos-mode-config;
-                uses qos-qos-mode-state;
             } // END of state-container definition.
             uses qos-police;
         } // END of qos-mode-container definition.
@@ -3131,21 +3120,6 @@ module ipi-qos {
             }
         } // END of set-option-choice definition.
     } // END of qos-qos-mode-config definition.
-    grouping qos-qos-mode-state {
-        description
-            "Grouping for QoS qos state";
-        leaf if-index  {
-            type  uint8;
-            description "This attribute returns the value of mirror/redirect/egress port.";
-        } // END of if-index definition.
-
-        leaf group-id  {
-            type  uint8;
-            description "This attribute returns the value of group-id. Valid values will be
-                        between 0 and 7. 8 is consider as reset.";
-        } // END of group-id definition.
-
-    } // END of qos-qos-mode-state definition.
     grouping qos-police {
         description
             "Grouping for QoS police";
@@ -3177,27 +3151,26 @@ module ipi-qos {
 
         leaf cir  {
             type  uint64 {
-                 range "1..720000000"  {
-                    description "1..720000000:Committed Information Rate values";
+                 range "1..2000000000"  {
+                    description "1..2000000000:Committed Information Rate values";
                  }
             }
             mandatory true;
             description "Use this attribute to set a Committed Information Rate. Default value
-                        is 0.";
+                        is 1.";
         } // END of cir definition.
 
         leaf cir-unit  {
             when " ../cir ";
             type  ipi-qos-types:qos_rate_unit_t;
             mandatory true;
-            description "Use this attribute to set a Committed Information Rate unit. Default
-                        value is 0.";
+            description "Use this attribute to set a Committed Information Rate unit.";
         } // END of cir-unit definition.
 
         leaf bc  {
             type  uint64 {
-                 range "1..4161"  {
-                    description "1..4161:Committed Burst values";
+                 range "1..256000"  {
+                    description "1..256000:Committed Burst values";
                  }
             }
             description "Use this attribute to set a Committed Burst";
@@ -3220,7 +3193,6 @@ module ipi-qos {
         } // END of eir definition.
 
         leaf eir-unit  {
-            when " ../eir ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  ipi-qos-types:qos_rate_unit_t;
             description "Use this attribute to set an Excess Information Rate unit";
@@ -3237,6 +3209,7 @@ module ipi-qos {
         } // END of pir definition.
 
         leaf pir-unit  {
+            when " ../pir ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  ipi-qos-types:qos_rate_unit_t;
             description "Use this attribute to set a Peak Information Rate unit";
@@ -3244,8 +3217,8 @@ module ipi-qos {
 
         leaf be  {
             type  uint32 {
-                 range "1..4161"  {
-                    description "1..4161:Extended Burst values";
+                 range "1..256000"  {
+                    description "1..256000:Extended Burst values";
                  }
             }
             description "Use this attribute to set an Extended Burst";
@@ -3265,6 +3238,7 @@ module ipi-qos {
         } // END of set-conform-action definition.
 
         leaf conform-cos  {
+            when " ../set-conform-action='set-cos-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..7"  {
@@ -3275,6 +3249,7 @@ module ipi-qos {
         } // END of conform-cos definition.
 
         leaf conform-dscp  {
+            when " ../set-conform-action='set-dscp-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..63"  {
@@ -3285,6 +3260,7 @@ module ipi-qos {
         } // END of conform-dscp definition.
 
         leaf conform-precedence  {
+            when " ../set-conform-action='set-prec-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..7"  {
@@ -3313,6 +3289,7 @@ module ipi-qos {
         } // END of set-exceed-action definition.
 
         leaf exceed-cos  {
+            when " ../set-exceed-action='set-cos-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..7"  {
@@ -3323,6 +3300,7 @@ module ipi-qos {
         } // END of exceed-cos definition.
 
         leaf exceed-dscp  {
+            when " ../set-exceed-action='set-dscp-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..63"  {
@@ -3351,6 +3329,7 @@ module ipi-qos {
         } // END of set-violate-action definition.
 
         leaf violate-cos  {
+            when " ../set-violate-action='set-cos-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..7"  {
@@ -3361,6 +3340,7 @@ module ipi-qos {
         } // END of violate-cos definition.
 
         leaf violate-dscp  {
+            when " ../set-violate-action='set-dscp-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..63"  {
@@ -3548,7 +3528,6 @@ module ipi-qos {
         } // END of enable-qos definition.
 
         leaf red-drop-disabled  {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  empty;
             description "Use this attribute to disable red packet drop in the system. Red
