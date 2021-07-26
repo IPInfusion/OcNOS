@@ -39,7 +39,7 @@ submodule ipi-bgp-address-family-vrf {
         revision-date 2021-05-27;
     }
 
-    include ipi-bgp-common { revision-date 2021-06-11;}
+    include ipi-bgp-common { revision-date 2021-07-05;}
     include ipi-bgp-address-family { revision-date 2021-06-09;}
     organization
         "IP Infusion Inc.";
@@ -53,6 +53,16 @@ submodule ipi-bgp-address-family-vrf {
     description
         "";
 
+
+    revision "2021-07-05" {
+        description "Remodelled BGP VRF address family peer authentication password object list";
+        reference " 0.6.0.";
+    }
+
+    revision "2021-06-25" {
+        description "Modified dependency for activate attribute";
+        reference " 0.5.6.";
+    }
 
     revision "2021-06-11" {
         description "Added dependency constraint between name and direction attrs for the distribute-list, prefix-list, filter-list and route-map CLI's";
@@ -336,7 +346,7 @@ submodule ipi-bgp-address-family-vrf {
                 } // End of maximum-prefixes-list
 
                 list bgp-password {
-                    key "password auth-key-encrypt";
+                    key "password";
                     max-elements 1;
                     description
                         "list for BGP password";
@@ -346,14 +356,6 @@ submodule ipi-bgp-address-family-vrf {
                         }
                         description "Use this attribute to specify BGP encrypted password";
                     } // END of password definition.
-
-                    leaf auth-key-encrypt  {
-                        type  leafref {
-                            path  "../config/auth-key-encrypt";
-                        }
-                        description "Use this attribute to configure the authentication key to specify if
-                                    the password is to be encrypted or not.";
-                    } // END of auth-key-encrypt definition.
 
                     container config {
                         description
@@ -649,6 +651,7 @@ submodule ipi-bgp-address-family-vrf {
                 } // END of state-container definition.
             } // END of maximum-paths-container definition.
             container table-map {
+                if-feature feature-list:HAVE_BGP_TABLE_MAP;
                 description
                     "Container for Attributes related to Table map";
                 container config {
@@ -823,7 +826,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of bgp-port definition.
 
         leaf activate  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as   or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Activate/Deactivate neighbor. This attribute enables or disables the
                         exchange of AF information with a neighboring router.";
@@ -1087,7 +1090,7 @@ submodule ipi-bgp-address-family-vrf {
 
 
             list bgp-password {
-                key "password auth-key-encrypt";
+                key "password";
                 max-elements 1;
                 description
                     "list for BGP password";
@@ -1097,14 +1100,6 @@ submodule ipi-bgp-address-family-vrf {
                     }
                     description "Use this attribute to specify BGP encrypted password";
                 } // END of password definition.
-
-                leaf auth-key-encrypt  {
-                    type  leafref {
-                        path  "../config/auth-key-encrypt";
-                    }
-                    description "Use this attribute to configure the authentication key to specify if
-                                the password is to be encrypted or not.";
-                } // END of auth-key-encrypt definition.
 
                 container config {
                     description

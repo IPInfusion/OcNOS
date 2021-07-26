@@ -57,6 +57,16 @@ submodule ipi-bgp-common {
         "Datamodel for bgp network list";
 
 
+    revision "2021-07-05" {
+        description "Remodelled authentication password object list for BGP peer, VRF peer and peer-group";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-06-25" {
+        description "Modified dependency for activate attribute";
+        reference " 0.4.7.";
+    }
+
     revision "2021-06-11" {
         description "Added dependency constraint between name and direction attrs for the distribute-list, prefix-list, filter-list and route-map CLI's";
         reference " 0.4.6.";
@@ -623,7 +633,7 @@ submodule ipi-bgp-common {
         } // END of bgp-port definition.
 
         leaf activate  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
             type  empty;
             description "Activate/Deactivate neighbor. This attribute enables or disables the
                         exchange of AF information with a neighboring router.";
@@ -962,6 +972,7 @@ submodule ipi-bgp-common {
 
         leaf auth-key-encrypt  {
             type  ipi-bgp-types:bgp_md5_t;
+            mandatory true;
             description "Use this attribute to configure the authentication key to specify if
                         the password is to be encrypted or not.";
         } // END of auth-key-encrypt definition.
@@ -1031,6 +1042,7 @@ submodule ipi-bgp-common {
         description
             "Grouping for attributes related to Table map";
         container table-map {
+            if-feature feature-list:HAVE_BGP_TABLE_MAP;
             description
                 "Container for Attributes related to Table map";
             container config {
