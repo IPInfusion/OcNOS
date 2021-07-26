@@ -1,0 +1,28 @@
+{% if VPWS.pseudowire is defined %}
+{% for vpws in VPWS.pseudowire -%}
+  mpls l2-circuit {{ vpws.vc_name }} {{ vpws.vc_id }} {{ vpws.peer }}  
+{% endfor %}
+{% for template in VPWS.service_template -%}
+service-template {{ template.name}}
+{% if template.vlan is defined %}
+ match outer-vlan {{ template.vlan }}
+{% endif %}
+{% if template.operation is defined %}
+{% if template.operation == "pop" %}
+ rewrite ingress {{ template.operation }} outgoing-tpid {{ template.tpid }}
+{% endif %}
+{% if template.operation == "translate" %}
+ rewrite ingress {{ template.operation }} {{ template.translate_vlan }} outgoing-tpid {{template.tpid }}
+{% endif %}
+{% endif %}
+!
+{% endfor %}
+{% for interface in VPWS.interfaces -%}
+interface {{ interface.name }}
+ switchport
+ {% for binding in interface.vpws_binding -%}
+ mpls-l2-circuit {{ binding.instance}} service-template {{binding.service_template}} 
+ {% endfor %}
+!
+{% endfor %}
+{% endif %}

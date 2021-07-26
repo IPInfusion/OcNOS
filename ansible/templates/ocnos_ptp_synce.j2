@@ -1,0 +1,32 @@
+{%if PTP_SYNCE is defined%}
+synce
+ptp clock profile g8275.1
+ number-ports {{ PTP_SYNCE.numberport}}
+{% if PTP_SYNCE.ptp is defined %}
+ {% for ptp_params in PTP_SYNCE.ptp -%}
+ clock-port  {{ ptp_params.clockport }}
+ {% if ptp_params.interface is defined %}
+  network-interface {{ptp_params.interface}}
+ {% endif %}
+  exit
+ {% endfor %}
+{% endif %}
+!
+{% if PTP_SYNCE.interfaces is defined %}
+{% for interface in  PTP_SYNCE.interfaces -%}
+interface {{ interface.name }}
+ synce
+  mode {{ interface.mode }}
+{% if interface.inputsource is defined %}
+  input-source {{ interface.inputsource }}
+{%endif%}
+{% if interface.outputsource is defined %}
+  {{interface.outputsource}}
+{%endif%}
+{% if interface.waittorestore is defined %}
+  wait-to-restore {{ interface.waittorestore }}
+{% endif %}
+ exit
+{% endfor %}
+{% endif %}
+{%endif%}

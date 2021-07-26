@@ -1,0 +1,23 @@
+---
+  - hosts: ocnos
+    gather_facts: no
+
+    tasks:
+
+      - name: Create configuration templates for AGG node
+        template:
+          src: "templates/{{ ansible_network_os }}_hardwareprofile.j2"
+          dest: "configs/{{ inventory_hostname }}hardware.config"
+      
+      - name: load configs hardware
+        ocnos_config:
+          src: "configs/{{ inventory_hostname }}hardware.config"
+      
+      - name: show hardware config ocnos
+        cli_command:
+          command: show running-config | include hardware-profile 
+        register: result1
+
+      - name: debug
+        debug:
+          msg: "{{ result1.stdout_lines }}"

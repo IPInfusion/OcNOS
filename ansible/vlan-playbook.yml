@@ -1,0 +1,24 @@
+---
+  - hosts: ocnos
+    gather_facts: no
+
+    tasks:
+
+      - name: Create configuration templates for AGG node
+        template:
+          src: "templates/{{ ansible_network_os }}_vlan.j2"
+          dest: "configs/{{ inventory_hostname }}vlan.config"
+
+      - name: load configs vlan
+        ocnos_config:
+          src: "configs/{{ inventory_hostname }}vlan.config"
+
+      - name: show vlan config ocnos
+        cli_command:
+          command: show vlan brief
+        register: result1
+
+      - name: debug
+        debug:
+          msg: "{{ result1.stdout_lines }}"
+

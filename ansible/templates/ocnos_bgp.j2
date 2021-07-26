@@ -1,0 +1,53 @@
+{%if bgp is defined%}
+router bgp {{ bgp.asn }}
+{% if bgp.router is defined %}
+{%else%}
+ no bgp default ipv4-unicast
+ bgp log-neighbor-changes
+ no bgp inbound-route-filter
+{% endif %}
+ {% for network in bgp.networks -%}
+  network {{ network.network_id }}
+{%if network.network_id =='36.0.0.3/32'%}
+ max-paths ibgp 2
+{%endif%}
+ {% endfor -%}
+ {% for neighbor in bgp.neighbors -%}
+ neighbor {{ neighbor.neighbor_id }} remote-as {{ neighbor.remoteas }}
+ neighbor {{ neighbor.neighbor_id }}  {{ neighbor.detection }} bfd multihop 
+ neighbor {{ neighbor.neighbor_id }} update-source {{ neighbor.updatesource }}
+ {% endfor %}
+allocate-label all
+ !
+{% for address_family in bgp.address_family -%}
+{% if address_family.address_family_type  == 'vpnv4' -%}
+ address-family {{ address_family.address_family_type }} unicast
+ {% endif %}
+ {% if address_family.address_family_type == 'labeled-unicast' -%}
+ address-family ipv4 {{ address_family.address_family_type }}
+ {% endif %}
+{% if address_family.address_family_type == 'vrf' -%}
+{% for vrf in address_family.vrfs -%}
+address-family ipv4 {{address_family.address_family_type }} {{ vrf.vrf_name }}
+{% if vrf.protocol is defined %}
+ redistribute {{vrf.protocol}}
+{% endif %}
+ redistribute connected
+ exit-address-family
+ {% endfor %}
+{% endif %}
+{% if address_family.neighbors is defined %}
+{% for neighbor in address_family.neighbors -%}
+neighbor {{neighbor.neighbor_id}} activate
+{% if neighbor.route_reflector_type is defined %}
+ neighbor {{neighbor.neighbor_id}} {{ neighbor.route_reflector_type }}
+{% endif %}
+{% if neighbor.next_hop_type is defined %}
+ neighbor {{ neighbor.neighbor_id}} {{ neighbor.next_hop_type }}
+{% endif %}
+ {% endfor %}
+exit-address-family
+!
+{% endif %}
+ {% endfor %}
+{%endif%}
