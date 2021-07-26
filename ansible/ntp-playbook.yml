@@ -1,0 +1,27 @@
+---
+  - hosts: ocnos
+    gather_facts: no
+
+    tasks:
+
+      - name: Create configuration templates for AGG node
+        template:
+          src: "templates/{{ ansible_network_os }}_ntp.j2"
+          dest: "configs/{{ inventory_hostname }}ntp.config"
+      - name: load configs ntp
+        ocnos_config:
+          src: "configs/{{ inventory_hostname }}ntp.config"
+      - name: show ntp config ocnos
+        cli_command:
+          command: show running-config ntp
+        register: result1
+      - name: debug
+        debug:
+          msg: "{{ result1.stdout_lines }}"
+      - name: show ntp logging-status
+        cli_command:
+          command: show ntp logging-status
+        register: result2
+      - name: debug
+        debug:
+          msg: "{{ result2.stdout_lines }}"

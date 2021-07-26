@@ -1,0 +1,28 @@
+---
+  - hosts: ocnos
+    gather_facts: no
+
+    tasks:
+
+      - name: Create configuration templates for AGG node
+        template:
+          src: "templates/{{ ansible_network_os }}_isisagg.j2"
+          dest: "configs/{{ inventory_hostname }}isisa.config"
+      - name: load configs isis
+        ocnos_config:
+          src: "configs/{{ inventory_hostname }}isisa.config"
+      - name: show isis config ocnos
+        cli_command:
+          command: show running-config isis
+        register: result1
+      - name: debug
+        debug:
+          msg: "{{ result1.stdout_lines }}"
+      - pause: seconds=5
+      - name: show isis neighbor
+        cli_command:
+          command: show clns neighbors
+        register: result2
+      - name: debug
+        debug:
+          msg: "{{ result2.stdout_lines }}" 
