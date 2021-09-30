@@ -962,7 +962,7 @@
            cmmOSNR                                   INTEGER,
            cmmCurrentPostVOAProvisionedChannelPower  INTEGER,
            cmmCurrentQMargin                         INTEGER,
-           cmmCurrentuncorrectedBlockCount           Counter32,
+           cmmFECUncorrectedBlocksCount              Counter32,
            cmmLaserAge                               INTEGER,
            cmmOperFecMode                            INTEGER
         }
@@ -1393,12 +1393,12 @@
              '-100001' indicates internal error"
         ::= { cmmCoherentChannelEntry 32 }
 
-       cmmCurrentuncorrectedBlockCount           OBJECT-TYPE
+       cmmFECUncorrectedBlocksCount           OBJECT-TYPE
          SYNTAX           Counter32
          MAX-ACCESS       read-only
          STATUS           current
          DESCRIPTION
-            "Current UnCorrected Block-Count value."
+            "FEC UnCorrected Blocks Count value."
         ::= { cmmCoherentChannelEntry 33 }
 
        cmmLaserAge            OBJECT-TYPE
@@ -1946,7 +1946,8 @@
            cmmLoopbackType                    INTEGER,
            cmmPrbsType                        INTEGER,
            cmmFecMode                         INTEGER,
-           cmmOperationalMode                 INTEGER
+           cmmOperationalMode                 INTEGER,
+           cmmLinkDownPolicy                  BITS
         }
 
       cmmSoftTxDisable     OBJECT-TYPE
@@ -2118,6 +2119,20 @@
             "Current operational mode.
             -100001 indicates internal error"
         ::= { cmmCoherentChannelConfigTableEntry  12 }
+
+     cmmLinkDownPolicy OBJECT-TYPE
+        SYNTAX        BITS   {
+                             pre-fec-ber(0),
+                             q-margin(1),
+                             snr(2),
+                             chromatic-dispersion(3),
+                             rx-power(4)
+                             }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Make link down when parameters violate threshold values."
+        ::= { cmmCoherentChannelConfigTableEntry 13 }
 
    -- ## CoherentChannelMonitorConfigTable
 
@@ -2444,17 +2459,17 @@
 
     CmmCoherentChannelErrorCountTableEntry    ::=
       SEQUENCE {
-                cmmFecUncorrectedBlockCount       Counter64,
+                cmmFecUncorrectedBlocksCountSinceReset       Counter64,
                 cmmOtnSmBip8ErrorCount            Counter64
                }
-    cmmFecUncorrectedBlockCount     OBJECT-TYPE
+    cmmFecUncorrectedBlocksCountSinceReset     OBJECT-TYPE
       SYNTAX         Counter64
       MAX-ACCESS     read-only
       STATUS         current
       DESCRIPTION
         "Specifies the Uncorrected Fec BlockCount value of the network
-         interface, in a Coherent optical module. '0' indicates internal
-         error. Device not ready, Not Applicable."
+         interface since module reset, in a Coherent optical module.
+         '0' indicates internal error. Device not ready, Not Applicable."
      ::= { cmmCoherentChannelErrorCountTableEntry 1 }
 
     cmmOtnSmBip8ErrorCount       OBJECT-TYPE
