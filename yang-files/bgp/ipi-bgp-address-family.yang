@@ -21,17 +21,17 @@ submodule ipi-bgp-address-family {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2021-05-27;
+        revision-date 2021-09-03;
     }
 
     import ietf-inet-types {
@@ -39,7 +39,7 @@ submodule ipi-bgp-address-family {
         revision-date 2013-07-15;
     }
 
-    include ipi-bgp-common { revision-date 2021-07-05;}
+    include ipi-bgp-common { revision-date 2021-09-20;}
     organization
         "IP Infusion Inc.";
 
@@ -52,6 +52,16 @@ submodule ipi-bgp-address-family {
     description
         "Datamodel for bgp network list";
 
+
+    revision "2021-09-15" {
+        description "removed the yang drop element for the additional-path attributes for the bgp-add-path feature.";
+        reference " 0.4.3.";
+    }
+
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference " 0.4.2.";
+    }
 
     revision "2021-06-09" {
         description "Removal of default ipv4 unicast activate";
@@ -149,6 +159,7 @@ submodule ipi-bgp-address-family {
             uses route-flap-dampening-config-param;
             uses address-family-redist-list-top;
             uses bgp-redistribute-ospf-top;
+            uses bgp-srv6-vpnv4-config;
         } // End of address-family-list
     } // END of address-family-grouping definition.
     grouping address-family-config {
@@ -164,11 +175,39 @@ submodule ipi-bgp-address-family {
             description "BGP sub address family identifier";
         } // END of safi definition.
 
+        leaf additional-path-fast-reroute  {
+            if-feature feature-list:HAVE_BGP_PIC_CORE_EDGE;
+            type  empty;
+            description "Use this attribute to specify fast-reroute tie-break secondary-path";
+        } // END of additional-path-fast-reroute definition.
+
         leaf mvpn-abr-enable  {
             if-feature feature-list:HAVE_BGP_MVPN;
             type  empty;
             description "Use this attribute to enable RFC7524 ABR for MVPN";
         } // END of mvpn-abr-enable definition.
+
+        leaf additional-paths-mode  {
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  ipi-bgp-types:bgp_additional_path_type_t;
+            description ">Use this attribute to add additional paths in the BGP table";
+        } // END of additional-paths-mode definition.
+
+        leaf additional-path-select-all  {
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  empty;
+            description "Use this attribute to select criteria to pick the paths";
+        } // END of additional-path-select-all definition.
+
+        leaf additional-paths-best-select-count  {
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  uint8 {
+                 range "2..3"  {
+                    description "2..3:Number of best paths in additional paths to be selected";
+                 }
+            }
+            description "Use this attribute to select best N paths";
+        } // END of additional-paths-best-select-count definition.
 
         leaf no-client-route-reflection  {
             type  empty;
@@ -248,6 +287,13 @@ submodule ipi-bgp-address-family {
                         non-summarized routes are first advertised, then the corresponding
                         summarized routes are withdrawn from all the connected peers.";
         } // END of enable-auto-summary definition.
+
+        leaf enable-additional-path-pic  {
+            if-feature feature-list:HAVE_BGP_PIC_CORE_EDGE;
+            type  empty;
+            description "Use this attribute to enable the additional paths in the BGP
+                        table,install the indirect nexthop in RIB";
+        } // END of enable-additional-path-pic definition.
 
         leaf enable-network-igp-sync  {
             type  empty;
@@ -587,6 +633,78 @@ submodule ipi-bgp-address-family {
         } // END of backdoor definition.
 
     } // END of bgp-address-family-network-list-config definition.
+    grouping bgp-srv6-vpnv4-config {
+        description
+            "BGP SRV6";
+        container bgp-srv6 {
+            if-feature feature-list:HAVE_SRV6;
+            description
+                "SRv6 container for BGP segment routing";
+            container config {
+                presence "yes";
+                description
+                    "Segment routing SRv6 configuration and other CLIs inside srv6";
+                uses bgp-srv6-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Segment routing V6 runtime parameters";
+                uses bgp-srv6-config;
+            } // END of state-container definition.
+            uses bgp-srv6-locator-lists-config;
+        } // END of bgp-srv6-container definition.
+    } // END of bgp-srv6-vpnv4-config definition.
+    grouping bgp-srv6-locator-lists-config {
+        description
+            "Locator";
+
+        list locator {
+            key "bgpSRv6LocatorName";
+            description
+                "Properties of a locator list";
+            leaf bgpSRv6LocatorName  {
+                type  leafref {
+                    path  "../config/bgpSRv6LocatorName";
+                }
+                description "Locator name";
+            } // END of bgpSRv6LocatorName definition.
+
+            container config {
+                description
+                    "Config parameters for locator-list configuration";
+                uses bgp-locator-name-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "";
+                uses bgp-locator-name-config;
+            } // END of state-container definition.
+        } // End of locator-list
+    } // END of bgp-srv6-locator-lists-config definition.
+    grouping bgp-srv6-config {
+        description
+            "config attribute for SRv6 for SR Policies";
+        leaf bgpSRv6enable  {
+            type  empty;
+            mandatory true;
+            description "";
+        } // END of bgpSRv6enable definition.
+
+    } // END of bgp-srv6-config definition.
+    grouping bgp-locator-name-config {
+        description
+            "config attribute for SRv6 for SR Policies";
+        leaf bgpSRv6LocatorName  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Locator name";
+        } // END of bgpSRv6LocatorName definition.
+
+    } // END of bgp-locator-name-config definition.
     grouping route-flap-dampening-config-param {
         description
             "Grouping for BGP Route Flap Dampening User Configurable Parameters";

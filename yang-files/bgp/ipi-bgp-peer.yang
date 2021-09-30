@@ -21,21 +21,22 @@ submodule ipi-bgp-peer {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2021-05-27;
+        revision-date 2021-09-03;
     }
 
-    include ipi-bgp-common { revision-date 2021-07-05;}
-    include ipi-bgp-address-family { revision-date 2021-06-09;}
+    include ipi-bgp-common { revision-date 2021-09-20;}
+    include ipi-bgp-address-family { revision-date 2021-09-15;}
+    include ipi-bgp-epe { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
 
@@ -48,6 +49,21 @@ submodule ipi-bgp-peer {
     description
         "";
 
+
+    revision "2021-09-15" {
+        description "removed the yang drop element for the additional-path attributes for the bgp-add-path feature.";
+        reference " 0.7.2.";
+    }
+
+    revision "2021-08-26" {
+        description "Added dependency constraint between auth-key-encrypt and password attrs for the peer authentication password CLI";
+        reference " 0.7.1.";
+    }
+
+    revision "2021-08-16" {
+        description "Removed the Yang drop element for the additional-paths-mode attribute";
+        reference " 0.7.0.";
+    }
 
     revision "2021-07-05" {
         description "Remodelled BGP peer authentication password object list";
@@ -121,7 +137,7 @@ submodule ipi-bgp-peer {
 
 
             list bgp-password {
-            when " /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
+            when " /bgp/bgp-instance/peer/bgp-password/config/auth-key-encrypt + /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
                 key "password";
                 max-elements 1;
                 description
@@ -455,6 +471,7 @@ submodule ipi-bgp-peer {
                     uses bgp-peer-timers-config;
                 } // END of state-container definition.
             } // END of timers-container definition.
+            uses egress-engineering-grouping;
         } // End of peer-list
     } // END of peer-grouping definition.
     grouping bgp-peer-common-config {
@@ -751,6 +768,31 @@ submodule ipi-bgp-peer {
             type  ipi-bgp-types:bgp_safi_type_t;
             description "BGP sub address family identifier";
         } // END of safi definition.
+
+        leaf additional-paths-mode  {
+            when " /bgp/bgp-instance/peer/address-family/config/activate ";
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  ipi-bgp-types:bgp_peer_additional_path_type_t;
+            description "Adds additional paths in the BGP table";
+        } // END of additional-paths-mode definition.
+
+        leaf additional-path-select-all  {
+            when " /bgp/bgp-instance/peer/address-family/config/activate ";
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  empty;
+            description "Attribute to select advertise additional path";
+        } // END of additional-path-select-all definition.
+
+        leaf additional-paths-best-select-count  {
+            when " /bgp/bgp-instance/peer/address-family/config/activate ";
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  uint8 {
+                 range "2..3"  {
+                    description "2..3:Number of best paths in additional paths to be selected";
+                 }
+            }
+            description "Attribute to select best advertise additional path";
+        } // END of additional-paths-best-select-count definition.
 
         leaf route-server-client  {
             type  empty;

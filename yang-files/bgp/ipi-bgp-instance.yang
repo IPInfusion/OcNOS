@@ -21,7 +21,7 @@ submodule ipi-bgp-instance {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import ietf-inet-types {
@@ -31,14 +31,17 @@ submodule ipi-bgp-instance {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2021-05-27;
+        revision-date 2021-09-03;
     }
 
-    include ipi-bgp-common { revision-date 2021-07-05;}
-    include ipi-bgp-address-family { revision-date 2021-06-09;}
-    include ipi-bgp-peer-group { revision-date 2021-07-05;}
-    include ipi-bgp-peer { revision-date 2021-07-05;}
-    include ipi-bgp-address-family-vrf { revision-date 2021-07-05;}
+    include ipi-bgp-common { revision-date 2021-09-20;}
+    include ipi-bgp-evpn-rib { revision-date 2021-09-03;}
+    include ipi-bgp-link-state { revision-date 2021-09-03;}
+    include ipi-bgp-address-family { revision-date 2021-09-15;}
+    include ipi-bgp-peer-group { revision-date 2021-09-15;}
+    include ipi-bgp-peer { revision-date 2021-09-15;}
+    include ipi-bgp-address-family-vrf { revision-date 2021-08-26;}
+    include ipi-bgp-epe { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
 
@@ -51,6 +54,21 @@ submodule ipi-bgp-instance {
     description
         "";
 
+
+    revision "2021-08-27" {
+        description "deprecated the bgp additional-paths CLI under bgp mode and removed the yang drop element for the additional-path attriute for the bgp-add-path feature";
+        reference " 0.5.2.";
+    }
+
+    revision "2021-08-25" {
+        description "Dependent object addition for bgp-vrf configs";
+        reference " 0.5.1.";
+    }
+
+    revision "2021-08-09" {
+        description "MPLS nexthop tracking command is added";
+        reference " 0.5.0.";
+    }
 
     revision "2021-06-11" {
         description "Added dependency constraint for graceful-restart CLI's restart-time, stale-path-max-retention-time and graceful-reset";
@@ -298,6 +316,8 @@ submodule ipi-bgp-instance {
                             } // END of state-container definition.
                         } // End of route-list
                     } // END of routes-container definition.
+                    uses evpn-routes-grouping;
+                    uses link-state-grouping;
                 } // End of address-family-list
             } // END of rib-container definition.
             uses bgp-allocate-label-top;
@@ -305,6 +325,7 @@ submodule ipi-bgp-instance {
             uses peer-group-grouping;
             uses peer-grouping;
             uses address-family-vrf-grouping;
+            uses peer-engineering-grouping;
         } // End of bgp-instance-list
     } // END of bgp-instance-grouping definition.
     grouping bgp-instance-rib-address-family-state {
@@ -346,12 +367,14 @@ submodule ipi-bgp-instance {
         description
             "allocate label configuration for  BGP instance";
         leaf all-routes  {
+            when " not(/bgp/bgp-instance/allocate-label/config/route-map-name) ";
             if-feature feature-list:HAVE_BGP_LU;
             type  empty;
             description "Use this attribute to allocate label to all the advertised routes";
         } // END of all-routes definition.
 
         leaf route-map-name  {
+            when " not(/bgp/bgp-instance/allocate-label/config/all-routes) ";
             if-feature feature-list:HAVE_BGP_LU;
             type  string {
                 length "1..1965";
@@ -520,19 +543,19 @@ submodule ipi-bgp-instance {
                         the local autonomous system.";
         } // END of local-preference definition.
 
-        leaf graceful-shutdown-capable  {
-            type  empty;
-            description "Use this attribute to enable the graceful shutdown capability at the
-                        router level and make available the graceful-shutdown related
-                        attributes at the router and BGP neighbor levels.";
-        } // END of graceful-shutdown-capable definition.
-
         leaf graceful-shutdown  {
             type  empty;
             description "Use this attribute to gracefully shut down all BGP IPv4 sessions under
                         this router. The BGP graceful shutdown feature reduces packet loss
                         during maintenance activity.";
         } // END of graceful-shutdown definition.
+
+        leaf graceful-shutdown-capable  {
+            type  empty;
+            description "Use this attribute to enable the graceful shutdown capability at the
+                        router level and make available the graceful-shutdown related
+                        attributes at the router and BGP neighbor levels.";
+        } // END of graceful-shutdown-capable definition.
 
         leaf graceful-shutdown-local-preference  {
             type  uint32 {
@@ -686,6 +709,24 @@ submodule ipi-bgp-instance {
             }
             description "Use this attribute to specify peer AS number in BGP confederation";
         } // END of peer-as-number definition.
+
+        leaf enable-mpls-nexthop-tracking  {
+            when " /bgp/global/config/enable-nexthop-tracking ";
+            if-feature feature-list:HAVE_MPLS_LSP_TRACKING;
+            type  empty;
+            description "Use this attribute to enable mpls nexthop address tracking. MPLS
+                        Nexthop address tracking is an event-driven notification system
+                        that monitors the status of LSP installed in the NSM and reports
+                        changes that affect internal BGP (iBGP) or external BGP (eBGP)
+                        prefixes directly to theBGP process. This improves the overall BGP
+                        convergence time, by allowing BGP to respond rapidly to nexthop
+                        changes for FTN installed in the NSM. If MPLS nexthop tracking is
+                        enabled after certain routes are learned, the registration of all
+                        nexthops for selected BGP routes is done after the mpls nexthop
+                        tracking feature is enabled. If MPLS nexthop tracking is disabled, and
+                        if there are still some selected BGP routes, BGP de-registers the
+                        nexthops of all selected BGP routes from NSM.";
+        } // END of enable-mpls-nexthop-tracking definition.
 
     } // END of bgp-instance-common-config definition.
     grouping bgp-graceful-restart-config {

@@ -23,17 +23,17 @@ module ipi-isis {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-isis-types {
         prefix ipi-isis-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ietf-inet-types {
@@ -41,15 +41,21 @@ module ipi-isis {
         revision-date 2013-07-15;
     }
 
-    import feature-list {
-        prefix feature-list;
-        revision-date 2021-05-03;
+    import ipi-interface {
+        prefix ipi-interface;
+        revision-date 2021-09-28;
     }
 
-    include ipi-isis-extended { revision-date 2021-06-30;}
-    include ipi-isis-lsp { revision-date 2021-06-30;}
-    include ipi-isis-interface { revision-date 2021-06-30;}
-    include ipi-isis-cspf { revision-date 2021-06-30;}
+    import feature-list {
+        prefix feature-list;
+        revision-date 2021-09-30;
+    }
+
+    include ipi-isis-extended { revision-date 2021-09-03;}
+    include ipi-isis-lsp { revision-date 2021-09-03;}
+    include ipi-isis-interface { revision-date 2021-09-03;}
+    include ipi-isis-sr { revision-date 2021-09-03;}
+    include ipi-isis-cspf { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
 
@@ -63,8 +69,18 @@ module ipi-isis {
         "Model for managing IS-IS Instance";
 
 
-    revision "2021-06-30" {
-        description "Updated data types to use standard yang types wherever applicable";
+    revision "2021-09-08" {
+        description "Datamodel change for passive-interface command";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-08-16" {
+        description "ISIS-TE Metric Extension's GET API support";
         reference " 0.4.0.";
     }
 
@@ -168,6 +184,37 @@ module ipi-isis {
             description "If the problem is a malformed TLV, the tlv-type is set to the type
                         value of the suspicious TLV. Otherwise, this leaf is not presen";
         } // END of tlv-type definition.
+
+        leaf global-block-base  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  int32;
+            config false;
+            description "Start ID";
+        } // END of global-block-base definition.
+
+        leaf global-block-range  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  int32;
+            config false;
+            description "End ID";
+        } // END of global-block-range definition.
+
+        leaf received-index  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  uint32;
+            config false;
+            description "Index";
+        } // END of received-index definition.
+
+        leaf routing-protocol  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            config false;
+            description "Module Name";
+        } // END of routing-protocol definition.
 
     } // END of isis-notif-state definition.
     grouping isis-global-config {
@@ -307,6 +354,7 @@ module ipi-isis {
         } // END of priority-tag definition.
 
         leaf enable-cspf-capability  {
+            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:enable-mpls-traffic-engg-level-1  or /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:enable-mpls-traffic-engg-level-2 ";
             if-feature feature-list:HAVE_ISIS_CSPF;
             type  empty;
             description "Use this attribute to enable the constrained shortest path first
@@ -353,6 +401,7 @@ module ipi-isis {
         description
             "Configuration items for ISIS MPLS Traffic Engineering";
         leaf enable-mpls-traffic-engg-level-1  {
+            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style = 'wide' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:level-number != 'level-2' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:level-capability != 'level-2-only' ";
             if-feature feature-list:HAVE_ISIS_TE;
             type  empty;
             description "Use this attribute to configure MPLS Traffic Engineering feature for
@@ -360,6 +409,7 @@ module ipi-isis {
         } // END of enable-mpls-traffic-engg-level-1 definition.
 
         leaf enable-mpls-traffic-engg-level-2  {
+            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style = 'wide' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:level-number != 'level-1' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:level-capability != 'level-1' ";
             if-feature feature-list:HAVE_ISIS_TE;
             type  empty;
             description "Use this attribute to configure MPLS Traffic Engineering feature for
@@ -522,6 +572,105 @@ module ipi-isis {
         } // END of domain-snp definition.
 
     } // END of isis-domain-auth-config definition.
+    grouping isis-passive-interface-top {
+        description
+            "Grouping for ISIS passive interface";
+        container passive-interfaces {
+            description
+                "ISIS passive interfaces";
+            container config {
+                description
+                    "Configuration data for ISIS passive interface all";
+                uses isis-passive-interface-all-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for ISIS passive interface all";
+                uses isis-passive-interface-all-config;
+            } // END of state-container definition.
+            uses isis-passive-interface-name-top;
+            uses isis-disable-passive-interface-name-top;
+        } // END of passive-interfaces-container definition.
+    } // END of isis-passive-interface-top definition.
+    grouping isis-passive-interface-name-top {
+        description
+            "Grouping for isis passive interface name";
+
+        list passive-interface {
+            key "name";
+            description
+                "List of ISIS passive interfaces";
+            leaf name  {
+                type  leafref {
+                    path  "../config/name";
+                }
+                description "Use this attribute to set interface as passive.";
+            } // END of name definition.
+
+            container config {
+                description
+                    "Configuration data for ISIS passive interface";
+                uses isis-passive-interface-name-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for ISIS passive interface state";
+                uses isis-passive-interface-name-config;
+            } // END of state-container definition.
+        } // End of passive-interface-list
+    } // END of isis-passive-interface-name-top definition.
+    grouping isis-passive-interface-name-config {
+        description
+            "Grouping for ISIS passive interface configuration data";
+        leaf name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Use this attribute to set interface as passive.";
+        } // END of name definition.
+
+    } // END of isis-passive-interface-name-config definition.
+    grouping isis-disable-passive-interface-name-top {
+        description
+            "Grouping for disabled isis passive interface name";
+
+        list disable-passive-interface {
+            key "name";
+            description
+                "List of ISIS passive interfaces disabled";
+            leaf name  {
+                type  leafref {
+                    path  "../config/name";
+                }
+                description "Use this attribute to set interface as passive.";
+            } // END of name definition.
+
+            container config {
+                description
+                    "Configuration data for ISIS passive interface disable";
+                uses isis-disable-passive-interface-name-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for ISIS passive interface disable state";
+                uses isis-disable-passive-interface-name-config;
+            } // END of state-container definition.
+        } // End of disable-passive-interface-list
+    } // END of isis-disable-passive-interface-name-top definition.
+    grouping isis-disable-passive-interface-name-config {
+        description
+            "Grouping for ISIS disable passive interface configuration data";
+        leaf name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Use this attribute to disbale passive interface.";
+        } // END of name definition.
+
+    } // END of isis-disable-passive-interface-name-config definition.
     grouping isis-metric-config {
         description
             "Configuration items for ISIS Metric";
@@ -612,23 +761,15 @@ module ipi-isis {
         } // END of ipv6-router-id definition.
 
     } // END of isis-te-ipv6-router-id-config definition.
-    grouping isis-passive-if-config {
+    grouping isis-passive-interface-all-config {
         description
-            "Configuration items for ISIS Passive Interface";
-        leaf-list name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to suppress routing updates on all interfaces or on
-                        a specified interface, which puts the interfaces into passive mode. To
-                        advertise passive prefixes in LSP, there is no need to have at an
-                        interface configured with ip router isis. Enabling passive interface
-                        on an ISIS enabled interface disables ISIS on the interface and makes
-                        the interface passive.";
-        } // END of name definition.
+            "Grouping for ISIS passive interface all configuration data";
+        leaf passive-interface-all  {
+            type  empty;
+            description "Use this attribute to set all interfaces as passive.";
+        } // END of passive-interface-all definition.
 
-    } // END of isis-passive-if-config definition.
+    } // END of isis-passive-interface-all-config definition.
     grouping isis-route-state {
         description
             "State items for ISIS Route";
@@ -943,6 +1084,61 @@ module ipi-isis {
         } // END of transition definition.
 
     } // END of isis-mt-config definition.
+    grouping isis-srv6-config {
+        description
+            "config attribute for SRv6 for SR Policies";
+        leaf isisSRv6enable  {
+            type  empty;
+            mandatory true;
+            description "";
+        } // END of isisSRv6enable definition.
+
+    } // END of isis-srv6-config definition.
+    grouping locator-name-config {
+        description
+            "config attribute for SRv6 for SR Policies";
+        leaf isisSRv6LocatorName  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Locator name";
+        } // END of isisSRv6LocatorName definition.
+
+    } // END of locator-name-config definition.
+    grouping isis-srv6-locator-lists-config {
+        description
+            "Locator";
+        container locator-lists {
+            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:address-family-ipv6/ipi-isis:isis-srv6/ipi-isis:config/ipi-isis:isisSRv6enable ";
+            description
+                "SRv6 Locator List";
+
+            list locator-list {
+                key "isisSRv6LocatorName";
+                description
+                    "Properties of a locator list";
+                leaf isisSRv6LocatorName  {
+                    type  leafref {
+                        path  "../config/isisSRv6LocatorName";
+                    }
+                    description "Locator name";
+                } // END of isisSRv6LocatorName definition.
+
+                container config {
+                    description
+                        "Config parameters for locator-list configuration";
+                    uses locator-name-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "";
+                    uses locator-name-config;
+                } // END of state-container definition.
+            } // End of locator-list-list
+        } // END of locator-lists-container definition.
+    } // END of isis-srv6-locator-lists-config definition.
     grouping isis-distance-config {
         description
             "Configuration items for ISIS Distance";
@@ -1581,22 +1777,6 @@ module ipi-isis {
                     uses isis-te-ipv6-router-id-config;
                 } // END of state-container definition.
             } // END of traffic-engineering-container definition.
-            container passive-interface {
-                description
-                    "This objectlist defines the ISIS Passive Interface";
-                container config {
-                    description
-                        "This container defines the ISIS Passive Interface configurations";
-                    uses isis-passive-if-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "This container defines the ISIS Passive Interface Operational
-                                information";
-                    uses isis-passive-if-config;
-                } // END of state-container definition.
-            } // END of passive-interface-container definition.
             container address-family-ipv6 {
                 when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:address-family-ipv6/ipi-isis:config/ipi-isis:afi-name ";
                 description
@@ -1782,6 +1962,24 @@ module ipi-isis {
                         "This container defines the ISIS AF IPv6 operational information";
                     uses isis-af-ipv6-config;
                 } // END of state-container definition.
+                container isis-srv6 {
+                    if-feature feature-list:HAVE_SRV6;
+                    description
+                        "SRv6 container for segment routing";
+                    container config {
+                        presence "yes";
+                        description
+                            "Segment routing SRv6 configuration and other CLIs inside srv6";
+                        uses isis-srv6-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Segment routing V6 runtime parameters";
+                        uses isis-srv6-config;
+                    } // END of state-container definition.
+                    uses isis-srv6-locator-lists-config;
+                } // END of isis-srv6-container definition.
             } // END of address-family-ipv6-container definition.
             container lsp-over-load {
                 when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:lsp-over-load/ipi-isis:config/ipi-isis:enabled ";
@@ -1980,6 +2178,7 @@ module ipi-isis {
                     uses isis-af-ipv4-state;
                 } // END of state-container definition.
             } // END of address-family-ipv4-container definition.
+            uses isis-passive-interface-top;
             uses spf-level-grouping;
             uses level-grouping;
             uses level-runtime-grouping;
@@ -1987,6 +2186,10 @@ module ipi-isis {
             uses ipv4-lfa-route-grouping;
             uses ipv6-lfa-route-grouping;
             uses fast-reroute-grouping;
+            uses segment-routing-capability-grouping;
+            uses segment-routing-mapping-server-ipv4-grouping;
+            uses segment-routing-mapping-server-ipv6-grouping;
+            uses segment-routing-grouping;
         } // End of isis-instance-list
         container debug {
             description
@@ -2589,6 +2792,37 @@ module ipi-isis {
         description
             "If the problem is a malformed TLV, the tlv-type is set to the type
                     value of the suspicious TLV. Otherwise, this leaf is not presen";
+        }
+    }
+
+    notification isis-segment-routing-index-out-of-range {
+
+        description "SRGB range.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf global-block-base {
+            type  int32;
+        description
+            "Start ID";
+        }
+
+        leaf global-block-range {
+            type  int32;
+        description
+            "End ID";
+        }
+
+        leaf received-index {
+            type  uint32;
+        description
+            "Index";
+        }
+
+        leaf routing-protocol {
+            type  string;
+        description
+            "Module Name";
         }
     }
 

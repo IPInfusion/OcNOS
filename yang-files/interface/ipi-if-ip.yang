@@ -23,22 +23,22 @@ module ipi-if-ip {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ietf-inet-types {
@@ -48,7 +48,7 @@ module ipi-if-ip {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -64,8 +64,8 @@ module ipi-if-ip {
         "Datamodel for IP interface module";
 
 
-    revision "2021-06-30" {
-        description "Update descriptions of attribute";
+    revision "2021-09-01" {
+        description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
         reference " 0.6.0.";
     }
 
@@ -98,7 +98,7 @@ module ipi-if-ip {
         description
             "Configuration data for IPv4 per interface";
         leaf primary-ip-addr  {
-            // when " ipi-interface:interfaces/interface/config/switchport-status != '1' ";
+            // when " ipi-interface:interfaces/interface/config/enable-switchport != '1' ";
             type  inet:ipv4-prefix;
             description "Use this attribute to specify that an IP address and prefix length
                         will be used by this interface. If the secondary parameter is not
@@ -204,11 +204,20 @@ module ipi-if-ip {
         } // END of ipv6-unnumbered-if-name definition.
 
         leaf enable-dhcp-ipv6-address  {
+            // when " !ipi-if-ip:ipv6/config/enable-dhcp-temporary-ipv6-address + !ipi-dhcp-client:client/interfaces/interface/config/ipv6-information-request ";
             if-feature feature-list:HAVE_DHCP_CLIENT;
             type  empty;
             description "Use this attribute to  specify that a DHCP client will be used to
                         obtain an IP address for an interface.";
         } // END of enable-dhcp-ipv6-address definition.
+
+        leaf enable-dhcp-temporary-ipv6-address  {
+            // when " !ipi-if-ip:ipv6/config/enable-dhcp-ipv6-address + !ipi-dhcp-client:client/interfaces/interface/config/ipv6-information-request + !ipi-dhcp-client:client/interfaces/interface/config/request-ipv6-prefix ";
+            if-feature feature-list:HAVE_DHCP_CLIENT;
+            type  empty;
+            description "Use this attribute to  specify that a DHCP client will be used to
+                        obtain an temporary IP address for an interface.";
+        } // END of enable-dhcp-temporary-ipv6-address definition.
 
         leaf dhcp-address-prefix-length  {
             if-feature feature-list:HAVE_DHCP_CLIENT;
@@ -224,7 +233,9 @@ module ipi-if-ip {
         leaf enable-auto-config  {
             if-feature feature-list:HAVE_IPV6;
             type  boolean;
-            description "";
+            description "Use this attribute to enable autoconfiguration of IPv6 address in host
+                        interface. IPv6 address are formed using the Prefix learned from RA
+                        and suffix formed using EUI-64 method.";
         } // END of enable-auto-config definition.
 
     } // END of ipv6-interface-config definition.
@@ -384,7 +395,7 @@ module ipi-if-ip {
             "Parameters for the IPv6 address family";
 
         list addresses {
-        when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
+        when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             if-feature feature-list:HAVE_IPV6;
             key "ipv6-address";
             description

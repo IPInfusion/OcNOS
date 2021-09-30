@@ -21,7 +21,7 @@ submodule ipi-ospf-area {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import ietf-inet-types {
@@ -36,11 +36,16 @@ submodule ipi-ospf-area {
 
     import ipi-ospf-types {
         prefix ipi-ospf-types;
-        revision-date 2021-05-22;
+        revision-date 2021-09-20;
     }
 
-    include ipi-ospf-authentication { revision-date 2021-06-30;}
-    include ipi-ospf-timers { revision-date 2021-06-30;}
+    import cml-data-types {
+        prefix cml-data-types;
+        revision-date 2021-09-03;
+    }
+
+    include ipi-ospf-authentication { revision-date 2021-09-03;}
+    include ipi-ospf-timers { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
 
@@ -53,6 +58,26 @@ submodule ipi-ospf-area {
     description
         "Layer-3 OSPF area configurations";
 
+
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference "Initial Version";
+    }
+
+    revision "2021-08-20" {
+        description "Add a config false, for the TE link-delay state container";
+        reference "Initial Version";
+    }
+
+    revision "2021-08-18" {
+        description "State attributes for Segment Routing, TI LFA and TE";
+        reference "Initial Version";
+    }
+
+    revision "2021-07-06" {
+        description "Added support for sham-links";
+        reference "Initial Version";
+    }
 
     revision "2021-05-07" {
         description "Fix NSSA CLI command to avoid show duplicate nssa input";
@@ -108,6 +133,597 @@ submodule ipi-ospf-area {
             } // END of lsa-checksum definition.
 
     } // END of ospfv2-area-state definition.
+    grouping ospfv2-traffic-engineering-database-lsdb-tlv-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV state
+                        attributes";
+        leaf type  {
+            type  ipi-ospf-types:ospf_tlv_type_t;
+            description "This attributes returns the tlv type value.";
+        } // END of type definition.
+
+        leaf link-type  {
+            type  ipi-ospf-types:ospf_tlv_link_type_t;
+            description "This attribute returns the link-type value.";
+        } // END of link-type definition.
+
+        leaf-list local-interface-addresses  {
+            type  inet:ipv4-address;
+            description "This attribute returns the local-interface-addresses values.";
+        } // END of local-interface-addresses definition.
+
+        leaf-list remote-interface-addresses  {
+            type  inet:ipv4-address;
+            description "This attribute returns the local-interface-addresses values.";
+        } // END of remote-interface-addresses definition.
+
+        leaf-list local-ids  {
+            if-feature feature-list:HAVE_GMPLS;
+            type  inet:ipv4-address;
+            description "This attribute returns the local-ids values.";
+        } // END of local-ids definition.
+
+        leaf-list remote-ids  {
+            if-feature feature-list:HAVE_GMPLS;
+            type  inet:ipv4-address;
+            description "This attribute returns the local-ids values.";
+        } // END of remote-ids definition.
+
+        leaf local-interface-id  {
+            if-feature feature-list:HAVE_GMPLS;
+            type  uint32;
+            description "This attribute returns the local-interface-id value.";
+        } // END of local-interface-id definition.
+
+        leaf local-remote-interface-id  {
+            if-feature feature-list:HAVE_GMPLS;
+            type  uint32;
+            description "This attribute returns the local-remote-interface-id value.";
+        } // END of local-remote-interface-id definition.
+
+        leaf metric  {
+            type  uint32;
+            description "This attribute returns the metric value.";
+        } // END of metric definition.
+
+        leaf maximum-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            units "Kbps";
+            description "This attribute returns the maximum bandwidth in kbps.";
+        } // END of maximum-bandwidth definition.
+
+        leaf maximum-reservable-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            units "Kbps";
+            description "This attribute returns the maximum reservable bandwidth in kbps.";
+        } // END of maximum-reservable-bandwidth definition.
+
+        leaf bandwidth-constraint-model  {
+            if-feature feature-list:HAVE_DSTE;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute returns the bandwidth constraint model.";
+        } // END of bandwidth-constraint-model definition.
+
+        leaf bandwidth-constraint  {
+            if-feature feature-list:HAVE_DSTE;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            units "Kbps";
+            description "This attribute returns the bandwidth constraint value.";
+        } // END of bandwidth-constraint definition.
+
+        leaf-list resource-color-values  {
+            type  decimal64 {
+                 fraction-digits 6;            }
+            description "This attribute returns the resource color values.";
+        } // END of resource-color-values definition.
+
+        leaf protection-type  {
+            type  cml-data-types:cml_gmpls_protection_type_t;
+            description "This attribute returns the protection type.";
+        } // END of protection-type definition.
+
+        leaf shared-risk-link-groups  {
+            type  uint32;
+            description "This attribute returns the shared risk link groups values.";
+        } // END of shared-risk-link-groups definition.
+
+    } // END of ospfv2-traffic-engineering-database-lsdb-tlv-state definition.
+    grouping ospfv2-traffic-engineering-database-lsdb-router-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV router state
+                        attributes";
+        leaf router-id  {
+            type  inet:ipv4-address;
+            description "This attributes returns the TLV router-id value.";
+        } // END of router-id definition.
+
+    } // END of ospfv2-traffic-engineering-database-lsdb-router-state definition.
+    grouping ospfv2-traffic-engineering-database-lsdb-link-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV link state
+                        attributes";
+        leaf link-id  {
+            type  inet:ipv4-address;
+            description "This attribute returns the link-id value.";
+        } // END of link-id definition.
+
+    } // END of ospfv2-traffic-engineering-database-lsdb-link-state definition.
+    grouping ospfv2-traffic-engineering-database-lsdb-tlv-capability-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV capability
+                        state attributes";
+        leaf type  {
+            if-feature feature-list:HAVE_GMPLS;
+            type  cml-data-types:cml_gmpls_capability_type_t;
+            description "This attribute returns the GMPLS capability value.";
+        } // END of type definition.
+
+        leaf encoding-type  {
+            if-feature feature-list:HAVE_GMPLS;
+            type  cml-data-types:cml_gmpls_encoding_type_t;
+            description "This attribute returns the GMPLS encoding type value.";
+        } // END of encoding-type definition.
+
+        leaf mtu  {
+            type  uint16;
+            description "This attribute returns the MTU value.";
+        } // END of mtu definition.
+
+        leaf minimum-lsp-bandwidth  {
+            if-feature feature-list:HAVE_GMPLS;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            units "Kbps";
+            description "This attribute returns the minimum lsp bandwidth in kbps.";
+        } // END of minimum-lsp-bandwidth definition.
+
+        leaf sdh-indication  {
+            if-feature feature-list:HAVE_TDM;
+            type  cml-data-types:cml_gmpls_sdh_indication_t;
+            description "This attribute returns the GMPLS SONET/SDH indication.";
+        } // END of sdh-indication definition.
+
+    } // END of ospfv2-traffic-engineering-database-lsdb-tlv-capability-state definition.
+    grouping ospfv2-traffic-engineering-database-bandwidth-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) database bandwidth
+                        attributes";
+        leaf priority  {
+            type  uint8;
+            description "This attribute returns the priority value.";
+        } // END of priority definition.
+
+        leaf bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            units "Kbps";
+            description "This attribute returns the bandwidth value in kbps.";
+        } // END of bandwidth definition.
+
+    } // END of ospfv2-traffic-engineering-database-bandwidth-state definition.
+    grouping ospfv2-traffic-engineering-database-lsps-bandwidth {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV capability
+                        maximum lsp bandwidth";
+        container maximum-lsp-bandwidths {
+            config false;
+            description
+                "OSPF traffic engineering(TE) database TLV capability maximum lsp
+                        bandwidth";
+
+            list maximum-lsp-bandwidth {
+                key "priority";
+                config false;
+                description
+                    "List of maximum lsp bandwidths";
+                leaf priority  {
+                    type  leafref {
+                        path  "../state/priority";
+                    }
+                    description "This attribute returns the priority value.";
+                } // END of priority definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-traffic-engineering-database-bandwidth-state;
+                } // END of state-container definition.
+            } // End of maximum-lsp-bandwidth-list
+        } // END of maximum-lsp-bandwidths-container definition.
+    } // END of ospfv2-traffic-engineering-database-lsps-bandwidth definition.
+    grouping ospfv2-traffic-engineering-database-lsdb-tlv-capability {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV capability";
+        container capability {
+            config false;
+            description
+                "OSPF traffic engineering(TE) database TLV capability";
+            container state {
+                config false;
+                description
+                    "Operational state data for TE database TLV capability";
+                uses ospfv2-traffic-engineering-database-lsdb-tlv-capability-state;
+            } // END of state-container definition.
+            uses ospfv2-traffic-engineering-database-lsps-bandwidth;
+        } // END of capability-container definition.
+    } // END of ospfv2-traffic-engineering-database-lsdb-tlv-capability definition.
+    grouping ospfv2-traffic-engineering-database-unreserved-bandwidth {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV unreserved
+                        bandwidth";
+        container unreserved-bandwidths {
+            config false;
+            description
+                "OSPF traffic engineering(TE) database TLV unreserved bandwidths";
+
+            list unreserved-bandwidth {
+                key "priority";
+                config false;
+                description
+                    "List of unreserved bandwidths";
+                leaf priority  {
+                    type  leafref {
+                        path  "../state/priority";
+                    }
+                    description "This attribute returns the priority value.";
+                } // END of priority definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-traffic-engineering-database-bandwidth-state;
+                } // END of state-container definition.
+            } // End of unreserved-bandwidth-list
+        } // END of unreserved-bandwidths-container definition.
+    } // END of ospfv2-traffic-engineering-database-unreserved-bandwidth definition.
+    grouping ospfv2-traffic-engineering-database-link-delay-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) link delay state attributes";
+        leaf anomalous-bit  {
+            type  empty;
+            description "This attribute returns the Anomalous (A) bit value. The A bit is set
+                        when the measured value of this parameter exceeds its configured
+                        maximum threshold. The A bit is cleared when the measured value falls
+                        below its configured reuse threshold.";
+        } // END of anomalous-bit definition.
+
+        leaf delay  {
+            type  uint32;
+            units "microseconds";
+            description "This attribute returns the average link delay in microseconds.";
+        } // END of delay definition.
+
+    } // END of ospfv2-traffic-engineering-database-link-delay-state definition.
+    grouping ospfv2-traffic-engineering-database-link-delay {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV link delay";
+        container link-delay {
+            config false;
+            description
+                "OSPF traffic engineering(TE) database TLV link delay";
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ospfv2-traffic-engineering-database-link-delay-state;
+            } // END of state-container definition.
+        } // END of link-delay-container definition.
+    } // END of ospfv2-traffic-engineering-database-link-delay definition.
+    grouping ospfv2-traffic-engineering-database-link-min-max-delay-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) link min/max delay state
+                        attributes";
+        leaf anomalous-bit  {
+            type  empty;
+            description "This attribute returns the Anomalous (A) bit value. The A bit is set
+                        when the measured value of this parameter exceeds its configured
+                        maximum threshold. The A bit is cleared when the measured value falls
+                        below its configured reuse threshold.";
+        } // END of anomalous-bit definition.
+
+        leaf minimum-delay  {
+            type  uint32;
+            units "microseconds";
+            description "This attribute returns the minimum delay value in microseconds.";
+        } // END of minimum-delay definition.
+
+        leaf maximum-delay  {
+            type  uint32;
+            units "microseconds";
+            description "This attribute returns the maximum delay value in microseconds.";
+        } // END of maximum-delay definition.
+
+    } // END of ospfv2-traffic-engineering-database-link-min-max-delay-state definition.
+    grouping ospfv2-traffic-engineering-database-link-min-max-delay {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV link min/max
+                        delay";
+        container link-min-max-delay {
+            config false;
+            description
+                "OSPF traffic engineering(TE) database TLV link min/max delay";
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ospfv2-traffic-engineering-database-link-min-max-delay-state;
+            } // END of state-container definition.
+        } // END of link-min-max-delay-container definition.
+    } // END of ospfv2-traffic-engineering-database-link-min-max-delay definition.
+    grouping ospfv2-traffic-engineering-database-link-delay-variation-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) link delay variation state
+                        attributes";
+        leaf delay-variation  {
+            type  uint32;
+            units "microseconds";
+            description "This attribute returns the average link delay variation value in
+                        microseconds.";
+        } // END of delay-variation definition.
+
+    } // END of ospfv2-traffic-engineering-database-link-delay-variation-state definition.
+    grouping ospfv2-traffic-engineering-database-link-delay-variation {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV link delay
+                        variation";
+        container link-delay-variation {
+            config false;
+            description
+                "OSPF traffic engineering(TE) database TLV link delay variation";
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ospfv2-traffic-engineering-database-link-delay-variation-state;
+            } // END of state-container definition.
+        } // END of link-delay-variation-container definition.
+    } // END of ospfv2-traffic-engineering-database-link-delay-variation definition.
+    grouping ospfv2-traffic-engineering-database-link-loss-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) link loss state attributes";
+        leaf anomalous-bit  {
+            type  empty;
+            description "This attribute returns the Anomalous (A) bit value. The A bit is set
+                        when the measured value of this parameter exceeds its configured
+                        maximum threshold. The A bit is cleared when the measured value falls
+                        below its configured reuse threshold.";
+        } // END of anomalous-bit definition.
+
+        leaf loss  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            units "%";
+            description "This attribute returns the link packet loss as percentage of total
+                        traffic sent over a configurable interval.";
+        } // END of loss definition.
+
+    } // END of ospfv2-traffic-engineering-database-link-loss-state definition.
+    grouping ospfv2-traffic-engineering-database-link-loss {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV link loss";
+        container link-loss {
+            config false;
+            description
+                "OSPF traffic engineering(TE) database TLV link loss";
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ospfv2-traffic-engineering-database-link-loss-state;
+            } // END of state-container definition.
+        } // END of link-loss-container definition.
+    } // END of ospfv2-traffic-engineering-database-link-loss definition.
+    grouping ospfv2-traffic-engineering-database-link-bandwidth-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) link bandwidth state
+                        attributes";
+        leaf residual-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            units "Kbps";
+            description "This attribute returns the residual bandwidth value.";
+        } // END of residual-bandwidth definition.
+
+        leaf available-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            units "Kbps";
+            description "This attribute returns the available bandwidth value.";
+        } // END of available-bandwidth definition.
+
+        leaf utilized-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            units "Kbps";
+            description "This attribute returns the utilized bandwidth value.";
+        } // END of utilized-bandwidth definition.
+
+    } // END of ospfv2-traffic-engineering-database-link-bandwidth-state definition.
+    grouping ospfv2-traffic-engineering-database-link-bandwidth {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV link bandwidth";
+        container link-bandwidth {
+            config false;
+            description
+                "OSPF traffic engineering(TE) database TLV link bandwidth";
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ospfv2-traffic-engineering-database-link-bandwidth-state;
+            } // END of state-container definition.
+        } // END of link-bandwidth-container definition.
+    } // END of ospfv2-traffic-engineering-database-link-bandwidth definition.
+    grouping ospfv2-traffic-engineering-database-lsdb-tlv {
+        description
+            "Grouping for OSPF traffic engineering(TE) database TLV";
+        container tlv {
+            config false;
+            description
+                "OSPF traffic engineering(TE) database TLV";
+            container state {
+                config false;
+                description
+                    "Operational state data for TE database TLV";
+                uses ospfv2-traffic-engineering-database-lsdb-tlv-state;
+            } // END of state-container definition.
+            uses ospfv2-traffic-engineering-database-lsdb-tlv-capability;
+            uses ospfv2-traffic-engineering-database-unreserved-bandwidth;
+            uses ospfv2-traffic-engineering-database-link-delay;
+            uses ospfv2-traffic-engineering-database-link-min-max-delay;
+            uses ospfv2-traffic-engineering-database-link-delay-variation;
+            uses ospfv2-traffic-engineering-database-link-loss;
+            uses ospfv2-traffic-engineering-database-link-bandwidth;
+        } // END of tlv-container definition.
+    } // END of ospfv2-traffic-engineering-database-lsdb-tlv definition.
+    grouping ospfv2-traffic-engineering-database-lsdb-state {
+        description
+            "Grouping for OSPF traffic engineering(TE) database lsdb state
+                        attributes";
+        leaf advertising-router  {
+            type  inet:ipv4-address;
+            description "This attribute returns the advertising-router value.";
+        } // END of advertising-router definition.
+
+        leaf ls-options  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute returns the ls-options value.";
+        } // END of ls-options definition.
+
+        leaf ls-opaque-type  {
+            type  uint32;
+            description "This attribute returns the ls-opaque type value.";
+        } // END of ls-opaque-type definition.
+
+        leaf ls-age  {
+            type  uint16;
+            description "This attribute returns the ls-age value.";
+        } // END of ls-age definition.
+
+        leaf ls-type  {
+            type  ipi-ospf-types:ospf_lsdb_type_t;
+            description "This attribute returns the ls-type value.";
+        } // END of ls-type definition.
+
+        leaf ls-instance  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute returns the ls-instance value.";
+        } // END of ls-instance definition.
+
+        leaf ls-sequence-number  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute returns the ls-sequence-number value.";
+        } // END of ls-sequence-number definition.
+
+        leaf ls-checksum  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute returns the ls-checksum value.";
+        } // END of ls-checksum definition.
+
+        leaf ls-length  {
+            type  uint16;
+            description "This attribute returns the ls-length value.";
+        } // END of ls-length definition.
+
+    } // END of ospfv2-traffic-engineering-database-lsdb-state definition.
+    grouping ospfv2-traffic-engineering-database-lsdb {
+        description
+            "Grouping for OSPF traffic engineering(TE) database lsdb";
+        container traffic-engineering-database {
+            if-feature feature-list:HAVE_OSPF_CSPF;
+            config false;
+            description
+                "OSPF traffic engineering(TE) database lsdb";
+
+            list link {
+                key "advertising-router link-id";
+                config false;
+                description
+                    "List of TLV links for link state database";
+                leaf advertising-router  {
+                    type  leafref {
+                        path  "../state/advertising-router";
+                    }
+                    description "This attributes returns the advertising-router value.";
+                } // END of advertising-router definition.
+
+                leaf link-id  {
+                    type  leafref {
+                        path  "../state/link-id";
+                    }
+                    description "This attributes returns the link-id value.";
+                } // END of link-id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for TLV links";
+                    uses ospfv2-traffic-engineering-database-lsdb-link-state;
+                    uses ospfv2-traffic-engineering-database-lsdb-state;
+                } // END of state-container definition.
+                uses ospfv2-traffic-engineering-database-lsdb-tlv;
+            } // End of link-list
+
+            list router {
+                key "router-id";
+                config false;
+                description
+                    "List of TLV routers for link state database";
+                leaf router-id  {
+                    type  leafref {
+                        path  "../state/router-id";
+                    }
+                    description "This attributes returns the router-id value.";
+                } // END of router-id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for TLV routers";
+                    uses ospfv2-traffic-engineering-database-lsdb-router-state;
+                    uses ospfv2-traffic-engineering-database-lsdb-state;
+                } // END of state-container definition.
+            } // End of router-list
+        } // END of traffic-engineering-database-container definition.
+    } // END of ospfv2-traffic-engineering-database-lsdb definition.
     grouping ospfv2-area-access-control-list-filter-in-config {
         description
             "Grouping for OSPF area filter access control list configuration data";
@@ -775,6 +1391,65 @@ submodule ipi-ospf-area {
             } // End of virtual-link-list
         } // END of virtual-links-container definition.
     } // END of ospfv2-area-virtual-link-top definition.
+    grouping ospfv2-area-sham-link-config {
+        description
+            "Grouping for OSPF area sham link configuration data";
+        leaf source-id  {
+            type  inet:ipv4-address;
+            description "Use this attribute to set the source IP address of sham link.";
+        } // END of source-id definition.
+
+        leaf destination-id  {
+            type  inet:ipv4-address;
+            description "Use this attribute to set the destination IP address of sham link.";
+        } // END of destination-id definition.
+
+        leaf cost  {
+            type  uint16 {
+                 range "1..65535"  {
+                    description "1..65535:Cost values";
+                 }
+            }
+            default "1";
+            description "Use this attribute to set the sham link cost.";
+        } // END of cost definition.
+
+    } // END of ospfv2-area-sham-link-config definition.
+    grouping ospfv2-area-sham-link-top {
+        description
+            "Grouping for OSPF area sham link";
+        container sham-links {
+            if-feature feature-list:HAVE_VRF_OSPF;
+            if-feature feature-list:HAVE_MPLS;
+            description
+                "OSPF area sham links";
+
+            list sham-link {
+                key "source-id destination-id";
+                description
+                    "List of OSPF area sham links";
+                leaf source-id  {
+                    type  leafref {
+                        path  "../config/source-id";
+                    }
+                    description "Use this attribute to set the source IP address of sham link.";
+                } // END of source-id definition.
+
+                leaf destination-id  {
+                    type  leafref {
+                        path  "../config/destination-id";
+                    }
+                    description "Use this attribute to set the destination IP address of sham link.";
+                } // END of destination-id definition.
+
+                container config {
+                    description
+                        "Configuration data for OSPF area sham link";
+                    uses ospfv2-area-sham-link-config;
+                } // END of config-container definition.
+            } // End of sham-link-list
+        } // END of sham-links-container definition.
+    } // END of ospfv2-area-sham-link-top definition.
     grouping ospfv2-area-config {
         description
             "Grouping for OSPF area configuration data";
@@ -857,6 +1532,8 @@ submodule ipi-ospf-area {
                 uses ospfv2-area-network-top;
                 uses ospfv2-area-range-top;
                 uses ospfv2-area-virtual-link-top;
+                uses ospfv2-area-sham-link-top;
+                uses ospfv2-traffic-engineering-database-lsdb;
             } // End of area-list
             container config {
                 description

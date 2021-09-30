@@ -21,17 +21,17 @@ submodule ipi-bgp-common {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2021-05-27;
+        revision-date 2021-09-03;
     }
 
     import ietf-yang-types {
@@ -56,6 +56,36 @@ submodule ipi-bgp-common {
     description
         "Datamodel for bgp network list";
 
+
+    revision "2021-09-20" {
+        description "Spelling has been corrected for an attribute";
+        reference " 0.7.4.";
+    }
+
+    revision "2021-09-15" {
+        description "removed yang drop element for the additional-path attributes for the bgp-add-path feature.";
+        reference " 0.7.3.";
+    }
+
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference " 0.7.2.";
+    }
+
+    revision "2021-08-13" {
+        description "BGP ECMP Support for EIBGP routes";
+        reference " 0.7.1.";
+    }
+
+    revision "2021-08-03" {
+        description "Added new attribute for enabling Enhe capability for IPv6 VPNv4 peer";
+        reference " 0.7.0.";
+    }
+
+    revision "2021-07-21" {
+        description "Added per peer runtime attributes for BGP EVPN route counters";
+        reference " 0.6.0.";
+    }
 
     revision "2021-07-05" {
         description "Remodelled authentication password object list for BGP peer, VRF peer and peer-group";
@@ -143,6 +173,18 @@ submodule ipi-bgp-common {
                         routes for iBGP. You can install multiple BGP paths to the same
                         destination to balance the load on the forwarding path.";
         } // END of ibgp-max-path definition.
+
+        leaf eibgp-max-path  {
+            type  int32 {
+                 range "2..64"  {
+                    description "2..64:Supported multipath number";
+                 }
+            }
+            default "2";
+            description "Use this attribute to set the number of equal-cost multi-path (ECMP)
+                        routes for eiBGP. You can install multiple BGP paths to the same
+                        destination to balance the load on the forwarding path";
+        } // END of eibgp-max-path definition.
 
     } // END of bgp-af-maximum-paths-config definition.
     grouping address-family-redist-list-config {
@@ -259,7 +301,7 @@ submodule ipi-bgp-common {
         } // END of next-hop-address definition.
 
         leaf peer-network-weight  {
-            type  int32;
+            type  uint32;
             config false;
             description "BGP attribute weight";
         } // END of peer-network-weight definition.
@@ -292,7 +334,7 @@ submodule ipi-bgp-common {
         } // END of damp-time-to-reuse definition.
 
         leaf bgp-med-value  {
-            type  int32;
+            type  uint32;
             config false;
             description "BGP multi-exit discriminator attribute used in BGP route selection
                         process";
@@ -358,7 +400,7 @@ submodule ipi-bgp-common {
         } // END of route-peer-address definition.
 
         leaf route-local-preference  {
-            type  int32;
+            type  uint32;
             config false;
             description "Local preference";
         } // END of route-local-preference definition.
@@ -482,6 +524,20 @@ submodule ipi-bgp-common {
                 config false;
                 description "BGP info best selected route";
             } // END of selected-route definition.
+
+            leaf bgp-tx-path-id  {
+                if-feature feature-list:HAVE_BGP_ADD_PATH;
+                type  int16;
+                config false;
+                description "bgp add path Tx Id";
+            } // END of bgp-tx-path-id definition.
+
+            leaf bgp-rx-path-id  {
+                if-feature feature-list:HAVE_BGP_ADD_PATH;
+                type  int16;
+                config false;
+                description "bgp add path Rx Id";
+            } // END of bgp-rx-path-id definition.
 
             leaf ipv4-multicast-capability  {
                 type  string {
@@ -788,6 +844,16 @@ submodule ipi-bgp-common {
                         the neighbor routers the capability of graceful restart.";
         } // END of capability-graceful-restart definition.
 
+        leaf extended-nexthop-encode  {
+            when " /bgp/bgp-instance/peer/address-family/config/activate ";
+            type  empty;
+            description "A BGP speaker that wishes to advertise an IPv6 next hop for IPv4 NLRI
+                        for VPN-IPv4 NLRI to a BGP peer as per this specification MUST use the
+                        Capability Advertisement procedures defined with the Extended Next Hop
+                        Encoding capability to determine whether its peer supports this for
+                        the NLRI AFI/SAFI pair(s) of interest.";
+        } // END of extended-nexthop-encode definition.
+
         leaf mapped-peer-group-tag-af  {
             when " /bgp/bgp-instance/peer/address-family/config/activate ";
             type  string {
@@ -842,7 +908,7 @@ submodule ipi-bgp-common {
         leaf threshold-percentage  {
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:threshold-value, 1 to 100 percent";
+                    description "1..100:threshold-value 1 to 100 percent";
                  }
             }
             default "75";
@@ -1042,7 +1108,6 @@ submodule ipi-bgp-common {
         description
             "Grouping for attributes related to Table map";
         container table-map {
-            if-feature feature-list:HAVE_BGP_TABLE_MAP;
             description
                 "Container for Attributes related to Table map";
             container config {
@@ -1281,6 +1346,18 @@ submodule ipi-bgp-common {
             description "Configured ibgp ECMP multipath";
         } // END of configured-max-paths-ibgp definition.
 
+        leaf max-paths-eibgp  {
+            type  int16;
+            config false;
+            description "ECMP multipath eibgp maxpath";
+        } // END of max-paths-eibgp definition.
+
+        leaf configured-max-paths-eibgp  {
+            type  int16;
+            config false;
+            description "Configured eibgp ECMP multipath";
+        } // END of configured-max-paths-eibgp definition.
+
         leaf community-count  {
             type  int32;
             config false;
@@ -1412,9 +1489,8 @@ submodule ipi-bgp-common {
         } // END of forward-status-preserve definition.
 
         leaf orf-type-prefix  {
-            type  string {
+            type  cml-data-types:cml_line_t {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
             }
             config false;
             description "Outbound Route Filter (ORF) type Prefix-list";
@@ -1439,9 +1515,8 @@ submodule ipi-bgp-common {
         } // END of orf-type-prefix-receive-mode definition.
 
         leaf orf-type-prefix-old  {
-            type  string {
+            type  cml-data-types:cml_line_t {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
             }
             config false;
             description "Outbound Route Filter (ORF) type Prefix-list";
@@ -1646,12 +1721,32 @@ submodule ipi-bgp-common {
             description "No Interfaces bound to BGP Instance";
         } // END of no-interface-binding definition.
 
-        leaf capability-lable-unicast  {
+        leaf additional-path-send-capability  {
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            config false;
+            description "Add-Path Send Capability";
+        } // END of additional-path-send-capability definition.
+
+        leaf additional-path-receive-capability  {
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            config false;
+            description "Add-Path Receive Capability";
+        } // END of additional-path-receive-capability definition.
+
+        leaf capability-label-unicast  {
             if-feature feature-list:HAVE_BGP_LU;
             type  ipi-bgp-types:bgp_capability_type_t;
             config false;
             description "Label Unicast neighbour Capability";
-        } // END of capability-lable-unicast definition.
+        } // END of capability-label-unicast definition.
 
         leaf capability-ipv4-multicast  {
             type  ipi-bgp-types:bgp_capability_type_t;
@@ -1700,6 +1795,41 @@ submodule ipi-bgp-common {
             config false;
             description "Ipv6 Label Unicast neighbour Capability";
         } // END of capability-ipv6-label-unicast definition.
+
+        leaf evpn-ad-route-count  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  uint32;
+            config false;
+            description "L2VPN EVPN Auto Discovery route count";
+        } // END of evpn-ad-route-count definition.
+
+        leaf evpn-mac-ip-route-count  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  uint32;
+            config false;
+            description "L2VPN EVPN MAC/IP route count";
+        } // END of evpn-mac-ip-route-count definition.
+
+        leaf evpn-inclusive-multicast-route-count  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  uint32;
+            config false;
+            description "L2VPN EVPN Inclusive Multicast route count";
+        } // END of evpn-inclusive-multicast-route-count definition.
+
+        leaf evpn-segment-route-count  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  uint32;
+            config false;
+            description "L2VPN EVPN ESI route count";
+        } // END of evpn-segment-route-count definition.
+
+        leaf evpn-ip-prefix-route-count  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  uint32;
+            config false;
+            description "L2VPN EVPN IP prefix route count";
+        } // END of evpn-ip-prefix-route-count definition.
 
     } // END of bgp-peer-run-time-attribute-state definition.
     grouping bgp-address-family-vrf-peer-group-config {

@@ -21,21 +21,21 @@ submodule ipi-bgp-peer-group {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2021-05-27;
+        revision-date 2021-09-03;
     }
 
-    include ipi-bgp-common { revision-date 2021-07-05;}
-    include ipi-bgp-address-family { revision-date 2021-06-09;}
+    include ipi-bgp-common { revision-date 2021-09-20;}
+    include ipi-bgp-address-family { revision-date 2021-09-15;}
     organization
         "IP Infusion Inc.";
 
@@ -48,6 +48,21 @@ submodule ipi-bgp-peer-group {
     description
         "";
 
+
+    revision "2021-09-15" {
+        description "removed the yang drop element for the additional-path attributes for the bgp-add-path feature.";
+        reference " 0.3.2.";
+    }
+
+    revision "2021-08-26" {
+        description "Added dependency constraint between auth-key-encrypt and password attrs for the peer authentication password CLI";
+        reference " 0.3.1.";
+    }
+
+    revision "2021-08-16" {
+        description "Removed the Yang drop element for the additional-paths-mode attribute";
+        reference " 0.3.0.";
+    }
 
     revision "2021-07-05" {
         description "Remodelled BGP peer group authentication password object list";
@@ -106,7 +121,7 @@ submodule ipi-bgp-peer-group {
 
 
             list bgp-password {
-            when " /bgp/bgp-instance/peer-group/config/peer-as ";
+            when " /bgp/bgp-instance/peer-group/bgp-password/config/auth-key-encrypt + /bgp/bgp-instance/peer-group/config/peer-as ";
                 key "password";
                 max-elements 1;
                 description
@@ -864,6 +879,31 @@ submodule ipi-bgp-peer-group {
             type  ipi-bgp-types:bgp_safi_type_t;
             description "BGP sub address family identifier";
         } // END of safi definition.
+
+        leaf additional-paths-mode  {
+            when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate ";
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  ipi-bgp-types:bgp_peer_additional_path_type_t;
+            description "Adds additional paths in the BGP table";
+        } // END of additional-paths-mode definition.
+
+        leaf additional-path-select-all  {
+            when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate ";
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  empty;
+            description "Attribute to select advertise additional path";
+        } // END of additional-path-select-all definition.
+
+        leaf additional-paths-best-select-count  {
+            when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate ";
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  uint8 {
+                 range "2..3"  {
+                    description "2..3:Number of best paths in additional paths to be selected";
+                 }
+            }
+            description "Attribute to select best advertise additional path";
+        } // END of additional-paths-best-select-count definition.
 
         leaf route-server-client  {
             when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate ";

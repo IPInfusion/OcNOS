@@ -26,42 +26,47 @@ module ipi-ospf {
         revision-date 2013-07-15;
     }
 
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
+    }
+
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-ospf-types {
         prefix ipi-ospf-types;
-        revision-date 2021-05-22;
+        revision-date 2021-09-20;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
-    include ipi-ospf-redistribute { revision-date 2021-05-05;}
-    include ipi-ospf-global { revision-date 2021-06-30;}
-    include ipi-ospf-multi-area-interface { revision-date 2021-06-30;}
-    include ipi-ospf-processes-state { revision-date 2021-06-30;}
-    include ipi-ospf-distribute-lists { revision-date 2021-06-30;}
-    include ipi-ospf-timers { revision-date 2021-06-30;}
-    include ipi-ospf-area { revision-date 2021-05-07;}
-    include ipi-ospf-te-link { revision-date 2021-06-30;}
-    include ipi-ospf-debug { revision-date 2021-06-30;}
-    include ipi-ospf-interface { revision-date 2021-06-11;}
-    include ipi-ospf-authentication { revision-date 2021-06-30;}
+    include ipi-ospf-redistribute { revision-date 2021-09-03;}
+    include ipi-ospf-global { revision-date 2021-09-03;}
+    include ipi-ospf-multi-area-interface { revision-date 2021-09-03;}
+    include ipi-ospf-processes-state { revision-date 2021-09-03;}
+    include ipi-ospf-distribute-lists { revision-date 2021-09-03;}
+    include ipi-ospf-timers { revision-date 2021-09-03;}
+    include ipi-ospf-area { revision-date 2021-09-03;}
+    include ipi-ospf-te-link { revision-date 2021-09-03;}
+    include ipi-ospf-debug { revision-date 2021-09-10;}
+    include ipi-ospf-interface { revision-date 2021-09-03;}
+    include ipi-ospf-authentication { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
 
@@ -75,8 +80,38 @@ module ipi-ospf {
         "Layer-3 Open Shortest Path First (OSPF)";
 
 
-    revision "2021-06-30" {
-        description "Updated data types to use standard yang types wherever applicable";
+    revision "2021-09-10" {
+        description "Added debug terminal state tree";
+        reference "Initial Version";
+    }
+
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference "Initial Version";
+    }
+
+    revision "2021-08-20" {
+        description "Add config false for the TE link-delay state container";
+        reference "Initial Version";
+    }
+
+    revision "2021-08-18" {
+        description "State attributes for Segment Routing, TI LFA and TE";
+        reference "Initial Version";
+    }
+
+    revision "2021-08-05" {
+        description "Graceful restart disable-all-neighbors triggers deletion of disable-all-neighbor when set";
+        reference "Initial Version";
+    }
+
+    revision "2021-07-30" {
+        description "Added support for sham-links";
+        reference "Initial Version";
+    }
+
+    revision "2021-07-27" {
+        description "Created new datatype OSPF_PASSIVE_ADDR_MODE_T that contains only the option enable to be used in passive-interface IFNAME A.B.C.D";
         reference "Initial Version";
     }
 
@@ -398,6 +433,435 @@ module ipi-ospf {
         } // END of mpls definition.
 
     } // END of ospfv2-segment-routing-config definition.
+    grouping ospfv2-segment-routing-external-prefix-range-state {
+        description
+            "Grouping for OSPF segment routing external prefix range state";
+        leaf ls-id  {
+            type  inet:ipv4-address;
+            description "External prefix range LS-ID.";
+        } // END of ls-id definition.
+
+        leaf prefix  {
+            type  inet:ipv4-prefix;
+            description "External prefix range prefix.";
+        } // END of prefix definition.
+
+        leaf advertising-router  {
+            type  inet:ipv4-address;
+            description "External prefix range advertising router.";
+        } // END of advertising-router definition.
+
+        leaf range-size  {
+            type  uint16;
+            description "External prefix range size.";
+        } // END of range-size definition.
+
+    } // END of ospfv2-segment-routing-external-prefix-range-state definition.
+    grouping ospfv2-segment-routing-external-prefix-range {
+        description
+            "Grouping for OSPF segment routinng external prefix range";
+        container external-prefixes-range {
+            config false;
+            description
+                "OSPF segment routing external prefix range";
+
+            list external-prefix-range {
+                key "ls-id";
+                config false;
+                description
+                    "List of OSPF segment routing external prefix range";
+                leaf ls-id  {
+                    type  leafref {
+                        path  "../state/ls-id";
+                    }
+                    description "Use this attribute to set the segment routing external prefix lsa
+                                value.";
+                } // END of ls-id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for OSPF segment routing global block";
+                    uses ospfv2-segment-routing-external-prefix-range-state;
+                } // END of state-container definition.
+            } // End of external-prefix-range-list
+        } // END of external-prefixes-range-container definition.
+    } // END of ospfv2-segment-routing-external-prefix-range definition.
+    grouping ospfv2-segment-routing-external-prefix-lsa-state {
+        description
+            "Grouping for OSPF segment routing external prefix lsa state";
+        leaf prefix  {
+            type  inet:ipv4-prefix;
+            description "External prefix LSA prefix.";
+        } // END of prefix definition.
+
+        leaf advertising-router  {
+            type  inet:ipv4-address;
+            description "External prefix LSA advertising router.";
+        } // END of advertising-router definition.
+
+        leaf route-type  {
+            type  ipi-ospf-types:ospf_prefix_route_type_t;
+            description "External prefix LSA route type.";
+        } // END of route-type definition.
+
+    } // END of ospfv2-segment-routing-external-prefix-lsa-state definition.
+    grouping ospfv2-segment-routing-external-prefix-lsa {
+        description
+            "Grouping for OSPF segment routinng external prefix lsa";
+        container external-prefixes-lsa {
+            config false;
+            description
+                "OSPF segment routing external prefix lsa";
+
+            list external-prefix-lsa {
+                key "prefix";
+                config false;
+                description
+                    "List of OSPF segment routing external prefix lsa";
+                leaf prefix  {
+                    type  leafref {
+                        path  "../state/prefix";
+                    }
+                    description "Use this attribute to set the segment routing external prefix lsa
+                                value.";
+                } // END of prefix definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for OSPF segment routing global block";
+                    uses ospfv2-segment-routing-external-prefix-lsa-state;
+                } // END of state-container definition.
+            } // End of external-prefix-lsa-list
+        } // END of external-prefixes-lsa-container definition.
+    } // END of ospfv2-segment-routing-external-prefix-lsa definition.
+    grouping ospfv2-segment-routing-announce-list-state {
+        description
+            "Grouping for OSPF segment routing announce lists state";
+        leaf area-id  {
+            type  inet:ipv4-address;
+            description "This attribute returns the area-id value.";
+        } // END of area-id definition.
+
+        leaf instance  {
+            type  uint32;
+            description "This attribute returns the instance value.";
+        } // END of instance definition.
+
+    } // END of ospfv2-segment-routing-announce-list-state definition.
+    grouping ospfv2-segment-routing-announce-lists-top {
+        description
+            "Grouping for OSPF segment routing announce lists";
+        container announce-lists {
+            config false;
+            description
+                "OSPF segment routing announce lists";
+
+            list announce-list {
+                key "area-id";
+                config false;
+                description
+                    "List of OSPF segment routing announce lists";
+                leaf area-id  {
+                    type  leafref {
+                        path  "../state/area-id";
+                    }
+                    description "This attribute returns the area-id value.";
+                } // END of area-id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for OSPF segment routing global block";
+                    uses ospfv2-segment-routing-announce-list-state;
+                } // END of state-container definition.
+                uses ospfv2-segment-routing-external-prefix-lsa;
+                uses ospfv2-segment-routing-external-prefix-range;
+            } // End of announce-list-list
+        } // END of announce-lists-container definition.
+    } // END of ospfv2-segment-routing-announce-lists-top definition.
+    grouping ospfv2-segment-routing-mapping-servers-state {
+        description
+            "Grouping for OSPF segment routing mapping servers state";
+        leaf active-entries-count  {
+            type  yang:counter32;
+            description "Mapping servers active entries count.";
+        } // END of active-entries-count definition.
+
+        leaf inactive-entries-count  {
+            type  yang:counter32;
+            description "Mapping servers inactive entries count.";
+        } // END of inactive-entries-count definition.
+
+        leaf conflict-resolution-policy  {
+            type  ipi-ospf-types:ospf_resolution_policy_t;
+            description "Mapping servers conflict resolution policy.";
+        } // END of conflict-resolution-policy definition.
+
+    } // END of ospfv2-segment-routing-mapping-servers-state definition.
+    grouping ospfv2-segment-routing-mapping-servers-active-state {
+        description
+            "Grouping for OSPF segment routing mapping servers active state";
+        leaf prefix  {
+            type  inet:ipv4-prefix;
+            description "Mapping server prefix.";
+        } // END of prefix definition.
+
+        leaf sid-index  {
+            type  uint32;
+            description "Mapping SID index.";
+        } // END of sid-index definition.
+
+        leaf range-size  {
+            type  uint32;
+            description "Mapping server range size.";
+        } // END of range-size definition.
+
+        leaf last-prefix  {
+            type  inet:ipv4-prefix;
+            description "Mapping server last prefix.";
+        } // END of last-prefix definition.
+
+        leaf last-sid-index  {
+            type  uint32;
+            description "Mapping server last SID index.";
+        } // END of last-sid-index definition.
+
+        leaf binding-flags  {
+            type  empty;
+            description "Mapping server binding flags.";
+        } // END of binding-flags definition.
+
+        leaf preference  {
+            type  uint8;
+            description "Mapping server preference.";
+        } // END of preference definition.
+
+        leaf status  {
+            type  ipi-ospf-types:ospf_sr_mapping_server_status_t;
+            description "Mapping server status.";
+        } // END of status definition.
+
+        leaf advertising-router  {
+            type  inet:ipv4-address;
+            description "Mapping server advertising router.";
+        } // END of advertising-router definition.
+
+        leaf flags  {
+            type  uint8;
+            description "Mapping server flags.";
+        } // END of flags definition.
+
+    } // END of ospfv2-segment-routing-mapping-servers-active-state definition.
+    grouping ospfv2-segment-routing-mapping-servers-active {
+        description
+            "Grouping for OSPF segment routing mapping servers active";
+        container active-servers {
+            config false;
+            description
+                "OSPF segment routing mapping servers active";
+
+            list active-server {
+                key "prefix";
+                config false;
+                description
+                    "List of OSPF segment routing mapping servers active";
+                leaf prefix  {
+                    type  leafref {
+                        path  "../state/prefix";
+                    }
+                    description "Use this attribute to set the segment routing mapping servers active
+                                value.";
+                } // END of prefix definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for OSPF segment routing mapping servers active
+                                block";
+                    uses ospfv2-segment-routing-mapping-servers-active-state;
+                } // END of state-container definition.
+            } // End of active-server-list
+        } // END of active-servers-container definition.
+    } // END of ospfv2-segment-routing-mapping-servers-active definition.
+    grouping ospfv2-segment-routing-mapping-servers-inactive {
+        description
+            "Grouping for OSPF segment routing mapping servers inactive";
+        container inactive-servers {
+            config false;
+            description
+                "OSPF segment routing mapping servers inactive";
+
+            list inactive-server {
+                key "prefix";
+                config false;
+                description
+                    "List of OSPF segment routing mapping servers inactive";
+                leaf prefix  {
+                    type  leafref {
+                        path  "../state/prefix";
+                    }
+                    description "Use this attribute to set the segment routing mapping servers inactive
+                                value.";
+                } // END of prefix definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for OSPF segment routing mapping servers
+                                inactive block";
+                    uses ospfv2-segment-routing-mapping-servers-active-state;
+                } // END of state-container definition.
+            } // End of inactive-server-list
+        } // END of inactive-servers-container definition.
+    } // END of ospfv2-segment-routing-mapping-servers-inactive definition.
+    grouping ospfv2-segment-routing-mapping-servers-top {
+        description
+            "Grouping for OSPF segment routing mapping servers";
+        container mapping-servers {
+            config false;
+            description
+                "Operational state data for OSPF segment routing mapping servers";
+            container state {
+                config false;
+                description
+                    "Operational state data for OSPF segment routing mapping servers";
+                uses ospfv2-segment-routing-mapping-servers-state;
+            } // END of state-container definition.
+            uses ospfv2-segment-routing-mapping-servers-active;
+            uses ospfv2-segment-routing-mapping-servers-inactive;
+        } // END of mapping-servers-container definition.
+    } // END of ospfv2-segment-routing-mapping-servers-top definition.
+    grouping ospfv2-segment-routing-capabilities-state {
+        description
+            "Grouping for OSPF segment routing capabilities state";
+        leaf advertising-router  {
+            type  inet:ipv4-address;
+            description "Advertising router ID.";
+        } // END of advertising-router definition.
+
+        leaf-list algorithms  {
+            type  ipi-ospf-types:ospf_sr_algorithm_t;
+            description "Algorithm to calculate reachability to other nodes.";
+        } // END of algorithms definition.
+
+        leaf mapping-server-preference  {
+            type  uint8;
+            description "Mapping server preference.";
+        } // END of mapping-server-preference definition.
+
+    } // END of ospfv2-segment-routing-capabilities-state definition.
+    grouping ospfv2-segment-routing-capability-sid-range-state {
+        description
+            "Grouping for OSPF segment routing capability sid range state";
+        leaf start  {
+            type  uint32;
+            description "Use this attribute to set the segment routing start range value.";
+        } // END of start definition.
+
+        leaf end  {
+            type  uint32;
+            description "Use this attribute to set the segment routing end range value.";
+        } // END of end definition.
+
+    } // END of ospfv2-segment-routing-capability-sid-range-state definition.
+    grouping ospfv2-segment-routing-capability-sid-range {
+        description
+            "Grouping for OSPF segment routing capability ranges";
+        container sid-ranges {
+            config false;
+            description
+                "OSPF segment routing capability sid ranges";
+
+            list sid-range {
+                key "start end";
+                config false;
+                description
+                    "List of OSPF segment routing capability sid ranges";
+                leaf start  {
+                    type  leafref {
+                        path  "../state/start";
+                    }
+                    description "Use this attribute to set the segment routing start range value.";
+                } // END of start definition.
+
+                leaf end  {
+                    type  leafref {
+                        path  "../state/end";
+                    }
+                    description "Use this attribute to set the segment routing end range value.";
+                } // END of end definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for OSPF segment routing ranges block";
+                    uses ospfv2-segment-routing-capability-sid-range-state;
+                } // END of state-container definition.
+            } // End of sid-range-list
+        } // END of sid-ranges-container definition.
+    } // END of ospfv2-segment-routing-capability-sid-range definition.
+    grouping ospfv2-segment-routing-capability-sid-state {
+        description
+            "Grouping for OSPF segment routing capability sid state";
+        leaf total-supported  {
+            type  uint32;
+            description "Total number of supported ranges.";
+        } // END of total-supported definition.
+
+        leaf range-count  {
+            type  uint32;
+            description "Range count.";
+        } // END of range-count definition.
+
+    } // END of ospfv2-segment-routing-capability-sid-state definition.
+    grouping ospfv2-segment-routing-capability-sid {
+        description
+            "Grouping for OSPF segment routing segment identifier";
+        container segment-identifier {
+            config false;
+            description
+                "OSPF segment routing capabilities";
+            container state {
+                config false;
+                description
+                    "Operational state data for OSPF segment routing segment identifier";
+                uses ospfv2-segment-routing-capability-sid-state;
+            } // END of state-container definition.
+            uses ospfv2-segment-routing-capability-sid-range;
+        } // END of segment-identifier-container definition.
+    } // END of ospfv2-segment-routing-capability-sid definition.
+    grouping ospfv2-segment-routing-capabilities-top {
+        description
+            "Grouping for OSPF segment routing capabilities";
+        container capabilities {
+            config false;
+            description
+                "OSPF segment routing capabilities";
+
+            list capability {
+                key "advertising-router";
+                config false;
+                description
+                    "List of OSPF segment routing capabilities";
+                leaf advertising-router  {
+                    type  leafref {
+                        path  "../state/advertising-router";
+                    }
+                    description "Use this attribute to set the segment routing advertising router ID.";
+                } // END of advertising-router definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for OSPF segment routing capabilities block";
+                    uses ospfv2-segment-routing-capabilities-state;
+                } // END of state-container definition.
+                uses ospfv2-segment-routing-capability-sid;
+            } // End of capability-list
+        } // END of capabilities-container definition.
+    } // END of ospfv2-segment-routing-capabilities-top definition.
     grouping ospfv2-segment-routing-top {
         description
             "Grouping for OSPF segment routing";
@@ -418,11 +882,25 @@ module ipi-ospf {
             } // END of state-container definition.
             uses ospfv2-segment-routing-global-block-top;
             uses ospfv2-segment-routing-prefix-sid-map-top;
+            uses ospfv2-segment-routing-announce-lists-top;
+            uses ospfv2-segment-routing-mapping-servers-top;
+            uses ospfv2-segment-routing-capabilities-top;
         } // END of segment-routing-container definition.
     } // END of ospfv2-segment-routing-top definition.
     grouping ospfv2-default-information-config {
         description
             "Grouping for OSPF default information configuration data";
+        leaf originate  {
+            type  empty;
+            description "Use this attribute to create a default external route into an OSPF
+                        routing domain. The system acts like an
+                        Autonomous System Boundary Router (ASBR) when you use the
+                        default-information originate command
+                        to redistribute routes into an OSPF routing domain. An ASBR does not
+                        by default generate a default
+                        route into the OSPF routing domain";
+        } // END of originate definition.
+
         leaf always-advertise-default-route  {
             when " /ipi-ospf:ospfv2/ipi-ospf:processes/ipi-ospf:process/ipi-ospf:default-information/ipi-ospf:config/ipi-ospf:originate ";
             type  empty;
@@ -457,17 +935,6 @@ module ipi-ospf {
             description "Use this attribute to set route-map instance.";
         } // END of route-map definition.
 
-        leaf originate  {
-            type  empty;
-            description "Use this attribute to create a default external route into an OSPF
-                        routing domain. The system acts like an
-                        Autonomous System Boundary Router (ASBR) when you use the
-                        default-information originate command
-                        to redistribute routes into an OSPF routing domain. An ASBR does not
-                        by default generate a default
-                        route into the OSPF routing domain";
-        } // END of originate definition.
-
     } // END of ospfv2-default-information-config definition.
     grouping ospfv2-default-information-top {
         description
@@ -497,7 +964,7 @@ module ipi-ospf {
         } // END of address definition.
 
         leaf passive-mode  {
-            type  ipi-ospf-types:ospf_passive_mode_t;
+            type  ipi-ospf-types:ospf_passive_addr_mode_t;
             mandatory true;
             description "Use this attribute to define the passive mode.";
         } // END of passive-mode definition.
@@ -547,7 +1014,6 @@ module ipi-ospf {
 
         leaf passive-mode  {
             type  ipi-ospf-types:ospf_passive_mode_t;
-            mandatory true;
             description "Use this attribute to define the passive mode.";
         } // END of passive-mode definition.
 
@@ -594,7 +1060,7 @@ module ipi-ospf {
         description
             "Grouping for OSPF passive interface";
         container passive-interfaces {
-            when " not(/ipi-ospf:ospfv2/ipi-ospf:global/ipi-ospf:config/ipi-ospf:area-interface-config-mode) + /ipi-ospf:ospfv2/ipi-ospf:processes/ipi-ospf:process/ipi-ospf:passive-interfaces/ipi-ospf:config/ipi-ospf:passive-interface-all != '?' ";
+            when " not(/ipi-ospf:ospfv2/ipi-ospf:global/ipi-ospf:config/ipi-ospf:area-interface-config-mode) ";
             description
                 "OSPF passive interfaces";
             container config {
@@ -786,7 +1252,7 @@ module ipi-ospf {
     grouping ospfv2-topology-independent-lfa-config {
         description
             "Grouping for OSPF LFA topology independent configuration data";
-        leaf-list area-id  {
+        leaf area-id  {
             type  ipi-ospf-types:ospf_area_t;
             description "Use this attribute to set the OSPF area ID.";
         } // END of area-id definition.
@@ -795,32 +1261,40 @@ module ipi-ospf {
     grouping ospfv2-topology-independent-lfa-top {
         description
             "Grouping for OSPF LFA topology independent";
-        container topology-independent-lfa {
-            if-feature feature-list:HAVE_OSPF_TI_LFA;
-            description
-                "OSPF LFA topology independent";
-            container config {
-                description
-                    "Configuration data for OSPF LFA topology independent";
-                uses ospfv2-topology-independent-lfa-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data for OSPF LFA topology independent";
-                uses ospfv2-topology-independent-lfa-config;
-            } // END of state-container definition.
-        } // END of topology-independent-lfa-container definition.
-    } // END of ospfv2-topology-independent-lfa-top definition.
-    grouping ospfv2-lfa-per-prefix-top {
-        description
-            "Grouping for OSPF LFA per-prefix";
-        container per-prefix {
+        container topologies-independent-lfa {
             description
                 "OSPF LFA per-prefix";
-            uses ospfv2-topology-independent-lfa-top;
-        } // END of per-prefix-container definition.
-    } // END of ospfv2-lfa-per-prefix-top definition.
+
+            list topology-independent-lfa {
+                if-feature feature-list:HAVE_OSPF_TI_LFA;
+                key "area-id";
+                description
+                    "OSPF LFA topology independent";
+                leaf area-id  {
+                    type  leafref {
+                        path  "../config/area-id";
+                    }
+                    description "Use this attribute to set the OSPF area ID.";
+                } // END of area-id definition.
+
+                container config {
+                    description
+                        "Configuration data for OSPF LFA topology independent";
+                    uses ospfv2-topology-independent-lfa-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for OSPF LFA topology independent";
+                    uses ospfv2-topology-independent-lfa-config;
+                } // END of state-container definition.
+                uses ospfv2-topology-independent-lfa-routes;
+                uses ospfv2-topology-independent-lfa-neighbors;
+                uses ospfv2-topology-independent-lfa-vertices;
+                uses ospfv2-topology-independent-lfa-repair-lists;
+            } // End of topology-independent-lfa-list
+        } // END of topologies-independent-lfa-container definition.
+    } // END of ospfv2-topology-independent-lfa-top definition.
     grouping ospfv2-lfa-tie-break-config {
         description
             "Grouping for OSPF LFA tie break configuration data";
@@ -900,7 +1374,7 @@ module ipi-ospf {
                 uses ospfv2-lfa-fast-reroute-config;
             } // END of state-container definition.
             uses ospfv2-lfa-tie-breaks-top;
-            uses ospfv2-lfa-per-prefix-top;
+            uses ospfv2-topology-independent-lfa-top;
         } // END of fast-reroute-container definition.
     } // END of ospfv2-lfa-fast-reroute-top definition.
     grouping ospfv2-lfa-top {
@@ -1701,6 +2175,16 @@ module ipi-ospf {
         description "OSPF Database Timers Rate Limiting Values for LSA Throttling";
     }
 
+    rpc ospfv2-terminal-debug-sr-on {
+        if-feature feature-list:HAVE_SR_MPLS;
+        description "Segment Routing";
+    }
+
+    rpc ospfv2-terminal-debug-sr-off {
+        if-feature feature-list:HAVE_SR_MPLS;
+        description "Segment Routing";
+    }
+
     rpc ospfv2-terminal-debug-route-on {
         description "OSPF route information";
         input  {
@@ -1879,12 +2363,52 @@ module ipi-ospf {
         }
     }
 
+    rpc ospfv2-terminal-debug-cspf-events-on {
+        if-feature feature-list:HAVE_OSPF_CSPF;
+        description "CSPF Information";
+    }
+
+    rpc ospfv2-terminal-debug-cspf-events-off {
+        if-feature feature-list:HAVE_OSPF_CSPF;
+        description "CSPF Information";
+    }
+
+    rpc ospfv2-terminal-debug-cspf-hexdump-on {
+        if-feature feature-list:HAVE_OSPF_CSPF;
+        description "CSPF message hexdump";
+    }
+
+    rpc ospfv2-terminal-debug-cspf-hexdump-off {
+        if-feature feature-list:HAVE_OSPF_CSPF;
+        description "CSPF message hexdump";
+    }
+
     rpc ospfv2-terminal-debug-retransmission-on {
         description "OSPF Debug retransmission information";
     }
 
     rpc ospfv2-terminal-debug-retransmission-off {
         description "OSPF Debug retransmission information";
+    }
+
+    rpc ospfv2-terminal-debug-dist-ls-on {
+        if-feature feature-list:HAVE_BGP_LS;
+        description "OSPF distribute linkstate details";
+    }
+
+    rpc ospfv2-terminal-debug-dist-ls-off {
+        if-feature feature-list:HAVE_BGP_LS;
+        description "OSPF distribute linkstate details";
+    }
+
+    rpc ospfv2-terminal-debug-topology-independent-lfa-on {
+        if-feature feature-list:HAVE_OSPF_TI_LFA;
+        description "Topology Independent LFA";
+    }
+
+    rpc ospfv2-terminal-debug-topology-independent-lfa-off {
+        if-feature feature-list:HAVE_OSPF_TI_LFA;
+        description "Topology Independent LFA";
     }
 
     rpc ospfv2-terminal-debug-lfa-on {

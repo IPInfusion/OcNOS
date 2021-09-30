@@ -21,17 +21,22 @@ submodule ipi-dhcp-client {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ietf-inet-types {
         prefix inet;
         revision-date 2013-07-15;
+    }
+
+    import cml-data-types {
+        prefix cml-data-types;
+        revision-date 2021-09-03;
     }
 
     organization
@@ -47,8 +52,8 @@ submodule ipi-dhcp-client {
         "dhcp_client_configuration";
 
 
-    revision "2021-06-30" {
-        description "Updated data types to use standard yang types wherever applicable";
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
         reference " 0.3.0.";
     }
 
@@ -91,7 +96,61 @@ submodule ipi-dhcp-client {
             description "Use this attribute to to add an option to a DHCP request.";
         } // END of request-ipv6-dns definition.
 
+        leaf request-ipv6-domain-list  {
+            if-feature feature-list:HAVE_IPV6;
+            type  empty;
+            description "Use this attribute to specifies a search list of Domain Names to be
+                        used by the client to locate not-fully-qualified domain names.";
+        } // END of request-ipv6-domain-list definition.
+
+        leaf request-ipv6-ntp-server  {
+            if-feature feature-list:HAVE_IPV6;
+            type  empty;
+            description "Use this attribute to specifies a list of local NTP servers available
+                        for the client to synchronize their clocks.";
+        } // END of request-ipv6-ntp-server definition.
+
+        leaf request-ipv6-rapid-commit  {
+            if-feature feature-list:HAVE_IPV6;
+            type  empty;
+            description "Use this attribute to indicate the clients to enter into rapid-commit
+                        with the server.";
+        } // END of request-ipv6-rapid-commit definition.
+
+        leaf request-ipv6-vendor-opts  {
+            if-feature feature-list:HAVE_IPV6;
+            type  empty;
+            description "Use this attribute to specify a 32-bit Enterprise-ID number.";
+        } // END of request-ipv6-vendor-opts definition.
+
+        leaf ipv6-information-request  {
+            // when " ipi-dhcp-client:client/interfaces/interface/config/ipv6-client-duid-type != 2 + !ipi-if-ip:ipv6/config/enable-dhcp-ipv6-address + !ipi-if-ip:ipv6/config/enable-dhcp-temporary-ipv6-address ";
+            if-feature feature-list:HAVE_IPV6;
+            type  empty;
+            description "Use this attribute to get only stateless configuration parameters
+                        (i.e., without address).";
+        } // END of ipv6-information-request definition.
+
+        leaf ipv6-dad-wait-time  {
+            if-feature feature-list:HAVE_IPV6;
+            type  uint16 {
+                 range "1..600"  {
+                    description "1..600:DAD wait time in seconds";
+                 }
+            }
+            description "Use this attribute to Specify maximum time (in seconds) that the
+                        client should wait for the duplicate address detection (DAD) to
+                        complete on an interface.";
+        } // END of ipv6-dad-wait-time definition.
+
+        leaf ipv6-client-duid-type  {
+            if-feature feature-list:HAVE_IPV6;
+            type  cml-data-types:dhcp6_duid_type_t;
+            description "Use this attribute to configure duid type(ll or llt).";
+        } // END of ipv6-client-duid-type definition.
+
         leaf request-ipv6-prefix  {
+            // when " !ipi-dhcp-client:client/interfaces/interface/config/ipv6-information-request + !ipi-if-ip:ipv6/config/enable-dhcp-temporary-ipv6-address ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
