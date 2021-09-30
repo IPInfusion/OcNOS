@@ -23,37 +23,37 @@ module ipi-l2vpn-vpws {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-06-14;
+        revision-date 2021-09-28;
     }
 
     import ipi-network-instance-types {
         prefix ipi-network-instance-types;
-        revision-date 2020-12-15;
+        revision-date 2021-09-03;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2020-12-15;
+        revision-date 2021-09-03;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2021-05-13;
+        revision-date 2021-09-01;
     }
 
     import ipi-vpws-types {
         prefix ipi-vpws-types;
-        revision-date 2020-11-25;
+        revision-date 2021-09-03;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2021-06-10;
+        revision-date 2021-07-29;
     }
 
     import ietf-inet-types {
@@ -68,7 +68,7 @@ module ipi-l2vpn-vpws {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -83,6 +83,31 @@ module ipi-l2vpn-vpws {
     description
         "Datamodel for VPWS pseudowire";
 
+
+    revision "2021-09-06" {
+        description "Removing the dependency of L2VPN VPWS configuration in subinterface with global L2VPN VPWS configurataion";
+        reference "Initial Version";
+    }
+
+    revision "2021-09-01" {
+        description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
+        reference "Initial Version";
+    }
+
+    revision "2021-08-24" {
+        description "Updated dependency for VPWS interface on svc template name";
+        reference "Initial Version";
+    }
+
+    revision "2021-08-03" {
+        description "Added L2VPN VPWS attributes for Sub-interface";
+        reference "Initial Version";
+    }
+
+    revision "2021-07-15" {
+        description "Added attributes related to VCCV and additional constraints for tunnel attributes ";
+        reference "Initial Version";
+    }
 
     revision "2021-04-27" {
         description "service-template is constrained with string length";
@@ -123,7 +148,7 @@ module ipi-l2vpn-vpws {
         description
             "Grouping for Service TPID pseudowire";
         leaf service-tpid  {
-            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) ";
+            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-tagged-mode) ";
             type  ipi-vpws-types:vpws_svc_tpid_t;
             description "Use this attribute to specify tunneling ethertype to be used for an
                         instance of an MPLS layer 2 virtual circuit";
@@ -177,6 +202,7 @@ module ipi-l2vpn-vpws {
         } // END of group-name definition.
 
         leaf group-identifier  {
+            when " ../group-name ";
             type  uint32 {
                  range "1..4294967295"  {
                     description "1..4294967295:Identifier for the group (group-id to be used in LDP)";
@@ -193,6 +219,7 @@ module ipi-l2vpn-vpws {
         } // END of enable-control-word definition.
 
         leaf tunnel-name  {
+            when " not(../tunnel-identifier) + not(../tunnel-policy) ";
             type  string {
                 length "1..32";
                 pattern "[^?' =,>|]+";
@@ -202,6 +229,7 @@ module ipi-l2vpn-vpws {
         } // END of tunnel-name definition.
 
         leaf tunnel-policy  {
+            when " not(../tunnel-identifier) + not(../tunnel-name) ";
             if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
             type  string {
                 length "1..127";
@@ -212,6 +240,7 @@ module ipi-l2vpn-vpws {
         } // END of tunnel-policy definition.
 
         leaf tunnel-identifier  {
+            when " not(../tunnel-name) + not(../tunnel-policy) ";
             type  uint32 {
                  range "1..5000"  {
                     description "1..5000:Identifying value for Tunnel-id";
@@ -267,6 +296,19 @@ module ipi-l2vpn-vpws {
     grouping vpws-pseudowire-vccv-config {
         description
             "Grouping for vccv attributes for PW";
+        leaf control-channel-type  {
+            if-feature feature-list:HAVE_VCCV;
+            type  ipi-vpws-types:vpws_mpls_vccv_cc_type_t;
+            description "Use this attribute to configure the Control-Channel type for VCCV";
+        } // END of control-channel-type definition.
+
+        leaf control-verification-type  {
+            if-feature feature-list:HAVE_VCCV;
+            type  ipi-vpws-types:vpws_mpls_vccv_cv_type_t;
+            description "Use this attribute to configure the Control-Verification supported by
+                        BFD for VCCV";
+        } // END of control-verification-type definition.
+
     } // END of vpws-pseudowire-vccv-config definition.
     grouping vpws-pseudowire-mplstp-config {
         description
@@ -284,6 +326,91 @@ module ipi-l2vpn-vpws {
         } // END of name definition.
 
     } // END of vpws-interface-config definition.
+    grouping l2vpn-vpws-top {
+        description
+            "Top level grouping for L2VPN VPWS configuration";
+        container vpws-access {
+            when " /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:vpws-access/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable ";
+            // when " ipi-if-extended:extended/subinterface-encapsulation/single-tag-vlan-matches/single-tag-vlan-match/config/encapsulation-type ||                            ipi-if-extended:extended/subinterface-encapsulation/double-tag-vlan-matches/double-tag-vlan-match/config/encapsulation-type ||                            ipi-if-extended:extended/subinterface-encapsulation/config/encap-default ||                            ipi-if-extended:extended/subinterface-encapsulation/config/encap-untagged ";
+            if-feature feature-list:HAVE_SUBINTERFACE;
+            description
+                "Container for L2VPN VPWS data";
+            container config {
+                presence "yes";
+                description
+                    "Configuration data for L2VPN VPWS";
+                uses l2vpn-vpws-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for L2VPN VPWS";
+                uses l2vpn-vpws-config;
+            } // END of state-container definition.
+            container bindings {
+                description
+                    "Container for L2VPN VPWS binding";
+
+                list binding {
+                    key "vpws-name";
+                    description
+                        "VPWS binding related configuration";
+                    leaf vpws-name  {
+                        type  leafref {
+                            path  "../config/vpws-name";
+                        }
+                        description "This attribute uniquely identifies a VPWS service on Subinterface";
+                    } // END of vpws-name definition.
+
+                    container config {
+                        description
+                            "Configuration data for L2VPN VPWS binding";
+                        uses l2vpn-vpws-bind-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational state data for L2VPN VPWS binding";
+                        uses l2vpn-vpws-bind-config;
+                    } // END of state-container definition.
+                } // End of binding-list
+            } // END of bindings-container definition.
+        } // END of vpws-access-container definition.
+    } // END of l2vpn-vpws-top definition.
+    grouping l2vpn-vpws-config {
+        description
+            "Grouping for L2VPN VPWS service configurations";
+        leaf enable  {
+            type  empty;
+            mandatory true;
+            description "This attribute is used to enable VPWS service on Subinterface";
+        } // END of enable definition.
+
+        leaf enable-revertive-mode  {
+            type  empty;
+            description "This attribute is used to configure vc-mode revertive on the interface";
+        } // END of enable-revertive-mode definition.
+
+    } // END of l2vpn-vpws-config definition.
+    grouping l2vpn-vpws-bind-config {
+        description
+            "Grouping for L2VPN VPWS bind configuration";
+        leaf vpws-name  {
+            type  string {
+                length "1..30";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute uniquely identifies a VPWS service on Subinterface";
+        } // END of vpws-name definition.
+
+        leaf pseudowire-link-mode  {
+            type  ipi-vpws-types:vpws_mpls_vclinkmode_t;
+            mandatory true;
+            description "This attribute is used to configure link mode as primary/secondary on
+                        VPWS service. Default value is 0";
+        } // END of pseudowire-link-mode definition.
+
+    } // END of l2vpn-vpws-bind-config definition.
     grouping vpws-interface-top {
         description
             "Top level grouping for interface level configuration for PW";
@@ -292,6 +419,7 @@ module ipi-l2vpn-vpws {
                 "Top level container for interface level configuration for VPWS";
 
             list interface {
+            when " /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:service-template-mapping/ipi-l2vpn-vpws:pseudowire-name  or /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:vpws-access/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable ";
                 key "name";
                 description
                     "VPWS interface related configuration";
@@ -329,7 +457,7 @@ module ipi-l2vpn-vpws {
                     } // END of state-container definition.
                 } // End of pseudowire-mode-list
                 container config {
-                    when " /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:service-template-mapping/ipi-l2vpn-vpws:pseudowire-name ";
+                    when " /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:service-template-mapping/ipi-l2vpn-vpws:pseudowire-name  or /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:vpws-access/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable ";
                     description
                         "Configuration container for interface list";
                     uses vpws-interface-config;
@@ -340,6 +468,7 @@ module ipi-l2vpn-vpws {
                         "Operation container for interface list";
                     uses vpws-interface-config;
                 } // END of state-container definition.
+                uses l2vpn-vpws-top;
                 uses vpws-service-template-mapping-top;
             } // End of interface-list
         } // END of interfaces-container definition.
@@ -368,7 +497,7 @@ module ipi-l2vpn-vpws {
             "Top level grouping for service-template mapping configuration for VPWS";
 
         list service-template-mapping {
-        when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status ";
+        when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             key "pseudowire-name";
             description
                 "List for VPWS mapping to service-template-mapping on interface";
@@ -735,7 +864,7 @@ module ipi-l2vpn-vpws {
                 uses vpws-pseudowire-state;
             } // END of state-container definition.
             container default-tagged {
-                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) ";
+                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-tagged-mode) ";
                 description
                     "Default Tagged container for Fec128 pseudowire";
                 container config {
@@ -787,7 +916,7 @@ module ipi-l2vpn-vpws {
                 } // END of state-container definition.
             } // END of tagged-container definition.
             container raw {
-                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:default-tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-default-tagged-mode) ";
+                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:default-tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-default-tagged-mode) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-tagged-mode) ";
                 description
                     "Container for Raw Fec128 pseudowire";
                 container config {

@@ -19,14 +19,24 @@ submodule ipi-ospf-processes-state {
 
     belongs-to  ipi-ospf { prefix ipi-ospf; }
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2021-09-30;
+    }
+
     import ietf-yang-types {
         prefix yang;
         revision-date 2013-07-15;
     }
 
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+
     import ipi-ospf-types {
         prefix ipi-ospf-types;
-        revision-date 2021-05-22;
+        revision-date 2021-09-20;
     }
 
     organization
@@ -42,8 +52,13 @@ submodule ipi-ospf-processes-state {
         "Layer-3 OSPF process state";
 
 
-    revision "2021-06-30" {
-        description "Updated data types to use standard yang types wherever applicable";
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference "Initial Version";
+    }
+
+    revision "2021-08-18" {
+        description "State attributes for Segment Routing, TI LFA and TE";
         reference "Initial Version";
     }
 
@@ -407,6 +422,448 @@ submodule ipi-ospf-processes-state {
             } // END of state-container definition.
         } // END of link-state-database-container definition.
     } // END of ospfv2-link-state-database definition.
+    grouping ospfv2-topology-independent-lfa-nodes-state {
+        description
+            "Grouping for OSPF topology independent LFA nodes state attributes";
+        leaf p-node  {
+            type  inet:ipv4-address;
+            description "This attribute returns the p-node value.";
+        } // END of p-node definition.
+
+        leaf pq-node  {
+            type  inet:ipv4-address;
+            description "This attribute returns the pq-node value.";
+        } // END of pq-node definition.
+
+        leaf q-node  {
+            type  inet:ipv4-address;
+            description "This attribute returns the q-node value.";
+        } // END of q-node definition.
+
+    } // END of ospfv2-topology-independent-lfa-nodes-state definition.
+    grouping ospfv2-topology-independent-lfa-routes-state {
+        description
+            "Grouping for OSPF topology independent LFA route state attributes";
+        leaf prefix  {
+            type  inet:ipv4-prefix;
+            description "This attribute returns the prefix value.";
+        } // END of prefix definition.
+
+    } // END of ospfv2-topology-independent-lfa-routes-state definition.
+    grouping ospfv2-topology-independent-lfa-routes {
+        description
+            "Grouping for OSPF topology independent LFA routes";
+        container routes {
+            if-feature feature-list:HAVE_OSPF_TI_LFA;
+            config false;
+            description
+                "OSPFv2 topology independent LFA routes info";
+
+            list route {
+                key "prefix";
+                config false;
+                description
+                    "List of OSPF routes";
+                leaf prefix  {
+                    type  leafref {
+                        path  "../state/prefix";
+                    }
+                    description "This attribute returns the prefix value.";
+                } // END of prefix definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-topology-independent-lfa-routes-state;
+                    uses ospfv2-topology-independent-lfa-nodes-state;
+                } // END of state-container definition.
+            } // End of route-list
+        } // END of routes-container definition.
+    } // END of ospfv2-topology-independent-lfa-routes definition.
+    grouping ospfv2-topology-independent-lfa-neighbors-state {
+        description
+            "Grouping for OSPF topology independent LFA neighbor state attributes";
+        leaf address  {
+            type  inet:ipv4-address;
+            description "This attribute returns the prefix value.";
+        } // END of address definition.
+
+    } // END of ospfv2-topology-independent-lfa-neighbors-state definition.
+    grouping ospfv2-topology-independent-lfa-neighbors {
+        description
+            "Grouping for OSPF topology independent LFA neighbors";
+        container neighbors {
+            if-feature feature-list:HAVE_OSPF_TI_LFA;
+            config false;
+            description
+                "OSPFv2 topology independent LFA neighbors info";
+
+            list neighbor {
+                key "address";
+                config false;
+                description
+                    "List of OSPF neighbors";
+                leaf address  {
+                    type  leafref {
+                        path  "../state/address";
+                    }
+                    description "This attribute returns the neighbor address value.";
+                } // END of address definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-topology-independent-lfa-neighbors-state;
+                    uses ospfv2-topology-independent-lfa-nodes-state;
+                } // END of state-container definition.
+            } // End of neighbor-list
+        } // END of neighbors-container definition.
+    } // END of ospfv2-topology-independent-lfa-neighbors definition.
+    grouping ospfv2-topology-independent-lfa-vertices-state {
+        description
+            "Grouping for OSPF topology independent LFA vertex state attributes";
+        leaf ls-id  {
+            type  inet:ipv4-address;
+            description "This attribute returns the ls-id value.";
+        } // END of ls-id definition.
+
+        leaf backup-interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute returns the backup interface name.";
+        } // END of backup-interface-name definition.
+
+    } // END of ospfv2-topology-independent-lfa-vertices-state definition.
+    grouping ospfv2-topology-independent-lfa-vertices-nodes-state {
+        description
+            "Grouping for OSPF topology independent LFA vertices nodes state
+                        attributes";
+        leaf address  {
+            type  inet:ipv4-address;
+            description "This attribute returns the node address value.";
+        } // END of address definition.
+
+        leaf distance  {
+            type  uint32;
+            description "This attribute returns the distance value.";
+        } // END of distance definition.
+
+    } // END of ospfv2-topology-independent-lfa-vertices-nodes-state definition.
+    grouping ospfv2-topology-independent-lfa-vertices-pnodes {
+        description
+            "Grouping for OSPF topology independent LFA vertices pnodes";
+        container p-nodes {
+            config false;
+            description
+                "OSPFv2 topology independent LFA p-nodes info";
+
+            list p-node {
+                key "address";
+                config false;
+                description
+                    "List of OSPF p-nodes";
+                leaf address  {
+                    type  leafref {
+                        path  "../state/address";
+                    }
+                    description "This attribute returns the node address value.";
+                } // END of address definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-topology-independent-lfa-vertices-nodes-state;
+                } // END of state-container definition.
+            } // End of p-node-list
+        } // END of p-nodes-container definition.
+    } // END of ospfv2-topology-independent-lfa-vertices-pnodes definition.
+    grouping ospfv2-topology-independent-lfa-vertices-qnodes {
+        description
+            "Grouping for OSPF topology independent LFA vertices qnodes";
+        container q-nodes {
+            config false;
+            description
+                "OSPFv2 topology independent LFA qnodes info";
+
+            list q-node {
+                key "address";
+                config false;
+                description
+                    "List of OSPF p-nodes";
+                leaf address  {
+                    type  leafref {
+                        path  "../state/address";
+                    }
+                    description "This attribute returns the node address value.";
+                } // END of address definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-topology-independent-lfa-vertices-nodes-state;
+                } // END of state-container definition.
+            } // End of q-node-list
+        } // END of q-nodes-container definition.
+    } // END of ospfv2-topology-independent-lfa-vertices-qnodes definition.
+    grouping ospfv2-topology-independent-lfa-vertices {
+        description
+            "Grouping for OSPF topology independent LFA vertices";
+        container vertices {
+            if-feature feature-list:HAVE_OSPF_TI_LFA;
+            config false;
+            description
+                "OSPFv2 topology independent LFA vertices info";
+
+            list vertex {
+                key "ls-id";
+                config false;
+                description
+                    "List of OSPF vertices";
+                leaf ls-id  {
+                    type  leafref {
+                        path  "../state/ls-id";
+                    }
+                    description "This attribute returns the ls-id value.";
+                } // END of ls-id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-topology-independent-lfa-vertices-state;
+                    uses ospfv2-topology-independent-lfa-nodes-state;
+                } // END of state-container definition.
+                uses ospfv2-topology-independent-lfa-vertices-pnodes;
+                uses ospfv2-topology-independent-lfa-vertices-qnodes;
+            } // End of vertex-list
+        } // END of vertices-container definition.
+    } // END of ospfv2-topology-independent-lfa-vertices definition.
+    grouping ospfv2-topology-independent-lfa-repair-lists-next-hop-state {
+        description
+            "Grouping for OSPF topology independent LFA repair lists next hop
+                        attributes";
+        leaf address  {
+            type  inet:ipv4-address;
+            description "This attribute returns the next-hop address value.";
+        } // END of address definition.
+
+        leaf metric  {
+            type  uint32;
+            description "This attribute returns the metric value.";
+        } // END of metric definition.
+
+        leaf primary-interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute returns the primary interface name.";
+        } // END of primary-interface-name definition.
+
+    } // END of ospfv2-topology-independent-lfa-repair-lists-next-hop-state definition.
+    grouping ospfv2-topology-independent-lfa-repair-lists-next-hop {
+        description
+            "Grouping for OSPF topology independent LFA repair lists next hop";
+        container primary-path-next-hop {
+            config false;
+            description
+                "OSPFv2 topology independent LFA repair lists next hop";
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ospfv2-topology-independent-lfa-repair-lists-next-hop-state;
+            } // END of state-container definition.
+        } // END of primary-path-next-hop-container definition.
+    } // END of ospfv2-topology-independent-lfa-repair-lists-next-hop definition.
+    grouping ospfv2-topology-independent-lfa-repair-lists-state {
+        description
+            "Grouping for OSPF topology independent LFA repair lists attributes";
+        leaf prefix  {
+            type  inet:ipv4-prefix;
+            description "This attribute returns the prefix value.";
+        } // END of prefix definition.
+
+    } // END of ospfv2-topology-independent-lfa-repair-lists-state definition.
+    grouping ospfv2-topology-independent-lfa-repair-lists-mpls-info-state {
+        description
+            "Grouping for OSPF topology independent LFA repair lists mpls info
+                        attributes";
+        leaf route-ftn-id  {
+            type  uint32;
+            description "This attribute returns the id value of FEC to Next Hop Label Forward
+                        Entry.";
+        } // END of route-ftn-id definition.
+
+        leaf route-incoming-label-mapping-id  {
+            type  uint32;
+            description "This attribute returns the id value of Incoming Label to Next Hop
+                        Label Forward Entry.";
+        } // END of route-incoming-label-mapping-id definition.
+
+        leaf backup-ftn-id  {
+            type  uint32;
+            description "This attribute returns the backup id value of FEC to Next Hop Label
+                        Forward Entry.";
+        } // END of backup-ftn-id definition.
+
+        leaf backup-incoming-label-mapping-id  {
+            type  uint32;
+            description "This attribute returns the backup id value of Incoming Label to Next
+                        Hop Label Forward Entry.";
+        } // END of backup-incoming-label-mapping-id definition.
+
+        leaf segment-routing-incoming-label  {
+            type  uint32;
+            description "This attribute returns the segment routing incoming label value.";
+        } // END of segment-routing-incoming-label definition.
+
+        leaf segment-routing-outgoing-label  {
+            type  uint32;
+            description "This attribute returns the segment routing outgoing label value.";
+        } // END of segment-routing-outgoing-label definition.
+
+        leaf backup-outgoing-label  {
+            type  uint32;
+            description "This attribute returns the backup value for outgoing label.";
+        } // END of backup-outgoing-label definition.
+
+        leaf bypass-trunk-id  {
+            type  uint32;
+            description "This attribute returns the bypass trunk id value.";
+        } // END of bypass-trunk-id definition.
+
+        leaf backup-interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute returns the backup interface name.";
+        } // END of backup-interface-name definition.
+
+    } // END of ospfv2-topology-independent-lfa-repair-lists-mpls-info-state definition.
+    grouping ospfv2-topology-independent-lfa-sr-trunks-state {
+        description
+            "Grouping for OSPF topology independent LFA segment routing trunks
+                        attributes";
+        leaf trunk-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute returns the trunk name.";
+        } // END of trunk-name definition.
+
+        leaf trunk-id  {
+            type  uint32;
+            description "This attribute returns the trunk id value.";
+        } // END of trunk-id definition.
+
+        leaf ftn-id  {
+            type  uint32;
+            description "This attribute returns the id value of FEC to Next Hop Label Forward
+                        Entry.";
+        } // END of ftn-id definition.
+
+        leaf outgoing-label-count  {
+            type  yang:counter32;
+            description "This attribute returns the number of outgoing labels.";
+        } // END of outgoing-label-count definition.
+
+        leaf-list outgoing-labels  {
+            type  uint32;
+            description "This attribute returns the list value of outgoing labels.";
+        } // END of outgoing-labels definition.
+
+        leaf next-hop  {
+            type  inet:ipv4-address;
+            description "This attribute returns the next hop address.";
+        } // END of next-hop definition.
+
+    } // END of ospfv2-topology-independent-lfa-sr-trunks-state definition.
+    grouping ospfv2-topology-independent-lfa-sr-trunks {
+        description
+            "Grouping for OSPF topology independent LFA segment routing trunk";
+        container segment-routing-trunks {
+            config false;
+            description
+                "OSPFv2 topology independent LFA segment routing trunks";
+
+            list segment-routing-trunk {
+                key "trunk-name";
+                config false;
+                description
+                    "List of OSPF segment routing trunks";
+                leaf trunk-name  {
+                    type  leafref {
+                        path  "../state/trunk-name";
+                    }
+                    description "This attribute returns the trunk name.";
+                } // END of trunk-name definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-topology-independent-lfa-sr-trunks-state;
+                } // END of state-container definition.
+            } // End of segment-routing-trunk-list
+        } // END of segment-routing-trunks-container definition.
+    } // END of ospfv2-topology-independent-lfa-sr-trunks definition.
+    grouping ospfv2-topology-independent-lfa-repair-lists-mpls-info {
+        description
+            "Grouping for OSPF topology independent LFA repair lists mpls info";
+        container mpls-info {
+            config false;
+            description
+                "OSPFv2 topology independent LFA repair lists mpls info";
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ospfv2-topology-independent-lfa-nodes-state;
+                uses ospfv2-topology-independent-lfa-repair-lists-mpls-info-state;
+            } // END of state-container definition.
+            uses ospfv2-topology-independent-lfa-sr-trunks;
+        } // END of mpls-info-container definition.
+    } // END of ospfv2-topology-independent-lfa-repair-lists-mpls-info definition.
+    grouping ospfv2-topology-independent-lfa-repair-lists {
+        description
+            "Grouping for OSPF topology independent LFA repair lists";
+        container repair-lists {
+            config false;
+            description
+                "OSPFv2 topology independent LFA repair lists";
+
+            list repair-list {
+                key "prefix";
+                config false;
+                description
+                    "List of OSPF repairs";
+                leaf prefix  {
+                    type  leafref {
+                        path  "../state/prefix";
+                    }
+                    description "This attribute returns the prefix value.";
+                } // END of prefix definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-topology-independent-lfa-repair-lists-state;
+                } // END of state-container definition.
+                uses ospfv2-topology-independent-lfa-repair-lists-next-hop;
+                uses ospfv2-topology-independent-lfa-repair-lists-mpls-info;
+            } // End of repair-list-list
+        } // END of repair-lists-container definition.
+    } // END of ospfv2-topology-independent-lfa-repair-lists definition.
 
 
 }

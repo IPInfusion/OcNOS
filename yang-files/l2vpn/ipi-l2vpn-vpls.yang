@@ -23,12 +23,12 @@ module ipi-l2vpn-vpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-vpls-types {
         prefix ipi-vpls-types;
-        revision-date 2020-08-11;
+        revision-date 2021-09-03;
     }
 
     import ietf-inet-types {
@@ -38,27 +38,27 @@ module ipi-l2vpn-vpls {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-06-14;
+        revision-date 2021-09-28;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2020-12-15;
+        revision-date 2021-09-03;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2021-05-13;
+        revision-date 2021-09-01;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2021-06-10;
+        revision-date 2021-07-29;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -73,6 +73,16 @@ module ipi-l2vpn-vpls {
     description
         "YANG version of the ipi-l2vpn-vpls";
 
+
+    revision "2021-09-06" {
+        description "Removed the dependency of L2VPN VPLS configuration in subinterface with global L2VPN VPLS configurataion";
+        reference " 0.4.0.";
+    }
+
+    revision "2021-08-03" {
+        description "Added L2VPN VPLS attributes for Sub-interface";
+        reference " 0.3.0.";
+    }
 
     revision "2021-03-08" {
         description "Added Read-only attributes for vpls info, mac-addresses learnt, vpls-peer and statistics info";
@@ -1137,6 +1147,106 @@ module ipi-l2vpn-vpls {
             } // END of state-container definition.
         } // End of network-interface-counters-list
     } // END of vpls-counters-top definition.
+    grouping vpls-interface-config {
+        description
+            "Grouping for Interface config attribute";
+        leaf name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "This attribute describes the interface on which attachment circuit is
+                        to be created for  pseudowire.";
+        } // END of name definition.
+
+    } // END of vpls-interface-config definition.
+    grouping vpls-interface-top {
+        description
+            "Top level grouping for interface level configuration for PW";
+        container interfaces {
+            description
+                "Top level container for interface level configuration for VPLS";
+
+            list interface {
+            when " /ipi-l2vpn-vpls:vpls/ipi-l2vpn-vpls:interfaces/ipi-l2vpn-vpls:interface/ipi-l2vpn-vpls:vpls-access/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:enable ";
+                key "name";
+                description
+                    "VPLS interface related configuration";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "This attribute describes the interface on which attachment circuit is
+                                to be created for  pseudowire.";
+                } // END of name definition.
+
+                container config {
+                    when " /ipi-l2vpn-vpls:vpls/ipi-l2vpn-vpls:interfaces/ipi-l2vpn-vpls:interface/ipi-l2vpn-vpls:vpls-access/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:enable ";
+                    description
+                        "Configuration container for interface list";
+                    uses vpls-interface-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operation container for interface list";
+                    uses vpls-interface-config;
+                } // END of state-container definition.
+                uses l2vpn-vpls-top;
+            } // End of interface-list
+        } // END of interfaces-container definition.
+    } // END of vpls-interface-top definition.
+    grouping l2vpn-vpls-top {
+        description
+            "Top level grouping for L2VPN VPLS configuration";
+        container vpls-access {
+            // when " ipi-if-extended:extended/subinterface-encapsulation/single-tag-vlan-matches/single-tag-vlan-match/config/encapsulation-type ||                           ipi-if-extended:extended/subinterface-encapsulation/double-tag-vlan-matches/double-tag-vlan-match/config/encapsulation-type ||                           ipi-if-extended:extended/subinterface-encapsulation/config/encap-default ||                           ipi-if-extended:extended/subinterface-encapsulation/config/encap-untagged ";
+            if-feature feature-list:HAVE_SUBINTERFACE;
+            description
+                "Container for L2vpn Vpls data";
+            container config {
+                presence "yes";
+                description
+                    "Configuration data for L2VPN VPLS";
+                uses l2vpn-vpls-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operation state data for L2VPN VPLS";
+                uses l2vpn-vpls-config;
+            } // END of state-container definition.
+        } // END of vpls-access-container definition.
+    } // END of l2vpn-vpls-top definition.
+    grouping l2vpn-vpls-config {
+        description
+            "Grouping for L2VPN VPLS variables for sub interfaces";
+        leaf enable  {
+            type  empty;
+            mandatory true;
+            description "This attribute is used to enable VPLS service on Subinterface";
+        } // END of enable definition.
+
+        leaf vpls-name  {
+            type  string {
+                length "1..30";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute uniquely identifies a VPLS service on Subinterface";
+        } // END of vpls-name definition.
+
+        leaf disable-mac-learning  {
+            type  empty;
+            description "Use this attribute to disable dynamic learning of MAC's";
+        } // END of disable-mac-learning definition.
+
+        leaf-list static-mac-address  {
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
+            description "Specify static-mac to be added on L2VPN VPLS";
+        } // END of static-mac-address definition.
+
+    } // END of l2vpn-vpls-config definition.
 
     grouping  vpls-grouping {
     description
@@ -1155,6 +1265,7 @@ module ipi-l2vpn-vpls {
             uses vpls-static-vpls-top;
             uses vpls-static-hvpls-top;
         } // END of static-forwarding-container definition.
+        uses vpls-interface-top;
     } // END of vpls-container definition.
     } // END of vpls-grouping definition.
 

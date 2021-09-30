@@ -28,32 +28,32 @@ module ipi-mpls-rib {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-06-14;
+        revision-date 2021-09-28;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2020-12-15;
+        revision-date 2021-09-03;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-01-27;
+        revision-date 2021-09-03;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2021-05-13;
+        revision-date 2021-09-01;
     }
 
     import ipi-mpls-types {
         prefix ipi-mpls-types;
-        revision-date 2021-02-12;
+        revision-date 2021-09-03;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -68,6 +68,11 @@ module ipi-mpls-rib {
     description
         "Data model for MPLS RIB";
 
+
+    revision "2021-06-26" {
+        description "Added multipath runtime attribute for FTN Entries";
+        reference " 0.7.0.";
+    }
 
     revision "2021-06-24" {
         description "Added Service Mapping runtime attributes for FTN Entries";
@@ -395,6 +400,15 @@ module ipi-mpls-rib {
             }
             description "Tunnel policy name that the Service FTN associated";
         } // END of tunnel-policy-name definition.
+
+        leaf rsvp-multipath-name  {
+            if-feature feature-list:HAVE_RSVP_MULTIPATH;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "RSVP multipath group name associated with RSVP FTN";
+        } // END of rsvp-multipath-name definition.
 
     } // END of mpls-rib-ip-ftn-entry-state definition.
     grouping mpls-rib-ipv4-ftn-nhlfe-entry-state {
@@ -812,6 +826,38 @@ module ipi-mpls-rib {
         } // END of incoming-label definition.
 
     } // END of mpls-static-ilm-config definition.
+    grouping mpls-rsvp-multipath-group-state {
+        description
+            "mplsCMLSEPrsvpCMLSEPmultipathCMLSEPgroupCMLSEPstate";
+        leaf multipath-identifier  {
+            type  uint16;
+            description "Identifier of RSVP multipath group";
+        } // END of multipath-identifier definition.
+
+        leaf multipath-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Name of RSVP multipath group";
+        } // END of multipath-name definition.
+
+        leaf multipath-nhlfe-index  {
+            type  uint32;
+            description "NHLFE identifier for RSVP multipath group";
+        } // END of multipath-nhlfe-index definition.
+
+        leaf fec-prefix  {
+            type  inet:ipv4-prefix;
+            description "Forwarding Equivalence Class of RSVP multipath group";
+        } // END of fec-prefix definition.
+
+        leaf active-member-count  {
+            type  uint16;
+            description "Number of active mutlipath group members";
+        } // END of active-member-count definition.
+
+    } // END of mpls-rsvp-multipath-group-state definition.
 
     grouping  rib-grouping {
     description
@@ -1026,6 +1072,32 @@ module ipi-mpls-rib {
                 } // END of state-container definition.
             } // End of ip-ilm-entry-list
         } // END of ilm-table-container definition.
+        container rsvp-multipath-table {
+            if-feature feature-list:HAVE_RSVP_MULTIPATH;
+            config false;
+            description
+                "RSVP multipath group table";
+
+            list rsvp-multipath-entry {
+                key "multipath-identifier";
+                config false;
+                description
+                    "RSVP multipath group entries";
+                leaf multipath-identifier  {
+                    type  leafref {
+                        path  "../state/multipath-identifier";
+                    }
+                    description "Identifier of RSVP multipath group";
+                } // END of multipath-identifier definition.
+
+                container state {
+                    config false;
+                    description
+                        "Container for FTN entry operational state";
+                    uses mpls-rsvp-multipath-group-state;
+                } // END of state-container definition.
+            } // End of rsvp-multipath-entry-list
+        } // END of rsvp-multipath-table-container definition.
         container map-route {
             description
                 "MPLS Map Route";

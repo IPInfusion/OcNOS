@@ -23,17 +23,17 @@ module ipi-rsvp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-rsvp-types {
         prefix ipi-rsvp-types;
-        revision-date 2021-01-27;
+        revision-date 2021-09-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-06-14;
+        revision-date 2021-09-28;
     }
 
     import ietf-inet-types {
@@ -43,12 +43,12 @@ module ipi-rsvp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
-    include ipi-rsvp-trunk { revision-date 2021-06-21;}
-    include ipi-rsvp-interface { revision-date 2021-06-01;}
-    include ipi-rsvp-session { revision-date 2021-03-27;}
+    include ipi-rsvp-trunk { revision-date 2021-08-27;}
+    include ipi-rsvp-interface { revision-date 2021-09-03;}
+    include ipi-rsvp-session { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
 
@@ -62,9 +62,39 @@ module ipi-rsvp {
         "Resource Reservation Protocol";
 
 
-    revision "2021-06-21" {
+    revision "2021-09-20" {
+        description "Update default value for RSVP_DEBUG";
+        reference " 0.6.6.";
+    }
+
+    revision "2021-09-17" {
+        description "Added DC flag check for entropy command";
+        reference " 0.6.5.";
+    }
+
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference " 0.6.4.";
+    }
+
+    revision "2021-08-27" {
+        description "Updated length constraint for rsvp path-name";
+        reference " 0.6.3.";
+    }
+
+    revision "2021-06-28" {
         description "Modified the attribute name from dscp-exp-max-exp-val to dscp-exp-map-exp-val";
-        reference " 0.5.2.";
+        reference " 0.6.2.";
+    }
+
+    revision "2021-06-26" {
+        description "Updated multipath runtime attribute for trunk entry";
+        reference " 0.6.1.";
+    }
+
+    revision "2021-06-25" {
+        description "llsp attribute removed for HAVE_CUSTOM2_QOS from bypass trunk";
+        reference " 0.6.0.";
     }
 
     revision "2021-06-01" {
@@ -256,6 +286,7 @@ module ipi-rsvp {
         } // END of enable-php definition.
 
         leaf enable-entropy-label-capability  {
+            if-feature feature-list:NOT_HAVE_CUSTOM1_MPLS;
             type  empty;
             description "Use this attribute to enable Entropy Label Capability (ELC) for the
                         router. An egress router may insert ELC TLV in Attributes Flags TLV of
@@ -580,6 +611,7 @@ module ipi-rsvp {
             "configuration parameters for graceful-restart";
         leaf enable-graceful-restart  {
             type  empty;
+            mandatory true;
             description "Use this attribute to enable RSVP-TE Graceful Restart capability on a
                         router. This is a global parameter. RSVP-TE determines whether or not
                         to send the graceful restart capability object in its hello message.
@@ -589,22 +621,24 @@ module ipi-rsvp {
 
         leaf restart-time  {
             type  uint32 {
-                 range "1..4294967295"  {
-                    description "1..4294967295:Restart time value(msec)";
+                 range "10000..600000"  {
+                    description "10000..600000:Restart time value(msec) \n\t\t  *Default value is
+                            180000 ms";
                  }
             }
-            default "18000";
+            default "180000";
             description "Use this attribute to set a restart time for an RSVP-TE graceful
                         restart configuration.";
         } // END of restart-time definition.
 
         leaf recovery-time  {
             type  uint32 {
-                 range "1..4294967295"  {
-                    description "1..4294967295:Recovery time value(msec)";
+                 range "60000..3600000"  {
+                    description "60000..3600000:Recovery time value(msec) \n\t\t   *Default value is
+                            360000 ms";
                  }
             }
-            default "36000";
+            default "360000";
             description "Use this attribute to set a recovery time for an RSVP-TE graceful
                         restart configuration.";
         } // END of recovery-time definition.
@@ -658,6 +692,7 @@ module ipi-rsvp {
         description
             "Top level groupings for graceful restart";
         container graceful-restart {
+            when " /ipi-rsvp:rsvp-te/ipi-rsvp:rsvp-instance/ipi-rsvp:config ";
             if-feature feature-list:HAVE_RSVP_GRST;
             description
                 "container for graceful restart";
@@ -1300,6 +1335,7 @@ module ipi-rsvp {
             } // END of neighbors-container definition.
         } // END of rsvp-instance-container definition.
         uses rsvp-paths-grouping;
+        uses multipaths-grouping;
         uses trunks-grouping;
         uses interfaces-grouping;
     } // END of rsvp-te-container definition.
@@ -1461,6 +1497,10 @@ module ipi-rsvp {
                 description "Disable RSVP debug options";
             }
         }
+    }
+
+    rpc restart-rsvp-graceful {
+        description "RPC to restart RSVP gracefully";
     }
 
     notification rsvp-session-up {

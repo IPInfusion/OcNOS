@@ -23,27 +23,27 @@ module ipi-bridge {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-bridge-types {
         prefix ipi-bridge-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -59,9 +59,29 @@ module ipi-bridge {
         "Layer-2 bridge configurations";
 
 
-    revision "2021-06-30" {
-        description "Data model changes done for JIRA-41415";
-        reference " 0.4.4.";
+    revision "2021-09-15" {
+        description "Removing implicit-delete tags that were generated as warnings in zebm log";
+        reference " 0.5.4.";
+    }
+
+    revision "2021-09-06" {
+        description "Added custom error codes for bridge-ports interace";
+        reference " 0.5.3.";
+    }
+
+    revision "2021-09-03" {
+        description "sget support for Provider Bridging";
+        reference " 0.5.2.";
+    }
+
+    revision "2021-09-01" {
+        description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
+        reference " 0.5.1.";
+    }
+
+    revision "2021-08-01" {
+        description "Restructured current Provider Bridging hierarchy to OpenConfig style.";
+        reference " 0.5.0.";
     }
 
     revision "2021-04-27" {
@@ -114,6 +134,15 @@ module ipi-bridge {
                         instance.This helps in making forwarding decisions";
         } // END of disable-dynamic-learning definition.
 
+        leaf l2-protocol-destination-mac  {
+            if-feature feature-list:HAVE_PROVIDER_BRIDGE;
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
+            default "0100.C2CD.CDD0";
+            description "This attribute changes L2 protocol destination MAC";
+        } // END of l2-protocol-destination-mac definition.
+
         leaf dot1q-encapsulation  {
             if-feature feature-list:HAVE_DUNE;
             type  empty;
@@ -147,7 +176,7 @@ module ipi-bridge {
                 "Container for STP configuration and state data on each interface";
 
             list interface {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
                 key "name";
                 description
                     "List of interfaces on which spanning tree protocol is
@@ -177,6 +206,7 @@ module ipi-bridge {
         description
             "Configuration data for FDB MAC address";
         leaf interface-name  {
+            // when " !ipi-port-vlan:port-vlan/port-security/config/mode ";
             type  leafref {
                 path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
             }
@@ -231,7 +261,7 @@ module ipi-bridge {
     } // END of static-mac-table-entry-top definition.
     grouping static-mac-table-top {
         description
-            "Top level grouping for FDB  configuration and state data";
+            "Top level grouping for FDB configuration and state data";
         container static-mac-table {
             description
                 "MAC table information";
@@ -302,10 +332,17 @@ module ipi-bridge {
             description "Dynamic learned MAC address";
         } // END of mac-address definition.
 
-        leaf cvlan-id  {
+        leaf vlan-id  {
             type  uint16;
-            description "Customer vlan ID";
-        } // END of cvlan-id definition.
+            description "This attribute provides value for CVLAN ID in case of customer and
+                        provider edge bridges and SVLAN ID in case of provider bridges";
+        } // END of vlan-id definition.
+
+        leaf svlan-id  {
+            if-feature feature-list:HAVE_PROVIDER_BRIDGE;
+            type  uint16;
+            description "Service VLAN ID";
+        } // END of svlan-id definition.
 
         leaf interface-name  {
             type  leafref {
@@ -316,7 +353,7 @@ module ipi-bridge {
 
         leaf action  {
             type  ipi-bridge-types:bridge_discardforward_t;
-            description "Fame discard/forward information for given MAC address";
+            description "Frame discard/forward information for given MAC address";
         } // END of action definition.
 
         leaf entry-time-out  {
@@ -333,7 +370,7 @@ module ipi-bridge {
 
         list entry {
             if-feature feature-list:HAVE_HAL;
-            key "mac-address cvlan-id";
+            key "mac-address vlan-id";
             config false;
             description
                 "List of dynamic learned MAC entries";
@@ -344,25 +381,26 @@ module ipi-bridge {
                 description "Dynamic learned MAC address";
             } // END of mac-address definition.
 
-            leaf cvlan-id  {
+            leaf vlan-id  {
                 type  leafref {
-                    path  "../state/cvlan-id";
+                    path  "../state/vlan-id";
                 }
-                description "Customer vlan ID";
-            } // END of cvlan-id definition.
+                description "This attribute provides value for CVLAN ID in case of customer and
+                            provider edge bridges and SVLAN ID in case of provider bridges";
+            } // END of vlan-id definition.
 
             container state {
                 if-feature feature-list:HAVE_HAL;
                 config false;
                 description
-                    "dynamic learned operational state data";
+                    "Dynamic learned information operational state data";
                 uses dynamic-mac-table-entry-state;
             } // END of state-container definition.
         } // End of entry-list
     } // END of dynamic-mac-table-entry-top definition.
     grouping dynamic-mac-table-top {
         description
-            "Top level grouping for FDB  configuration and state data";
+            "Top level grouping for FDB configuration and state data";
         container dynamic-mac-table {
             description
                 "Dynamic MAC table information";

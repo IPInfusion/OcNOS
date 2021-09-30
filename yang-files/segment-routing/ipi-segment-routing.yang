@@ -23,17 +23,17 @@ module ipi-segment-routing {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-sr-types {
         prefix ipi-sr-types;
-        revision-date 2021-02-28;
+        revision-date 2021-09-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-06-14;
+        revision-date 2021-09-28;
     }
 
     import ietf-yang-types {
@@ -48,7 +48,7 @@ module ipi-segment-routing {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -349,6 +349,7 @@ module ipi-segment-routing {
         description
             "Segment lists grouping";
         container segment-lists {
+            when " /ipi-segment-routing:segment-routing/ipi-segment-routing:traffic-engineering/ipi-segment-routing:config/ipi-segment-routing:enable ";
             if-feature feature-list:HAVE_SR_POLICY;
             description
                 "Segment-lists properties";
@@ -1061,9 +1062,9 @@ module ipi-segment-routing {
         } // END of isis definition.
 
         leaf ospf  {
-            type  uint32 {
-                 range "0..65535"  {
-                    description "0..65535:OSPF process id";
+            type  int32 {
+                 range "-1..65535"  {
+                    description "-1..65535:OSPF process id";
                  }
             }
             description "";
@@ -1242,12 +1243,12 @@ module ipi-segment-routing {
                     uses segment-routing-interface-config;
                 } // END of config-container definition.
                 container prefix-segment {
-                    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
+                    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
                     if-feature feature-list:HAVE_SR_MPLS;
                     description
                         "MPLS segment-route Prefix";
                     container config {
-                        when " /ipi-segment-routing:segment-routing/ipi-segment-routing:interfaces/ipi-segment-routing:interface/ipi-segment-routing:prefix-segment/ipi-segment-routing:config/ipi-segment-routing:sid-index  + /ipi-segment-routing:segment-routing/ipi-segment-routing:interfaces/ipi-segment-routing:interface/ipi-segment-routing:prefix-segment/ipi-segment-routing:config/ipi-segment-routing:sid-absolute /ipi-segment-routing:segment-routing/ipi-segment-routing:interfaces/ipi-segment-routing:interface/ipi-segment-routing:prefix-segment/ipi-segment-routing:config/ipi-segment-routing:exp-null /ipi-segment-routing:segment-routing/ipi-segment-routing:interfaces/ipi-segment-routing:interface/ipi-segment-routing:prefix-segment/ipi-segment-routing:config/ipi-segment-routing:n-flag-clear ";
+                        when " ../config/sid-index or ../config/sid-absolute ";
                         description
                             "Configuration data for segment-route prefix module";
                         uses prefix-segment-config;
@@ -1263,6 +1264,7 @@ module ipi-segment-routing {
         } // END of interfaces-container definition.
         container sr-mpls {
             when " /ipi-segment-routing:segment-routing/ipi-segment-routing:config/ipi-segment-routing:enable ";
+            if-feature feature-list:HAVE_SR_MPLS;
             description
                 "SR MPLS data plane global configuration and operational state";
             container sr-prefer-over-ldp {
@@ -1309,6 +1311,7 @@ module ipi-segment-routing {
 
                     } // END of state-container definition.
                     container srms-preferenece {
+                        when " /ipi-segment-routing:segment-routing/ipi-segment-routing:sr-mpls/ipi-segment-routing:bindings/ipi-segment-routing:mapping-server/ipi-segment-routing:config/ipi-segment-routing:enable ";
                         description
                             "The SRMS preference TLV is               used to advertise a
                                     preference associated with the node that acts               as an SR
@@ -1327,6 +1330,7 @@ module ipi-segment-routing {
                         } // END of state-container definition.
                     } // END of srms-preferenece-container definition.
                     container prefix-sid-map-ipv4 {
+                        when " /ipi-segment-routing:segment-routing/ipi-segment-routing:sr-mpls/ipi-segment-routing:bindings/ipi-segment-routing:mapping-server/ipi-segment-routing:config/ipi-segment-routing:enable ";
                         description
                             "mapping-server entries.";
 
@@ -1445,6 +1449,28 @@ module ipi-segment-routing {
     } // END of segment-routing-grouping definition.
 
     uses segment-routing-grouping;
+
+    rpc debug-sr-policy {
+        description "Enable debugging functions of sr-policy";
+        input  {
+            leaf enable-debug  {
+                type ipi-sr-types:sr_te_debug_t;
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc undebug-sr-policy {
+        description "Disable debugging functions of SR Policy";
+        input  {
+            leaf enable-debug  {
+                type ipi-sr-types:sr_te_debug_t;
+                mandatory true;
+                description "";
+            }
+        }
+    }
 
     notification sr-policy-oper-state-down {
 
@@ -1580,23 +1606,6 @@ module ipi-segment-routing {
             type  uint32;
         description
             "configurable value for static binding sid";
-        }
-    }
-
-    notification segment-routing-index-out-of-range {
-
-        description "This notification is sent when the configured prefix-sid falls out of srgb range configured, then this notification shall be displayed.";
-
-        // severity "MAJOR";
-        // eventClass "STATE";
-        leaf start {
-            type  uint32;
-            description "";
-        }
-
-        leaf end {
-            type  uint32;
-            description "";
         }
     }
 

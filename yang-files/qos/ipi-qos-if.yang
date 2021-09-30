@@ -28,7 +28,7 @@ module ipi-qos-if {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2021-06-30;
+        revision-date 2021-07-29;
     }
 
     import ipi-qos-types {
@@ -38,17 +38,17 @@ module ipi-qos-if {
 
     import ipi-if-aggregate {
         prefix ipi-if-aggregate;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -63,6 +63,16 @@ module ipi-qos-if {
     description
         "Quality of Service (QoS) interface information";
 
+
+    revision "2021-09-01" {
+        description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
+        reference "Initial Version";
+    }
+
+    revision "2021-07-06" {
+        description "Add support to IP precedence(TOS) related profile.";
+        reference "Initial Version";
+    }
 
     revision "2021-06-09" {
         description "Merged 'type-qos' and 'type-queuing' with 'policy-map-name'.";
@@ -108,7 +118,7 @@ module ipi-qos-if {
         description
             "Grouping for interface QoS configuration";
         leaf untagged-priority  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             type  uint8 {
                  range "0..7"  {
                     description "0..7:Untagged priority values";
@@ -119,7 +129,7 @@ module ipi-qos-if {
         } // END of untagged-priority definition.
 
         leaf trust-dscp  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  empty;
             description "Use this command to classify the ingress traffic based on DSCP map on
                         L2 interface";
@@ -133,7 +143,7 @@ module ipi-qos-if {
             when " ../rate-unit ";
             type  uint64 {
                  range "1..1000000000"  {
-                    description "1..1000000000:Specify egress traffic rate limit from 1 Kbps to 1000
+                    description "1..1000000000:Specify egress traffic rate limit from 52 Kbps to 1000
                             Gbps";
                  }
             }
@@ -207,14 +217,14 @@ module ipi-qos-if {
         description
             "Grouping for QoS remark configuration";
         leaf cos  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             type  ipi-qos-types:cml_remark_state_t;
             description "Use this command to enable/disable remarking of CoS set by the egress
                         map";
         } // END of cos definition.
 
         leaf dei  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  ipi-qos-types:cml_remark_state_t;
             description "Use this command to enable/disable remarking of DEI set by the egress
@@ -232,7 +242,7 @@ module ipi-qos-if {
         description
             "Grouping for QoS map profile reference configuration";
         leaf cos-to-queue  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -241,6 +251,7 @@ module ipi-qos-if {
         } // END of cos-to-queue definition.
 
         leaf dscp-to-dscp  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
                 length "1..1965";
@@ -249,7 +260,19 @@ module ipi-qos-if {
             description "Use this attibute to attach a DSCP to DSCP profile to the interface";
         } // END of dscp-to-dscp definition.
 
+        leaf precedence-to-precedence  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attibute to attach a Precedence to Precedencde profile to the
+                        interface";
+        } // END of precedence-to-precedence definition.
+
         leaf dscp-to-queue  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -257,7 +280,18 @@ module ipi-qos-if {
             description "Use this attibute to attach a DSCP to queue profile to the interface";
         } // END of dscp-to-queue definition.
 
+        leaf precedence-to-queue  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attibute to attach a Precedence to queue profile to the
+                        interface";
+        } // END of precedence-to-queue definition.
+
         leaf exp-encapsulation  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             if-feature feature-list:HAVE_DIFFSERV;
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
@@ -269,6 +303,7 @@ module ipi-qos-if {
         } // END of exp-encapsulation definition.
 
         leaf dscp-encapsulation  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
                 length "1..1965";
@@ -279,7 +314,7 @@ module ipi-qos-if {
         } // END of dscp-encapsulation definition.
 
         leaf queue-color-to-cos  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -297,6 +332,16 @@ module ipi-qos-if {
             description "Use this attibute to attach a queue color to DSCP profile to the
                         interface";
         } // END of queue-color-to-dscp definition.
+
+        leaf queue-to-precedence  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attibute to attach a queue color to Precedence profile to the
+                        interface";
+        } // END of queue-to-precedence definition.
 
         leaf queue-to-exp  {
             if-feature feature-list:HAVE_DIFFSERV;
@@ -707,7 +752,6 @@ module ipi-qos-if {
         description
             "Grouping for QoS service policy egress configuration";
         leaf type-qos-policy-map-name  {
-            if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  string {
                 length "1..32";
                 pattern "[^?' =,>|]+";

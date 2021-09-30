@@ -21,17 +21,17 @@ submodule ipi-rsvp-trunk {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-rsvp-types {
         prefix ipi-rsvp-types;
-        revision-date 2021-01-27;
+        revision-date 2021-09-03;
     }
 
     import ietf-inet-types {
@@ -39,7 +39,7 @@ submodule ipi-rsvp-trunk {
         revision-date 2013-07-15;
     }
 
-    include ipi-rsvp-session { revision-date 2021-03-27;}
+    include ipi-rsvp-session { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
 
@@ -53,9 +53,24 @@ submodule ipi-rsvp-trunk {
         "Resource Reservation Protocol";
 
 
-    revision "2021-06-21" {
+    revision "2021-08-27" {
+        description "Updated length constraint for rsvp path-name";
+        reference " 0.6.3.";
+    }
+
+    revision "2021-06-28" {
         description "Modified the attribute name from dscp-exp-max-exp-val to dscp-exp-map-exp-val";
-        reference " 0.5.1.";
+        reference " 0.6.2.";
+    }
+
+    revision "2021-06-26" {
+        description "Updated multipath runtime attribute for trunk entry";
+        reference " 0.6.1.";
+    }
+
+    revision "2021-06-25" {
+        description "llsp attribute removed for HAVE_CUSTOM2_QOS from bypass trunk";
+        reference " 0.6.0.";
     }
 
     revision "2021-03-31" {
@@ -88,7 +103,7 @@ submodule ipi-rsvp-trunk {
             "configuration parameters for rsvp path";
         leaf path-name  {
             type  string {
-                length "1..32";
+                length "1..128";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create a new RSVP path or to enter the Path
@@ -200,8 +215,8 @@ submodule ipi-rsvp-trunk {
                 length "1..32";
                 pattern "[^?' =,>|]+";
             }
-            description "Use this attribute to create a new RSVP Bypass Tunnel or to modify the
-                        existing RSVP Bypass Tunnel.";
+            description "Use this attribute to create a new RSVP Bypass Tunnel or to modify
+                        existing RSVP Bypass Tunnel";
         } // END of bypass-name definition.
 
         leaf backup-bandwidth-type  {
@@ -421,6 +436,7 @@ submodule ipi-rsvp-trunk {
         description
             "rsvp ds-info llsp information for the bypass trunk";
         leaf llsp-class  {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -693,7 +709,6 @@ submodule ipi-rsvp-trunk {
         description
             "configuration parameters for rsvp multipath";
         leaf multipath-name  {
-            if-feature feature-list:HAVE_RSVP_MULTIPATH;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -706,20 +721,56 @@ submodule ipi-rsvp-trunk {
     } // END of rsvp-multipath-config definition.
     grouping rsvp-multipath-common-config {
         description
-            "configuration parameters for rsvp multipath";
-        leaf multipath-description  {
+            "configuration parameters for rsvp multipath group";
+        leaf description  {
             type  cml-data-types:cml_line_t {
                 length "1..1965";
             }
             description "Use this attribute to add description for multipath group";
-        } // END of multipath-description definition.
+        } // END of description definition.
 
-        leaf multipath-destination  {
+        leaf destination  {
             type  inet:ipv4-address;
             description "Use this attribute to add destination prefix for multipath group";
-        } // END of multipath-destination definition.
+        } // END of destination definition.
 
     } // END of rsvp-multipath-common-config definition.
+    grouping rsvp-multipath-state {
+        description
+            "rsvp multipath additional information";
+        leaf multipath-identifier  {
+            type  uint16;
+            description "Identifier of multipath group";
+        } // END of multipath-identifier definition.
+
+        leaf member-trunk-count  {
+            type  uint16;
+            description "Number of member trunks of multipath group";
+        } // END of member-trunk-count definition.
+
+    } // END of rsvp-multipath-state definition.
+    grouping rsvp-multipath-trunk-state {
+        description
+            "rsvp multipath member trunk information";
+        leaf trunk-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Name of the member trunk";
+        } // END of trunk-name definition.
+
+        leaf trunk-identifier  {
+            type  uint32;
+            description "Identifier of the member trunk";
+        } // END of trunk-identifier definition.
+
+        leaf trunk-status  {
+            type  ipi-rsvp-types:rsvp_trunk_status_t;
+            description "Status of the member trunk";
+        } // END of trunk-status definition.
+
+    } // END of rsvp-multipath-trunk-state definition.
     grouping rsvp-trunk-multipath-config {
         description
             "configuration parameters for rsvp multipath config";
@@ -1320,6 +1371,69 @@ submodule ipi-rsvp-trunk {
         } // End of rsvp-path-list
     } // END of rsvp-paths-container definition.
     } // END of rsvp-paths-grouping definition.
+
+    grouping  multipaths-grouping {
+    description
+        "container for the rsvp multipath group";
+    container multipaths {
+        when " /rsvp-te/rsvp-instance/config ";
+        if-feature feature-list:HAVE_RSVP_MULTIPATH;
+        description
+            "container for the rsvp multipath group";
+
+        list multipath {
+            key "multipath-name";
+            description
+                "list of rsvp multipath groups";
+            leaf multipath-name  {
+                type  leafref {
+                    path  "../config/multipath-name";
+                }
+                description "";
+            } // END of multipath-name definition.
+
+            container config {
+                description
+                    "configuration container for rsvp multipath group";
+                uses rsvp-multipath-common-config;
+                uses rsvp-multipath-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "state container for rsvp multipath group";
+                uses rsvp-multipath-common-config;
+                uses rsvp-multipath-config;
+                uses rsvp-multipath-state;
+            } // END of state-container definition.
+            container member-trunks {
+                config false;
+                description
+                    "State level container for multipath member trunks";
+
+                list member-trunk {
+                    key "trunk-name";
+                    config false;
+                    description
+                        "State level list for multipath member trunks";
+                    leaf trunk-name  {
+                        type  leafref {
+                            path  "../state/trunk-name";
+                        }
+                        description "Name of the member trunk";
+                    } // END of trunk-name definition.
+
+                    container state {
+                        config false;
+                        description
+                            "state container for member trunks";
+                        uses rsvp-multipath-trunk-state;
+                    } // END of state-container definition.
+                } // End of member-trunk-list
+            } // END of member-trunks-container definition.
+        } // End of multipath-list
+    } // END of multipaths-container definition.
+    } // END of multipaths-grouping definition.
 
     grouping  trunks-grouping {
     description

@@ -33,17 +33,17 @@ module ipi-ptp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-ptp-types {
         prefix ipi-ptp-types;
-        revision-date 2021-04-29;
+        revision-date 2021-09-03;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     include ipi-ptp-notifications { revision-date 2020-12-17;}
@@ -59,6 +59,16 @@ module ipi-ptp {
     description
         "Datamodel for PTP configurations";
 
+
+    revision "2021-09-20" {
+        description "Added dependent mode synchronous flag for attributes";
+        reference " 0.4.3.";
+    }
+
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference " 0.4.2.";
+    }
 
     revision "2021-04-14" {
         description "Added snmp oid and fix the gps-offset command.";
@@ -168,14 +178,29 @@ module ipi-ptp {
         container debug {
             description
                 "Debugging functions";
+            container config {
+                description
+                    "Configuration data";
+                uses ptp-debug-config;
+            } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operational state data";
+                uses ptp-debug-config;
                 uses ptp-debug-terminal-state;
             } // END of state-container definition.
         } // END of debug-container definition.
     } // END of ptp-debug-top definition.
+    grouping ptp-debug-config {
+        description
+            "Grouping for debug configuration for PTP";
+        leaf debug-ptp-conf  {
+            type  empty;
+            description "Use this attribute to debug the ptp process.";
+        } // END of debug-ptp-conf definition.
+
+    } // END of ptp-debug-config definition.
     grouping ptp-debug-terminal-state {
         description
             "Grouping for ptp debug terminal state";
@@ -1083,7 +1108,7 @@ module ipi-ptp {
         leaf delay-asymmetry-msec  {
             type  int8 {
                  range "-100..100"  {
-                    description "-100..100:Value of latency in msec. Default value is 0.";
+                    description "-100..100:Value of latency in milliseconds. Default value is 0.";
                  }
             }
             mandatory true;
@@ -1093,7 +1118,7 @@ module ipi-ptp {
         leaf delay-asymmetry-nsec  {
             type  int32 {
                  range "-1000000..1000000"  {
-                    description "-1000000..1000000:Value of latency in nsec. Default value is 0.";
+                    description "-1000000..1000000:Value of latency in nanoseconds. Default value is 0.";
                  }
             }
             mandatory true;
@@ -1140,7 +1165,15 @@ module ipi-ptp {
                         PTP Port";
         } // END of network-interface definition.
 
-        leaf vlan-id  {
+        leaf vlan-physical-interface-name  {
+            type  cml-data-types:cml_ifname_t {
+                length "1..1965";
+            }
+            description "Reference to the configured underlying interface that is used by this
+                        vlan interface PTP Port";
+        } // END of vlan-physical-interface-name definition.
+
+        leaf dot1q-vlan-id  {
             type  uint16 {
                  range "1..4094"  {
                     description "1..4094:VLAN ID 1-4094 (valid range related to the value configured in
@@ -1155,15 +1188,41 @@ module ipi-ptp {
                         reserved-vlan-base. By default the range reserved vlan
                         values are 4064-4095. By default the maximum valid value for vlan-id
                         is 4063.";
-        } // END of vlan-id definition.
+        } // END of dot1q-vlan-id definition.
 
-        leaf vlan-physical-interface-name  {
-            type  cml-data-types:cml_ifname_t {
-                length "1..1965";
+        leaf dot1ad-vlan-id  {
+            type  uint16 {
+                 range "1..4094"  {
+                    description "1..4094:VLAN ID 1-4094 (valid range related to the value configured in
+                            reserved-vlan-base - default maximum valid value is 4063)";
+                 }
             }
             description "Reference to the configured underlying interface that is used by this
-                        vlan interface PTP Port";
-        } // END of vlan-physical-interface-name definition.
+                        PTP Port.
+                        The valid range for this attribute vlan-id is related to the value
+                        configured in reserved-vlan-base which defines a
+                        range of 31 reserved vlans for PTP from the configured value in
+                        reserved-vlan-base. By default the range reserved vlan
+                        values are 4064-4095. By default the maximum valid value for vlan-id
+                        is 4063.";
+        } // END of dot1ad-vlan-id definition.
+
+        leaf inner-dot1q-vlan-id  {
+            type  uint16 {
+                 range "1..4094"  {
+                    description "1..4094:VLAN ID 1-4094 (valid range related to the value configured in
+                            reserved-vlan-base - default maximum valid value is 4063)";
+                 }
+            }
+            description "Reference to the configured underlying interface that is used by this
+                        PTP Port.
+                        The valid range for this attribute vlan-id is related to the value
+                        configured in reserved-vlan-base which defines a
+                        range of 31 reserved vlans for PTP from the configured value in
+                        reserved-vlan-base. By default the range reserved vlan
+                        values are 4064-4095. By default the maximum valid value for vlan-id
+                        is 4063.";
+        } // END of inner-dot1q-vlan-id definition.
 
     } // END of ptp-network-interface-config definition.
     grouping ptp-time-of-day-top {
@@ -1282,6 +1341,11 @@ module ipi-ptp {
             type  empty;
             description "two step";
         } // END of two-step definition.
+
+        leaf clock-type-tgm  {
+            type  ipi-ptp-types:ptp_clock_type_tgm_t;
+            description "clock type as tgm";
+        } // END of clock-type-tgm definition.
 
         leaf one-way  {
             type  empty;

@@ -23,27 +23,32 @@ module ipi-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-mpls-types {
         prefix ipi-mpls-types;
-        revision-date 2021-02-12;
+        revision-date 2021-09-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-06-14;
+        revision-date 2021-09-28;
     }
 
     import ipi-if-aggregate {
         prefix ipi-if-aggregate;
-        revision-date 2020-12-15;
+        revision-date 2021-09-03;
+    }
+
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -58,6 +63,41 @@ module ipi-mpls {
     description
         "Data model for MPLS";
 
+
+    revision "2021-09-01" {
+        description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
+        reference " 0.5.6.";
+    }
+
+    revision "2021-08-17" {
+        description "Added runtime attributes for operational state of RSVP and LDP graceful-restart";
+        reference " 0.5.5.";
+    }
+
+    revision "2021-08-02" {
+        description "Added support for multiple inner vlan Range or ID in MPLS service template";
+        reference " 0.6.0.";
+    }
+
+    revision "2021-07-29" {
+        description "Added bandwidth cli for IGP TE";
+        reference " 0.5.4.";
+    }
+
+    revision "2021-07-12" {
+        description "Corrected inner vlan data-type for MPLS service template";
+        reference " 0.5.4.";
+    }
+
+    revision "2021-06-29" {
+        description "Corrected length property for group-name";
+        reference " 0.5.3.";
+    }
+
+    revision "2021-06-25" {
+        description "Removed implicit delete from config container of service-template config as not required ";
+        reference " 0.5.2.";
+    }
 
     revision "2021-05-13" {
         description "Corrected dependencies for label-management object lists";
@@ -133,6 +173,28 @@ module ipi-mpls {
         } // END of name definition.
 
     } // END of mpls-6pe-tunnel-policy definition.
+    grouping nsm-client-graceful-restart-state {
+        description
+            "Operational parameters for rsvp/ldp graceful-restart";
+        leaf graceful-restart-state  {
+            type  ipi-mpls-types:mpls_graceful_restart_status_t;
+            description "State of ldp/rsvp graceful restart";
+        } // END of graceful-restart-state definition.
+
+        leaf remaining-restart-time  {
+            type  uint32;
+            units "seconds";
+            description "remaining ldp/rsvp graceful restart time";
+        } // END of remaining-restart-time definition.
+
+        leaf disconnected-time  {
+            type  yang:date-and-time {
+                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                }
+                description "ldp/rsvp disconnected time";
+            } // END of disconnected-time definition.
+
+    } // END of nsm-client-graceful-restart-state definition.
     grouping mpls-global-config {
         description
             "MPLS global configuration";
@@ -266,14 +328,14 @@ module ipi-mpls {
         } // END of bandwidth definition.
 
         leaf reservable-bandwidth  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             if-feature feature-list:HAVE_TE;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to specify the maximum reservable bandwidth per
-                        interface. This value can be a larger or smaller value than
+                        interface. This value can be equal or smaller value than
                         max-bandwidth.";
         } // END of reservable-bandwidth definition.
 
@@ -286,6 +348,42 @@ module ipi-mpls {
             }
             description "Use this attribute to add the link to a srlg group";
         } // END of shared-risk-link-group definition.
+
+        leaf uni-available-bandwidth  {
+            if-feature feature-list:HAVE_TE;
+            if-feature feature-list:NOT_IF_BANDWIDTH_INFO;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify a unidirectional, available bandwidth
+                        value for the interface. The bandwidth attribute takes input in kbps,
+                        mbps and gbps.";
+        } // END of uni-available-bandwidth definition.
+
+        leaf uni-residual-bandwidth  {
+            if-feature feature-list:HAVE_TE;
+            if-feature feature-list:NOT_IF_BANDWIDTH_INFO;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify a unidirectional, residual bandwidth
+                        value for the interface. The bandwidth attribute takes input in kbps,
+                        mbps and gbps.";
+        } // END of uni-residual-bandwidth definition.
+
+        leaf uni-utilized-bandwidth  {
+            if-feature feature-list:HAVE_TE;
+            if-feature feature-list:NOT_IF_BANDWIDTH_INFO;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify a unidirectional, utilised bandwidth
+                        value for the interface. The bandwidth attribute takes input in kbps,
+                        mbps and gbps.";
+        } // END of uni-utilized-bandwidth definition.
 
     } // END of mpls-interface-bandwidth-config definition.
     grouping mpls-bandwidth-class-config {
@@ -453,7 +551,7 @@ module ipi-mpls {
             "Grouping for Configuration attributes for access-circuit-group";
         leaf group-name  {
             type  string {
-                length "1..1965";
+                length "1..32";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to create a new access circuit group for MPLS";
@@ -540,6 +638,7 @@ module ipi-mpls {
         } // END of match-all definition.
 
         leaf-list match-single-tag-outer-vlan-range  {
+            when " not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-all) ";
             type  string {
                 length "1..4094";
                 pattern "[^?' =,>]+";
@@ -560,7 +659,7 @@ module ipi-mpls {
 
         list double-tag {
         when " not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-all) ";
-            key "match-outer-vlan-id match-inner-vlan-id";
+            key "match-outer-vlan-id";
             description
                 "Configuration for double-tag configurations";
             leaf match-outer-vlan-id  {
@@ -569,13 +668,6 @@ module ipi-mpls {
                 }
                 description "Specify outer vlan id for match double tag";
             } // END of match-outer-vlan-id definition.
-
-            leaf match-inner-vlan-id  {
-                type  leafref {
-                    path  "../config/match-inner-vlan-id";
-                }
-                description "Specify inner vlan id for match double tag";
-            } // END of match-inner-vlan-id definition.
 
             container config {
                 description
@@ -602,13 +694,13 @@ module ipi-mpls {
             description "Specify outer vlan id for match double tag";
         } // END of match-outer-vlan-id definition.
 
-        leaf match-inner-vlan-id  {
-            type  uint16 {
-                 range "1..4094"  {
-                    description "1..4094:Inner vid value";
-                 }
+        leaf-list match-inner-vlan-id  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>]+";
             }
-            description "Specify inner vlan id for match double tag";
+            description "Specify inner vlan VID or range(VLAN ID 1-4094 or range: 2-5) for
+                        match double tag";
         } // END of match-inner-vlan-id definition.
 
     } // END of customer-service-template-double-tag-config definition.
@@ -864,6 +956,34 @@ module ipi-mpls {
                     "Global MPLS Operational state data";
                 uses mpls-global-config;
             } // END of state-container definition.
+            container graceful-restart {
+                if-feature feature-list:HAVE_RESTART;
+                config false;
+                description
+                    "Graceful restart clients";
+                container rsvp {
+                    config false;
+                    description
+                        "Name of the graceful-restart client";
+                    container state {
+                        config false;
+                        description
+                            "State of the graceful-restart client";
+                        uses nsm-client-graceful-restart-state;
+                    } // END of state-container definition.
+                } // END of rsvp-container definition.
+                container ldp {
+                    config false;
+                    description
+                        "Name of the graceful-restart client";
+                    container state {
+                        config false;
+                        description
+                            "State of the graceful-restart client";
+                        uses nsm-client-graceful-restart-state;
+                    } // END of state-container definition.
+                } // END of ldp-container definition.
+            } // END of graceful-restart-container definition.
         } // END of global-container definition.
         container interfaces {
             description
@@ -881,7 +1001,7 @@ module ipi-mpls {
                 } // END of name definition.
 
                 container label-switching {
-                    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status != 'true' ";
+                    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
                     description
                         "Label switching configuration";
                     container config {
@@ -993,16 +1113,5 @@ module ipi-mpls {
     } // END of mpls-grouping definition.
 
     uses mpls-grouping;
-
-    rpc mpls-snmp-traps {
-        description "Use this RPC to enable/disable SNMP trap notifications for MPLS";
-        input  {
-            leaf trap-notify  {
-                type cml-data-types:cml_enable_disable_t;
-                mandatory true;
-                description "SNMP Trap Notification";
-            }
-        }
-    }
 
 }

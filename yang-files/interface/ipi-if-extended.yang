@@ -23,27 +23,27 @@ module ipi-if-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-if-types {
         prefix ipi-if-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-15;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ipi-if-ethernet {
         prefix ipi-if-ethernet;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-vxlan {
         prefix ipi-vxlan;
-        revision-date 2021-06-30;
+        revision-date 2021-09-15;
     }
 
     import ietf-inet-types {
@@ -58,7 +58,7 @@ module ipi-if-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -73,6 +73,63 @@ module ipi-if-extended {
     description
         "Datamodel for IPI Interface extended module";
 
+
+    revision "2021-09-24" {
+        description "Added notification to remove interfaces from bridge-domain";
+        reference " 0.10.7.";
+    }
+
+    revision "2021-09-15" {
+        description "Added xc-status to show cross connect operational status";
+        reference " 0.10.6.";
+    }
+
+    revision "2021-09-09" {
+        description "Inner VLAN ID for double tag match for subinterface encapsulation is changed from key to mandatory attr and made multi valued";
+        reference " 0.10.5.";
+    }
+
+    revision "2021-09-01" {
+        description "Changed data-types of attribute no-learning and rtp-header from CML_BOOL_T to CML_EMPTY_T.
+                       Changed base interface module's switchport attribute name and the datatype from bool to empty.
+        ";
+        reference " 0.10.4.";
+    }
+
+    revision "2021-08-31" {
+        description "Added dependents for different types of subinterface encapsulation";
+        reference " 0.10.3.";
+    }
+
+    revision "2021-08-26" {
+        description "Added sniff cli objectAction";
+        reference " 0.10.2.";
+    }
+
+    revision "2021-08-18" {
+        description "Removed default value tag for attribute warning-threshold, recovery-threshold and Updated description";
+        reference " 0.10.1.";
+    }
+
+    revision "2021-08-13" {
+        description "Added Multiple match support for L2 Subinterface";
+        reference " 0.10.0.";
+    }
+
+    revision "2021-07-29" {
+        description "Fix L2cp type options for Software Forwarder Feature";
+        reference " 0.8.3.";
+    }
+
+    revision "2021-07-06" {
+        description "Added link-debounce-time support";
+        reference " 0.9.1.";
+    }
+
+    revision "2021-06-15" {
+        description "Added burst-size option to storm-control CLI";
+        reference " 0.9.0.";
+    }
 
     revision "2021-06-10" {
         description "Added new attribute hardware-applied-bcast-value, hardware-applied-mcast-value and hardware-applied-dlf-bcast-value to show hardware applied storm control value in netconf";
@@ -352,6 +409,36 @@ module ipi-if-extended {
             } // END of auto-ipv6-link-local-address definition.
 
     } // END of ipi-interface-extended-state definition.
+    grouping link-debounce-time-config {
+        description
+            "Grouping for link-debounce-time.";
+        leaf linkup-debounce-time  {
+            type  uint16 {
+                 range "0..5000"  {
+                    description "0..5000:Linkup debounce time is delay before linkup transition. Unit
+                            is millisceconds. 0 value is used to disable the timer. Min value is
+                            250ms";
+                 }
+            }
+            units "milliseconds";
+            mandatory true;
+            description "Link debounce timer value for down-up transition";
+        } // END of linkup-debounce-time definition.
+
+        leaf linkdown-debounce-time  {
+            type  uint16 {
+                 range "0..5000"  {
+                    description "0..5000:Linkdown debounce time is delay before linkdown transition.
+                            Unit is millisceconds. 0 value is used to disable the timer. Min value
+                            is 250ms";
+                 }
+            }
+            units "milliseconds";
+            mandatory true;
+            description "Link debounce timer value for up-down transition";
+        } // END of linkdown-debounce-time definition.
+
+    } // END of link-debounce-time-config definition.
     grouping port-monitor-config {
         description
             "Grouping for Port-monitoring config";
@@ -379,7 +466,8 @@ module ipi-if-extended {
             units "%";
             mandatory true;
             description "This object is used to specify warning threshold for port speed
-                        monitor. Warning threshold must be greater than recovery threshold";
+                        monitor. Warning threshold must be greater than recovery threshold.
+                        Default value of warning-threshold is 90.";
         } // END of warning-threshold definition.
 
         leaf recovery-threshold  {
@@ -392,7 +480,7 @@ module ipi-if-extended {
             units "%";
             mandatory true;
             description "This object is used to specify recovery threshold for port speed
-                        monitor.";
+                        monitor.Default value of recovery-threshold is 80.";
         } // END of recovery-threshold definition.
 
     } // END of port-monitor-threshold-config definition.
@@ -864,6 +952,43 @@ module ipi-if-extended {
         } // END of admin-disable definition.
 
     } // END of subif-crossconnect-config definition.
+    grouping subif-crossconnect-state {
+        description
+            "Grouping for Sub-interface cross-connect operational data";
+        leaf operational-state  {
+            type  ipi-if-types:if_xc_oper_status_t;
+            description "This attribute shows the current status of cross-connect.";
+        } // END of operational-state definition.
+
+    } // END of subif-crossconnect-state definition.
+    grouping subif-bridge-config {
+        description
+            "Grouping for Sub-interface bridge-domain configurations";
+        leaf bridgedomain-id  {
+            type  int32 {
+                 range "1..2147483647"  {
+                    description "1..2147483647:Bridge domain Id";
+                 }
+            }
+            description "This attribute specifies the bridge domain id.";
+        } // END of bridgedomain-id definition.
+
+        leaf-list member-ifp  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specifies the subif for bridge-domain";
+        } // END of member-ifp definition.
+
+        leaf subif-description  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "This attribute secifies the description for bridge domain";
+        } // END of subif-description definition.
+
+    } // END of subif-bridge-config definition.
     grouping port-group-config {
         description
             "Grouping for port-group speed configurations";
@@ -1032,47 +1157,154 @@ module ipi-if-extended {
         } // END of bytes definition.
 
     } // END of switchport-allowed-ether-types-stats definition.
-    grouping subif-encapsulation-config {
+    grouping subif-encapsulation-single-tag-config {
         description
-            "Grouping for dot1q and dot1ad encapsulation data";
+            "Grouping for single tagged encapsulation data";
         leaf encapsulation-type  {
-            when " ../outer-vlan-id ";
+            // when " ../outer-vlan-id ";
             type  ipi-if-types:if_subif_encap_type_t;
-            mandatory true;
-            description "This attribute is used to configure the dot1q encapsulation type.
-                        To change the encapsulation config, delete and recreate the entire
-                        encapsulation config.";
+            description "This attribute is used to configure the encapsulation type
+                        (dot1q/dot1ad).";
+        } // END of encapsulation-type definition.
+
+        leaf-list outer-vlan-id  {
+            // when " ../encapsulation-type ";
+            type  string {
+                length "1..4094";
+                pattern "[^?' =,>]+";
+            }
+            description "This attribute is used to configure the outer VLAN tag";
+        } // END of outer-vlan-id definition.
+
+    } // END of subif-encapsulation-single-tag-config definition.
+    grouping subif-encapsulation-double-tag-config {
+        description
+            "Grouping for double tagged encapsulation data";
+        leaf encapsulation-type  {
+            // when " ../outer-vlan-id ";
+            type  ipi-if-types:if_subif_encap_type_t;
+            description "This attribute is used to configure the encapsulation type
+                        (dot1q/dot1ad).";
         } // END of encapsulation-type definition.
 
         leaf outer-vlan-id  {
-            when " ../encapsulation-type ";
-            type  cml-data-types:cml_range_t;
-            mandatory true;
-            description "This attribute is used to configure the outer vlan tag.
-                        To change the encapsulation config, delete and recreate the entire
-                        encapsulation config.";
+            // when " ../encapsulation-type ";
+            type  string {
+                length "1..4094";
+                pattern "[^?' =>]+";
+            }
+            description "This attribute is used to configure the outer VLAN tag as a single
+                        value alone";
         } // END of outer-vlan-id definition.
 
-        leaf inner-vlan-id  {
-            when " ../encapsulation-type and ../outer-vlan-id ";
-            type  cml-data-types:cml_range_t;
-            description "This Object is used to configure the inner vlan ID.
-                        To change the encapsulation config, delete and recreate the entire
-                        encapsulation config.";
+        leaf-list inner-vlan-id  {
+            // when " ../encapsulation-type && ../outer-vlan-id ";
+            type  string {
+                length "1..4094";
+                pattern "[^?' =,>]+";
+            }
+            description "This attribute is used to configure the inner VLAN tag as a single
+                        value 2-4094 or a range 2-5COMMA10 or 2-5COMMA7-19";
         } // END of inner-vlan-id definition.
 
-    } // END of subif-encapsulation-config definition.
+    } // END of subif-encapsulation-double-tag-config definition.
+    grouping subif-encapsulation-single-tag-top {
+        description
+            "Top level groupig for single tagged encapsulations";
+        container single-tag-vlan-matches {
+            description
+                "Container for VLAN service matches for single tagged";
+
+            list single-tag-vlan-match {
+            // when " ../config/outer-vlan-id ";
+                key "encapsulation-type";
+                description
+                    "Single tagged VLAN service match configuration";
+                leaf encapsulation-type  {
+                    type  leafref {
+                        path  "../config/encapsulation-type";
+                    }
+                    description "This attribute is used to configure the encapsulation
+                                type(dot1q/dot1ad).";
+                } // END of encapsulation-type definition.
+
+                container config {
+                    description
+                        "Configuration data for single tagged encapsulation";
+                    uses subif-encapsulation-single-tag-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for dot1q and dot1ad encapsulation";
+                    uses subif-encapsulation-single-tag-config;
+                } // END of state-container definition.
+            } // End of single-tag-vlan-match-list
+        } // END of single-tag-vlan-matches-container definition.
+    } // END of subif-encapsulation-single-tag-top definition.
+    grouping subif-service-queue {
+        description
+            "configure the service queue type physical/flowid";
+        leaf subif-service-queue  {
+            type  ipi-if-types:if_subif_sevice_queue_t;
+            description "This attribute specifies the sub interface queue type";
+        } // END of subif-service-queue definition.
+
+    } // END of subif-service-queue definition.
+    grouping subif-encapsulation-double-tag-top {
+        description
+            "Top level groupig for double tagged encapsulations";
+        container double-tag-vlan-matches {
+            description
+                "Container for VLAN service matches for double tagged";
+
+            list double-tag-vlan-match {
+            // when " ../outer-vlan-id + ../encapsulation-type ";
+                key "encapsulation-type outer-vlan-id";
+                description
+                    "Double tagged VLAN service match configuration";
+                leaf encapsulation-type  {
+                    type  leafref {
+                        path  "../config/encapsulation-type";
+                    }
+                    description "This attribute is used to configure the encapsulation type
+                                (dot1q/dot1ad).";
+                } // END of encapsulation-type definition.
+
+                leaf outer-vlan-id  {
+                    type  leafref {
+                        path  "../config/outer-vlan-id";
+                    }
+                    description "This attribute is used to configure the outer VLAN tag as a single
+                                value alone";
+                } // END of outer-vlan-id definition.
+
+                container config {
+                    description
+                        "Configuration data for double tagged encapsulation";
+                    uses subif-encapsulation-double-tag-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for double tagged encapsulation";
+                    uses subif-encapsulation-double-tag-config;
+                } // END of state-container definition.
+            } // End of double-tag-vlan-match-list
+        } // END of double-tag-vlan-matches-container definition.
+    } // END of subif-encapsulation-double-tag-top definition.
     grouping native-layer2-encapsulation-config {
         description
-            "Grouping for dot1q and dot1ad encapsulation data";
-        leaf l2-encapsulation-type  {
-            type  ipi-if-types:if_subif_l2_encap_type_t;
-            mandatory true;
-            description "This attribute is used to configure the l2 subinterface encapsulation
-                        type.
-                        To change the encapsulation config, delete and recreate the entire
-                        encapsulation config.";
-        } // END of l2-encapsulation-type definition.
+            "Grouping for default/untagged encapsulation data";
+        leaf encap-default  {
+            type  empty;
+            description "Use this attribute to configure encapsulation as default";
+        } // END of encap-default definition.
+
+        leaf encap-untagged  {
+            type  empty;
+            description "Use this attribute to configure encapsulation as untagged";
+        } // END of encap-untagged definition.
 
     } // END of native-layer2-encapsulation-config definition.
     grouping subif-rewrite-config {
@@ -1131,7 +1363,7 @@ module ipi-if-extended {
                          }
                     }
                     mandatory true;
-                    description "This Object is used to configure outer vlan ID range for rewrite.
+                    description "This Object is used to configure outer VLAN ID range for rewrite.
                                 To change the rewrite config, delete and recreate the entire rewrite
                                 config.";
                 } // END of push-outer-vlan-id definition.
@@ -1142,7 +1374,7 @@ module ipi-if-extended {
                             description "1..4094:inner-vlan";
                          }
                     }
-                    description "This Object is used to configure the inner vlan ID for rewrite.
+                    description "This Object is used to configure the inner VLAN ID for rewrite.
                                 To change the rewrite config, delete and recreate the entire rewrite
                                 config.";
                 } // END of push-inner-vlan-id definition.
@@ -1189,20 +1421,36 @@ module ipi-if-extended {
             description "This attribute is used to configure the layer2 control-protocol type";
         } // END of l2cp-type definition.
 
-        leaf tunnel-vlan  {
-            if-feature feature-list:HAVE_SWFWDR;
-            type  int32;
-            description "This attribute is used to configure the layer2 control-protocol type
-                        tunnel VLAN";
-        } // END of tunnel-vlan definition.
+        choice l2protocol-option {
+            description
+                "Choice for options to be applied";
+            case tunnel-vlan {
 
-        leaf protocol-process  {
-            type  ipi-if-types:if_l2cp_process_t;
-            mandatory true;
-            description "This attribute is used to change the process of protocol to
-                        peer/discard/tunnel";
-        } // END of protocol-process definition.
+                description
+                    "Set tunnel VLAN";
 
+                leaf tunnel-vlan  {
+                    if-feature feature-list:HAVE_SWFWDR;
+                    type  int32;
+                    description "This attribute is used to configure the layer2 control-protocol type
+                                tunnel VLAN";
+                } // END of tunnel-vlan definition.
+
+            }
+            case protocol-process {
+
+                description
+                    "Set protocol process";
+
+                leaf protocol-process  {
+                    type  ipi-if-types:if_l2cp_process_t;
+                    mandatory true;
+                    description "This attribute is used to change the process of protocol to
+                                peer/discard/tunnel";
+                } // END of protocol-process definition.
+
+            }
+        } // END of l2protocol-option-choice definition.
     } // END of l2cp-config definition.
     grouping tdm-config {
         description
@@ -1231,8 +1479,7 @@ module ipi-if-extended {
 
         leaf rtp-header  {
             if-feature feature-list:HAVE_TDM_VC;
-            type  boolean;
-            default false;
+            type  empty;
             description "This attribute is used to configure rtp-header";
         } // END of rtp-header definition.
 
@@ -1664,7 +1911,7 @@ module ipi-if-extended {
         description
             "Grouping for configurations";
         leaf bcast-value  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             type  ipi-if-types:if_rate_limit_t;
             mandatory true;
             description "This attribute is used to set the storm control configuration, Set
@@ -1677,6 +1924,13 @@ module ipi-if-extended {
             description "This attribute is used to set the storm control configuration, Set the
                         format for units in kbps|mbps|gbps or level for threshold percentage";
         } // END of bcast-rate-limit-format definition.
+
+        leaf bcast-burst-value  {
+            type  uint32;
+            mandatory true;
+            description "This attribute is used to set the broadcast storm control burst
+                        configuration";
+        } // END of bcast-burst-value definition.
 
     } // END of broadcast-config definition.
     grouping broadcast-state {
@@ -1705,7 +1959,7 @@ module ipi-if-extended {
         description
             "Grouping for configurations";
         leaf mcast-value  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             type  ipi-if-types:if_rate_limit_t;
             mandatory true;
             description "This attribute is used to set the storm control configuration,Set
@@ -1718,6 +1972,13 @@ module ipi-if-extended {
             description "This attribute is used to set the storm control configuration, Set the
                         format for units in kbps|mbps|gbps or level for threshold percentage";
         } // END of mcast-rate-limit-format definition.
+
+        leaf mcast-burst-value  {
+            type  uint32;
+            mandatory true;
+            description "This attribute is used to set the multicast storm control burst
+                        configuration";
+        } // END of mcast-burst-value definition.
 
     } // END of multicast-config definition.
     grouping multicast-state {
@@ -1746,7 +2007,7 @@ module ipi-if-extended {
         description
             "Grouping for configurations";
         leaf dlf-bcast-value  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             type  ipi-if-types:if_rate_limit_t;
             mandatory true;
             description "This attribute is used to set the storm control configuration,Set DLF
@@ -1759,6 +2020,13 @@ module ipi-if-extended {
             description "This attribute is used to set the storm control configuration, Set the
                         format for units in kbps|mbps|gbps or level for threshold percentage";
         } // END of dlf-bcast-rate-limit-format definition.
+
+        leaf dlf-bcast-burst-value  {
+            type  uint32;
+            mandatory true;
+            description "This attribute is used to set the dlf storm control burst
+                        configuration";
+        } // END of dlf-bcast-burst-value definition.
 
     } // END of dlf-broadcast-config definition.
     grouping dlf-broadcast-state {
@@ -1884,44 +2152,29 @@ module ipi-if-extended {
                 uses capabilities-state;
             } // END of state-container definition.
         } // END of capabilities-container definition.
+        container service-queue {
+            if-feature feature-list:HAVE_SUBINTERFACE;
+            description
+                "configure subinterface queue type";
+            uses subif-service-queue;
+        } // END of service-queue-container definition.
         container subinterface-encapsulation {
             if-feature feature-list:HAVE_SUBINTERFACE;
             description
                 "Container for dot1q and dot1ad encapsulation data";
-            container vlan-service {
+            container config {
                 description
-                    "Container for vlan service";
-                container config {
-                    presence "Enable dot1q and dot1ad encapsulation";
-                    description
-                        "Configuration data for dot1q and dot1ad encapsulation";
-                    uses subif-encapsulation-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for dot1q and dot1ad encapsulation";
-                    uses subif-encapsulation-config;
-                } // END of state-container definition.
-            } // END of vlan-service-container definition.
-            container native-layer2 {
+                    "Configuration data for native layer 2 encapsulations";
+                uses native-layer2-encapsulation-config;
+            } // END of config-container definition.
+            container state {
+                config false;
                 description
-                    "Container for native L2 subinterface";
-                container config {
-                    presence "Enable native L2 encapsulation";
-                    description
-                        "Configuration data for native L2 encapsulation";
-                    uses native-layer2-encapsulation-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for native L2 subinterface";
-                    uses native-layer2-encapsulation-config;
-                } // END of state-container definition.
-            } // END of native-layer2-container definition.
+                    "Operational state data for native layer 2 encapsulations";
+                uses native-layer2-encapsulation-config;
+            } // END of state-container definition.
             container rewrite {
-                when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:vlan-service/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:native-layer2/ipi-if-extended:config/ipi-if-extended:l2-encapsulation-type ";
+                when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:single-tag-vlan-matches/ipi-if-extended:single-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:double-tag-vlan-matches/ipi-if-extended:double-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-default  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-untagged ";
                 description
                     "Container for rewrite action to push or translate the outer VLAN-id";
                 container config {
@@ -1939,7 +2192,25 @@ module ipi-if-extended {
                     uses subif-rewrite-config;
                 } // END of state-container definition.
             } // END of rewrite-container definition.
+            uses subif-encapsulation-single-tag-top;
+            uses subif-encapsulation-double-tag-top;
         } // END of subinterface-encapsulation-container definition.
+        container link-debounce-time {
+            description
+                "Link Debounce Time related commands";
+            container config {
+                presence "link debounce time config";
+                description
+                    "Container for link debounce time config";
+                uses link-debounce-time-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for link debounce time module";
+                uses link-debounce-time-config;
+            } // END of state-container definition.
+        } // END of link-debounce-time-container definition.
     } // END of extended-container definition.
     } // END of extended-grouping definition.
 
@@ -2113,6 +2384,34 @@ module ipi-if-extended {
     } // END of global-container definition.
     } // END of global-grouping definition.
 
+    grouping  bridge-domain-grouping {
+    description
+        "Global container for bridge domain";
+    container bridge-domain {
+        description
+            "Global container for bridge domain";
+
+        list subinterface-bridge-domain {
+            if-feature feature-list:HAVE_SUBINTERFACE;
+            key "bridgedomain-id";
+            description
+                "Global configuration for Bridging domain";
+            leaf bridgedomain-id  {
+                type  leafref {
+                    path  "../config/bridgedomain-id";
+                }
+                description "This attribute specifies the Bridge domain id";
+            } // END of bridgedomain-id definition.
+
+            container config {
+                description
+                    "Global configuration for bridge-domain";
+                uses subif-bridge-config;
+            } // END of config-container definition.
+        } // End of subinterface-bridge-domain-list
+    } // END of bridge-domain-container definition.
+    } // END of bridge-domain-grouping definition.
+
     grouping  cross-connects-grouping {
     description
         "Global container for cross connect between subinterfaces";
@@ -2143,6 +2442,7 @@ module ipi-if-extended {
                 description
                     "State data for cross-connect between subinterfaces";
                 uses subif-crossconnect-config;
+                uses subif-crossconnect-state;
             } // END of state-container definition.
         } // End of subinterface-cross-connect-list
     } // END of cross-connects-container definition.
@@ -2183,7 +2483,7 @@ module ipi-if-extended {
     }
 
     augment /ipi-interface:interfaces/ipi-interface:interface/ipi-if-ethernet:ethernet {
-    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
         description
             "Container for storm-control module";
         uses storm-control-grouping;
@@ -2209,6 +2509,12 @@ module ipi-if-extended {
 
     augment /ipi-interface:interfaces {
         description
+            "Global container for bridge domain";
+        uses bridge-domain-grouping;
+    }
+
+    augment /ipi-interface:interfaces {
+        description
             "Global container for cross connect between subinterfaces";
         uses cross-connects-grouping;
     }
@@ -2217,6 +2523,12 @@ module ipi-if-extended {
         description
             "Interface tunnel related data";
         uses tunnel-grouping;
+    }
+
+    augment /ipi-interface:interfaces {
+        description
+            "Global configuration for Port-group";
+        uses port-group-speed-map-grouping;
     }
 
 
@@ -2240,6 +2552,47 @@ module ipi-if-extended {
                 mandatory true;
                 description "Name of the interface to clear counters for. Specify NULL to clear
                             counters for all interfaces";
+            }
+        }
+    }
+
+    rpc interface-sniff-enable {
+        description "use this command to enable sniff on port to capture packets on sniff
+                    port";
+        input  {
+            leaf interface-name  {
+                type string;
+                mandatory true;
+                description "interface name";
+            }
+            leaf sniffTime  {
+                type uint8 {
+                    range "0..60";
+                }
+                mandatory true;
+                description "time in minutes to sniff packets";
+            }
+            leaf sniffAction  {
+                type ipi-if-types:if_sniff_action_t;
+                mandatory true;
+                description "sniff direction.";
+            }
+            leaf sniff1  {
+                type boolean;
+                mandatory true;
+                description "sniff packets to sniff1 interface. Default sniff0";
+            }
+        }
+    }
+
+    rpc interface-sniff-disable {
+        description "use this command to disable sniff on port to capture packets on sniff
+                    port";
+        input  {
+            leaf interface-name  {
+                type string;
+                mandatory true;
+                description "interface name";
             }
         }
     }

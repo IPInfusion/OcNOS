@@ -23,12 +23,12 @@ module ipi-ldp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-ldp-types {
         prefix ipi-ldp-types;
-        revision-date 2020-12-15;
+        revision-date 2021-09-03;
     }
 
     import ietf-inet-types {
@@ -38,12 +38,12 @@ module ipi-ldp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
-    include ipi-ldp-l2vpn { revision-date 2020-12-15;}
-    include ipi-ldp-interface { revision-date 2020-12-15;}
-    include ipi-ldp-peer { revision-date 2020-12-15;}
+    include ipi-ldp-l2vpn { revision-date 2021-09-03;}
+    include ipi-ldp-interface { revision-date 2021-09-03;}
+    include ipi-ldp-peer { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
 
@@ -56,6 +56,36 @@ module ipi-ldp {
     description
         "Datamodel for LDP protocol";
 
+
+    revision "2021-09-17" {
+        description "Added DC flag check for entropy command";
+        reference " 0.3.5.";
+    }
+
+    revision "2021-09-14" {
+        description "Removed debug ldp dependency on ldp-instance attribute";
+        reference " 0.3.4.";
+    }
+
+    revision "2021-09-13" {
+        description "Updated presence container and mandatory attribute in graceful-restart";
+        reference " 0.3.3.";
+    }
+
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference " 0.3.2.";
+    }
+
+    revision "2021-08-24" {
+        description "Removed attribute and RPCs related to debug ldp packet and its support provided in debug ldp";
+        reference " 0.3.1.";
+    }
+
+    revision "2021-08-06" {
+        description "Removed the attribute helper-mode and combined under enable attr";
+        reference " 0.3.0.";
+    }
 
     revision "2021-06-01" {
         description "Added dependency constraint between peer authentication password and password-type attrs";
@@ -99,6 +129,7 @@ module ipi-ldp {
         } // END of pseudowire-status-tlv definition.
 
         leaf entropy-label-capability-enable  {
+            if-feature feature-list:NOT_HAVE_CUSTOM1_MPLS;
             type  boolean;
             default false;
             description "This attribute enables ELC for the router. An ELC TLV will be inserted
@@ -223,11 +254,6 @@ module ipi-ldp {
             type  ipi-ldp-types:ldp_debug_t;
             description "Use this attribute to enable the debugging of all LDP events.";
         } // END of ldp definition.
-
-        leaf ldp-packet  {
-            type  ipi-ldp-types:ldp_debug_packet_t;
-            description "Use this attribute to enable the debugging of LDP packet events";
-        } // END of ldp-packet definition.
 
         leaf iccp  {
             if-feature feature-list:HAVE_ICCP;
@@ -587,43 +613,40 @@ module ipi-ldp {
     } // END of ldp-inter-area-config definition.
     grouping ldp-graceful-restart-config {
         description
-            "Grouping for LDP Inter-Area configuration";
-        leaf graceful-restart-enable  {
-            type  ipi-ldp-types:ldp_helper_mode_t;
+            "Grouping for LDP Graceful restart config";
+        leaf enable  {
+            type  ipi-ldp-types:ldp_gr_mode_t;
+            mandatory true;
             description "Use this attribute with the enable option to enable Graceful Restart
                         capability on a router. This is a global command. LDP decides whether
                         or not to encode FT Session TLV in its initialization message for each
                         session depending on this capability, but the restart capability of
                         each session also depends on support for graceful restart at the peer
                         router";
-        } // END of graceful-restart-enable definition.
+        } // END of enable definition.
 
-        leaf helper-mode-enable  {
-            type  boolean;
-            default false;
-            description "Use this attribute to enable helper mode";
-        } // END of helper-mode-enable definition.
-
-        leaf neighbor-liveness-timer  {
-            type  int32 {
+        leaf neighbor-liveness-time  {
+            type  uint16 {
                  range "5..300"  {
                     description "5..300:Set the hold time for a targeted LDP peer";
                  }
             }
+            units "seconds";
             default "120";
             description "Use this attribute to set the Neighbor-Liveness timer. The amount of
                         time the LSR keeps its stale label-FEC (Forwarding Equivalence Class)
                         bindings is set to the lesser of the Fault Tolerant (FT) Reconnect
                         timeout and Neighbor-Liveness timer. This command sets the
                         Neighbor-Liveness timer";
-        } // END of neighbor-liveness-timer definition.
+        } // END of neighbor-liveness-time definition.
 
-        leaf recovery-timer  {
-            type  int32 {
+        leaf max-recovery-time  {
+            type  uint16 {
                  range "15..600"  {
                     description "15..600:Interval until which LDP preserves routes after Peer Restart";
                  }
             }
+            units "seconds";
             default "120";
             description "Use this attribute to set the maximum recovery time.If the LSR
                         determines that the neighbor was able to preserve its MPLS forwarding
@@ -631,21 +654,14 @@ module ipi-ldp {
                         Class) bindings for as long as the lesser of: the recovery time
                         advertised by the neighbor and a local maximum recovery time. This
                         command sets the maximum recovery time";
-        } // END of recovery-timer definition.
+        } // END of max-recovery-time definition.
 
     } // END of ldp-graceful-restart-config definition.
     grouping ldp-graceful-restart-state {
         description
             "Grouping for LDP Inter-Area configuration";
-        leaf restart-reason  {
-            if-feature feature-list:HAVE_RESTART;
-            type  uint8;
-            config false;
-            description "This attribute holds the descriptive reason for restart";
-        } // END of restart-reason definition.
-
         leaf restart-count  {
-            type  int32;
+            type  uint32;
             config false;
             description "This attribute holds the count for restart";
         } // END of restart-count definition.
@@ -690,7 +706,7 @@ module ipi-ldp {
     description
         "LDP global level container";
     container ldp {
-        when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config + /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config/ipi-ldp:ldp-instance + /ipi-ldp:ldp/ipi-ldp:global ";
+        when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config/ipi-ldp:ldp-instance  or /ipi-ldp:ldp/ipi-ldp:debug ";
         description
             "LDP global level container";
         container global {
@@ -791,6 +807,25 @@ module ipi-ldp {
                 uses ldp-debug-config;
             } // END of state-container definition.
         } // END of debug-container definition.
+        container graceful-restart {
+            when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
+            if-feature feature-list:HAVE_RESTART;
+            description
+                "Configuration data for LDP graceful-restart feature";
+            container config {
+                presence "Enable graceful-restart";
+                description
+                    "Configuration data";
+                uses ldp-graceful-restart-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ldp-graceful-restart-config;
+                uses ldp-graceful-restart-state;
+            } // END of state-container definition.
+        } // END of graceful-restart-container definition.
         container iccp {
             if-feature feature-list:HAVE_ICCP;
             description
@@ -930,28 +965,6 @@ module ipi-ldp {
                 type ipi-ldp-types:ldp_debug_t;
                 mandatory true;
                 description "debug options for the LDP";
-            }
-        }
-    }
-
-    rpc ldp-packet-terminal-debug-on {
-        description "Use this RPC to enable terminal LDP packet debugs";
-        input  {
-            leaf ldp-packet-debug-options  {
-                type ipi-ldp-types:ldp_debug_packet_t;
-                mandatory true;
-                description "debug options for the LDP packet";
-            }
-        }
-    }
-
-    rpc ldp-packet-terminal-debug-off {
-        description "Use this RPC to disable terminal LDP packet debugs";
-        input  {
-            leaf ldp-packet-debug-options  {
-                type ipi-ldp-types:ldp_debug_packet_t;
-                mandatory true;
-                description "debug options for the LDP packet";
             }
         }
     }

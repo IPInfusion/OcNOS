@@ -23,17 +23,17 @@ module ipi-platform {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ipi-platform-types {
         prefix ipi-platform-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-platform-transceiver-types {
         prefix ipi-platform-transceiver-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ietf-yang-types {
@@ -41,23 +41,28 @@ module ipi-platform {
         revision-date 2013-07-15;
     }
 
-    import feature-list {
-        prefix feature-list;
-        revision-date 2021-05-03;
+    import cml-data-types {
+        prefix cml-data-types;
+        revision-date 2021-09-03;
     }
 
-    include ipi-platform-temperature { revision-date 2021-06-30;}
-    include ipi-platform-cpu { revision-date 2021-06-30;}
-    include ipi-platform-storage { revision-date 2021-05-31;}
-    include ipi-platform-ram { revision-date 2021-06-30;}
-    include ipi-platform-transceiver { revision-date 2021-06-30;}
-    include ipi-platform-power-supply { revision-date 2021-06-30;}
-    include ipi-platform-fan { revision-date 2021-06-30;}
-    include ipi-platform-fan-tray { revision-date 2021-06-30;}
-    include ipi-platform-chassis { revision-date 2021-06-30;}
-    include ipi-platform-linecard { revision-date 2021-06-30;}
-    include ipi-platform-power-rail { revision-date 2021-06-30;}
-    include ipi-platform-profile { revision-date 2021-06-30;}
+    import feature-list {
+        prefix feature-list;
+        revision-date 2021-09-30;
+    }
+
+    include ipi-platform-temperature { revision-date 2021-09-03;}
+    include ipi-platform-cpu { revision-date 2021-09-03;}
+    include ipi-platform-storage { revision-date 2021-09-03;}
+    include ipi-platform-ram { revision-date 2021-09-03;}
+    include ipi-platform-transceiver { revision-date 2021-09-03;}
+    include ipi-platform-power-supply { revision-date 2021-09-03;}
+    include ipi-platform-fan { revision-date 2021-09-03;}
+    include ipi-platform-fan-tray { revision-date 2021-09-03;}
+    include ipi-platform-chassis { revision-date 2021-09-03;}
+    include ipi-platform-linecard { revision-date 2021-09-03;}
+    include ipi-platform-power-rail { revision-date 2021-09-03;}
+    include ipi-platform-profile { revision-date 2021-09-06;}
     organization
         "IP Infusion Inc.";
 
@@ -75,14 +80,59 @@ module ipi-platform {
                 components containing subcomponents.";
 
 
-    revision "2021-06-30" {
-        description "Updated data types to use standard yang types wherever applicable";
-        reference " 0.9.4.";
+    revision "2021-09-06" {
+        description "Updated ipi-platform-profile submodule";
+        reference " 0.11.0.";
+    }
+
+    revision "2021-08-19" {
+        description "Updated ipi-platform-transceiver submodule";
+        reference " 0.10.9.";
+    }
+
+    revision "2021-08-16" {
+        description "Updated submodule ipi-platform-transceiver with new attributes and notifications";
+        reference " 0.10.8.";
+    }
+
+    revision "2021-08-13" {
+        description "Notifications added for submodules ipi-platform-transceiver and ipi-platform-storage.";
+        reference " 0.10.7.";
+    }
+
+    revision "2021-07-29" {
+        description "Updated submodule ipi-platform-profile with new filter type ipsg and ipsg-ipv6 group.";
+        reference " 0.10.6.";
+    }
+
+    revision "2021-07-28" {
+        description "Updated submodule ipi-platform-profile for non-DNX Broadcom platform.";
+        reference " 0.10.5.";
+    }
+
+    revision "2021-07-21" {
+        description "New attributes added for submodule ipi-platform-power-rail";
+        reference " 0.10.4.";
+    }
+
+    revision "2021-07-07" {
+        description "Removed pattern from string attributes for submodule ipi-platform-transceiver";
+        reference " 0.10.3.";
     }
 
     revision "2021-06-29" {
         description "Updated submodule ipi-platform-profile for new attribute ingress-ipv6-acl.";
-        reference " 0.9.3.";
+        reference " 0.10.2.";
+    }
+
+    revision "2021-06-25" {
+        description "Updated submodule ipi-platform-profile with new filter type dhcp-snoop and dhcp-snoop-ipv6 group.";
+        reference " 0.10.1.";
+    }
+
+    revision "2021-06-24" {
+        description "New Types added, submodule ipi-platform-port added and submodules ipi-platform-storage, ipi-platform-temperature, ipi-platform-transceiver, ipi-platform-transceiver-types, ipi-platform-types, ipi-transport-line-common changed.";
+        reference " 0.10.0.";
     }
 
     revision "2021-06-23" {
@@ -658,6 +708,14 @@ module ipi-platform {
                 description "Component's extra details";
             } // END of component-additional-details definition.
 
+            leaf parent  {
+                if-feature feature-list:NOT_HAVE_TIBIT;
+                type  leafref {
+                    path  "/components/component/state/name";
+                }
+                description "Reference to the name of the parent component.";
+            } // END of parent definition.
+
     } // END of platform-component-state definition.
     grouping platform-component-memory-state {
         description
@@ -698,7 +756,6 @@ module ipi-platform {
                     description "60..3600:60-3600 seconds";
                  }
             }
-            default "60";
             description "To set DDM Monitor interval time.";
         } // END of ddm-monitor-time-interval definition.
 
@@ -725,6 +782,78 @@ module ipi-platform {
         } // END of enable-ddm-monitor definition.
 
     } // END of component-hardware-global definition.
+    grouping gps-position-config {
+        description
+            "Grouping for gps position";
+        choice gps-position-option {
+            description
+                "Use this attribute to choose between position option";
+            case gps-position-disable {
+
+                description
+                    "Use this attribute to choose position disable.";
+
+                leaf gps-position-disable  {
+                    type  empty;
+                    description "gps postion disable";
+                } // END of gps-position-disable definition.
+
+            }
+            case gps-survey-in-observation-time {
+
+                description
+                    "Use this attribute to choose survey-in.";
+
+                leaf gps-survey-in-observation-time  {
+                    when " ../gps-survey-in-position-accuracy ";
+                    type  uint32 {
+                         range "1..1440"  {
+                            description "1..1440:Minimum duration for survey-in in minutes";
+                         }
+                    }
+                    description "GPS observation time";
+                } // END of gps-survey-in-observation-time definition.
+
+                leaf gps-survey-in-position-accuracy  {
+                    when " ../gps-survey-in-observation-time ";
+                    type  uint32 {
+                         range "1..10000"  {
+                            description "1..10000:Survey-in position accuracy limit in centimeters";
+                         }
+                    }
+                    description "GPS position accuracy";
+                } // END of gps-survey-in-position-accuracy definition.
+
+            }
+            case gps-fixed-latitude {
+
+                description
+                    "Use this attribute to choose fixed mode.";
+
+                leaf gps-fixed-latitude  {
+                    when " ../gps-fixed-longitude + ../gps-fixed-altitude ";
+                    type  decimal64 {
+                         fraction-digits 6;                    }
+                    description "gps fixed latitude in decimal degree format";
+                } // END of gps-fixed-latitude definition.
+
+                leaf gps-fixed-longitude  {
+                    when " ../gps-fixed-latitude + ../gps-fixed-altitude ";
+                    type  decimal64 {
+                         fraction-digits 6;                    }
+                    description "GPS fixed longitude in decimal degree format";
+                } // END of gps-fixed-longitude definition.
+
+                leaf gps-fixed-altitude  {
+                    when " ../gps-fixed-latitude + ../gps-fixed-longitude ";
+                    type  decimal64 {
+                         fraction-digits 6;                    }
+                    description "GPS fixed altitude in meters";
+                } // END of gps-fixed-altitude definition.
+
+            }
+        } // END of gps-position-option-choice definition.
+    } // END of gps-position-config definition.
     grouping platform-sensor-record {
         description
             "Grouping sensor states";
@@ -746,6 +875,27 @@ module ipi-platform {
             uses platform-component-interface-list;
         } // END of interfaces-container definition.
     } // END of platform-component-interface definition.
+    grouping gps-position-top {
+        description
+            "gps position configuration parameters";
+        container gps-position {
+            if-feature feature-list:HAVE_PTP_HW_OFFLOAD;
+            description
+                "container enclosing gps position parameters";
+            container config {
+                description
+                    "configuration data for gps position";
+                uses gps-position-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Global operational data";
+                uses gps-position-config;
+                uses temperature-grouping;
+            } // END of state-container definition.
+        } // END of gps-position-container definition.
+    } // END of gps-position-top definition.
     grouping platform-component-global {
         description
             "Global configuration group for the platform";
@@ -767,8 +917,50 @@ module ipi-platform {
                 uses temperature-grouping;
             } // END of state-container definition.
             uses system-load-cpu-usage-global;
+            uses gps-position-top;
         } // END of global-container definition.
     } // END of platform-component-global definition.
+    grouping platform-subcomponent-state {
+        description
+            "platformCMLSEPsubcomponentCMLSEPstate";
+        leaf subcomponent-name  {
+            type  leafref {
+                path  "/components/component/state/name";
+            }
+            description "Reference to the name of the subcomponent";
+        } // END of subcomponent-name definition.
+
+    } // END of platform-subcomponent-state definition.
+    grouping platform-subcomponent-top {
+        description
+            "platformCMLSEPsubcomponentCMLSEPtop";
+        container subcomponents {
+            config false;
+            description
+                "Enclosing container for subcomponent references";
+
+            list subcomponent {
+                key "subcomponent-name";
+                config false;
+                description
+                    "List of subcomponent references";
+                leaf subcomponent-name  {
+                    type  leafref {
+                        path  "../state/subcomponent-name";
+                    }
+                    description "References the component name";
+                } // END of subcomponent-name definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data for the subcomponent";
+                    uses platform-subcomponent-state;
+                    uses temperature-grouping;
+                } // END of state-container definition.
+            } // End of subcomponent-list
+        } // END of subcomponents-container definition.
+    } // END of platform-subcomponent-top definition.
     grouping platform-component-debug {
         description
             "Global debug configuration group";
@@ -830,6 +1022,7 @@ module ipi-platform {
                 uses temperature-grouping;
             } // END of state-container definition.
             uses platform-sensor-record;
+            uses platform-subcomponent-top;
             uses cpu-grouping;
             uses storage-grouping;
             uses ram-grouping;
@@ -849,6 +1042,7 @@ module ipi-platform {
 
     uses components-grouping;
     uses profiles-grouping;
+    uses hardware-grouping;
 
     rpc ddm-clear-transceiver-alarm-all {
         description "Use ddm-clear-transceiver-alarm-all to clear alarms from all
@@ -1711,6 +1905,146 @@ module ipi-platform {
         }
     }
 
+    notification storage-remaining-life-rising-alert {
+
+        description "Notification for storage disk remaining life when it exceeds alert threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf remaining-life {
+            type  int32;
+        description
+            "Hard disk's Remain life % Values.";
+        }
+
+        leaf remain-life-alert-threshold {
+            type  int32;
+        description
+            "Hard disk's Remain Life threshold % for Alert Level.";
+        }
+    }
+
+    notification storage-remaining-life-rising-critical {
+
+        description "Notification for storage disk remaining life when it exceeds critical threshold.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf remaining-life {
+            type  int32;
+        description
+            "Hard disk's Remain life % Values.";
+        }
+
+        leaf remain-life-critical-threshold {
+            type  int32;
+        description
+            "Hard disk's Remain Life threshold % for Critical Level.";
+        }
+    }
+
+    notification storage-available-reserved-space-rising-alert {
+
+        description "Notification for storage available reserved space when it exceeds alert threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf available-reserved-space {
+            type  int32;
+        description
+            "Hard disk's Available Reserved Space % values";
+        }
+
+        leaf available-reserved-space-alert-threshold {
+            type  int32;
+        description
+            "Hard disk's Available Reserved Space threshold % values for Alert
+                    Level.";
+        }
+    }
+
+    notification storage-available-reserved-space-rising-critical {
+
+        description "Notification for storage available reserved space when it exceeds critical threshold.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf available-reserved-space {
+            type  int32;
+        description
+            "Hard disk's Available Reserved Space % values";
+        }
+
+        leaf available-reserved-space-critical-threshold {
+            type  int32;
+        description
+            "Hard disk's Available Reserved Space threshold % values for critical
+                    Level.";
+        }
+    }
+
+    notification storage-reallocated-sector-count-rising-alert {
+
+        description "Notification for storage reallocated-sector-count when it increments by 10.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf reallocated-sector-count {
+            type  int32;
+        description
+            "Hard disk's Reallocated Sectors Count values.";
+        }
+    }
+
+    notification storage-uncorrectable-sector-count-rising-critical {
+
+        description "Notification for storage uncorrectable-sector-count when it count increments by 1..";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf uncorrectable-sector-count {
+            type  int32;
+        description
+            "Hard disk's Uncorrectable Sectors Count.";
+        }
+    }
+
     notification ram-usage-rising-critical {
 
         description "Notification for RAM usage rising critical threshold.";
@@ -1808,6 +2142,505 @@ module ipi-platform {
             type  uint32;
         description
             "RAM usage threshold % for alert level.";
+        }
+    }
+
+    notification transceiver-inserted {
+
+        description "Notification triggered when a transceiver is inserted..";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf port-no {
+            type  uint8;
+        description
+            "Transceiver port number";
+        }
+
+        leaf type {
+            type ipi-platform-transceiver-types:ddm_cmm_trans_type_t;
+        description
+            "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf vendor-name {
+            type  string;
+        description
+            "Transceiver vendor name.";
+        }
+
+        leaf vendor-serial-number {
+            type  string;
+        description
+            "Serial number provided by vendor.";
+        }
+
+        leaf connector-type {
+            type ipi-platform-transceiver-types:ddm_cmm_trans_connector_type_t;
+        description
+            "Connector type for the transceiver.";
+        }
+    }
+
+    notification transceiver-removed {
+
+        description "Notification triggered when a transceiver is removed..";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf port-no {
+            type  uint8;
+        description
+            "Transceiver port number";
+        }
+
+        leaf type {
+            type ipi-platform-transceiver-types:ddm_cmm_trans_type_t;
+        description
+            "Type of the transceiver SFP/QSFP.";
+        }
+
+        leaf vendor-name {
+            type  string;
+        description
+            "Transceiver vendor name.";
+        }
+
+        leaf vendor-serial-number {
+            type  string;
+        description
+            "Serial number provided by vendor.";
+        }
+
+        leaf connector-type {
+            type ipi-platform-transceiver-types:ddm_cmm_trans_connector_type_t;
+        description
+            "Connector type for the transceiver.";
+        }
+    }
+
+    notification faulty-transceiver-inserted {
+
+        description "Notification triggered when a faulty transceiver is inserted..";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf port-no {
+            type  uint8;
+        description
+            "Transceiver port number";
+        }
+
+        leaf type {
+            type ipi-platform-transceiver-types:ddm_cmm_trans_type_t;
+        description
+            "Type of the transceiver SFP/QSFP.";
+        }
+    }
+
+    notification incompatible-transceiver-inserted {
+
+        description "Notification triggered when an incompatible transceiver is inserted..";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf port-no {
+            type  uint8;
+        description
+            "Transceiver port number";
+        }
+    }
+
+    notification incompatible-transceiver-removed {
+
+        description "Notification triggered when an incompatible transceiver is removed..";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf port-no {
+            type  uint8;
+        description
+            "Transceiver port number";
+        }
+    }
+
+    notification frequency-error-high-critical {
+
+        description "This notification is sent when frequency-error register exceeds the high-critical threshold.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf frequency-error {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Transceiver frequency error";
+        }
+
+        leaf frequency-error-critical-min-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The minimum critical threshold for transceiver frequency-error";
+        }
+
+        leaf frequency-error-critical-max-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The maximum critical threshold for transceiver frequency-error";
+        }
+    }
+
+    notification frequency-error-low-critical {
+
+        description "This notification is sent when frequency-error register exceeds the low-critical threshold.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf frequency-error {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Transceiver frequency error";
+        }
+
+        leaf frequency-error-critical-min-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The minimum critical threshold for transceiver frequency-error";
+        }
+
+        leaf frequency-error-critical-max-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The maximum critical threshold for transceiver frequency-error";
+        }
+    }
+
+    notification frequency-error-high-alert {
+
+        description "This notification is sent when frequency-error register exceeds the high-alert threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf frequency-error {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Transceiver frequency error";
+        }
+
+        leaf frequency-error-alert-min-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The minimum alert threshold for transceiver frequency-error";
+        }
+
+        leaf frequency-error-alert-max-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The maximum alert threshold for transceiver frequency-error";
+        }
+    }
+
+    notification frequency-error-low-alert {
+
+        description "This notification is sent when frequency-error register exceeds the low-alert threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf frequency-error {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Transceiver frequency error";
+        }
+
+        leaf frequency-error-alert-min-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The minimum alert threshold for transceiver frequency-error";
+        }
+
+        leaf frequency-error-alert-max-threshold {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "The maximum alert threshold for transceiver frequency-error";
+        }
+    }
+
+    notification frequency-error-recovery {
+
+        description "This notification is sent when frequency-error register exceeds threshold.";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf frequency-error {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Transceiver frequency error";
+        }
+    }
+
+    notification wavelength-error-high-critical {
+
+        description "This notification is sent when wavelength-error register exceeds the high-critical threshold.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf wavelength-error {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "Transceiver wavelength error";
+        }
+
+        leaf wavelength-error-critical-min-threshold {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "The minimum critical threshold for transceiver wavelength-error";
+        }
+
+        leaf wavelength-error-critical-max-threshold {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "The maximum critical threshold for transceiver wavelength-error";
+        }
+    }
+
+    notification wavelength-error-low-critical {
+
+        description "This notification is sent when wavelength-error register exceeds the low-critical threshold.";
+
+        // severity "MAJOR";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf wavelength-error {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "Transceiver wavelength error";
+        }
+
+        leaf wavelength-error-critical-min-threshold {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "The minimum critical threshold for transceiver wavelength-error";
+        }
+
+        leaf wavelength-error-critical-max-threshold {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "The maximum critical threshold for transceiver wavelength-error";
+        }
+    }
+
+    notification wavelength-error-high-alert {
+
+        description "This notification is sent when wavelength-error register exceeds the high-alert threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf wavelength-error {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "Transceiver wavelength error";
+        }
+
+        leaf wavelength-error-alert-min-threshold {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "The minimum alert threshold for transceiver wavelength-error";
+        }
+
+        leaf wavelength-error-alert-max-threshold {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "The maximum alert threshold for transceiver wavelength-error";
+        }
+    }
+
+    notification wavelength-error-low-alert {
+
+        description "This notification is sent when wavelength-error register exceeds the low-alert threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf wavelength-error {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "Transceiver wavelength error";
+        }
+
+        leaf wavelength-error-alert-min-threshold {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "The minimum alert threshold for transceiver wavelength-error";
+        }
+
+        leaf wavelength-error-alert-max-threshold {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "The maximum alert threshold for transceiver wavelength-error";
+        }
+    }
+
+    notification wavelength-error-recovery {
+
+        description "This notification is sent when wavelength-error register exceeds threshold.";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf wavelength-error {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "Transceiver wavelength error";
+        }
+    }
+
+    notification thermoelectric-cooler-fault-alert {
+
+        description "This notification is sent when transceiver is on error thermoelectric-cooler-fault.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf thermoelectric-cooler-fault {
+            type  boolean;
+        description
+            "Thermo-electric cooler fault indication";
+        }
+    }
+
+    notification thermoelectric-cooler-fault-recovery {
+
+        description "This notification is sent when transceiver is recovered from error thermoelectric-cooler-fault.";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf thermoelectric-cooler-fault {
+            type  boolean;
+        description
+            "Thermo-electric cooler fault indication";
         }
     }
 
@@ -2066,6 +2899,76 @@ module ipi-platform {
             type  string;
         description
             "References the component name";
+        }
+    }
+
+    notification hardware-tcam-util-warning-notification {
+
+        description "This notification is generated when number of entries in TCAM group crosses the warning threshold limit..";
+
+        // severity "WARNING";
+        // eventClass "STATE";
+        leaf group-id {
+            type  uint32;
+        description
+            "A unique number corresponding to each TCAM group. This attribute is
+                    used solely for defining the key for the TCAM utilization filter
+                    groups object list. It's value shouldn't be interpreted.";
+        }
+
+        leaf group-name {
+            type cml-data-types:cml_line_t;
+        description
+            "TCAM Utilization filter group name.";
+        }
+
+        leaf used-percentage {
+            type  int32;
+        description
+            "Percentage of entries used in the TCAM group. Value of -1 means the
+                    field is not applicable.";
+        }
+
+        leaf free-entries {
+            type  int32;
+        description
+            "Count of free entries in the TCAM group. Value of -1 means the field
+                    is not applicable.";
+        }
+    }
+
+    notification hardware-tcam-util-critical-notification {
+
+        description "This notification is generated when number of entries in TCAM group crosses the critical threshold limit..";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf group-id {
+            type  uint32;
+        description
+            "A unique number corresponding to each TCAM group. This attribute is
+                    used solely for defining the key for the TCAM utilization filter
+                    groups object list. It's value shouldn't be interpreted.";
+        }
+
+        leaf group-name {
+            type cml-data-types:cml_line_t;
+        description
+            "TCAM Utilization filter group name.";
+        }
+
+        leaf used-percentage {
+            type  int32;
+        description
+            "Percentage of entries used in the TCAM group. Value of -1 means the
+                    field is not applicable.";
+        }
+
+        leaf free-entries {
+            type  int32;
+        description
+            "Count of free entries in the TCAM group. Value of -1 means the field
+                    is not applicable.";
         }
     }
 
