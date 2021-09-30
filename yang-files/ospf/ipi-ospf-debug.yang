@@ -21,12 +21,12 @@ submodule ipi-ospf-debug {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import ipi-ospf-types {
         prefix ipi-ospf-types;
-        revision-date 2021-05-22;
+        revision-date 2021-09-20;
     }
 
     organization
@@ -42,9 +42,14 @@ submodule ipi-ospf-debug {
         "Layer-3 OSPF debug";
 
 
-    revision "2021-06-30" {
-        description "Updated data types to use standard yang types wherever applicable";
-        reference " 0.2.0.";
+    revision "2021-09-10" {
+        description "Added debug terminal state tree";
+        reference "Initial Version";
+    }
+
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference "Initial Version";
     }
 
     revision "2021-04-30" {
@@ -172,6 +177,126 @@ submodule ipi-ospf-debug {
         } // END of graceful-restart definition.
 
     } // END of ospfv2-debug-config definition.
+    grouping ospfv2-debug-terminal-state {
+        description
+            "Grouping for OSPFv2 debug state for exec mode";
+        container terminal {
+            config false;
+            description
+                "Runtime attributes for terminal debug";
+            leaf bfd  {
+                if-feature feature-list:HAVE_BFD;
+                type  empty;
+                description "Use this attribute to enable Bidirectional Forwarding Detection (BFD)
+                            debug.";
+            } // END of bfd definition.
+
+            leaf rate-limit  {
+                type  empty;
+                description "Use this attribute to enable OSPF Database Timers Rate Limiting Values
+                            for LSA Throttling debug.";
+            } // END of rate-limit definition.
+
+            leaf segment-routing  {
+                if-feature feature-list:HAVE_SR_MPLS;
+                type  empty;
+                description "Use this attribute to enable Segment Routing debug.";
+            } // END of segment-routing definition.
+
+            leaf route  {
+                type  ipi-ospf-types:ospf_debug_route_t;
+                description "Use this attribute to enable OSPF route information debug.";
+            } // END of route definition.
+
+            leaf rib  {
+                if-feature feature-list:HAVE_RIBD;
+                type  ipi-ospf-types:ospf_debug_rib_t;
+                description "Use this attribute to enable OSPF RIB information debug.";
+            } // END of rib definition.
+
+            leaf packet  {
+                type  ipi-ospf-types:ospf_debug_packet_t;
+                description "Use this attribute to enable OSPF packets debug.";
+            } // END of packet definition.
+
+            leaf nsm  {
+                type  ipi-ospf-types:ospf_debug_nsm_t;
+                description "Use this attribute to enable OSPF NSM information debug.";
+            } // END of nsm definition.
+
+            leaf nfsm  {
+                type  ipi-ospf-types:ospf_debug_nfsm_t;
+                description "Use this attribute to enable OSPF Neighbor State Machine debug.";
+            } // END of nfsm definition.
+
+            leaf lsa  {
+                type  ipi-ospf-types:ospf_debug_lsa_t;
+                description "Use this attribute to enable OSPF Link State Advertisement debug.";
+            } // END of lsa definition.
+
+            leaf ifsm  {
+                type  ipi-ospf-types:ospf_debug_ifsm_t;
+                description "Use this attribute to enable OSPF Interface State Machine debug.";
+            } // END of ifsm definition.
+
+            leaf events  {
+                type  ipi-ospf-types:ospf_debug_event_t;
+                description "Use this attribute to enable OSPF events information debug.";
+            } // END of events definition.
+
+            leaf cspf-events  {
+                if-feature feature-list:HAVE_OSPF_CSPF;
+                type  empty;
+                description "Use this attribute to enable CSPF Information debug.";
+            } // END of cspf-events definition.
+
+            leaf cspf-hexdump  {
+                if-feature feature-list:HAVE_OSPF_CSPF;
+                type  empty;
+                description "Use this attribute to enable CSPF message hexdump debug.";
+            } // END of cspf-hexdump definition.
+
+            leaf retransmission  {
+                type  empty;
+                description "Use this attribute to enable OSPF Debug retransmission information
+                            debug.";
+            } // END of retransmission definition.
+
+            leaf distribute  {
+                if-feature feature-list:HAVE_BGP_LS;
+                type  empty;
+                description "Use this attribute to enable OSPF distribute linkstate details debug.";
+            } // END of distribute definition.
+
+            leaf topology-independent-lfa  {
+                if-feature feature-list:HAVE_OSPF_TI_LFA;
+                type  empty;
+                description "Use this attribute to enable Topology Independent LFA debug.";
+            } // END of topology-independent-lfa definition.
+
+            leaf lfa  {
+                if-feature feature-list:HAVE_OSPF_LFA;
+                type  empty;
+                description "Use this attribute to enable OSPF LFA route install details debug.";
+            } // END of lfa definition.
+
+            leaf policy  {
+                type  empty;
+                description "Use this attribute to enable OSPF policy information debug.";
+            } // END of policy definition.
+
+            leaf redistribute  {
+                type  ipi-ospf-types:ospf_debug_redist_t;
+                description "Use this attribute to enable OSPF redistribute information debug.";
+            } // END of redistribute definition.
+
+            leaf graceful-restart  {
+                type  ipi-ospf-types:ospf_debug_graceful_t;
+                description "Use this attribute to enable OSPF graceful-restart debug.";
+            } // END of graceful-restart definition.
+
+        } // END of terminal-container definition.
+    } // END of ospfv2-debug-terminal-state definition.
     grouping ospfv2-debug-top {
         description
             "Grouping for OSPF debug";
@@ -188,6 +313,7 @@ submodule ipi-ospf-debug {
                 description
                     "Operational state data for OSPF debug";
                 uses ospfv2-debug-config;
+                uses ospfv2-debug-terminal-state;
             } // END of state-container definition.
         } // END of debug-container definition.
     } // END of ospfv2-debug-top definition.

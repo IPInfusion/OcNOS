@@ -23,27 +23,32 @@ module ipi-vlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-vlan-types {
         prefix ipi-vlan-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-07;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2021-06-30;
+        revision-date 2021-09-15;
+    }
+
+    import ipi-qos {
+        prefix ipi-qos;
+        revision-date 2021-07-29;
     }
 
     import ietf-inet-types {
@@ -53,7 +58,7 @@ module ipi-vlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -66,12 +71,37 @@ module ipi-vlan {
          Web: http://www.ipinfusion.com/";
 
     description
-        "vlan configuration";
+        "VLAN configuration";
 
 
-    revision "2021-06-30" {
-        description "Updated data model to support bridge vlan port vlan bulk unconfiguration";
-        reference " 0.4.2.";
+    revision "2021-09-18" {
+        description "Private VLAN DB clearance issues fixed";
+        reference " 0.5.5.";
+    }
+
+    revision "2021-09-15" {
+        description "Removing implicit-delete tags that were generated as warnings in zebm log";
+        reference " 0.5.4.";
+    }
+
+    revision "2021-09-07" {
+        description "Fix for JIRA-50146 - converted tagged-interface to leaf-list ";
+        reference " 0.5.3.";
+    }
+
+    revision "2021-08-26" {
+        description "Fix for JIRA-49703 pertaining to PB transactional CLIs";
+        reference " 0.5.2.";
+    }
+
+    revision "2021-08-01" {
+        description "Restructured current Provider Bridging hierarchy to OpenConfig style.";
+        reference " 0.5.1.";
+    }
+
+    revision "2021-07-29" {
+        description "Netconf support for port security feature enabled";
+        reference " 0.5.0.";
     }
 
     revision "2021-04-08" {
@@ -153,8 +183,11 @@ module ipi-vlan {
             description "Attribute specifies VLAN opertional status";
         } // END of operational-status definition.
 
-        leaf tagged-interface  {
-            type  ipi-vlan-types:vlan_tagged_interface_t;
+        leaf-list tagged-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
             description "Vlan tagged interface";
         } // END of tagged-interface definition.
 
@@ -200,20 +233,10 @@ module ipi-vlan {
         description
             "Top level grouping for private vlan association configuration and
                         state data";
-
-        list association {
-        when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:private-vlan/ipi-vlan:config/ipi-vlan:type = '3' ";
-            key "secondary-vlan";
+        container association {
+            when " ../config/type ";
             description
-                "List of private vlan associations";
-            leaf secondary-vlan  {
-                type  leafref {
-                    path  "../config/secondary-vlan";
-                }
-                description "Use this attribute to configure associated secondary vlan for private
-                            vlan";
-            } // END of secondary-vlan definition.
-
+                "Seconddry vlans associated with primary private vlans";
             container config {
                 description
                     "Configuration data for private vlan association";
@@ -225,7 +248,7 @@ module ipi-vlan {
                     "Operational state data";
                 uses private-vlan-association-config;
             } // END of state-container definition.
-        } // End of association-list
+        } // END of association-container definition.
     } // END of private-vlan-association-top definition.
     grouping private-vlan-config {
         description
@@ -243,26 +266,27 @@ module ipi-vlan {
     } // END of private-vlan-top definition.
     grouping cvlan-type-config {
         description
-            "Grouping for customer vlan configuration data";
+            "Grouping for customer VLAN configuration data";
     } // END of cvlan-type-config definition.
     grouping customer-vlan-top {
         description
-            "Top level grouping for customer vlan data";
+            "Top level grouping for customer VLAN data";
         container customer-vlan {
             description
-                "Container for customer vlan configuration and state data";
+                "Container for customer VLAN configuration and state data";
             container config {
                 description
-                    "Customer vlan configuration data";
+                    "Customer VLAN configuration data";
                 uses cvlan-type-config;
                 uses vlan-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
-                    "Customer vlan operational state data";
+                    "Customer VLAN operational state data";
                 uses cvlan-type-config;
                 uses vlan-config;
+                uses vlan-state;
             } // END of state-container definition.
         } // END of customer-vlan-container definition.
     } // END of customer-vlan-top definition.
@@ -279,13 +303,31 @@ module ipi-vlan {
     grouping service-vlan-top {
         description
             "Top level grouping for service vlan configuration and state data";
+        container service-vlan {
+            if-feature feature-list:HAVE_PROVIDER_BRIDGE;
+            description
+                "Container for service vlans";
+            container config {
+                description
+                    "Configuration data for service vlan";
+                uses svlan-type-config;
+                uses vlan-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses svlan-type-config;
+                uses vlan-config;
+                uses vlan-state;
+            } // END of state-container definition.
+        } // END of service-vlan-container definition.
     } // END of service-vlan-top definition.
     grouping vlan-top {
         description
             "Top level grouping for vlan configuration and state data";
 
         list vlan {
-        // when " ipi-vlan:vlans/vlan/customer-vlan || ipi-vlan:vlans/vlan/service-vlan/config/type ";
             key "vlan-id";
             description
                 "List for vlan configuration and state data";
@@ -306,7 +348,6 @@ module ipi-vlan {
                 description
                     "Operational state data";
                 uses vlan-common-config;
-                uses vlan-state;
             } // END of state-container definition.
             uses customer-vlan-top;
             uses service-vlan-top;
@@ -470,13 +511,13 @@ module ipi-vlan {
             description "VLAN classifier group ID";
         } // END of group-id definition.
 
-        leaf port-vlan-id  {
+        leaf vlan-id  {
             type  leafref {
                 path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/vlans/vlan/vlan-id";
             }
             mandatory true;
             description "Use this attribute to map VLAN ID with classifier group";
-        } // END of port-vlan-id definition.
+        } // END of vlan-id definition.
 
     } // END of port-config definition.
     grouping port-top {
@@ -484,7 +525,7 @@ module ipi-vlan {
             "Top level grouping for port VLAN classifier data";
 
         list port {
-        when " /ipi-vlan:vlan-classifier/ipi-vlan:port/ipi-vlan:config/ipi-vlan:port-vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-bridge:bridge-ports/ipi-bridge:interface/ipi-bridge:config/ipi-bridge:name ";
+        when " /ipi-vlan:vlan-classifier/ipi-vlan:port/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-bridge:bridge-ports/ipi-bridge:interface/ipi-bridge:config/ipi-bridge:name ";
             key "port-name group-id";
             description
                 "List for port mapping with VLAN classifier configuration and state
@@ -931,12 +972,185 @@ module ipi-vlan {
             description "Use this command to enable or disable VLAN classifier feature.";
         } // END of disable-vlan-classifier-feature definition.
 
-        leaf disable-global-port-security  {
+        leaf disable-port-security  {
             type  empty;
-            description "Use this to enable global port-security.";
-        } // END of disable-global-port-security definition.
+            description "Use this attribute to disable or enable port-security globally.";
+        } // END of disable-port-security definition.
 
     } // END of layer2-global-config definition.
+    grouping cvlan-registration-tables-top {
+        description
+            "Top level grouping for CVLAN registration entries's data";
+
+        list cvlan-registration-table {
+            key "table-name";
+            description
+                "CVLAN registration table that will have the mapping between CVLANs and
+                            SVLANs";
+            leaf table-name  {
+                type  leafref {
+                    path  "../config/table-name";
+                }
+                description "Use this to configure the name of the CVLAN registration table.";
+            } // END of table-name definition.
+
+            container config {
+                description
+                    "Configuration data for CVLAN registration table name";
+                uses cvlan-registration-entry-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for CVLAN registration table name";
+                uses cvlan-registration-entry-config;
+            } // END of state-container definition.
+            uses cvlan-svlan-config-top;
+        } // End of cvlan-registration-table-list
+    } // END of cvlan-registration-tables-top definition.
+    grouping cvlan-svlan-config-top {
+        description
+            "Grouping for CVLAN registration table's VLAN configuration";
+        container cvlan-mappings {
+            description
+                "Enclosing container for the list for CVLAN registration table's VLAN
+                        data";
+
+            list cvlan-mapping {
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
+                key "svlan-id cvlan-id";
+                description
+                    "List for CVLAN registration table's VLAN data";
+                leaf svlan-id  {
+                    type  leafref {
+                        path  "../config/svlan-id";
+                    }
+                    description "Service VLAN ID in registration table";
+                } // END of svlan-id definition.
+
+                leaf cvlan-id  {
+                    type  leafref {
+                        path  "../config/cvlan-id";
+                    }
+                    description "Customer VLAN ID in registration table";
+                } // END of cvlan-id definition.
+
+                container config {
+                    description
+                        "Configuration data for CVLAN registration table entries";
+                    uses cvlan-registration-entries-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for CVLAN registration table entries";
+                    uses cvlan-registration-entries-config;
+                } // END of state-container definition.
+            } // End of cvlan-mapping-list
+        } // END of cvlan-mappings-container definition.
+    } // END of cvlan-svlan-config-top definition.
+    grouping cvlan-registration-entries-config {
+        description
+            "Grouping for CVLAN registration table name configuration";
+        leaf svlan-id  {
+            type  uint16 {
+                 range "1..4095"  {
+                    description "1..4095:SVLAN ID";
+                 }
+            }
+            description "Service VLAN ID in registration table";
+        } // END of svlan-id definition.
+
+        leaf cvlan-id  {
+            type  cml-data-types:cml_range_t;
+            description "Customer VLAN ID in registration table";
+        } // END of cvlan-id definition.
+
+        leaf untagged-ep  {
+            type  ipi-vlan-types:cvlan_config_t;
+            description "Customer/provider edge port is untagged for specified CVLAN";
+        } // END of untagged-ep definition.
+
+        leaf translated-cvlan-id  {
+            type  uint16 {
+                 range "1..4095"  {
+                    description "1..4095:Translated CVID";
+                 }
+            }
+            description "Translated customer VLAN ID";
+        } // END of translated-cvlan-id definition.
+
+        leaf svlan-cos  {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:Specify COS value 0-7";
+                 }
+            }
+            description "Class of Service in the Priority Code Point (PCP) field of the Service
+                        Provider Tag (STAG)";
+        } // END of svlan-cos definition.
+
+        leaf svlan-cfi  {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            type  uint8 {
+                 range "0..1"  {
+                    description "0..1:Specify CFI value 0-1";
+                 }
+            }
+            description "Canonical Format Indicator in the Drop Eligible Indicator (DEI) field
+                        of the STAG";
+        } // END of svlan-cfi definition.
+
+        leaf cvlan-cos  {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:Specify COS value 0-7";
+                 }
+            }
+            description "Class of Service in the PCP field of the customer tag (CTAG)";
+        } // END of cvlan-cos definition.
+
+        leaf cvlan-cfi  {
+            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            type  uint8 {
+                 range "0..1"  {
+                    description "0..1:Specify CFI value 0-1";
+                 }
+            }
+            description "Canonical Format Indicator in the DEI field of the CTAG";
+        } // END of cvlan-cfi definition.
+
+        leaf cos-to-queue  {
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            type  leafref {
+                path  "/ipi-qos:qos/ipi-qos:global/ipi-qos:map-profile/ipi-qos:cos-to-queue-profiles/ipi-qos:cos-to-queue-profile/ipi-qos:name";
+            }
+            description "Name of CoS to queue profile to map to CVLAN ID";
+        } // END of cos-to-queue definition.
+
+        leaf remark-cos  {
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_QOS;
+            type  empty;
+            description "Remark Egress Class of Service(COS)";
+        } // END of remark-cos definition.
+
+    } // END of cvlan-registration-entries-config definition.
+    grouping cvlan-registration-entry-config {
+        description
+            "Grouping for CVLAN registration table name configuration";
+        leaf table-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this to configure the name of the CVLAN registration table.";
+        } // END of table-name definition.
+
+    } // END of cvlan-registration-entry-config definition.
 
     grouping  vlans-grouping {
     description
@@ -983,6 +1197,20 @@ module ipi-vlan {
     } // END of layer2-global-container definition.
     } // END of layer2-global-grouping definition.
 
+    grouping  cvlan-registration-tables-grouping {
+    description
+        "Top level container for CVLAN registration table configuration and
+                state data";
+    container cvlan-registration-tables {
+        if-feature feature-list:HAVE_VLAN;
+        if-feature feature-list:HAVE_PROVIDER_BRIDGE;
+        description
+            "Top level container for CVLAN registration table configuration and
+                    state data";
+        uses cvlan-registration-tables-top;
+    } // END of cvlan-registration-tables-container definition.
+    } // END of cvlan-registration-tables-grouping definition.
+
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge {
         description
             "Top level container for vlan configuration and state data";
@@ -991,5 +1219,12 @@ module ipi-vlan {
 
     uses vlan-classifier-grouping;
     uses layer2-global-grouping;
+    augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge {
+        description
+            "Top level container for CVLAN registration table configuration and
+                    state data";
+        uses cvlan-registration-tables-grouping;
+    }
+
 
 }

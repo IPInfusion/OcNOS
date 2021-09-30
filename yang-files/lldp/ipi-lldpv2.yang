@@ -23,17 +23,17 @@ module ipi-lldpv2 {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-lldp-types {
         prefix ipi-lldp-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ietf-yang-types {
@@ -43,7 +43,7 @@ module ipi-lldpv2 {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -59,8 +59,8 @@ module ipi-lldpv2 {
         "Link Layer Discovery Protocol";
 
 
-    revision "2021-06-30" {
-        description "Updated data model to fix JIRA-45283";
+    revision "2021-08-03" {
+        description "New attribute disable-lldp-agent added to exclude interface when LLDP enabled globally";
         reference " 0.4.0.";
     }
 
@@ -730,7 +730,7 @@ module ipi-lldpv2 {
         } // END of neighbor-limit definition.
 
         leaf neighbor-timer  {
-            when " /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:neighbor-limit ";
+            when " /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:neighbor-limit + not(/ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:port-timer) + not(/ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:port-mac) ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535:set the Timer";
@@ -741,7 +741,7 @@ module ipi-lldpv2 {
         } // END of neighbor-timer definition.
 
         leaf port-mac  {
-            when " /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:neighbor-limit + /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:port-timer ";
+            when " /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:neighbor-limit + /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:port-timer + not(/ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:neighbor-timer) ";
             type  cml-data-types:cml_mac_addr_t {
                 length "1..1965";
             }
@@ -750,7 +750,7 @@ module ipi-lldpv2 {
         } // END of port-mac definition.
 
         leaf port-timer  {
-            when " /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:neighbor-limit + /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:port-mac ";
+            when " /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:neighbor-limit + /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:port-mac + not(/ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:receive/ipi-lldpv2:config/ipi-lldpv2:neighbor-timer) ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535:set the Timer";
@@ -1297,6 +1297,7 @@ module ipi-lldpv2 {
             "LLDP Agent on each interface top level group";
 
         list agent {
+        when " not(/ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:config/ipi-lldpv2:disable-lldp-agent ) or /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:config/ipi-lldpv2:agent-type != '2' ";
             key "agent-type";
             description
                 "Configuration and state information";
@@ -1327,6 +1328,13 @@ module ipi-lldpv2 {
     grouping lldp-v2-interface-config {
         description
             "Configuration data for LLDP-V2 on each interface";
+        leaf disable-lldp-agent  {
+            when " /ipi-lldpv2:lldp/ipi-lldpv2:global/ipi-lldpv2:config/ipi-lldpv2:enable + /ipi-lldpv2:lldp/ipi-lldpv2:interfaces/ipi-lldpv2:interface/ipi-lldpv2:agent/ipi-lldpv2:agent-type != '2' ";
+            type  empty;
+            description "Use this attribute to disable LLDP on interface when it is enabled
+                        globally";
+        } // END of disable-lldp-agent definition.
+
         leaf agent-circuit-id  {
             type  string {
                 length "1..1965";

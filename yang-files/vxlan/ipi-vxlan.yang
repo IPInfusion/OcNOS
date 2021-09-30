@@ -23,7 +23,7 @@ module ipi-vxlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ietf-inet-types {
@@ -33,27 +33,27 @@ module ipi-vxlan {
 
     import ipi-vxlan-types {
         prefix ipi-vxlan-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2021-06-30;
+        revision-date 2021-07-29;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ietf-yang-types {
@@ -63,7 +63,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -79,9 +79,29 @@ module ipi-vxlan {
         "Datamodel for VxLAN protocol";
 
 
-    revision "2021-06-30" {
-        description "Updated data types to use standard yang types wherever applicable";
-        reference " 0.2.2.";
+    revision "2021-09-15" {
+        description "Added dependency for secondary ip address config and implicit_delete for parent container";
+        reference " 0.3.4.";
+    }
+
+    revision "2021-09-07" {
+        description "Added dependency for API exection order for esi/system-mac";
+        reference " 0.3.3.";
+    }
+
+    revision "2021-09-01" {
+        description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
+        reference " 0.3.2.";
+    }
+
+    revision "2021-08-16" {
+        description "Added default option with port only access-interface creation and deletion; Changed to allow vlan range also in case of tagged access-interface";
+        reference " 0.3.1.";
+    }
+
+    revision "2021-08-01" {
+        description "Updated trigger for default mode addition for missing bridges";
+        reference " 0.3.0.";
     }
 
     revision "2021-03-31" {
@@ -208,6 +228,7 @@ module ipi-vxlan {
         description
             "Grouping for vxlan-tenant configuration";
         leaf vrf-name  {
+            when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:vtep-ipv4 ";
             if-feature feature-list:HAVE_BGP_EVPN;
             type  leafref {
                 path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
@@ -372,7 +393,10 @@ module ipi-vxlan {
         } // END of interface-name definition.
 
         leaf vlan-id  {
-            type  uint32;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
             description "vlan id";
         } // END of vlan-id definition.
 
@@ -548,10 +572,9 @@ module ipi-vxlan {
         description
             "Grouping for single tagged vxlan access interface";
         leaf vlan-identifier  {
-            type  uint32 {
-                 range "2..4094"  {
-                    description "2..4094:vlan id";
-                 }
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
             }
             description "Use this attriute to map a VLAN on physical interface to identify the
                         tenant traffic and to enter NVO access interface mode";
@@ -562,10 +585,9 @@ module ipi-vxlan {
         description
             "Grouping for double tagged vxlan access interface";
         leaf vlan-identifier  {
-            type  uint32 {
-                 range "2..4094"  {
-                    description "2..4094:vlan id";
-                 }
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
             }
             description "S-VLAN on which interface is mapped";
         } // END of vlan-identifier definition.
@@ -981,7 +1003,7 @@ module ipi-vxlan {
             "List grouping for static-vxlan-tenant configuration";
 
         list static-tenant {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:vxlan-tenant/ipi-vxlan:static-tenant/ipi-vxlan:config/ipi-vxlan:remote-vtep-ipv4 + /ipi-vxlan:vxlan/ipi-vxlan:vxlan-tenant/ipi-vxlan:config/ipi-vxlan:map-network != '?' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:vxlan-tenant/ipi-vxlan:static-tenant/ipi-vxlan:config/ipi-vxlan:remote-vtep-ipv4 ";
             key "mac-address";
             description
                 "static tenant related configurations";
@@ -1168,12 +1190,21 @@ module ipi-vxlan {
             } // END of state-container definition.
         } // End of tunnel-list
     } // END of vxlan-tunnel-top definition.
+    grouping vxlan-access-port-default-config {
+        description
+            "Grouping for port only default config";
+        leaf default-access-interface  {
+            type  empty;
+            description "Use this attribute to create default access interface";
+        } // END of default-access-interface definition.
+
+    } // END of vxlan-access-port-default-config definition.
     grouping vxlan-access-interface-top {
         description
             "Top-Level Grouping for VxLAN access interfaces";
 
         list untagged-access-interface {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             key "interface-name";
             description
                 "untagged access port related configurations";
@@ -1189,12 +1220,14 @@ module ipi-vxlan {
                 description
                     "Configuration data";
                 uses vxlan-access-interface-config;
+                uses vxlan-access-port-default-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operational state data";
                 uses vxlan-access-interface-config;
+                uses vxlan-access-port-default-config;
             } // END of state-container definition.
             uses vxlan-access-interface-port-only-mac-ipv4-list;
             uses vxlan-access-interface-port-only-mac-ipv6-list;
@@ -1202,7 +1235,7 @@ module ipi-vxlan {
         } // End of untagged-access-interface-list
 
         list tagged-access-interface {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             key "interface-name vlan-identifier";
             description
                 "single tagged vxlan access-port related configurations";
@@ -1242,7 +1275,7 @@ module ipi-vxlan {
         } // End of tagged-access-interface-list
 
         list double-tagged-access-interface {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:switchport-status = 'true' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             key "interface-name vlan-identifier inner-vlan-identifier";
             description
                 "double tagged access port related configurations";
@@ -1602,13 +1635,6 @@ module ipi-vxlan {
 
     rpc clear-nvo-vxlan-dynamic-mac-address-table {
         description "Use this RPC to clear the dynamic entries from mac address table";
-        input  {
-            leaf vxlan-enable  {
-                type boolean;
-                mandatory true;
-                description "Use this attribute to include a tenant";
-            }
-        }
     }
 
     rpc clear-nvo-vxlan-tunnels {

@@ -21,12 +21,12 @@ submodule ipi-dhcp-relay {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import ipi-dhcp-relay-types {
         prefix ipi-dhcp-relay-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ietf-inet-types {
@@ -41,17 +41,17 @@ submodule ipi-dhcp-relay {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-07-07;
+        revision-date 2021-09-28;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     organization
@@ -67,8 +67,13 @@ submodule ipi-dhcp-relay {
         "dhcp_relay_configuration";
 
 
-    revision "2021-06-30" {
-        description "Updated data types to use standard yang types wherever applicable";
+    revision "2021-09-03" {
+        description "Update descriptions of attribute";
+        reference " 0.4.0.";
+    }
+
+    revision "2021-06-11" {
+        description "Changes to support DHCP L3VPN feature";
         reference " 0.3.0.";
     }
 
@@ -96,6 +101,103 @@ submodule ipi-dhcp-relay {
         } // END of enable-dhcpv6-relay definition.
 
     } // END of relay-global-config definition.
+    grouping relay-ipv4-vpn-vrf-top {
+        description
+            "DHCPv4 relay VPN information grouping";
+        container ipv4-vpn-links {
+            description
+                "Top level container for IPv4 DHCP Relay VPN config";
+
+            list ipv4-vpn-link {
+            when " /dhcp/relay/relay-agent/ipv4-vpn-links/ipv4-vpn-link/config/interface-direction ";
+                key "interface-type";
+                description
+                    "dhcpv4 relay vpn configs";
+                leaf interface-type  {
+                    type  leafref {
+                        path  "../config/interface-type";
+                    }
+                    description "dhcp relay vpn interface type";
+                } // END of interface-type definition.
+
+                container config {
+                    description
+                        "Configuration data for dhcp-relay on each vpn";
+                    uses ipv4-vpn-link-attrs-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational data for dhcp-relay on each vpn";
+                    uses ipv4-vpn-link-attrs-config;
+                } // END of state-container definition.
+            } // End of ipv4-vpn-link-list
+        } // END of ipv4-vpn-links-container definition.
+    } // END of relay-ipv4-vpn-vrf-top definition.
+    grouping ipv4-vpn-link-attrs-config {
+        description
+            "Attrs for dhcpv4-relay vpn";
+        leaf interface-type  {
+            type  ipi-dhcp-relay-types:dhcp_vpn_interface_type_t;
+            description "dhcp relay vpn interface type";
+        } // END of interface-type definition.
+
+        leaf interface-direction  {
+            type  ipi-dhcp-relay-types:dhcp_vpn_interface_direction_t;
+            mandatory true;
+            description "dhcp relay vpn interface direction";
+        } // END of interface-direction definition.
+
+    } // END of ipv4-vpn-link-attrs-config definition.
+    grouping relay-ipv6-vpn-vrf-top {
+        description
+            "DHCPv6 relay VPN information grouping";
+        container ipv6-vpn-links {
+            description
+                "Top level container for IPv6 DHCP Relay VPN config";
+
+            list ipv6-vpn-link {
+            when " /dhcp/relay/relay-agent/ipv6-vpn-links/ipv6-vpn-link/config/interface-direction-v6 ";
+                if-feature feature-list:HAVE_IPV6;
+                key "interface-type-v6";
+                description
+                    "dhcpv6 relay vpn configs";
+                leaf interface-type-v6  {
+                    type  leafref {
+                        path  "../config/interface-type-v6";
+                    }
+                    description "dhcpv6 relay vpn interface type";
+                } // END of interface-type-v6 definition.
+
+                container config {
+                    description
+                        "Configuration data for dhcp-relay on each vpn";
+                    uses ipv6-vpn-link-attrs-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational data for dhcp-relay on each vpn";
+                    uses ipv6-vpn-link-attrs-config;
+                } // END of state-container definition.
+            } // End of ipv6-vpn-link-list
+        } // END of ipv6-vpn-links-container definition.
+    } // END of relay-ipv6-vpn-vrf-top definition.
+    grouping ipv6-vpn-link-attrs-config {
+        description
+            "Attrs for dhcpv6-relay vpn";
+        leaf interface-type-v6  {
+            type  ipi-dhcp-relay-types:dhcp_vpn_interface_type_t;
+            description "dhcpv6 relay vpn interface type";
+        } // END of interface-type-v6 definition.
+
+        leaf interface-direction-v6  {
+            type  ipi-dhcp-relay-types:dhcp_vpn_interface_direction_t;
+            mandatory true;
+            description "dhcpv6 relay vpn interface direction";
+        } // END of interface-direction-v6 definition.
+
+    } // END of ipv6-vpn-link-attrs-config definition.
     grouping relay-global-vrf-config {
         description
             "DHCP relay VRF level information grouping";
@@ -134,6 +236,15 @@ submodule ipi-dhcp-relay {
             description "Remote host identifier. Use option 82 to provide the DHCP server
                         information about the DHCP client";
         } // END of remote-id definition.
+
+        leaf subscriber-id  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Subscriber identifier. Use this option to allows the service provider
+                        to assign/activate subscriber-specific actions";
+        } // END of subscriber-id definition.
 
     } // END of relay-global-vrf-config definition.
     grouping relay-interface-config {
@@ -315,7 +426,7 @@ submodule ipi-dhcp-relay {
             "DHCP relay interface level information grouping";
         container interfaces {
             description
-                "Top level container for dhcp-client on each interface";
+                "Top level container for dhcp-relay on each interface";
 
             list interface {
             // when " !ipi-if-aggregate:member-aggregation ";
@@ -381,6 +492,8 @@ submodule ipi-dhcp-relay {
                 uses relay-global-vrf-config;
                 uses relay-stats;
             } // END of state-container definition.
+            uses relay-ipv4-vpn-vrf-top;
+            uses relay-ipv6-vpn-vrf-top;
             uses relay-delegated-prefixes;
         } // End of relay-agent-list
         container global {

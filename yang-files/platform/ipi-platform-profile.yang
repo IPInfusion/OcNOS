@@ -21,17 +21,17 @@ submodule ipi-platform-profile {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-platform-types {
         prefix ipi-platform-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     organization
@@ -47,13 +47,28 @@ submodule ipi-platform-profile {
         "Datamodel for Platform profile object";
 
 
-    revision "2021-06-30" {
-        description "Updated data types to use standard yang types wherever applicable";
-        reference " 0.5.0.";
+    revision "2021-09-06" {
+        description "Updated description for attribute group-id,Removed enable-status attribute";
+        reference " 0.8.0.";
+    }
+
+    revision "2021-07-29" {
+        description "Added new filter type ipsg and ipsg-ipv6 group";
+        reference " 0.7.0.";
+    }
+
+    revision "2021-07-28" {
+        description "Added new attributes for forwarding profile, cpu-queue and load-balance";
+        reference " 0.6.0.";
     }
 
     revision "2021-06-29" {
         description "Added attribute ingress-ipv6-acl";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-06-25" {
+        description "Added new filter type dhcp-snoop and dhcp-snoop-ipv6 group";
         reference " 0.4.0.";
     }
 
@@ -64,6 +79,11 @@ submodule ipi-platform-profile {
 
     revision "2021-06-17" {
         description "Updated with changes for non-DNX Broadcom platform hardware profiles";
+        reference " 0.2.0.";
+    }
+
+    revision "2021-04-27" {
+        description "Added Get API support for TCAM Utilization filter group";
         reference " 0.2.0.";
     }
 
@@ -108,6 +128,15 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-ipv6 definition.
 
+        leaf egress-ipv6-dnx  {
+            if-feature feature-list:HAVE_DNX;
+            if-feature feature-list:HAVE_ACL;
+            type  cml-data-types:cml_enable_disable_t;
+            default "enable";
+            description "Use this command to enable or disable egress IPv6 filter groups.
+                        Disabling filter groups increases the configurable filter entries.";
+        } // END of egress-ipv6-dnx definition.
+
         leaf ingress-ipv6  {
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
@@ -125,6 +154,7 @@ submodule ipi-platform-profile {
         } // END of ingress-ipv6-acl definition.
 
         leaf ingress-ipv4  {
+            when " not(/profiles/hardware-profile/filters/config/ingress-ipv4-extended) ";
             if-feature feature-list:HAVE_ACL;
             type  empty;
             description "Use this attribute to enable or disable Ingress IPv4 filter groups.
@@ -132,6 +162,7 @@ submodule ipi-platform-profile {
         } // END of ingress-ipv4 definition.
 
         leaf ingress-ipv4-extended  {
+            when " not(/profiles/hardware-profile/filters/config/ingress-ipv4) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -165,6 +196,7 @@ submodule ipi-platform-profile {
         } // END of ingress-ipv6-qos definition.
 
         leaf qos  {
+            when " not(/profiles/hardware-profile/filters/config/qos-extended) + not(/profiles/hardware-profile/filters/config/qos-policer) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -173,6 +205,7 @@ submodule ipi-platform-profile {
         } // END of qos definition.
 
         leaf qos-extended  {
+            when " not(/profiles/hardware-profile/filters/config/qos) + not(/profiles/hardware-profile/filters/config/qos-policer) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -181,12 +214,23 @@ submodule ipi-platform-profile {
         } // END of qos-extended definition.
 
         leaf qos-policer  {
+            when " not(/profiles/hardware-profile/filters/config/qos) + not(/profiles/hardware-profile/filters/config/qos-extended) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
             description "Use this attribute to enable or disable QoS policer filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of qos-policer definition.
+
+        leaf egress-qos-policer  {
+            if-feature feature-list:HAVE_DNX;
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_ACL;
+            type  empty;
+            description "Use this attribute to enable or disable Egress QoS policer filter
+                        groups. Disabling filter groups increases the configurable filter
+                        entries.";
+        } // END of egress-qos-policer definition.
 
         leaf qos-ipv6  {
             if-feature feature-list:HAVE_DUNE;
@@ -214,6 +258,7 @@ submodule ipi-platform-profile {
         } // END of egress-layer2 definition.
 
         leaf ingress-layer2  {
+            when " not(/profiles/hardware-profile/filters/config/ingress-layer2-extended) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -222,6 +267,7 @@ submodule ipi-platform-profile {
         } // END of ingress-layer2 definition.
 
         leaf ingress-layer2-extended  {
+            when " not(/profiles/hardware-profile/filters/config/ingress-layer2) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -282,12 +328,48 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of ingress-bfd definition.
 
+        leaf dhcp-snoop  {
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DHCP_SNOOP;
+            type  empty;
+            description "Use this attribute to enable or disable Dhcp snooping filter groups.
+                        Disabling filter groups increases the configurable filter entries.";
+        } // END of dhcp-snoop definition.
+
+        leaf dhcp-snoop-ipv6  {
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DHCP_SNOOP;
+            type  empty;
+            description "Use this attribute to enable or disable Dhcp snooping ipv6 filter
+                        groups. Disabling filter groups increases the configurable filter
+                        entries.";
+        } // END of dhcp-snoop-ipv6 definition.
+
+        leaf ipsg  {
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DHCP_SNOOP;
+            type  empty;
+            description "Use this attribute to enable or disable IP Source Guard(IPSG) filter
+                        groups. Disabling filter groups increases the configurable filter
+                        entries.";
+        } // END of ipsg definition.
+
+        leaf ipsg-ipv6  {
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DHCP_SNOOP;
+            type  empty;
+            description "Use this attribute to enable or disable IP Source Guard(IPSG) ipv6
+                        filter groups. Disabling filter groups increases the configurable
+                        filter entries.";
+        } // END of ipsg-ipv6 definition.
+
     } // END of hardware-profile-filters-config definition.
     grouping hardware-profiles-statistics-config {
         description
             "Grouping for hardware-profile statistics config objects.";
         leaf ingress-acl  {
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable Ingress ACL QoS and PBR filter
                         groups. Disabling filter groups increases the configurable filter
@@ -296,6 +378,7 @@ submodule ipi-platform-profile {
 
         leaf egress-acl  {
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable Egress ACL filter groups.
                         Disabling filter groups increases the configurable filter entries.";
@@ -303,6 +386,7 @@ submodule ipi-platform-profile {
 
         leaf ingress-qos  {
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable explicitly for QoS filter
                         groups. Disabling filter groups increases the configurable filter
@@ -311,6 +395,7 @@ submodule ipi-platform-profile {
 
         leaf attachment-circuit-logical-if  {
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable attachment circuits logical
                         filter groups. Disabling filter groups increases the configurable
@@ -319,6 +404,7 @@ submodule ipi-platform-profile {
 
         leaf tunnel-logical-if  {
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable tunnel logical filter groups.
                         Disabling filter groups increases the configurable filter entries.";
@@ -328,6 +414,7 @@ submodule ipi-platform-profile {
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_MPLS;
             if-feature feature-list:HAVE_NVO;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable hardware statistics for
                         evpn-mpls.";
@@ -336,6 +423,7 @@ submodule ipi-platform-profile {
         leaf mpls-pseudowire  {
             if-feature feature-list:HAVE_MPLS_STATS;
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable MPLS Pseudowire filter groups.
                         Disabling filter groups increases the configurable filter entries.";
@@ -344,6 +432,7 @@ submodule ipi-platform-profile {
         leaf cfm-frame-loss-measurements  {
             if-feature feature-list:HAVE_CFM;
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable CFM Loss Measurements filter
                         groups. Disabling filter groups increases the configurable filter
@@ -353,6 +442,7 @@ submodule ipi-platform-profile {
         leaf cfm-continuity-check-messages  {
             if-feature feature-list:CCM_HW_OFFLOAD;
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable CFM Continuity Check Messages
                         filter groups. Disabling filter groups increases the configurable
@@ -360,6 +450,7 @@ submodule ipi-platform-profile {
         } // END of cfm-continuity-check-messages definition.
 
         leaf virtual-output-queue-full-color  {
+            when " not(/profiles/hardware-profile/statistics/config/virtual-output-queue-forward-drop) ";
             if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Virtual Output Queue Full
@@ -368,6 +459,7 @@ submodule ipi-platform-profile {
         } // END of virtual-output-queue-full-color definition.
 
         leaf virtual-output-queue-forward-drop  {
+            when " not(/profiles/hardware-profile/statistics/config/virtual-output-queue-full-color) ";
             if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Virtual Output Queue Forward
@@ -376,6 +468,341 @@ submodule ipi-platform-profile {
         } // END of virtual-output-queue-forward-drop definition.
 
     } // END of hardware-profiles-statistics-config definition.
+    grouping hardware-tcam-state {
+        description
+            "Grouping for hardware tcam state objects.";
+        leaf warning-threshold-level  {
+            type  int32;
+            description "Warning TCAM threshold level in percentage. Value of -1 means the
+                        field is not applicable.";
+        } // END of warning-threshold-level definition.
+
+        leaf critical-alert-threshold-level  {
+            type  int32;
+            description "Alert TCAM threshold level in percentage. Value of -1 means the field
+                        is not applicable.";
+        } // END of critical-alert-threshold-level definition.
+
+    } // END of hardware-tcam-state definition.
+    grouping hardware-tcam-filter-group-state {
+        description
+            "Grouping for hardware tcam filter group state objects.";
+        leaf group-id  {
+            type  uint32;
+            description "A unique number corresponding to each TCAM group. This attribute is
+                        used solely for defining the key for the TCAM utilization filter
+                        groups object list. It's value shouldn't be interpreted.";
+        } // END of group-id definition.
+
+        leaf group-name  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "TCAM Utilization filter group name.";
+        } // END of group-name definition.
+
+        leaf free-entries  {
+            type  int32;
+            description "Count of free entries in the TCAM group. Value of -1 means the field
+                        is not applicable.";
+        } // END of free-entries definition.
+
+        leaf used-entries  {
+            type  int32;
+            description "Percentage of entries used in the TCAM group.Value of -1 means the
+                        field is not applicable.";
+        } // END of used-entries definition.
+
+        leaf used-percentage  {
+            type  int32;
+            description "Percentage of entries used in the TCAM group. Value of -1 means the
+                        field is not applicable.";
+        } // END of used-percentage definition.
+
+        leaf total-entries  {
+            type  int32;
+            description "Count of total entries in the TCAM group.Total is summation of
+                        dedicated entries and shared entries.Value of -1 means the field is
+                        not applicable.";
+        } // END of total-entries definition.
+
+        leaf dedicated-entries  {
+            type  int32;
+            description "Count of total entries dedicated to TCAM group. Dedicated entries are
+                        fixed to the TCAM group and are the minimum guaranteed number. Value
+                        of -1 means the field is not applicable.";
+        } // END of dedicated-entries definition.
+
+        leaf shared-entries  {
+            type  int32;
+            description "Count of entries which are shared across TCAM groups. Value of -1
+                        means the field is not applicable.";
+        } // END of shared-entries definition.
+
+    } // END of hardware-tcam-filter-group-state definition.
+    grouping platform-kaps-config {
+        description
+            "Grouping for forwarding-profiles kaps config objects.";
+        leaf profile-type  {
+            type  ipi-platform-types:platform_kaps_profile_type_t;
+            description "forwarding profile for KAPS";
+        } // END of profile-type definition.
+
+    } // END of platform-kaps-config definition.
+    grouping platform-ext-tcam-config {
+        description
+            "Grouping for forwarding-profiles external-tcam config objects.";
+        leaf profile-type  {
+            type  ipi-platform-types:platform_ext_tcam_profile_type_t;
+            default "profile-one";
+            description "forwarding profile for external TCAM";
+        } // END of profile-type definition.
+
+    } // END of platform-ext-tcam-config definition.
+    grouping platform-custom-tcam-config {
+        description
+            "Grouping for forwarding-profiles external-tcam config objects.";
+        leaf profile-type  {
+            type  ipi-platform-types:platform_tcam_custom_profile_t;
+            mandatory true;
+            description "forwarding profile for type for custom-TCAM";
+        } // END of profile-type definition.
+
+        leaf ipv4-percentage  {
+            type  uint8 {
+                 range "10..90"  {
+                    description "10..90:percent of ipv4 routes";
+                 }
+            }
+            units "%";
+            mandatory true;
+            description "Use this attribute to set Percentage of entries for ipv4 routes";
+        } // END of ipv4-percentage definition.
+
+        leaf ipv6-percentage  {
+            type  uint8 {
+                 range "10..90"  {
+                    description "10..90:percent of ipv6 routes";
+                 }
+            }
+            units "%";
+            mandatory true;
+            description "Use this attribute to set Percentage of entries for ipv6 routes";
+        } // END of ipv6-percentage definition.
+
+    } // END of platform-custom-tcam-config definition.
+    grouping platform-kaps-state {
+        description
+            "Grouping for KAPS Forwarding Profile state objects.";
+        leaf profile  {
+            type  ipi-platform-types:platform_kaps_forwading_profile_t;
+            description "Profile type";
+        } // END of profile definition.
+
+        leaf is-active  {
+            type  boolean;
+            description "Active in hardware";
+        } // END of is-active definition.
+
+        leaf public-db-size  {
+            type  uint32;
+            description "Public-db size";
+        } // END of public-db-size definition.
+
+        leaf private-db-size  {
+            type  uint32;
+            description "Private-db size";
+        } // END of private-db-size definition.
+
+    } // END of platform-kaps-state definition.
+    grouping platform-elk-tcam-state {
+        description
+            "Grouping for External TCAM Forwarding Profile state objects.";
+        leaf profile  {
+            type  ipi-platform-types:platform_elk_tcam_forwading_profile_t;
+            description "Profile type";
+        } // END of profile definition.
+
+        leaf is-active  {
+            type  boolean;
+            description "Active in hardware";
+        } // END of is-active definition.
+
+        leaf ipv4-db-size  {
+            type  uint32;
+            description "IPv4 DB size";
+        } // END of ipv4-db-size definition.
+
+        leaf ipv6-db-size  {
+            type  uint32;
+            description "IPv6 DB size";
+        } // END of ipv6-db-size definition.
+
+    } // END of platform-elk-tcam-state definition.
+    grouping platform-rate-limit-config {
+        description
+            "Grouping for cpu-queue rate-limit config objects.";
+        leaf queue-name  {
+            type  ipi-platform-types:platform_cpu_queue_name_t;
+            description "This attribute specifies CPU queue name for rate limiting config";
+        } // END of queue-name definition.
+
+        leaf rate  {
+            type  int32 {
+                 range "0..100000"  {
+                    description "0..100000:Rate in kbps. Granularity is from 469 Kbps to 1.56% of the
+                            configured rate.";
+                 }
+            }
+            description "CPU queue Rate";
+        } // END of rate definition.
+
+        leaf monitor-status  {
+            type  ipi-platform-types:platform_cpu_queue_monitor_t;
+            description "monitor cpu queue usage";
+        } // END of monitor-status definition.
+
+    } // END of platform-rate-limit-config definition.
+    grouping platform-load-balance-config {
+        description
+            "Grouping for load-balance config objects.";
+        leaf enable  {
+            type  empty;
+            mandatory true;
+            description "This Object is set loadBalance";
+        } // END of enable definition.
+
+        leaf mpls-label-based  {
+            if-feature feature-list:HAVE_MPLS;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "This Object is set for load balancing based on mpls labels";
+        } // END of mpls-label-based definition.
+
+    } // END of platform-load-balance-config definition.
+    grouping platform-load-balance-l2-config {
+        description
+            "Grouping for load-balance l2 config objects.";
+        leaf dest-mac-based  {
+            type  empty;
+            description "This Object is set for Destination Mac address based load balancing";
+        } // END of dest-mac-based definition.
+
+        leaf src-mac-based  {
+            type  empty;
+            description "This Object is set for Source Mac address based load balancing";
+        } // END of src-mac-based definition.
+
+        leaf ether-type-based  {
+            type  empty;
+            description "This Object is set for Ether-type based load balancing";
+        } // END of ether-type-based definition.
+
+        leaf vlan-based  {
+            type  empty;
+            description "This Object is set for Vlan based load balancing";
+        } // END of vlan-based definition.
+
+    } // END of platform-load-balance-l2-config definition.
+    grouping platform-load-balance-ipv4-config {
+        description
+            "Grouping for load-balance ipv4 config objects.";
+        leaf src-ipv4-address-based  {
+            type  empty;
+            description "This Object is set for Source IPV4 based load balancing";
+        } // END of src-ipv4-address-based definition.
+
+        leaf dest-ipv4-address-based  {
+            type  empty;
+            description "This Object is set for Destination IPV4 based load balancing";
+        } // END of dest-ipv4-address-based definition.
+
+        leaf src-l4-port-based  {
+            type  empty;
+            description "This Object is set for Source L4 port based load balancing";
+        } // END of src-l4-port-based definition.
+
+        leaf dest-l4-port-based  {
+            type  empty;
+            description "This Object is set for Destination L4 port based load balancing";
+        } // END of dest-l4-port-based definition.
+
+        leaf protocol-id  {
+            type  empty;
+            description "This Object is set for Protocol Id based load balancing";
+        } // END of protocol-id definition.
+
+    } // END of platform-load-balance-ipv4-config definition.
+    grouping platform-cpu-queue-top {
+        description
+            "Grouping for platform cpu-queue objects.";
+        container cpu-queue {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_DUNE;
+            description
+                "This container defines cpu-queue configuration and state information.";
+            container rate-limits {
+                description
+                    "This container defines rate-limits configuration and state
+                            information.";
+
+                list rate-limit {
+                when " /hardware/cpu-queue/rate-limits/rate-limit/config/rate  or /hardware/cpu-queue/rate-limits/rate-limit/config/monitor-status ";
+                    key "queue-name";
+                    description
+                        "The list of rate-limit configuration.";
+                    leaf queue-name  {
+                        type  leafref {
+                            path  "../config/queue-name";
+                        }
+                        description "This attribute specifies CPU queue name for rate limiting config";
+                    } // END of queue-name definition.
+
+                    container config {
+                        description
+                            "This container defines cpu-queue rate-limit configuration.";
+                        uses platform-rate-limit-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "This container defines cpu-queue rate-limit information Operational
+                                    states.";
+                        uses platform-rate-limit-config;
+                    } // END of state-container definition.
+                } // End of rate-limit-list
+            } // END of rate-limits-container definition.
+        } // END of cpu-queue-container definition.
+    } // END of platform-cpu-queue-top definition.
+    grouping platform-load-balance-ipv6-config {
+        description
+            "Grouping for load-balance ipv6 config objects.";
+        leaf src-ipv6-address-based  {
+            type  empty;
+            description "This Object is set for Source IPV6 based load balancing";
+        } // END of src-ipv6-address-based definition.
+
+        leaf dest-ipv6-address-based  {
+            type  empty;
+            description "This Object is set for Destination IPV6 based load balancing";
+        } // END of dest-ipv6-address-based definition.
+
+        leaf src-l4-port-based  {
+            type  empty;
+            description "This Object is set for Source L4 port based load balancing";
+        } // END of src-l4-port-based definition.
+
+        leaf dest-l4-port-based  {
+            type  empty;
+            description "This Object is set for Destination L4 port based load balancing";
+        } // END of dest-l4-port-based definition.
+
+        leaf next-header-based  {
+            type  empty;
+            description "This Object is set for Next Header Field for IPV6";
+        } // END of next-header-based definition.
+
+    } // END of platform-load-balance-ipv6-config definition.
 
     grouping  profiles-grouping {
     description
@@ -415,6 +842,46 @@ submodule ipi-platform-profile {
                         "This container defines hardware-profile filter Operational states.";
                     uses hardware-profile-filters-config;
                 } // END of state-container definition.
+                container tcam-utilization {
+                    if-feature feature-list:HAVE_ACL;
+                    config false;
+                    description
+                        "This container defines TCAM Utilization information.";
+                    container state {
+                        config false;
+                        description
+                            "This container defines TCAM Utilization information Operational
+                                    states.";
+                        uses hardware-tcam-state;
+                    } // END of state-container definition.
+                    container filter-groups {
+                        config false;
+                        description
+                            "This container defines TCAM Utilization filter-groups information.";
+
+                        list filter-group {
+                            key "group-id";
+                            config false;
+                            description
+                                "The list of named filter-group.";
+                            leaf group-id  {
+                                type  leafref {
+                                    path  "../state/group-id";
+                                }
+                                description "A unique number corresponding to each TCAM group. This attribute is
+                                            used solely for defining the key for the TCAM utilization filter
+                                            groups object list. It's value shouldn't be interpreted.";
+                            } // END of group-id definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "This container defines filter-group information Operational states.";
+                                uses hardware-tcam-filter-group-state;
+                            } // END of state-container definition.
+                        } // End of filter-group-list
+                    } // END of filter-groups-container definition.
+                } // END of tcam-utilization-container definition.
             } // END of filters-container definition.
             container statistics {
                 description
@@ -433,8 +900,211 @@ submodule ipi-platform-profile {
                 } // END of state-container definition.
             } // END of statistics-container definition.
         } // END of hardware-profile-container definition.
+        container forwarding-profiles {
+            description
+                "This container defines forwarding-profiles configuration and state
+                        information.";
+            container kaps {
+                if-feature feature-list:HAVE_DUNE;
+                if-feature feature-list:HAVE_BCM_UFT;
+                if-feature feature-list:NOT_HAVE_DNX;
+                description
+                    "This container defines forwarding-profiles KAPS configuration and
+                            state information.";
+                container config {
+                    description
+                        "This container defines forwarding-profiles KAPS configuration.";
+                    uses platform-kaps-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container definesforwarding-profiles KAPS Operational states.";
+                    uses platform-kaps-config;
+                } // END of state-container definition.
+            } // END of kaps-container definition.
+            container external-tcam {
+                if-feature feature-list:HAVE_DUNE;
+                if-feature feature-list:HAVE_BCM_UFT;
+                if-feature feature-list:NOT_HAVE_DNX;
+                description
+                    "This container defines forwarding-profiles external-TCAM configuration
+                            and state information.";
+                container config {
+                    description
+                        "This container defines forwarding-profiles external-TCAM
+                                configuration.";
+                    uses platform-ext-tcam-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container definesforwarding-profiles external-TCAM Operational
+                                states.";
+                    uses platform-ext-tcam-config;
+                } // END of state-container definition.
+            } // END of external-tcam-container definition.
+            container custom-tcam {
+                if-feature feature-list:HAVE_DUNE;
+                if-feature feature-list:HAVE_BCM_UFT;
+                if-feature feature-list:NOT_HAVE_DNX;
+                description
+                    "This container defines forwarding-profiles custom-TCAM configuration
+                            and state information.";
+                container config {
+                    presence "forwarding-profiles custom-tcam configuration";
+                    description
+                        "This container defines forwarding-profiles custom-TCAM configuration.";
+                    uses platform-custom-tcam-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container defines forwarding-profiles custom-TCAM Operational
+                                states.";
+                    uses platform-custom-tcam-config;
+                } // END of state-container definition.
+            } // END of custom-tcam-container definition.
+            container table-limit {
+                if-feature feature-list:HAVE_BCM_UFT;
+                config false;
+                description
+                    "This container defines profile table maximum supported values state
+                            information.";
+
+                list kaps {
+                    if-feature feature-list:HAVE_DUNE;
+                    key "profile";
+                    config false;
+                    description
+                        "The list of forwarding-profiles KAPS.";
+                    leaf profile  {
+                        type  leafref {
+                            path  "../state/profile";
+                        }
+                        description "Forwarding Profile KAPS Profile type.";
+                    } // END of profile definition.
+
+                    container state {
+                        config false;
+                        description
+                            "This container defines KAPS information Operational states.";
+                        uses platform-kaps-state;
+                    } // END of state-container definition.
+                } // End of kaps-list
+
+                list external-tcam {
+                    if-feature feature-list:HAVE_DUNE;
+                    if-feature feature-list:HAVE_ELK_TCAM;
+                    key "profile";
+                    config false;
+                    description
+                        "The list of forwarding-profiles external-TCAM.";
+                    leaf profile  {
+                        type  leafref {
+                            path  "../state/profile";
+                        }
+                        description "Forwarding Profile External TCAM Profile type.";
+                    } // END of profile definition.
+
+                    container state {
+                        config false;
+                        description
+                            "This container defines external-TCAM information Operational states.";
+                        uses platform-elk-tcam-state;
+                    } // END of state-container definition.
+                } // End of external-tcam-list
+            } // END of table-limit-container definition.
+        } // END of forwarding-profiles-container definition.
     } // END of profiles-container definition.
     } // END of profiles-grouping definition.
+
+    grouping  hardware-grouping {
+    description
+        "Top level container for hardware, including configuration and state
+                data";
+    container hardware {
+        description
+            "Top level container for hardware, including configuration and state
+                    data";
+        container load-balance {
+            if-feature feature-list:HAVE_BROADCOM;
+            description
+                "This container defines hardware load-balance configuration and state
+                        information.";
+            container config {
+                presence "hardware load-balance configuration";
+                description
+                    "This container defines hardware load-balance configuration.";
+                uses platform-load-balance-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "This container defines hardware load-balance Operational states.";
+                uses platform-load-balance-config;
+            } // END of state-container definition.
+            container l2 {
+                when " /hardware/load-balance/config/enable ";
+                if-feature feature-list:HAVE_L2;
+                if-feature feature-list:NOT_HAVE_DNX;
+                description
+                    "This container defines load-balance l2 configuration and state
+                            information.";
+                container config {
+                    description
+                        "This container defines load-balance l2 configuration.";
+                    uses platform-load-balance-l2-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container defines load-balance l2 Operational states.";
+                    uses platform-load-balance-l2-config;
+                } // END of state-container definition.
+            } // END of l2-container definition.
+            container ipv4 {
+                when " /hardware/load-balance/config/enable ";
+                if-feature feature-list:HAVE_L3;
+                if-feature feature-list:NOT_HAVE_DNX;
+                description
+                    "This container defines load-balance ipv4 configuration and state
+                            information.";
+                container config {
+                    description
+                        "This container defines load-balance ipv4 configuration.";
+                    uses platform-load-balance-ipv4-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container defines load-balance ipv4 Operational states.";
+                    uses platform-load-balance-ipv4-config;
+                } // END of state-container definition.
+            } // END of ipv4-container definition.
+            container ipv6 {
+                when " /hardware/load-balance/config/enable ";
+                if-feature feature-list:HAVE_L3;
+                if-feature feature-list:NOT_HAVE_DNX;
+                description
+                    "This container defines load-balance ipv6 configuration and state
+                            information.";
+                container config {
+                    description
+                        "This container defines load-balance ipv6 configuration.";
+                    uses platform-load-balance-ipv6-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container defines load-balance ipv6 Operational states.";
+                    uses platform-load-balance-ipv6-config;
+                } // END of state-container definition.
+            } // END of ipv6-container definition.
+        } // END of load-balance-container definition.
+        uses platform-cpu-queue-top;
+    } // END of hardware-container definition.
+    } // END of hardware-grouping definition.
 
 
 }

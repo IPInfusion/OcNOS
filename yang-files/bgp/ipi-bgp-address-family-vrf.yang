@@ -21,7 +21,7 @@ submodule ipi-bgp-address-family-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     import ietf-inet-types {
@@ -31,16 +31,16 @@ submodule ipi-bgp-address-family-vrf {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2021-05-27;
+        revision-date 2021-09-03;
     }
 
-    include ipi-bgp-common { revision-date 2021-07-05;}
-    include ipi-bgp-address-family { revision-date 2021-06-09;}
+    include ipi-bgp-common { revision-date 2021-09-20;}
+    include ipi-bgp-address-family { revision-date 2021-09-15;}
     organization
         "IP Infusion Inc.";
 
@@ -53,6 +53,11 @@ submodule ipi-bgp-address-family-vrf {
     description
         "";
 
+
+    revision "2021-08-26" {
+        description "Added dependency constraint between auth-key-encrypt and password attrs for the peer authentication password CLI";
+        reference " 0.7.0.";
+    }
 
     revision "2021-07-05" {
         description "Remodelled BGP VRF address family peer authentication password object list";
@@ -346,6 +351,7 @@ submodule ipi-bgp-address-family-vrf {
                 } // End of maximum-prefixes-list
 
                 list bgp-password {
+                when " /bgp/bgp-instance/address-family-vrf/vrf-peer/bgp-password/config/auth-key-encrypt ";
                     key "password";
                     max-elements 1;
                     description
@@ -667,6 +673,38 @@ submodule ipi-bgp-address-family-vrf {
                     uses bgp-address-family-vrf-table-map-config;
                 } // END of state-container definition.
             } // END of table-map-container definition.
+            container bgp-srv6 {
+                if-feature feature-list:HAVE_SRV6;
+                description
+                    "SRv6 container for BGP segment routing";
+                container config {
+                    presence "yes";
+                    description
+                        "Segment routing SRv6 configuration and other CLIs inside srv6";
+                    uses bgp-vrf-srv6-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Segment routing V6 runtime parameters";
+                    uses bgp-vrf-srv6-config;
+                } // END of state-container definition.
+                container sid-alloc-mode {
+                    description
+                        "To configure sid-alloc-mode";
+                    container config {
+                        description
+                            "config attribute for sid-alloc mode";
+                        uses prefer-sid-alloc-per-vrf-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State attribute for sid-alloc";
+                        uses prefer-sid-alloc-per-vrf-config;
+                    } // END of state-container definition.
+                } // END of sid-alloc-mode-container definition.
+            } // END of bgp-srv6-container definition.
             uses bgp-af-vrf-network-list;
             uses bgp-address-family-vrf-peer-group;
         } // End of address-family-vrf-list
@@ -692,6 +730,25 @@ submodule ipi-bgp-address-family-vrf {
         } // END of filter-direction definition.
 
     } // END of bgp-vrf-distribute-list-filter-config definition.
+    grouping bgp-vrf-srv6-config {
+        description
+            "config attribute for SRv6 for SR Policies";
+        leaf bgpSRv6enable  {
+            type  empty;
+            mandatory true;
+            description "";
+        } // END of bgpSRv6enable definition.
+
+    } // END of bgp-vrf-srv6-config definition.
+    grouping prefer-sid-alloc-per-vrf-config {
+        description
+            "sid-alloc";
+        leaf sid-alloc-type  {
+            type  ipi-bgp-types:bgp_sid_alloc_type_t;
+            description "sid-alloc";
+        } // END of sid-alloc-type definition.
+
+    } // END of prefer-sid-alloc-per-vrf-config definition.
     grouping bgp-vrf-as-list-filter-config {
         description
             "Grouping for BGP AS list filter configuration";
@@ -793,7 +850,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf threshold-percentage  {
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:threshold-value, 1 to 100 percent";
+                    description "1..100:threshold-value 1 to 100 percent";
                  }
             }
             default "75";
@@ -1090,6 +1147,7 @@ submodule ipi-bgp-address-family-vrf {
 
 
             list bgp-password {
+            when " /bgp/bgp-instance/address-family-vrf/peer-group/bgp-password/config/auth-key-encrypt ";
                 key "password";
                 max-elements 1;
                 description

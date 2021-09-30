@@ -23,7 +23,7 @@ module ipi-interface {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-05-03;
+        revision-date 2021-09-03;
     }
 
     import ietf-yang-types {
@@ -33,22 +33,22 @@ module ipi-interface {
 
     import ipi-if-types {
         prefix ipi-if-types;
-        revision-date 2021-06-30;
+        revision-date 2021-09-15;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-06-30;
+        revision-date 2021-09-03;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-05-03;
+        revision-date 2021-09-30;
     }
 
     organization
@@ -63,6 +63,31 @@ module ipi-interface {
     description
         "Datamodel for interface object";
 
+
+    revision "2021-09-28" {
+        description "Changed interface name and CLI for ethertype configuration";
+        reference " 0.6.4.";
+    }
+
+    revision "2021-09-20" {
+        description "Changed interface name description to add subinterface details";
+        reference " 0.6.3.";
+    }
+
+    revision "2021-09-10" {
+        description "Changed max MTU from 65536 to 65535";
+        reference " 0.6.2.";
+    }
+
+    revision "2021-09-01" {
+        description "Changed name of attribute enabled and switchport-status to shutdown and enable-switchport and data-types from CML_BOOL_T to CML_EMPTY_T.";
+        reference " 0.6.1.";
+    }
+
+    revision "2021-07-15" {
+        description "Added new attribute switchport-protected.";
+        reference " 0.6.0.";
+    }
 
     revision "2021-07-07" {
         description "Add a specific condition in the triggers for MTU and Ethertype related to the mlag IDL interface.";
@@ -120,9 +145,8 @@ module ipi-interface {
             description "Use this attribute to set description for the interface";
         } // END of description definition.
 
-        leaf enabled  {
-            type  boolean;
-            default true;
+        leaf shutdown  {
+            type  empty;
             description "Use this attribute to enable the selected interface.
                         This leaf contains the configured, desired state of the interface.
                         The testing(3) state indicates that no operational packets can be
@@ -133,7 +157,7 @@ module ipi-interface {
                         information retained by the managed system,
                         ifAdminStatus is then changed to either the up(1) or testing(3)
                         states (or remains in the down(2) state).";
-        } // END of enabled definition.
+        } // END of shutdown definition.
 
     } // END of interface-common-config definition.
     grouping interface-phys-config {
@@ -157,16 +181,17 @@ module ipi-interface {
                         then the value of name for such an interface is the proxied
                         device's local name for it. If there is no local name, or this
                         object is otherwise not applicable, then this object contains a
-                        zero-length string.";
+                        zero-length string. To configure a subinterface, use the name of
+                        the base interface followed by a dot and a number in the range
+                        of 1-2000 (eg: xe1.1).";
         } // END of name definition.
 
-        leaf switchport-status  {
-            type  boolean;
-            default false;
+        leaf enable-switchport  {
+            type  empty;
             description "This attribute is used to set the mode of the Hybrid Switch Router
                         feature to switched only.All interfaces are configured routed by
                         default";
-        } // END of switchport-status definition.
+        } // END of enable-switchport definition.
 
         leaf vrf-name  {
             if-feature feature-list:HAVE_VRF;
@@ -202,10 +227,10 @@ module ipi-interface {
 
         leaf mtu  {
             type  uint32 {
-                 range "64..65536"  {
-                    description "64..65536:MTU in bytes: (64-16338) for L2 packet (576-9216) for L3
-                            IPv4 packet (1280-9216) for L3 IPv6 packet (576-65536) for IPv4 packet
-                            and (1280-65536) for IPv6 packet on loopback interface";
+                 range "64..65535"  {
+                    description "64..65535:MTU in bytes: (64-9416) for L2 packet (576-9216) for L3 IPv4
+                            packet (1280-9216) for L3 IPv6 packet (576-65535) for IPv4 packet and
+                            (1280-65535) for IPv6 packet on loopback interface";
                  }
             }
             description "This attribute is used to set mtu value to interface.The size of the
@@ -215,18 +240,48 @@ module ipi-interface {
                         be sent on the interface.";
         } // END of mtu definition.
 
-        leaf dot1q-ether-type  {
-            // when " !ipi-mlag:mlag-aggregation/config/mlag-id ";
+        leaf dot1ad-ether-type  {
             if-feature feature-list:NOT_HAVE_SWFWDR;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Attribute to change Ethertype value";
-        } // END of dot1q-ether-type definition.
+        } // END of dot1ad-ether-type definition.
+
+        leaf protected-port  {
+            // when " !ipi-mlag:mlag-aggregation/config/mlag-id ";
+            if-feature feature-list:HAVE_DUNE;
+            type  ipi-if-types:if_protected_port_type_t;
+            default "promiscuous";
+            description "Attribute to change port protectedtype value";
+        } // END of protected-port definition.
+
+        leaf domain-forward-config  {
+            // when " !ipi-mlag:mlag-aggregation/config/mlag-id ";
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Attribute to change domain forward value";
+        } // END of domain-forward-config definition.
 
         uses interface-common-config;
     } // END of interface-phys-config definition.
+    grouping interface-loopback-config {
+        description
+            "Interface Loopback Config";
+        leaf if-loopback  {
+            type  ipi-if-types:if_loopback_dir_type_t;
+            mandatory true;
+            description "This attribute is used to enable port loopback";
+        } // END of if-loopback definition.
+
+        leaf if-loopback-level  {
+            type  ipi-if-types:if_loopback_type_t;
+            mandatory true;
+            description "This attribute is used to enable port loopback";
+        } // END of if-loopback-level definition.
+
+    } // END of interface-loopback-config definition.
     grouping interface-common-state {
         description
             "Operational state data (in addition to intended configuration) at the
@@ -534,6 +589,22 @@ module ipi-interface {
                 uses interface-common-state;
                 uses interface-counters-state;
             } // END of state-container definition.
+            container interface-loopback {
+                description
+                    "Configurable items at the global, physical interface level";
+                container config {
+                    presence "if-loopback";
+                    description
+                        "Operational state data at the global interface level";
+                    uses interface-loopback-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data at the global interface level";
+                    uses interface-loopback-config;
+                } // END of state-container definition.
+            } // END of interface-loopback-container definition.
         } // End of interface-list
     } // END of interfaces-container definition.
     } // END of interfaces-grouping definition.
