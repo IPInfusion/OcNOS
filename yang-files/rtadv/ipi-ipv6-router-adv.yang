@@ -28,7 +28,7 @@ module ipi-ipv6-router-adv {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-10-20;
     }
 
     import ipi-if-aggregate {
@@ -38,7 +38,7 @@ module ipi-ipv6-router-adv {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2021-10-27;
     }
 
     organization
@@ -53,6 +53,11 @@ module ipi-ipv6-router-adv {
     description
         "IPv6 Router Advertisement";
 
+
+    revision "2021-09-29" {
+        description "Changed max-ra-interval and min-ra-interval inside ra-interval container";
+        reference " 0.2.4.";
+    }
 
     revision "2021-09-21" {
         description "Add when cross-clauses in the leaves valid-lifetime and preferred-lifetime of object ipv6 prefix";
@@ -228,6 +233,57 @@ module ipi-ipv6-router-adv {
             uses router-advertisement-interfaces-prefixes-address-top;
         } // END of ipv6-prefixes-container definition.
     } // END of router-advertisement-interfaces-prefixes-top definition.
+    grouping router-advertisement-ra-interval-config {
+        description
+            "Grouping for IPV6 Router Advertisement Interface Interval Timers
+                        configuration";
+        leaf max-ra-interval  {
+            type  uint32 {
+                 range "4..1800"  {
+                    description "4..1800:RA maximum interval in seconds";
+                 }
+            }
+            units "seconds";
+            mandatory true;
+            description "Use this attribute to set maximum IPv6 router advertisement interval
+                        (min-ra-interval must be no greater than 0.75*max-ra-interval)";
+        } // END of max-ra-interval definition.
+
+        leaf min-ra-interval  {
+            type  uint32 {
+                 range "3..1350"  {
+                    description "3..1350:RA minimum interval in seconds";
+                 }
+            }
+            units "seconds";
+            mandatory true;
+            description "Use this attribute to set minimum IPv6 router advertisement interval
+                        (it must be no greater than 0.75*max-ra-interval)";
+        } // END of min-ra-interval definition.
+
+    } // END of router-advertisement-ra-interval-config definition.
+    grouping router-advertisement-ra-interval-top {
+        description
+            "Grouping for IPV6 Router Advertisement Interface Interval Timers";
+        container ra-interval {
+            description
+                "Container for IPV6 Router Advertisement Interface Interval Timers";
+            container config {
+                presence "yes";
+                description
+                    "Configuration data for IPV6 Router Advertisement Interface Interval
+                            Timers";
+                uses router-advertisement-ra-interval-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for IPV6 Router Advertisement Interface
+                            Interval Timers";
+                uses router-advertisement-ra-interval-config;
+            } // END of state-container definition.
+        } // END of ra-interval-container definition.
+    } // END of router-advertisement-ra-interval-top definition.
     grouping router-advertisement-interfaces-timers-config {
         description
             "Grouping for Router Advertisement Interface configuration";
@@ -264,32 +320,6 @@ module ipi-ipv6-router-adv {
             description "Use this attribute to set IPv6 router advertisement lifetime";
         } // END of router-lifetime definition.
 
-        leaf min-ra-interval  {
-            type  uint32 {
-                 range "3..1350"  {
-                    description "3..1350:RA minimum interval in seconds";
-                 }
-            }
-            units "seconds";
-            default "198";
-            description "Use this attribute to set minimum IPv6 router advertisement interval
-                        (it must be no less than 3 seconds and no greater than
-                        0.75*max-ra-interval)";
-        } // END of min-ra-interval definition.
-
-        leaf max-ra-interval  {
-            type  uint32 {
-                 range "4..1800"  {
-                    description "4..1800:RA maximum interval in seconds";
-                 }
-            }
-            units "seconds";
-            default "600";
-            description "Use this attribute to set maximum IPv6 router advertisement interval
-                        (it must be no less than 4 seconds and min-ra-interval must be no
-                        greater than 0.75*max-ra-interval)";
-        } // END of max-ra-interval definition.
-
     } // END of router-advertisement-interfaces-timers-config definition.
     grouping router-advertisement-interfaces-timers-top {
         description
@@ -309,6 +339,7 @@ module ipi-ipv6-router-adv {
                 uses router-advertisement-interfaces-timers-config;
                 uses router-advertisement-interfaces-timers-prefixes-address-state;
             } // END of state-container definition.
+            uses router-advertisement-ra-interval-top;
         } // END of timers-container definition.
     } // END of router-advertisement-interfaces-timers-top definition.
     grouping router-advertisement-interface-config {

@@ -28,7 +28,7 @@ module ipi-isis {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-10-07;
     }
 
     import ipi-isis-types {
@@ -43,18 +43,17 @@ module ipi-isis {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-10-20;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2021-10-27;
     }
 
     include ipi-isis-extended { revision-date 2021-09-03;}
     include ipi-isis-lsp { revision-date 2021-09-03;}
     include ipi-isis-interface { revision-date 2021-09-03;}
-    include ipi-isis-sr { revision-date 2021-09-03;}
     include ipi-isis-cspf { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
@@ -354,7 +353,6 @@ module ipi-isis {
         } // END of priority-tag definition.
 
         leaf enable-cspf-capability  {
-            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:enable-mpls-traffic-engg-level-1  or /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:enable-mpls-traffic-engg-level-2 ";
             if-feature feature-list:HAVE_ISIS_CSPF;
             type  empty;
             description "Use this attribute to enable the constrained shortest path first
@@ -401,7 +399,6 @@ module ipi-isis {
         description
             "Configuration items for ISIS MPLS Traffic Engineering";
         leaf enable-mpls-traffic-engg-level-1  {
-            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style = 'wide' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:level-number != 'level-2' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:level-capability != 'level-2-only' ";
             if-feature feature-list:HAVE_ISIS_TE;
             type  empty;
             description "Use this attribute to configure MPLS Traffic Engineering feature for
@@ -409,7 +406,6 @@ module ipi-isis {
         } // END of enable-mpls-traffic-engg-level-1 definition.
 
         leaf enable-mpls-traffic-engg-level-2  {
-            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style = 'wide' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:level-number != 'level-1' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:level-capability != 'level-1' ";
             if-feature feature-list:HAVE_ISIS_TE;
             type  empty;
             description "Use this attribute to configure MPLS Traffic Engineering feature for
@@ -1071,17 +1067,9 @@ module ipi-isis {
         description
             "Configuration items for ISIS MT";
         leaf level  {
-            type  ipi-isis-types:isis_level3_t;
-            default "level-1-2";
-            description "IS-IS instance level,(1|2|3)";
+            type  ipi-isis-types:isis_multi_topology_level_type_t;
+            description "Use this attribute to configure the ISIS MT";
         } // END of level definition.
-
-        leaf transition  {
-            type  boolean;
-            description "Use this attribute to configure the ISIS topology type. Use the no
-                        parameter with this command to set the topology type back to the
-                        default type, which is single";
-        } // END of transition definition.
 
     } // END of isis-mt-config definition.
     grouping isis-srv6-config {
@@ -1929,24 +1917,25 @@ module ipi-isis {
                 list multi-topology {
                     if-feature feature-list:HAVE_MULTI_TOPOLOGY;
                     key "level";
+                    max-elements 1;
                     description
-                        "This objectlist defines the Multi Topology List";
+                        "This objectlist defines the Multi-topology";
                     leaf level  {
                         type  leafref {
                             path  "../config/level";
                         }
-                        description "IS-IS instance level,(1|2|3)";
+                        description "Use this attribute to configure the ISIS Multi-topology";
                     } // END of level definition.
 
                     container config {
                         description
-                            "This container defines the ISIS Multi Topology Configurations";
+                            "This container defines the ISIS Multi topology configurations.";
                         uses isis-mt-config;
                     } // END of config-container definition.
                     container state {
                         config false;
                         description
-                            "This container defines the ISIS Multi Topology operational information";
+                            "This container defines the ISIS Multi topology.";
                         uses isis-mt-config;
                     } // END of state-container definition.
                 } // End of multi-topology-list
@@ -2186,10 +2175,6 @@ module ipi-isis {
             uses ipv4-lfa-route-grouping;
             uses ipv6-lfa-route-grouping;
             uses fast-reroute-grouping;
-            uses segment-routing-capability-grouping;
-            uses segment-routing-mapping-server-ipv4-grouping;
-            uses segment-routing-mapping-server-ipv6-grouping;
-            uses segment-routing-grouping;
         } // End of isis-instance-list
         container debug {
             description
@@ -2792,37 +2777,6 @@ module ipi-isis {
         description
             "If the problem is a malformed TLV, the tlv-type is set to the type
                     value of the suspicious TLV. Otherwise, this leaf is not presen";
-        }
-    }
-
-    notification isis-segment-routing-index-out-of-range {
-
-        description "SRGB range.";
-
-        // severity "MAJOR";
-        // eventClass "STATE";
-        leaf global-block-base {
-            type  int32;
-        description
-            "Start ID";
-        }
-
-        leaf global-block-range {
-            type  int32;
-        description
-            "End ID";
-        }
-
-        leaf received-index {
-            type  uint32;
-        description
-            "Index";
-        }
-
-        leaf routing-protocol {
-            type  string;
-        description
-            "Module Name";
         }
     }
 
