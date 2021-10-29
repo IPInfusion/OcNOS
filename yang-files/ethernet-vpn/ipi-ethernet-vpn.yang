@@ -23,12 +23,12 @@ module ipi-ethernet-vpn {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2021-10-06;
     }
 
     import ipi-vxlan {
         prefix ipi-vxlan;
-        revision-date 2021-09-15;
+        revision-date 2021-10-14;
     }
 
     import ipi-vrf {
@@ -38,12 +38,12 @@ module ipi-ethernet-vpn {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-10-07;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-10-20;
     }
 
     import ipi-if-aggregate {
@@ -53,7 +53,7 @@ module ipi-ethernet-vpn {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2021-10-27;
     }
 
     organization
@@ -68,6 +68,11 @@ module ipi-ethernet-vpn {
     description
         "Datamodel for EVPN protocol";
 
+
+    revision "2021-09-29" {
+        description "Addition of when tag for evpn mpls related CLI";
+        reference " 0.2.1.";
+    }
 
     revision "2021-05-08" {
         description "addition of esi/system-mac for MH interface";
@@ -151,6 +156,7 @@ module ipi-ethernet-vpn {
         description
             "MH interface configuration for esi";
         leaf evpn-segment-id  {
+            when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-vxlan-multihoming ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -160,6 +166,7 @@ module ipi-ethernet-vpn {
         } // END of evpn-segment-id definition.
 
         leaf system-mac  {
+            when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-vxlan-multihoming ";
             type  cml-data-types:cml_mac_addr_t {
                 length "1..1965";
             }
@@ -313,21 +320,6 @@ module ipi-ethernet-vpn {
     container evpn {
         description
             "EVPN global level container";
-        container global {
-            description
-                "Configuration data for EVPN global capability configuration";
-            container config {
-                description
-                    "Configuration data";
-                uses evpn-global-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses evpn-global-config;
-            } // END of state-container definition.
-        } // END of global-container definition.
         container multi-homing {
             description
                 "Configuration data for multi-homing feature";
@@ -343,6 +335,21 @@ module ipi-ethernet-vpn {
                 uses evpn-multihoming-config;
             } // END of state-container definition.
         } // END of multi-homing-container definition.
+        container global {
+            description
+                "Configuration data for EVPN global capability configuration";
+            container config {
+                description
+                    "Configuration data";
+                uses evpn-global-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses evpn-global-config;
+            } // END of state-container definition.
+        } // END of global-container definition.
         container irb-forwarding {
             when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-irb = '1' ";
             description

@@ -21,12 +21,12 @@ submodule ipi-platform-profile {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2021-10-27;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2021-10-06;
     }
 
     import ipi-platform-types {
@@ -46,6 +46,11 @@ submodule ipi-platform-profile {
     description
         "Datamodel for Platform profile object";
 
+
+    revision "2021-10-12" {
+        description "Updated attribute ingress-ipv4 and egress-ipv6 datatype from CML_EMPTY_T to CML_ENABLE_DISABLE_T";
+        reference " 0.9.0.";
+    }
 
     revision "2021-09-06" {
         description "Updated description for attribute group-id,Removed enable-status attribute";
@@ -123,7 +128,7 @@ submodule ipi-platform-profile {
         leaf egress-ipv6  {
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:NOT_HAVE_DUNE;
-            type  empty;
+            type  cml-data-types:cml_enable_disable_t;
             description "Use this attribute to enable or disable Egress IPv6 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-ipv6 definition.
@@ -154,15 +159,13 @@ submodule ipi-platform-profile {
         } // END of ingress-ipv6-acl definition.
 
         leaf ingress-ipv4  {
-            when " not(/profiles/hardware-profile/filters/config/ingress-ipv4-extended) ";
             if-feature feature-list:HAVE_ACL;
-            type  empty;
+            type  cml-data-types:cml_enable_disable_t;
             description "Use this attribute to enable or disable Ingress IPv4 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of ingress-ipv4 definition.
 
         leaf ingress-ipv4-extended  {
-            when " not(/profiles/hardware-profile/filters/config/ingress-ipv4) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -196,7 +199,6 @@ submodule ipi-platform-profile {
         } // END of ingress-ipv6-qos definition.
 
         leaf qos  {
-            when " not(/profiles/hardware-profile/filters/config/qos-extended) + not(/profiles/hardware-profile/filters/config/qos-policer) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -205,7 +207,6 @@ submodule ipi-platform-profile {
         } // END of qos definition.
 
         leaf qos-extended  {
-            when " not(/profiles/hardware-profile/filters/config/qos) + not(/profiles/hardware-profile/filters/config/qos-policer) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -214,7 +215,6 @@ submodule ipi-platform-profile {
         } // END of qos-extended definition.
 
         leaf qos-policer  {
-            when " not(/profiles/hardware-profile/filters/config/qos) + not(/profiles/hardware-profile/filters/config/qos-extended) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -258,7 +258,6 @@ submodule ipi-platform-profile {
         } // END of egress-layer2 definition.
 
         leaf ingress-layer2  {
-            when " not(/profiles/hardware-profile/filters/config/ingress-layer2-extended) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -267,7 +266,6 @@ submodule ipi-platform-profile {
         } // END of ingress-layer2 definition.
 
         leaf ingress-layer2-extended  {
-            when " not(/profiles/hardware-profile/filters/config/ingress-layer2) ";
             if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
             type  empty;
@@ -450,7 +448,6 @@ submodule ipi-platform-profile {
         } // END of cfm-continuity-check-messages definition.
 
         leaf virtual-output-queue-full-color  {
-            when " not(/profiles/hardware-profile/statistics/config/virtual-output-queue-forward-drop) ";
             if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Virtual Output Queue Full
@@ -459,7 +456,6 @@ submodule ipi-platform-profile {
         } // END of virtual-output-queue-full-color definition.
 
         leaf virtual-output-queue-forward-drop  {
-            when " not(/profiles/hardware-profile/statistics/config/virtual-output-queue-full-color) ";
             if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Virtual Output Queue Forward
@@ -648,12 +644,7 @@ submodule ipi-platform-profile {
         } // END of queue-name definition.
 
         leaf rate  {
-            type  int32 {
-                 range "0..100000"  {
-                    description "0..100000:Rate in kbps. Granularity is from 469 Kbps to 1.56% of the
-                            configured rate.";
-                 }
-            }
+            type  int32;
             description "CPU queue Rate";
         } // END of rate definition.
 

@@ -23,7 +23,7 @@ module ipi-interface {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2021-10-06;
     }
 
     import ietf-yang-types {
@@ -38,7 +38,7 @@ module ipi-interface {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-10-07;
     }
 
     import ipi-vrf {
@@ -48,7 +48,7 @@ module ipi-interface {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2021-10-27;
     }
 
     organization
@@ -63,6 +63,16 @@ module ipi-interface {
     description
         "Datamodel for interface object";
 
+
+    revision "2021-10-20" {
+        description "Removed dot1q-ether-type dependency from LAG interface having mlag-id";
+        reference " 0.7.0.";
+    }
+
+    revision "2021-09-29" {
+        description "Updated attribute dot1q-ether-type description, added length and pattern tag";
+        reference " 0.6.5.";
+    }
 
     revision "2021-09-28" {
         description "Changed interface name and CLI for ethertype configuration";
@@ -228,9 +238,9 @@ module ipi-interface {
         leaf mtu  {
             type  uint32 {
                  range "64..65535"  {
-                    description "64..65535:MTU in bytes: (64-9416) for L2 packet (576-9216) for L3 IPv4
-                            packet (1280-9216) for L3 IPv6 packet (576-65535) for IPv4 packet and
-                            (1280-65535) for IPv6 packet on loopback interface";
+                    description "64..65535:MTU in bytes: (64-16338) for L2 packet (576-9216) for L3
+                            IPv4 packet (1280-9216) for L3 IPv6 packet (576-65535) for IPv4 packet
+                            and (1280-65535) for IPv6 packet on loopback interface";
                  }
             }
             description "This attribute is used to set mtu value to interface.The size of the
@@ -243,14 +253,15 @@ module ipi-interface {
         leaf dot1ad-ether-type  {
             if-feature feature-list:NOT_HAVE_SWFWDR;
             type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
+                length "6";
+                pattern "0[xX][0-9a-fA-F]+";
             }
-            description "Attribute to change Ethertype value";
+            description "This attribute is used to configure the ethertype value for the
+                        interface in the format 0xhhhh. Currently supported values are 0x8100
+                        (default) or 0x88a8 or 0x9100 or 0x9200.";
         } // END of dot1ad-ether-type definition.
 
         leaf protected-port  {
-            // when " !ipi-mlag:mlag-aggregation/config/mlag-id ";
             if-feature feature-list:HAVE_DUNE;
             type  ipi-if-types:if_protected_port_type_t;
             default "promiscuous";
@@ -258,7 +269,6 @@ module ipi-interface {
         } // END of protected-port definition.
 
         leaf domain-forward-config  {
-            // when " !ipi-mlag:mlag-aggregation/config/mlag-id ";
             if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Attribute to change domain forward value";
