@@ -23,7 +23,7 @@ module ipi-if-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2021-10-06;
     }
 
     import ipi-if-types {
@@ -33,7 +33,7 @@ module ipi-if-extended {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-10-20;
     }
 
     import ipi-if-ethernet {
@@ -43,7 +43,7 @@ module ipi-if-extended {
 
     import ipi-vxlan {
         prefix ipi-vxlan;
-        revision-date 2021-09-15;
+        revision-date 2021-10-14;
     }
 
     import ietf-inet-types {
@@ -58,7 +58,7 @@ module ipi-if-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2021-10-27;
     }
 
     organization
@@ -73,6 +73,11 @@ module ipi-if-extended {
     description
         "Datamodel for IPI Interface extended module";
 
+
+    revision "2021-09-27" {
+        description "Updated attribute push-tpid and translate-tpid description, added length and pattern tag";
+        reference " 0.10.8.";
+    }
 
     revision "2021-09-24" {
         description "Added notification to remove interfaces from bridge-domain";
@@ -1346,13 +1351,14 @@ module ipi-if-extended {
                 leaf push-tpid  {
                     when " ../vlan-action='2' and ../push-outer-vlan-id ";
                     type  string {
-                        length "1..1965";
-                        pattern "[^?' =,>|]+";
+                        length "6";
+                        pattern "0[xX][0-9a-fA-F]+";
                     }
                     mandatory true;
-                    description "This attribute is used to configure tpid.
-                                To change the rewrite config, delete and recreate the entire rewrite
-                                config.";
+                    description "This attribute is used to configure the tpid value for the interface
+                                in the format 0xhhhh. Currently supported values are 0x8100 or 0x88a8
+                                or 0x9100 or 0x9200.To change the rewrite config, delete and recreate
+                                the entire rewrite config.";
                 } // END of push-tpid definition.
 
                 leaf push-outer-vlan-id  {
@@ -1388,13 +1394,14 @@ module ipi-if-extended {
                 leaf translate-tpid  {
                     when " ../vlan-action='3' and ../translate-vlan-id ";
                     type  string {
-                        length "1..1965";
-                        pattern "[^?' =,>|]+";
+                        length "6";
+                        pattern "0[xX][0-9a-fA-F]+";
                     }
                     mandatory true;
-                    description "This attribute is used to configure tpid.
-                                To change the rewrite config, delete and recreate the entire rewrite
-                                config.";
+                    description "This attribute is used to configure the tpid value for the interface
+                                in the format 0xhhhh. Currently supported values are 0x8100 or 0x88a8
+                                or 0x9100 or 0x9200.To change the rewrite config, delete and recreate
+                                the entire rewrite config.";
                 } // END of translate-tpid definition.
 
                 leaf translate-vlan-id  {
@@ -2174,7 +2181,6 @@ module ipi-if-extended {
                 uses native-layer2-encapsulation-config;
             } // END of state-container definition.
             container rewrite {
-                when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:single-tag-vlan-matches/ipi-if-extended:single-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:double-tag-vlan-matches/ipi-if-extended:double-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-default  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-untagged ";
                 description
                     "Container for rewrite action to push or translate the outer VLAN-id";
                 container config {
@@ -2525,12 +2531,6 @@ module ipi-if-extended {
         uses tunnel-grouping;
     }
 
-    augment /ipi-interface:interfaces {
-        description
-            "Global configuration for Port-group";
-        uses port-group-speed-map-grouping;
-    }
-
 
     rpc clear-interface-forward-error-correction-counters {
         description "Use this RPC to clear interface forward error correction counters.";
@@ -2552,47 +2552,6 @@ module ipi-if-extended {
                 mandatory true;
                 description "Name of the interface to clear counters for. Specify NULL to clear
                             counters for all interfaces";
-            }
-        }
-    }
-
-    rpc interface-sniff-enable {
-        description "use this command to enable sniff on port to capture packets on sniff
-                    port";
-        input  {
-            leaf interface-name  {
-                type string;
-                mandatory true;
-                description "interface name";
-            }
-            leaf sniffTime  {
-                type uint8 {
-                    range "0..60";
-                }
-                mandatory true;
-                description "time in minutes to sniff packets";
-            }
-            leaf sniffAction  {
-                type ipi-if-types:if_sniff_action_t;
-                mandatory true;
-                description "sniff direction.";
-            }
-            leaf sniff1  {
-                type boolean;
-                mandatory true;
-                description "sniff packets to sniff1 interface. Default sniff0";
-            }
-        }
-    }
-
-    rpc interface-sniff-disable {
-        description "use this command to disable sniff on port to capture packets on sniff
-                    port";
-        input  {
-            leaf interface-name  {
-                type string;
-                mandatory true;
-                description "interface name";
             }
         }
     }

@@ -23,7 +23,7 @@ module ipi-mcec {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-10-20;
     }
 
     import ipi-mcec-types {
@@ -34,6 +34,16 @@ module ipi-mcec {
     import ietf-inet-types {
         prefix inet;
         revision-date 2013-07-15;
+    }
+
+    import ipi-network-instance {
+        prefix ipi-network-instance;
+        revision-date 2021-10-07;
+    }
+
+    import ipi-vrf {
+        prefix ipi-vrf;
+        revision-date 2021-09-03;
     }
 
     organization
@@ -48,6 +58,16 @@ module ipi-mcec {
     description
         "Multi Chassis Ethernet Channel (MCEC)";
 
+
+    revision "2021-10-14" {
+        description "Separate IDL and IDP in different containers";
+        reference " 0.3.2.";
+    }
+
+    revision "2021-10-02" {
+        description "Remove the when clause in the vrf attribute pointed to the intra-domain-link";
+        reference " 0.3.1.";
+    }
 
     revision "2021-08-03" {
         description "Added implicit delete in mcec-switchover-type config container";
@@ -434,40 +454,43 @@ module ipi-mcec {
             uses mcec-instance-neighbor-top;
         } // End of mcec-instance-list
     } // END of mcec-instance-top definition.
-    grouping mcec-intra-domain-peer-config {
+    grouping mcec-intra-domain-link-config {
         description
-            "Grouping for mcec inter domain port configuration";
-        leaf intra-domain-link  {
+            "Grouping for mcec intra domain link configuration";
+        leaf interface  {
             type  leafref {
                 path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
             }
             description "Use this attribute to map an interface as intra domain link that
                         connects the domain system with its neighbour in a mcec domain";
-        } // END of intra-domain-link definition.
+        } // END of interface definition.
 
+    } // END of mcec-intra-domain-link-config definition.
+    grouping mcec-intra-domain-peer-address-config {
+        description
+            "Grouping for mcec intra domain address configuration";
         leaf peer-address  {
-            when " /ipi-mcec:mcec/ipi-mcec:intra-domain-peer/ipi-mcec:config/ipi-mcec:local-address ";
             type  inet:ipv4-address;
+            mandatory true;
             description "User configured IPV4 address of the peer DSN node";
         } // END of peer-address definition.
 
         leaf local-address  {
-            when " /ipi-mcec:mcec/ipi-mcec:intra-domain-peer/ipi-mcec:config/ipi-mcec:peer-address ";
             type  inet:ipv4-address;
+            mandatory true;
             description "User configured IPV4 address of the local node";
         } // END of local-address definition.
 
         leaf vrf  {
-            when " /ipi-mcec:mcec/ipi-mcec:intra-domain-peer/ipi-mcec:config/ipi-mcec:peer-address + not(/ipi-mcec:mcec/ipi-mcec:intra-domain-peer/ipi-mcec:config/ipi-mcec:intra-domain-link) ";
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
+            when " /ipi-mcec:mcec/ipi-mcec:intra-domain/ipi-mcec:peer-address/ipi-mcec:config/ipi-mcec:peer-address ";
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
             }
-            default "default";
+            mandatory true;
             description "vrf of the peer DSN node";
         } // END of vrf definition.
 
-    } // END of mcec-intra-domain-peer-config definition.
+    } // END of mcec-intra-domain-peer-address-config definition.
     grouping mcec-idp-neighbor-info-state {
         description
             "Grouping for mcec intra-domain-peer neighbor info state";
@@ -573,23 +596,43 @@ module ipi-mcec {
         description
             "Intra-domain-peer is the link between DSN1 and DSN2. Through this
                         link, MLAG domain and information PDUs are exchanged";
-        container intra-domain-peer {
+        container intra-domain {
             description
                 "Intra Domain Peer configuration";
-            container config {
+            container peer-link {
                 description
-                    "Configuration data";
-                uses mcec-intra-domain-peer-config;
-            } // END of config-container definition.
-            container state {
-                config false;
+                    "Intra Domain Peer link configuration";
+                container config {
+                    description
+                        "Configuration data";
+                    uses mcec-intra-domain-link-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses mcec-intra-domain-link-config;
+                } // END of state-container definition.
+            } // END of peer-link-container definition.
+            container peer-address {
                 description
-                    "Operational state data";
-                uses mcec-intra-domain-peer-config;
-            } // END of state-container definition.
+                    "Intra Domain Peer address configuration";
+                container config {
+                    presence "yes";
+                    description
+                        "Configuration data";
+                    uses mcec-intra-domain-peer-address-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses mcec-intra-domain-peer-address-config;
+                } // END of state-container definition.
+            } // END of peer-address-container definition.
             uses mcec-idp-neighbor-info-top;
             uses mcec-intra-domain-peer-info-top;
-        } // END of intra-domain-peer-container definition.
+        } // END of intra-domain-container definition.
     } // END of mcec-intra-domain-peer-top definition.
     grouping mcec-mac-sync-state {
         description
@@ -803,7 +846,7 @@ module ipi-mcec {
             "Grouping for mlag interface configuration";
         leaf interface-mode  {
             type  ipi-mcec-types:mcec_mode_type_t;
-            default "active-standby";
+            default "active-active";
             description "Use this attribute to set the MC-LAG mode. active-standby: The
                         interface is ready to transition from active to standby state should a
                         failure occur in the other node.";
