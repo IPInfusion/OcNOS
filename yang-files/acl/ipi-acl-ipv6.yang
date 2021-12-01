@@ -21,7 +21,7 @@ submodule ipi-acl-ipv6 {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-10-27;
+        revision-date 2021-11-29;
     }
 
     import ipi-acl-types {
@@ -46,6 +46,16 @@ submodule ipi-acl-ipv6 {
     description
         "Datamodel for ACL IPV6 object";
 
+
+    revision "2021-11-16" {
+        description "IPV6 if-feature is added globally";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-10-29" {
+        description "Remove RDN from forwarding-action for IPv6 Standard ACLs";
+        reference " 0.4.0.";
+    }
 
     revision "2021-09-03" {
         description "Update descriptions of attribute";
@@ -245,16 +255,17 @@ submodule ipi-acl-ipv6 {
     grouping acl-standard-ipv6-config {
         description
             "Configuration data for Standard IPV6 ACL set";
-        leaf forwarding-action  {
-            type  ipi-acl-types:acl_forwarding_action_t;
-            description "Specifies the forwarding action.  One forwarding action must be
-                        specified for each ACL entry.";
-        } // END of forwarding-action definition.
-
         leaf source-address  {
             type  ipi-acl-types:acl_any_ipv6_src_addr_t;
             description "Source IPv6 address prefix.";
         } // END of source-address definition.
+
+        leaf forwarding-action  {
+            type  ipi-acl-types:acl_forwarding_action_t;
+            mandatory true;
+            description "Specifies the forwarding action. One forwarding action must be
+                        specified for each ACL entry.";
+        } // END of forwarding-action definition.
 
     } // END of acl-standard-ipv6-config definition.
 
@@ -314,17 +325,9 @@ submodule ipi-acl-ipv6 {
             "Container for IPV6 Standard ACL entries";
 
         list ipv6-acl-entry {
-            key "forwarding-action source-address";
+            key "source-address";
             description
                 "List of IPV6 ACL entries comprising an ACL set";
-            leaf forwarding-action  {
-                type  leafref {
-                    path  "../config/forwarding-action";
-                }
-                description "Specifies the forwarding action.  One forwarding action must be
-                            specified for each ACL entry.";
-            } // END of forwarding-action definition.
-
             leaf source-address  {
                 type  leafref {
                     path  "../config/source-address";
