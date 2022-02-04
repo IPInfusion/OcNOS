@@ -4,7 +4,7 @@ IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE, enterprises,
     Counter32, Counter64, Integer32,
     NOTIFICATION-TYPE    FROM SNMPv2-SMI
-    DisplayString,DateAndTime   FROM SNMPv2-TC
+    DisplayString, TruthValue, DateAndTime   FROM SNMPv2-TC
     ifIndex FROM IF-MIB
     ipi FROM IPI-MODULE-MIB;
 
@@ -673,7 +673,7 @@ queuetype  OBJECT-TYPE
 
 queueId  OBJECT-TYPE
     SYNTAX      Integer32 ( 1 .. 8)
-    MAX-ACCESS  not-accessible
+    MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
             "The queue Id which indexes the queue stats entry for unicast,
@@ -1058,7 +1058,7 @@ ifFecMode OBJECT-TYPE
     ::= { ifFecStatsEntry 1 }
 
 ifFecCorrectedBlocks  OBJECT-TYPE
-    SYNTAX      Counter32
+    SYNTAX      Counter64
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -1066,7 +1066,7 @@ ifFecCorrectedBlocks  OBJECT-TYPE
     ::= { ifFecStatsEntry 2 }
 
 ifFecUncorrectedBlocks  OBJECT-TYPE
-    SYNTAX      Counter32
+    SYNTAX      Counter64
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -1195,14 +1195,14 @@ IfStormCtrlEntry  ::=
              ifStormCtrlMcastFraction      Integer32,
              ifStormCtrlMcastRateType      INTEGER,
              ifStormCtrlMcastBurst         Integer32,
-             ifStormCtrlDLFBcastEnable     TruthValue,
-             ifStormCtrlDLFBcastRate       Integer32,
-             ifStormCtrlDLFBcastFraction   Integer32,
-             ifStormCtrlDLFBcastRateType   INTEGER,
-             ifStormCtrlDLFBcastBurst      Integer32,
+             ifStormCtrlDLFEnable          TruthValue,
+             ifStormCtrlDLFRate            Integer32,
+             ifStormCtrlDLFFraction        Integer32,
+             ifStormCtrlDLFRateType        INTEGER,
+             ifStormCtrlDLFBurst           Integer32,
              ifStormCtrlBcastDiscards      Counter64,
              ifStormCtrlMcastDiscards      Counter64,
-             ifStormCtrlDLFBcastDiscards   Counter64,
+             ifStormCtrlDLFDiscards        Counter64,
              ifStormCtrlTotalDiscards      Counter64
              }
 
@@ -1225,7 +1225,7 @@ ifStormCtrlBcastRate  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "Stormcontrol Broadcast rate limit configuration. Units are based on
-            ifStormCtrlRateType object. Units are percentage/Gbps/Mbps/Kbps."
+            ifStormCtrlBcastRateType object. Units are percentage/Gbps/Mbps/Kbps."
     ::= { ifStormCtrlEntry 2 }
 
 ifStormCtrlBcastFraction   OBJECT-TYPE
@@ -1238,16 +1238,16 @@ ifStormCtrlBcastFraction   OBJECT-TYPE
     ::= { ifStormCtrlEntry 3 }
 
 ifStormCtrlBcastRateType    OBJECT-TYPE
-    SYNTAX      INTEGER (1..4)
+    SYNTAX      INTEGER {
+                       percent(0),
+                       kbps(1),
+                       mbps(2),
+                       gbps(3)
+                }
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-           "ifStormCtrlBcastRateType defines the storm control rate limit units.
-            0 indicates rate is percentage ifStormCtrlBcastRate will be used
-              with ifStormCtrlBcastFraction to calculate bandwidth
-            1 indicates ifStormCtrlBcastRate rate is gbps.
-            2 indicates ifStormCtrlBcastRate rate is mbps.
-            3 indicates ifStormCtrlBcastRate rate is kbps."
+           "ifStormCtrlBcastRateType defines the storm control rate limit units."
     ::= { ifStormCtrlEntry 4 }
 
 ifStormCtrlBcastBurst   OBJECT-TYPE
@@ -1279,7 +1279,7 @@ ifStormCtrlMcastRate  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "Stormcontrol Multicast rate limit configuration. Units are based on
-            ifStormCtrlRateType object. Units are percentage/Gbps/Mbps/Kbps."
+            ifStormCtrlMcastRateType object. Units are percentage/Gbps/Mbps/Kbps."
     ::= { ifStormCtrlEntry 7 }
 
 ifStormCtrlMcastFraction   OBJECT-TYPE
@@ -1292,16 +1292,16 @@ ifStormCtrlMcastFraction   OBJECT-TYPE
     ::= { ifStormCtrlEntry 8 }
 
 ifStormCtrlMcastRateType    OBJECT-TYPE
-    SYNTAX      INTEGER (1..4)
+    SYNTAX      INTEGER {
+                       percent(0),
+                       kbps(1),
+                       mbps(2),
+                       gbps(3)
+                }
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-           "ifStormCtrlMcastRateType defines the storm control rate limit units.
-            0 indicates rate is percentage ifStormCtrlBcastRate will be used
-              with ifStormCtrlBcastFraction to calculate bandwidth
-            1 indicates ifStormCtrlBcastRate rate is gbps.
-            2 indicates ifStormCtrlBcastRate rate is mbps.
-            3 indicates ifStormCtrlBcastRate rate is kbps."
+           "ifStormCtrlMcastRateType defines the storm control rate limit units."
     ::= { ifStormCtrlEntry 9 }
 
 ifStormCtrlMcastBurst   OBJECT-TYPE
@@ -1314,38 +1314,51 @@ ifStormCtrlMcastBurst   OBJECT-TYPE
             rate is programmed internally."
     ::= { ifStormCtrlEntry 10 }
 
-ifStormCtrlDLFBcastEnable    OBJECT-TYPE
+ifStormCtrlDLFEnable    OBJECT-TYPE
     SYNTAX      TruthValue {  false(0),
                               true(1)
                            }
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-           "ifStormCtrlDLFBcastEnable defines wthether DLF storm control
+           "ifStormCtrlDLFEnable defines wthether DLF storm control
             is enabled or disabled.
             0 - DLF storm control is enabled
             1 - DLF storm control is disabled"
     ::= { ifStormCtrlEntry 11 }
 
-ifStormCtrlDLFBcastRate  OBJECT-TYPE
+ifStormCtrlDLFRate  OBJECT-TYPE
     SYNTAX      Integer32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
            "Stormcontrol DLF rate limit configuration. Units are based on
-            ifStormCtrlRateType object. Units are percentage/Gbps/Mbps/Kbps."
+            ifStormCtrlDLFRateType object. Units are percentage/Gbps/Mbps/Kbps."
     ::= { ifStormCtrlEntry 12 }
 
-ifStormCtrlDLFBcastFraction   OBJECT-TYPE
+ifStormCtrlDLFFraction   OBJECT-TYPE
     SYNTAX      Integer32
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
            "Fraction part if rate-limit is defined as percentage value.
-            Fraction value will be used along with ifStormCtrlDLFBcastRate."
+            Fraction value will be used along with ifStormCtrlDLFRate."
     ::= { ifStormCtrlEntry 13 }
 
-ifStormCtrlDLFBcastBurst   OBJECT-TYPE
+ifStormCtrlDLFRateType    OBJECT-TYPE
+    SYNTAX      INTEGER {
+                       percent(0),
+                       kbps(1),
+                       mbps(2),
+                       gbps(3)
+                }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "ifStormCtrlDLFRateType defines the storm control rate limit units."
+    ::= { ifStormCtrlEntry 14 }
+
+ifStormCtrlDLFBurst   OBJECT-TYPE
     SYNTAX      Integer32
     MAX-ACCESS  read-only
     STATUS      current
@@ -1353,19 +1366,6 @@ ifStormCtrlDLFBcastBurst   OBJECT-TYPE
            "Storm control DLF burst size.
             If burst value is not configured by user then 5ms of bandwidth
             rate is programmed internally."
-    ::= { ifStormCtrlEntry 14 }
-
-ifStormCtrlDLFBcastRateType    OBJECT-TYPE
-    SYNTAX      INTEGER (1..4)
-    MAX-ACCESS  read-only
-    STATUS      current
-    DESCRIPTION
-           "ifStormCtrlMcastRateType defines the storm control rate limit units.
-            0 indicates rate is percentage ifStormCtrlBcastRate will be used
-              with ifStormCtrlBcastFraction to calculate bandwidth
-            1 indicates ifStormCtrlBcastRate rate is gbps.
-            2 indicates ifStormCtrlBcastRate rate is mbps.
-            3 indicates ifStormCtrlBcastRate rate is kbps."
     ::= { ifStormCtrlEntry 15 }
 
 ifStormCtrlBcastDiscards  OBJECT-TYPE
@@ -1384,7 +1384,7 @@ ifStormCtrlMcastDiscards  OBJECT-TYPE
            "Storm control Multicast Discard packets count."
     ::= { ifStormCtrlEntry 17 }
 
-ifStormCtrlDLFBcastDiscards  OBJECT-TYPE
+ifStormCtrlDLFDiscards  OBJECT-TYPE
     SYNTAX      Counter64
     MAX-ACCESS  read-only
     STATUS      current
@@ -1399,6 +1399,72 @@ ifStormCtrlTotalDiscards  OBJECT-TYPE
     DESCRIPTION
            "Storm control DLF Discard packets count."
     ::= { ifStormCtrlEntry 19 }
+
+ifLbStatsTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF IFLbStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A Table object containing Link Bonding and Modem Statistics"
+    ::= { customIfTable 8 }
+
+ifLbStatsEntry    OBJECT-TYPE
+    SYNTAX      IFLbStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry containing Link Bonding and Modem Statistics"
+    INDEX   { ifIndex }
+    ::= { ifLbStatsTable 1 }
+
+IFLbStatsEntry ::=
+    SEQUENCE {
+              ifLbgInErrors                     Counter64,
+              ifModemOutSegments                Counter64,
+              ifModemOutSegmentBytes            Counter64,
+              ifModemInSegments                 Counter64,
+              ifModemInSegmentBytes             Counter64
+             }
+
+ifLbgInErrors  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "LBG dropped segment count."
+    ::= { ifLbStatsEntry 1 }
+
+ifModemOutSegments  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Modem transmitted segment count"
+    ::= { ifLbStatsEntry 2 }
+
+ifModemOutSegmentBytes  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Modem transmitted Segment byte count."
+    ::= { ifLbStatsEntry 3 }
+
+ifModemInSegments  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Modem received segment count."
+    ::= { ifLbStatsEntry 4 }
+
+ifModemInSegmentBytes  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Modem received segment byte count."
+    ::= { ifLbStatsEntry 5 }
 
 --- ###CPU STATISTICS GROUP ####
 
@@ -2122,31 +2188,27 @@ cpuQueueConfRate    OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "CPU queue configured uplift rate."
-    ::= { CpuQInfoEntry 13 }
+    ::= { cpuQInfoEntry 13 }
 
 cpuQueueLossy    OBJECT-TYPE
-    SYNTAX      TruthValue { false(0),
-                             true(1)
-                           }
+    SYNTAX      TruthValue
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
            "CPU queue lossy mode.
             If this object is set to true (1) then the queue is in lossy mode,
             else lossless."
-    ::= { CpuQInfoEntry 14 }
+    ::= { cpuQInfoEntry 14 }
 
 cpuQueueMonitor    OBJECT-TYPE
-    SYNTAX      TruthValue { false(0),
-                             true(1)
-                           }
+    SYNTAX      TruthValue
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
            "CPU queue monitor state.
             If this object is set to true (1) then the queue monitor is enabled,
             else disabled."
-    ::= { CpuQInfoEntry 15 }
+    ::= { cpuQInfoEntry 15 }
 
     --
     -- ## Notifications
@@ -2384,7 +2446,7 @@ cpuQueueMonitor    OBJECT-TYPE
                       ifIndex,
                       ifStormCtrlBcastEnable,
                       ifStormCtrlMcastEnable,
-                      ifStormCtrlDLFBcastEnable,
+                      ifStormCtrlDLFEnable,
                       ifStormCtrlTotalDiscards
                      }
         STATUS       current
@@ -2398,7 +2460,7 @@ cpuQueueMonitor    OBJECT-TYPE
                       ifIndex,
                       ifStormCtrlBcastEnable,
                       ifStormCtrlMcastEnable,
-                      ifStormCtrlDLFBcastEnable,
+                      ifStormCtrlDLFEnable,
                       ifStormCtrlTotalDiscards
                      }
         STATUS       current
