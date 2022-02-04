@@ -21,12 +21,12 @@ submodule ipi-bgp-link-state {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ietf-inet-types {
@@ -47,14 +47,19 @@ submodule ipi-bgp-link-state {
         "This module defines a BGP link        state datamodel";
 
 
+    revision "2021-10-03" {
+        description "Adding Link State EPE attributes";
+        reference " 0.1.2.";
+    }
+
     revision "2021-09-03" {
         description "Update descriptions of attribute";
-        reference "Initial Version";
+        reference " 0.1.1.";
     }
 
     revision "2021-07-27" {
         description "Initial Version";
-        reference "Initial Version";
+        reference " 0.1.0.";
     }
 
     grouping bgp-ls-nlri-common-state {
@@ -81,7 +86,7 @@ submodule ipi-bgp-link-state {
             type  cml-data-types:cml_line_t {
                 length "1..1965";
             }
-            description "IGP protocol type";
+            description "protocol type";
         } // END of protocol definition.
 
         leaf nlri-identifier  {
@@ -101,6 +106,18 @@ submodule ipi-bgp-link-state {
             type  inet:ipv4-address;
             description "BGP router ID";
         } // END of bgp-router-id definition.
+
+        leaf local-bgp-router-id  {
+            if-feature feature-list:HAVE_BGP_EPE;
+            type  inet:ipv4-address;
+            description "Local BGP router ID";
+        } // END of local-bgp-router-id definition.
+
+        leaf local-bgp-as  {
+            if-feature feature-list:HAVE_BGP_EPE;
+            type  uint32;
+            description "Local BGP AS number";
+        } // END of local-bgp-as definition.
 
         leaf ospf-area-id  {
             type  inet:ipv4-address;
@@ -171,6 +188,18 @@ submodule ipi-bgp-link-state {
             description "remote ISIS LSP ID";
         } // END of remote-isis-lsp-id definition.
 
+        leaf remote-bgp-as  {
+            if-feature feature-list:HAVE_BGP_EPE;
+            type  uint32;
+            description "Remote BGP AS number";
+        } // END of remote-bgp-as definition.
+
+        leaf remote-bgp-router-id  {
+            if-feature feature-list:HAVE_BGP_EPE;
+            type  inet:ipv4-address;
+            description "Remote BGP router ID";
+        } // END of remote-bgp-router-id definition.
+
         leaf local-interface-ip  {
             type  inet:ipv4-address;
             description "local interface IP";
@@ -197,6 +226,28 @@ submodule ipi-bgp-link-state {
         } // END of adjacent-segment-identifier definition.
 
     } // END of bgp-ls-link-nlri-state definition.
+    grouping bgp-ls-epe-nlri-state {
+        description
+            "BGP LS Egress Peer Engineering       NLRI attributes";
+        leaf peer-node-segment-identifier  {
+            if-feature feature-list:HAVE_BGP_EPE;
+            type  uint32;
+            description "peer-node segment identifier";
+        } // END of peer-node-segment-identifier definition.
+
+        leaf peer-set-segment-identifier  {
+            if-feature feature-list:HAVE_BGP_EPE;
+            type  uint32;
+            description "peer-set segment identifier";
+        } // END of peer-set-segment-identifier definition.
+
+        leaf peer-adjacency-segment-identifier  {
+            if-feature feature-list:HAVE_BGP_EPE;
+            type  uint32;
+            description "peer-adjacency segment identifier";
+        } // END of peer-adjacency-segment-identifier definition.
+
+    } // END of bgp-ls-epe-nlri-state definition.
     grouping bgp-ls-prefix-nlri-state {
         description
             "BGP-LS prefix NLRI attributes";
@@ -297,6 +348,7 @@ submodule ipi-bgp-link-state {
                         "BGP link-state state";
                     uses bgp-ls-nlri-common-state;
                     uses bgp-ls-link-nlri-state;
+                    uses bgp-ls-epe-nlri-state;
                 } // END of state-container definition.
             } // End of link-nlri-list
         } // END of link-nlris-container definition.

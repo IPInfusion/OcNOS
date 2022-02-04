@@ -23,7 +23,7 @@ module ipi-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-mpls-types {
@@ -33,7 +33,7 @@ module ipi-mpls {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-if-aggregate {
@@ -48,7 +48,7 @@ module ipi-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -64,24 +64,29 @@ module ipi-mpls {
         "Data model for MPLS";
 
 
+    revision "2021-12-08" {
+        description "Updated six-pe-tunnel-policy objectlist for single instance";
+        reference " 0.5.9.";
+    }
+
     revision "2021-09-01" {
         description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
-        reference " 0.5.6.";
+        reference " 0.5.8.";
     }
 
     revision "2021-08-17" {
         description "Added runtime attributes for operational state of RSVP and LDP graceful-restart";
-        reference " 0.5.5.";
+        reference " 0.5.7.";
     }
 
     revision "2021-08-02" {
         description "Added support for multiple inner vlan Range or ID in MPLS service template";
-        reference " 0.6.0.";
+        reference " 0.5.5.";
     }
 
     revision "2021-07-29" {
         description "Added bandwidth cli for IGP TE";
-        reference " 0.5.4.";
+        reference " 0.5.6.";
     }
 
     revision "2021-07-12" {
@@ -303,9 +308,8 @@ module ipi-mpls {
             "MPLS Interface Bandwidth Configurations";
         leaf-list admin-group-name  {
             if-feature feature-list:HAVE_TE;
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
+            type  leafref {
+                path  "/mpls/admin-group/name";
             }
             description "Use this attribute to create an administrative group to be used for
                         links. Each link can be a member of one or more, or no administrative
@@ -1002,6 +1006,7 @@ module ipi-mpls {
 
                 container label-switching {
                     when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+                    // when " !ipi-if-aggregate:member-aggregation ";
                     description
                         "Label switching configuration";
                     container config {
@@ -1087,6 +1092,7 @@ module ipi-mpls {
 
             list six-pe-tunnel-policy {
                 key "name";
+                max-elements 1;
                 description
                     "List of tunnel policies";
                 leaf name  {

@@ -33,7 +33,7 @@ module ipi-ptp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-ptp-types {
@@ -43,7 +43,7 @@ module ipi-ptp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     include ipi-ptp-notifications { revision-date 2020-12-17;}
@@ -95,34 +95,6 @@ module ipi-ptp {
         reference " 0.1.0.";
     }
 
-    grouping end-to-end-transparent-clock-top {
-        description
-            "Grouping for ptp end to end profile";
-        container end-to-end-profile {
-            description
-                "PTP end to end profile configuration";
-            container config {
-                description
-                    "Configuration data";
-                uses end-to-end-transparent-clock-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses end-to-end-transparent-clock-config;
-            } // END of state-container definition.
-        } // END of end-to-end-profile-container definition.
-    } // END of end-to-end-transparent-clock-top definition.
-    grouping end-to-end-transparent-clock-config {
-        description
-            "Grouping for ptp end to end profile";
-        leaf transparent-clock  {
-            type  empty;
-            description "PTP clock profile to End-To-End transparent clock";
-        } // END of transparent-clock definition.
-
-    } // END of end-to-end-transparent-clock-config definition.
     grouping ptp-instance-top {
         description
             "Grouping for ptp instance configuration";
@@ -168,7 +140,8 @@ module ipi-ptp {
         leaf profile  {
             type  ipi-ptp-types:ptp_profile_t;
             mandatory true;
-            description "Select PTP clock profile g8265.1, g8275.1, g8275.2 or default";
+            description "Select PTP clock profile g8265.1, g8275.1, g8275.2 or default or
+                        e2e-transparent";
         } // END of profile definition.
 
     } // END of ptp-instance-base-config definition.
@@ -215,6 +188,7 @@ module ipi-ptp {
             "Grouping for ptp port data set configuration";
 
         list port {
+            if-feature feature-list:HAVE_DUNE;
             key "port-number";
             description
                 "List of port data sets of the clock";
@@ -285,6 +259,11 @@ module ipi-ptp {
             type  ipi-ptp-types:ptp_encap_type_t;
             description "Set transport type";
         } // END of transport-type definition.
+
+        leaf non-forwardable-mac-addr  {
+            type  empty;
+            description "Set dst mac as non forwardable mac 01:80:C2:00:00:0E";
+        } // END of non-forwardable-mac-addr definition.
 
         leaf source-ipv6-link-local-address  {
             if-feature feature-list:HAVE_IPV6;
@@ -1229,6 +1208,7 @@ module ipi-ptp {
         description
             "Grouping for ptp time of day configuration";
         container time-of-day {
+            if-feature feature-list:HAVE_DUNE;
             description
                 "PTP time of day parameters";
             container config {
@@ -1257,6 +1237,7 @@ module ipi-ptp {
         description
             "Grouping for ptp default data set configuration";
         container default-data-set {
+            if-feature feature-list:HAVE_DUNE;
             description
                 "The default data set of the clock";
             container config {
@@ -1299,6 +1280,16 @@ module ipi-ptp {
             default "120";
             description "External clock holdover duration";
         } // END of external-clock-holdover-duration definition.
+
+        leaf system-clock-sync  {
+            type  uint16 {
+                 range "5..600"  {
+                    description "5..600:sync interval range (5-600) default 30 seconds";
+                 }
+            }
+            default "30";
+            description "External clock holdover duration";
+        } // END of system-clock-sync definition.
 
         leaf ptsf-wtr-duration  {
             type  uint16 {
@@ -1461,6 +1452,7 @@ module ipi-ptp {
         description
             "Grouping for PTP servo history data";
         container servo-history-data {
+            if-feature feature-list:HAVE_DUNE;
             config false;
             description
                 "PTP servo history data list";
@@ -1619,6 +1611,7 @@ module ipi-ptp {
         description
             "Grouping for ptp servo state";
         container ptp-servo {
+            if-feature feature-list:HAVE_DUNE;
             description
                 "PTP servo state parameters";
             container state {
@@ -1724,6 +1717,7 @@ module ipi-ptp {
         description
             "PTP current data set states";
         container current-data-set {
+            if-feature feature-list:HAVE_DUNE;
             description
                 "PTP current data set state parameters";
             container state {
@@ -1768,6 +1762,7 @@ module ipi-ptp {
         description
             "Grouping for PTP parent data set";
         container parent-data-set {
+            if-feature feature-list:HAVE_DUNE;
             description
                 "PTP parent data set parameters";
             container state {
@@ -1907,6 +1902,7 @@ module ipi-ptp {
         description
             "PTP time properties states";
         container time-properties {
+            if-feature feature-list:HAVE_DUNE;
             description
                 "Time properties parameters";
             container state {
@@ -1977,6 +1973,7 @@ module ipi-ptp {
         description
             "Grouping for PTP statistics";
         container statistics {
+            if-feature feature-list:HAVE_DUNE;
             description
                 "PTP statistics parameters";
             container state {
@@ -2033,29 +2030,14 @@ module ipi-ptp {
         "PTP clock";
     container ptp {
         if-feature feature-list:HAVE_PTP_HW_OFFLOAD;
-        if-feature feature-list:HAVE_DUNE;
         description
             "PTP clock";
-        uses end-to-end-transparent-clock-top;
         uses ptp-instance-top;
         uses ptp-debug-top;
     } // END of ptp-container definition.
     } // END of ptp-grouping definition.
 
-    grouping  ptp-transparent-clock-grouping {
-    description
-        "PTP Transparent clock";
-    container ptp-transparent-clock {
-        if-feature feature-list:HAVE_PTP_HW_OFFLOAD;
-        if-feature feature-list:NOT_HAVE_DUNE;
-        description
-            "PTP Transparent clock";
-        uses end-to-end-transparent-clock-top;
-    } // END of ptp-transparent-clock-container definition.
-    } // END of ptp-transparent-clock-grouping definition.
-
     uses ptp-grouping;
-    uses ptp-transparent-clock-grouping;
 
     rpc ptp-clear-statistics {
         description "PTP clear statistics RPC";

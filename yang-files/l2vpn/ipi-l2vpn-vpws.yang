@@ -23,27 +23,27 @@ module ipi-l2vpn-vpws {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-network-instance-types {
         prefix ipi-network-instance-types;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2021-09-01;
+        revision-date 2021-12-08;
     }
 
     import ipi-vpws-types {
@@ -53,7 +53,7 @@ module ipi-l2vpn-vpws {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2021-07-29;
+        revision-date 2022-01-13;
     }
 
     import ietf-inet-types {
@@ -68,7 +68,7 @@ module ipi-l2vpn-vpws {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -83,6 +83,16 @@ module ipi-l2vpn-vpws {
     description
         "Datamodel for VPWS pseudowire";
 
+
+    revision "2021-12-08" {
+        description "Added if-not-feature flag for DC-MPLS for queue-to-cos-profile";
+        reference "Initial Version";
+    }
+
+    revision "2021-11-16" {
+        description "Adding L2CP support";
+        reference "Initial Version";
+    }
 
     revision "2021-09-06" {
         description "Removing the dependency of L2VPN VPWS configuration in subinterface with global L2VPN VPWS configurataion";
@@ -250,6 +260,12 @@ module ipi-l2vpn-vpws {
                         used for MPLS Layer-2 Virtual Circuit.";
         } // END of tunnel-identifier definition.
 
+        leaf allow-l2protocol-peer  {
+            if-feature feature-list:HAVE_CUSTOM1_MPLS;
+            type  empty;
+            description "Use this attribute to configure L2CP in peer mode";
+        } // END of allow-l2protocol-peer definition.
+
     } // END of vpws-pseudowire-common-config definition.
     grouping vpws-pseudowire-default-tagged-config {
         description
@@ -298,12 +314,14 @@ module ipi-l2vpn-vpws {
             "Grouping for vccv attributes for PW";
         leaf control-channel-type  {
             if-feature feature-list:HAVE_VCCV;
+            if-feature feature-list:HAVE_CUSTOM1_MPLS_BFD;
             type  ipi-vpws-types:vpws_mpls_vccv_cc_type_t;
             description "Use this attribute to configure the Control-Channel type for VCCV";
         } // END of control-channel-type definition.
 
         leaf control-verification-type  {
             if-feature feature-list:HAVE_VCCV;
+            if-feature feature-list:HAVE_CUSTOM1_MPLS_BFD;
             type  ipi-vpws-types:vpws_mpls_vccv_cv_type_t;
             description "Use this attribute to configure the Control-Verification supported by
                         BFD for VCCV";
@@ -331,7 +349,6 @@ module ipi-l2vpn-vpws {
             "Top level grouping for L2VPN VPWS configuration";
         container vpws-access {
             when " /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:vpws-access/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable ";
-            // when " ipi-if-extended:extended/subinterface-encapsulation/single-tag-vlan-matches/single-tag-vlan-match/config/encapsulation-type ||                            ipi-if-extended:extended/subinterface-encapsulation/double-tag-vlan-matches/double-tag-vlan-match/config/encapsulation-type ||                            ipi-if-extended:extended/subinterface-encapsulation/config/encap-default ||                            ipi-if-extended:extended/subinterface-encapsulation/config/encap-untagged ";
             if-feature feature-list:HAVE_SUBINTERFACE;
             description
                 "Container for L2VPN VPWS data";
@@ -563,6 +580,7 @@ module ipi-l2vpn-vpws {
         leaf queue-to-cos-profile-name  {
             when " /ipi-qos:qos/ipi-qos:global/ipi-qos:map-profile/ipi-qos:queue-color-to-cos-profiles/ipi-qos:queue-color-to-cos-profile/ipi-qos:name ";
             if-feature feature-list:HAVE_QOS_MAPPING_PROFILE;
+            if-feature feature-list:NOT_HAVE_CUSTOM1_MPLS;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -829,6 +847,7 @@ module ipi-l2vpn-vpws {
             "Top level container for vpws instance";
 
         list pseudowire {
+        // when " ipi-l2vpn-vpws:vpws-instance/pseudowire/raw/config/enable-raw-mode || ipi-l2vpn-vpws:vpws-instance/pseudowire/tagged/config/enable-tagged-mode || ipi-l2vpn-vpws:vpws-instance/pseudowire/default-tagged/config/enable-default-tagged-mode ";
             key "pseudowire-identifier peer-address";
             max-elements 1;
             description
@@ -1060,7 +1079,13 @@ module ipi-l2vpn-vpws {
         leaf instance-name {
             type  string;
         description
-            "Network Instance Name";
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.";
         }
 
         leaf pseudowire-state {
@@ -1101,7 +1126,13 @@ module ipi-l2vpn-vpws {
         leaf instance-name {
             type  string;
         description
-            "Network Instance Name";
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.";
         }
 
         leaf pseudowire-state {
@@ -1142,7 +1173,13 @@ module ipi-l2vpn-vpws {
         leaf instance-name {
             type  string;
         description
-            "Network Instance Name";
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.";
         }
 
         leaf pseudowire-state {

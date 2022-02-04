@@ -28,7 +28,7 @@ module ipi-ospfv3 {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-vrf {
@@ -38,22 +38,22 @@ module ipi-ospfv3 {
 
     import ipi-ospfv3-types {
         prefix ipi-ospfv3-types;
-        revision-date 2021-09-03;
+        revision-date 2021-11-17;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
-    include ipi-ospfv3-area { revision-date 2021-09-03;}
+    include ipi-ospfv3-area { revision-date 2021-10-27;}
     include ipi-ospfv3-debug { revision-date 2021-09-01;}
-    include ipi-ospfv3-global { revision-date 2021-09-03;}
+    include ipi-ospfv3-global { revision-date 2021-10-19;}
     include ipi-ospfv3-address-family { revision-date 2021-09-07;}
     include ipi-ospfv3-redistribute { revision-date 2021-09-03;}
     include ipi-ospfv3-distribute-list { revision-date 2021-09-03;}
     include ipi-ospfv3-area-state { revision-date 2021-09-03;}
-    include ipi-ospfv3-process-state { revision-date 2021-09-03;}
+    include ipi-ospfv3-process-state { revision-date 2021-09-29;}
     include ipi-ospfv3-interface { revision-date 2021-09-17;}
     include ipi-ospfv3-interface-state { revision-date 2021-09-03;}
     organization
@@ -68,6 +68,31 @@ module ipi-ospfv3 {
     description
         "Layer-3 OSPFv3 configurations";
 
+
+    revision "2021-11-17" {
+        description "Added interface passive mode support";
+        reference " 0.1.6.";
+    }
+
+    revision "2021-10-27" {
+        description "Stub and nsssa config container presence, and enable leaf mandatory";
+        reference " 0.3.4.";
+    }
+
+    revision "2021-10-19" {
+        description "Added RPC ospfv3-clear-process-all";
+        reference " 0.3.3.";
+    }
+
+    revision "2021-10-12" {
+        description "Changed discard-connection to empty";
+        reference " 0.3.2.";
+    }
+
+    revision "2021-10-06" {
+        description "Removed area route-map leafref";
+        reference " 0.3.1.";
+    }
 
     revision "2021-09-17" {
         description "Added interface-name leaf inside interface/config";
@@ -268,6 +293,52 @@ module ipi-ospfv3 {
             } // End of summary-address-list
         } // END of summary-addresses-container definition.
     } // END of ospfv3-summary-address-top definition.
+    grouping ospfv3-passive-interface-name-config {
+        description
+            "Grouping for OSPFv3 passive interface configuration data";
+        leaf name  {
+            type  string {
+                length "1..33";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set interface as passive or not.";
+        } // END of name definition.
+
+        leaf passive-mode  {
+            type  ipi-ospfv3-types:ospfv3_passive_mode_t;
+            mandatory true;
+            description "Use this attribute to define the passive mode.";
+        } // END of passive-mode definition.
+
+    } // END of ospfv3-passive-interface-name-config definition.
+    grouping ospfv3-passive-interface-name-top {
+        description
+            "Grouping for OSPFv3 passive interface name";
+
+        list passive-interface {
+            key "name";
+            description
+                "List of OSPFv3 passive interfaces";
+            leaf name  {
+                type  leafref {
+                    path  "../config/name";
+                }
+                description "Use this attribute to set interface as passive or not.";
+            } // END of name definition.
+
+            container config {
+                description
+                    "Configuration data for OSPFv3 passive interface";
+                uses ospfv3-passive-interface-name-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational data for OSPFv3 passive interface";
+                uses ospfv3-passive-interface-name-config;
+            } // END of state-container definition.
+        } // End of passive-interface-list
+    } // END of ospfv3-passive-interface-name-top definition.
     grouping ospfv3-passive-interfaces-config {
         description
             "Grouping for OSPFv3 passive interface configuration data";
@@ -276,20 +347,11 @@ module ipi-ospfv3 {
             description "Use this attribute to set all interfaces as passive";
         } // END of all-interfaces definition.
 
-        leaf-list interface-name  {
-            when " not(/ipi-ospfv3:ospfv3/ipi-ospfv3:processes/ipi-ospfv3:process/ipi-ospfv3:passive-interface/ipi-ospfv3:config/ipi-ospfv3:all-interfaces) ";
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to set the specified interface as passive";
-        } // END of interface-name definition.
-
     } // END of ospfv3-passive-interfaces-config definition.
     grouping ospfv3-passive-interface-top {
         description
             "Grouping for OSPFv3 passive interface";
-        container passive-interface {
+        container passive-interfaces {
             description
                 "Configuration data for OSPFv3 passive interface";
             container config {
@@ -303,7 +365,8 @@ module ipi-ospfv3 {
                     "Operational state data for OSPFv3 passive interface";
                 uses ospfv3-passive-interfaces-config;
             } // END of state-container definition.
-        } // END of passive-interface-container definition.
+            uses ospfv3-passive-interface-name-top;
+        } // END of passive-interfaces-container definition.
     } // END of ospfv3-passive-interface-top definition.
     grouping ospfv3-timers-spf-config {
         description
@@ -365,6 +428,83 @@ module ipi-ospfv3 {
             uses ospfv3-timers-spf-top;
         } // END of timers-container definition.
     } // END of ospfv3-timers-top definition.
+    grouping ospfv3-segment-routing-srv6-top {
+        description
+            "Grouping for OSPFv3 SRv6 Segment routing";
+        container ospfv3-srv6 {
+            if-feature feature-list:HAVE_SRV6;
+            description
+                "SRv6 container for segment routing";
+            container config {
+                presence "yes";
+                description
+                    "Segment routing SRv6 configuration and other CLIs inside srv6";
+                uses ospfv3-srv6-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Segment routing V6 runtime parameters";
+                uses ospfv3-srv6-config;
+            } // END of state-container definition.
+            uses ospfv3-srv6-locator-lists-config;
+        } // END of ospfv3-srv6-container definition.
+    } // END of ospfv3-segment-routing-srv6-top definition.
+    grouping ospfv3-srv6-locator-lists-config {
+        description
+            "Locator";
+        container locator-lists {
+            when " /ipi-ospfv3:ospfv3/ipi-ospfv3:processes/ipi-ospfv3:process/ipi-ospfv3:ospfv3-srv6/ipi-ospfv3:config/ipi-ospfv3:ospf6SRv6enable ";
+            description
+                "enable/disable debug for sr-policy";
+
+            list locator-list {
+                key "ospf6SRv6LocatorName";
+                description
+                    "Properties of a locator list";
+                leaf ospf6SRv6LocatorName  {
+                    type  leafref {
+                        path  "../config/ospf6SRv6LocatorName";
+                    }
+                    description "Locator name";
+                } // END of ospf6SRv6LocatorName definition.
+
+                container config {
+                    description
+                        "Config parameters for locator-list configuration";
+                    uses ospfv3-locator-name-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "";
+                    uses ospfv3-locator-name-config;
+                } // END of state-container definition.
+            } // End of locator-list-list
+        } // END of locator-lists-container definition.
+    } // END of ospfv3-srv6-locator-lists-config definition.
+    grouping ospfv3-srv6-config {
+        description
+            "config attribute for SRv6 for SR Policies";
+        leaf ospf6SRv6enable  {
+            type  empty;
+            mandatory true;
+            description "";
+        } // END of ospf6SRv6enable definition.
+
+    } // END of ospfv3-srv6-config definition.
+    grouping ospfv3-locator-name-config {
+        description
+            "config attribute for SRv6 for SR Policies";
+        leaf ospf6SRv6LocatorName  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Locator name";
+        } // END of ospf6SRv6LocatorName definition.
+
+    } // END of ospfv3-locator-name-config definition.
     grouping ospfv3-lfa-fast-reroute-tie-break-config {
         description
             "Grouping for OSPFv3 Loop Free Alternate (LFA) fast reroute tie-break
@@ -736,6 +876,7 @@ module ipi-ospfv3 {
                 uses ospfv3-cspf-top;
                 uses ospfv3-lfa-top;
                 uses ospfv3-timers-top;
+                uses ospfv3-segment-routing-srv6-top;
                 uses ospfv3-passive-interface-top;
                 uses ospfv3-summary-address-top;
                 uses ospfv3-default-information-top;
@@ -1203,7 +1344,7 @@ module ipi-ospfv3 {
     }
 
     rpc ospfv3-clear-process {
-        description "Clear and restart all OSPFv3 processes or given one";
+        description "Clear and restart given OSPFv3 processes";
         input  {
             leaf process-id  {
                 type string;
@@ -1211,6 +1352,10 @@ module ipi-ospfv3 {
                 description "Use this attribute to specify OSPFv3 processes to clear.";
             }
         }
+    }
+
+    rpc ospfv3-clear-process-all {
+        description "Clear and restart all OSPFv3 processes";
     }
 
     rpc ospfv3-graceful-restart {

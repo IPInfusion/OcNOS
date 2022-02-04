@@ -39,6 +39,11 @@ module ipi-if-types {
         "YANG version of the ipi-if-types";
 
 
+    revision "2021-11-10" {
+        description "Moved IF_XC_OPER_STATUS_T datatype to new cross-connect model on network-instance module";
+        reference " 0.9.0.";
+    }
+
     revision "2021-09-15" {
         description "Added IF_XC_OPER_STATUS_T to show cross connect operational status";
         reference " 0.8.0.";
@@ -411,68 +416,6 @@ module ipi-if-types {
         description "datatype for mau type of interface";
     }
 
-    typedef  if_bind_info_t {
-        type bits {
-            bit vrf {
-                position 0;
-                description "Bind Information vrf";
-            }
-            bit mpls_vc {
-                position 1;
-                description "Bind Information mpls_vc";
-            }
-            bit mpls_vc_vlan {
-                position 2;
-                description "Bind Information mpls_vc_vlan";
-            }
-            bit vpls {
-                position 3;
-                description "Bind Information vpls";
-            }
-            bit vpls_vlan {
-                position 4;
-                description "Bind Information vpls_vlan";
-            }
-            bit vxlan {
-                position 5;
-                description "Bind Information vxlan";
-            }
-            bit nvgre {
-                position 6;
-                description "Bind Information nvgre";
-            }
-        }
-        description "datatype for Bind information of interface";
-    }
-
-    typedef  if_vrx_flag_t {
-        type enumeration {
-            enum normal {
-                value 0;
-                description "Normal Interface";
-            }
-            enum EVR-wrpj {
-                value 1;
-                description "EVR wrpj Interface";
-            }
-            enum VS-wrp {
-                value 2;
-                description "VS wrp Interface";
-            }
-        }
-        description "datatype for vrx status";
-    }
-
-    typedef  if_local_flag_t {
-        type enumeration {
-            enum localsrc {
-                value 1;
-                description "localsrc of VS";
-            }
-        }
-        description "datatype for local source of VS";
-    }
-
     typedef  if_interface_type_t {
         type enumeration {
             enum Router {
@@ -535,24 +478,6 @@ module ipi-if-types {
         description "datatype for interface link type";
     }
 
-    typedef  if_breakout_type_t {
-        type enumeration {
-            enum 4X10g {
-                value 1;
-                description "split to 4X10g";
-            }
-            enum 4X25g {
-                value 2;
-                description "split to 4X25g";
-            }
-            enum 2X50g {
-                value 3;
-                description "split to 2X50g";
-            }
-        }
-        description "datatype for interface port breakout";
-    }
-
     typedef  if_l2cp_t {
         type enumeration {
             enum stp {
@@ -576,11 +501,11 @@ module ipi-if-types {
                 description "Ethernet first mile (Link OAM)";
             }
             enum elmi {
-                value 12;
+                value 14;
                 description "Ethernet local management interface";
             }
             enum synce {
-                value 14;
+                value 16;
                 description "Synchronous Ethernet";
             }
         }
@@ -741,20 +666,6 @@ module ipi-if-types {
         description "datatype for sub-interface encap type";
     }
 
-    typedef  if_subif_l2_encap_type_t {
-        type enumeration {
-            enum default {
-                value 1;
-                description "IEEE default packets";
-            }
-            enum untagged {
-                value 2;
-                description "IEEE untagged packets";
-            }
-        }
-        description "datatype for sub-interface l2 encap type";
-    }
-
     typedef  if_subif_l2_vlan_actiontype_t {
         type enumeration {
             enum pop {
@@ -785,6 +696,86 @@ module ipi-if-types {
             }
         }
         description "datatype for sub-interface l2 rewrite pop options";
+    }
+
+    typedef  if_subif_l2_rewrite_actiontype_t {
+        type enumeration {
+            enum 1-to-1 {
+                value 1;
+                description "Swap 1-to-1 the outer vid/tpid";
+            }
+            enum 1-to-2 {
+                value 2;
+                description "Swap 1-to-2 the inner and outer vid/tpid";
+            }
+            enum 2-to-2 {
+                value 3;
+                description "Swap 2-to-2 the 2 vid/tpid";
+            }
+            enum 2-to-1 {
+                value 4;
+                description "Swap 2-to-1 the outer vid/tpid";
+            }
+        }
+        description "datatype for sub-interface l2 vlan rewrite/swap action type";
+    }
+
+    typedef  if_subif_rewrite_tpid_type_t {
+        type enumeration {
+            enum dot1q {
+                value 1;
+                description "IEEE 802.1Q VLAN-tagged packets";
+            }
+            enum dot1ad {
+                value 2;
+                description "IEEE 802.1ad VLAN-tagged packets";
+            }
+        }
+        description "datatype for sub-interface encap type";
+    }
+
+    typedef  if_subif_inner_dot1q_t {
+        type enumeration {
+            enum dot1q {
+                value 1;
+                description "IEEE 802.1Q VLAN-tagged packets";
+            }
+        }
+        description "datatype for sub-interface encap type";
+    }
+
+    typedef  if_subif_outer_tpid_t {
+        type string;
+        description "datatype for sub-interface encap type";
+    }
+
+    typedef  if_subif_inner_tpid_t {
+        type string;
+        description "datatype for sub-interface encap type";
+    }
+
+    typedef  cml_outer_tpid_type_t {
+        type union {
+            type if_subif_rewrite_tpid_type_t {
+
+            }
+            type if_subif_outer_tpid_t {
+
+            }
+        }
+        description "datatype for sub-interface l2 vlan rewrite/swap tpid type";
+    }
+
+    typedef  cml_inner_tpid_type_t {
+        type union {
+            type if_subif_inner_dot1q_t {
+
+            }
+            type if_subif_inner_tpid_t {
+
+            }
+        }
+        description "datatype for sub-interface l2 vlan rewrite/swap tpid type";
     }
 
     typedef  if_subif_sevice_queue_t {
@@ -913,24 +904,6 @@ module ipi-if-types {
         description "datatype for tunnel key";
     }
 
-    typedef  if_tunnel_ipv6_mode_t {
-        type enumeration {
-            enum ipv6ip {
-                value 3;
-                description "IPv6 over IP encapsulation";
-            }
-            enum 6to4 {
-                value 4;
-                description "IPv6 automatic tunnelling using 6to4";
-            }
-            enum isatap {
-                value 5;
-                description "IPv6 automatic tunnelling using ISATAP";
-            }
-        }
-        description "datatype for tunnel ipv6 mode";
-    }
-
     typedef  if_port_group_speed_t {
         type enumeration {
             enum 1g {
@@ -969,32 +942,6 @@ module ipi-if-types {
             }
         }
         description "datatype for error-disable state";
-    }
-
-    typedef  if_sr_absolute_t {
-        type uint32 {
-             range 16000..23999;
-        }
-        description "datatype for segment routing sid as absolute value";
-    }
-
-    typedef  if_sr_index_t {
-        type uint32 {
-             range 1..7999;
-        }
-        description "datatype for segment routing sid as index value";
-    }
-
-    typedef  if_sr_sid_t {
-        type union {
-            type if_sr_absolute_t {
-
-            }
-            type if_sr_index_t {
-
-            }
-        }
-        description "datatype for segment routing sid type";
     }
 
     typedef  if_last_clear_time_t {
@@ -1056,15 +1003,15 @@ module ipi-if-types {
         type enumeration {
             enum community {
                 value 0;
-                description "community";
+                description "communicates only with community and promiscuous ports";
             }
             enum isolated {
                 value 1;
-                description "isolated";
+                description "communicates only with promiscuous ports";
             }
             enum promiscuous {
                 value 2;
-                description "promiscuous";
+                description "communicates with all ports";
             }
         }
         description "datatype for interface protected type";
@@ -1086,20 +1033,6 @@ module ipi-if-types {
             }
         }
         description "type definition for IF_SNIFF_ACTION_T";
-    }
-
-    typedef  if_xc_oper_status_t {
-        type enumeration {
-            enum Down {
-                value 0;
-                description "Cross Connect Down";
-            }
-            enum Up {
-                value 1;
-                description "Cross Connect Up";
-            }
-        }
-        description "type definition for IF_XC_OPER_STATUS_T";
     }
 
 }

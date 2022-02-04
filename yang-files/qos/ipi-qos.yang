@@ -23,7 +23,7 @@ module ipi-qos {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-qos-types {
@@ -33,7 +33,7 @@ module ipi-qos {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -48,6 +48,26 @@ module ipi-qos {
     description
         "Quality of Service (QoS)";
 
+
+    revision "2022-01-13" {
+        description "Added the new objectlist queue-color-to-exp in queues-to-exp container";
+        reference "Initial Version";
+    }
+
+    revision "2021-12-15" {
+        description "Added color option in egress exp-map";
+        reference "Initial Version";
+    }
+
+    revision "2021-12-10" {
+        description "Added remark-queue-value option in ingress exp-map";
+        reference "Initial Version";
+    }
+
+    revision "2021-10-08" {
+        description "Added remark-queue option in ingress cos-map";
+        reference "Initial Version";
+    }
 
     revision "2021-07-29" {
         description "Do not trigger hardware specific events for Software Forwarder Feature.";
@@ -996,6 +1016,16 @@ module ipi-qos {
             description "Use this attribute to select the queue CoS is mapped to";
         } // END of queue-id definition.
 
+        leaf remark-queue-id  {
+            if-feature feature-list:HAVE_CUSTOM3_QOS;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:remarked Queue values";
+                 }
+            }
+            description "Use this attribute to select the remarked queue cos is mapped to";
+        } // END of remark-queue-id definition.
+
     } // END of qos-cos-to-queue-config definition.
     grouping qos-cos-to-queue {
         description
@@ -1607,6 +1637,7 @@ module ipi-qos {
         container exp-encapsulation-profiles {
             if-feature feature-list:HAVE_DIFFSERV;
             if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:NOT_HAVE_CUSTOM3_QOS;
             description
                 "Configuration data for QoS MPLS experimental encapsulation profile";
 
@@ -2092,42 +2123,20 @@ module ipi-qos {
             description "Use this attribute to select the color mapped to.";
         } // END of color definition.
 
+        leaf remark-queue-value  {
+            if-feature feature-list:HAVE_CUSTOM3_QOS;
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7:remark queue values";
+                 }
+            }
+            description "Use this attribute to select the remark queue is mapped to";
+        } // END of remark-queue-value definition.
+
     } // END of qos-exp-to-queue-config definition.
     grouping qos-queue-to-exp-profile-top {
         description
             "Grouping for QoS MPLS queue to exp profile";
-        container queue-to-exp-profiles {
-            if-feature feature-list:HAVE_DIFFSERV;
-            if-feature feature-list:HAVE_CUSTOM1_QOS;
-            description
-                "Configuration data for QoS MPLS queue to exp profile";
-
-            list queue-to-exp-profile {
-                key "name";
-                description
-                    "Configuration data list for QoS MPLS queue to exp profile";
-                leaf name  {
-                    type  leafref {
-                        path  "../config/name";
-                    }
-                    description "Use this attribute to set a name to MPLS experimental (EXP) to queue
-                                profile name";
-                } // END of name definition.
-
-                container config {
-                    description
-                        "Configuration data for QoS MPLS queue to exp profile";
-                    uses qos-queue-to-exp-profile-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for QoS MPLS queue to exp profile";
-                    uses qos-queue-to-exp-profile-config;
-                } // END of state-container definition.
-                uses qos-queue-to-exp;
-            } // End of queue-to-exp-profile-list
-        } // END of queue-to-exp-profiles-container definition.
     } // END of qos-queue-to-exp-profile-top definition.
     grouping qos-queue-to-exp-profile-config {
         description
@@ -2149,6 +2158,7 @@ module ipi-qos {
                 "Configuration data for QoS MPLS queue to exp";
 
             list queue-to-exp {
+                if-feature feature-list:HAVE_CUSTOM1_QOS;
                 key "queue-id";
                 description
                     "Configuration data list for QoS MPLS queue to exp";
@@ -2171,6 +2181,38 @@ module ipi-qos {
                     uses qos-queue-to-exp-config;
                 } // END of state-container definition.
             } // End of queue-to-exp-list
+
+            list queue-color-to-exp {
+                if-feature feature-list:HAVE_CUSTOM3_QOS;
+                key "queue-id color";
+                description
+                    "Configuration data list for QoS MPLS queue to exp";
+                leaf queue-id  {
+                    type  leafref {
+                        path  "../config/queue-id";
+                    }
+                    description "Use this attribute to select the queue to map";
+                } // END of queue-id definition.
+
+                leaf color  {
+                    type  leafref {
+                        path  "../config/color";
+                    }
+                    description "Use this attribute to select the color to map. Default value is 3.";
+                } // END of color definition.
+
+                container config {
+                    description
+                        "Configuration data for QoS MPLS queue to exp";
+                    uses qos-queue-color-to-exp-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for QoS MPLS queue to exp";
+                    uses qos-queue-color-to-exp-config;
+                } // END of state-container definition.
+            } // End of queue-color-to-exp-list
         } // END of queues-to-exp-container definition.
     } // END of qos-queue-to-exp definition.
     grouping qos-queue-to-exp-config {

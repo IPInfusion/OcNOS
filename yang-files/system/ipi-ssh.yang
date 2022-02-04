@@ -23,7 +23,7 @@ module ipi-ssh {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-ssh-types {
@@ -33,7 +33,7 @@ module ipi-ssh {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-vrf {
@@ -43,12 +43,12 @@ module ipi-ssh {
 
     import ipi-user-management {
         prefix ipi-user-management;
-        revision-date 2021-09-03;
+        revision-date 2022-01-14;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -121,7 +121,11 @@ module ipi-ssh {
 
         leaf max-login-attempts  {
             if-feature feature-list:HAVE_SSH_SERVER;
-            type  uint8;
+            type  uint8 {
+                 range "1..3"  {
+                    description "1..3:Retries attempts, default is 3 attempts";
+                 }
+            }
             default "3";
             description "Use this attribute to set the number of times that a user can try to
                         log in to a SSH session.";
@@ -244,6 +248,39 @@ module ipi-ssh {
             } // End of vrf-list
         } // END of vrfs-container definition.
     } // END of ssh-server-top definition.
+    grouping user-ssh-keypair-attributes {
+        description
+            "user ssh keypair attributes";
+        leaf rsa-key  {
+            type  ipi-ssh-types:ssh_public_key_t {
+                length "1..1965";
+            }
+            description "User specific Rivest, Shamir, and Adelman (RSA) public-key
+                        cryptography SSH server key";
+        } // END of rsa-key definition.
+
+        leaf dsa-key  {
+            type  ipi-ssh-types:ssh_public_key_t {
+                length "1..1965";
+            }
+            description "User specific Digital System Algorithm (DSA) SSH key";
+        } // END of dsa-key definition.
+
+        leaf fingerprint-rsa  {
+            type  ipi-ssh-types:ssh_public_key_t {
+                length "1..1965";
+            }
+            description "MD5 over the binary data within the Base64-encoded RSA public key";
+        } // END of fingerprint-rsa definition.
+
+        leaf fingerprint-dsa  {
+            type  ipi-ssh-types:ssh_public_key_t {
+                length "1..1965";
+            }
+            description "MD5 over the binary data within the Base64-encoded DSA public key";
+        } // END of fingerprint-dsa definition.
+
+    } // END of user-ssh-keypair-attributes definition.
 
     grouping  ssh-server-grouping {
     description
@@ -287,6 +324,7 @@ module ipi-ssh {
             description
                 "state container for ssh keys configurations";
             uses ssh-user-keys-config;
+            uses user-ssh-keypair-attributes;
         } // END of state-container definition.
     } // END of ssh-keys-container definition.
     } // END of ssh-keys-grouping definition.

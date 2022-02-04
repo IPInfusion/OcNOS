@@ -23,7 +23,7 @@ module ipi-vlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-vlan-types {
@@ -33,22 +33,22 @@ module ipi-vlan {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2021-09-15;
+        revision-date 2022-01-13;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2021-07-29;
+        revision-date 2022-01-13;
     }
 
     import ietf-inet-types {
@@ -58,7 +58,7 @@ module ipi-vlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -73,6 +73,26 @@ module ipi-vlan {
     description
         "VLAN configuration";
 
+
+    revision "2022-01-18" {
+        description "Remove yang-drop tag to show type parameter of customer-vlan list";
+        reference " 0.6.3.";
+    }
+
+    revision "2021-11-23" {
+        description "Netconf support for vlan-reservation CLI";
+        reference " 0.6.2.";
+    }
+
+    revision "2021-11-16" {
+        description "Added some if-feature to fix customer SKU compilation";
+        reference " 0.6.1.";
+    }
+
+    revision "2021-10-18" {
+        description "Removed custom DB triggers and added Netconf support for private VLAN feature";
+        reference " 0.6.0.";
+    }
 
     revision "2021-09-18" {
         description "Private VLAN DB clearance issues fixed";
@@ -208,7 +228,7 @@ module ipi-vlan {
         } // END of multicast definition.
 
         leaf attach  {
-            type  cml-data-types:cml_add_remove_t;
+            type  ipi-vlan-types:cml_add_remove_t;
             default "remove";
             description "Attribute to add or remove entry";
         } // END of attach definition.
@@ -263,15 +283,40 @@ module ipi-vlan {
     grouping private-vlan-top {
         description
             "Top level grouping for private vlan configuration and state data";
+        container private-vlan {
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-bridge:config/ipi-bridge:protocol = 'ieee vlan-bridge' or /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-bridge:config/ipi-bridge:protocol = 'rstp vlan-bridge' or /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-bridge:config/ipi-bridge:protocol = 'mstp' or /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-bridge:config/ipi-bridge:protocol = 'mstp ring' ";
+            if-feature feature-list:HAVE_PVLAN;
+            description
+                "List of priate vlans";
+            container config {
+                presence "Configure private vlan type";
+                description
+                    "Configuration data of private vlans";
+                uses private-vlan-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses private-vlan-config;
+            } // END of state-container definition.
+            uses private-vlan-association-top;
+        } // END of private-vlan-container definition.
     } // END of private-vlan-top definition.
     grouping cvlan-type-config {
         description
             "Grouping for customer VLAN configuration data";
+        leaf type  {
+            type  ipi-vlan-types:cvlan_type_t;
+            description "Attribute to configure type for a particular VLAN on the bridge";
+        } // END of type definition.
+
     } // END of cvlan-type-config definition.
     grouping customer-vlan-top {
         description
             "Top level grouping for customer VLAN data";
         container customer-vlan {
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan/ipi-vlan:config/ipi-vlan:type ";
             description
                 "Container for customer VLAN configuration and state data";
             container config {
@@ -328,6 +373,7 @@ module ipi-vlan {
             "Top level grouping for vlan configuration and state data";
 
         list vlan {
+        when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan/ipi-vlan:config/ipi-vlan:type  or /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
             key "vlan-id";
             description
                 "List for vlan configuration and state data";
@@ -557,6 +603,44 @@ module ipi-vlan {
             } // END of state-container definition.
         } // End of port-list
     } // END of port-top definition.
+    grouping reserve-vlan-config {
+        description
+            "Grouping for reserve vlan configuration data";
+        leaf vlan-id  {
+            type  cml-data-types:cml_range_t;
+            description "Use attribute to reserve vlan";
+        } // END of vlan-id definition.
+
+    } // END of reserve-vlan-config definition.
+    grouping reserve-vlan-top {
+        description
+            "Top level grouping for reserve vlan configuration and state data";
+
+        list reserve-vlan {
+            if-feature feature-list:HAVE_FLEXPORT;
+            key "vlan-id";
+            description
+                "List for reserve vlan configuration and state data";
+            leaf vlan-id  {
+                type  leafref {
+                    path  "../config/vlan-id";
+                }
+                description "Vlan identifier";
+            } // END of vlan-id definition.
+
+            container config {
+                description
+                    "Configuration data of reserve vlans";
+                uses reserve-vlan-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses reserve-vlan-config;
+            } // END of state-container definition.
+        } // End of reserve-vlan-list
+    } // END of reserve-vlan-top definition.
     grouping ovc-oep-config {
         description
             "Grouping for OEP configuration";
@@ -1176,6 +1260,17 @@ module ipi-vlan {
     } // END of vlan-classifier-container definition.
     } // END of vlan-classifier-grouping definition.
 
+    grouping  vlan-reservation-grouping {
+    description
+        "Top level container for VLAN reservation configuration and state data";
+    container vlan-reservation {
+        if-feature feature-list:HAVE_FLEXPORT;
+        description
+            "Top level container for VLAN reservation configuration and state data";
+        uses reserve-vlan-top;
+    } // END of vlan-reservation-container definition.
+    } // END of vlan-reservation-grouping definition.
+
     grouping  layer2-global-grouping {
     description
         "Top level container for Layer2 global configuration and state data";
@@ -1218,6 +1313,7 @@ module ipi-vlan {
     }
 
     uses vlan-classifier-grouping;
+    uses vlan-reservation-grouping;
     uses layer2-global-grouping;
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge {
         description

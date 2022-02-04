@@ -23,27 +23,37 @@ module ipi-if-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-if-types {
         prefix ipi-if-types;
-        revision-date 2021-09-15;
+        revision-date 2021-11-10;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-if-ethernet {
         prefix ipi-if-ethernet;
-        revision-date 2021-09-03;
+        revision-date 2021-11-15;
     }
 
     import ipi-vxlan {
         prefix ipi-vxlan;
-        revision-date 2021-09-15;
+        revision-date 2021-12-28;
+    }
+
+    import ipi-network-instance {
+        prefix ipi-network-instance;
+        revision-date 2021-11-10;
+    }
+
+    import ipi-bridge {
+        prefix ipi-bridge;
+        revision-date 2022-01-13;
     }
 
     import ietf-inet-types {
@@ -58,7 +68,7 @@ module ipi-if-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -73,6 +83,26 @@ module ipi-if-extended {
     description
         "Datamodel for IPI Interface extended module";
 
+
+    revision "2021-12-22" {
+        description "FEC will be reset to auto mode upon speed change";
+        reference " 0.11.2.";
+    }
+
+    revision "2021-11-16" {
+        description "SKU compilation fixes";
+        reference " 0.11.1.";
+    }
+
+    revision "2021-11-10" {
+        description "Moved cross-connect to network-instance module";
+        reference " 0.11.0.";
+    }
+
+    revision "2021-09-27" {
+        description "Updated attribute push-tpid and translate-tpid description, added length and pattern tag";
+        reference " 0.10.8.";
+    }
 
     revision "2021-09-24" {
         description "Added notification to remove interfaces from bridge-domain";
@@ -237,6 +267,7 @@ module ipi-if-extended {
         } // END of disable-multicast definition.
 
         leaf link-flap-error-disable  {
+            if-feature feature-list:HAVE_L2;
             type  empty;
             description "This object specifies whether the interface is enabled for link-flap
                         error-disable or not. If this is '0', then interface is not enabled.
@@ -244,6 +275,7 @@ module ipi-if-extended {
         } // END of link-flap-error-disable definition.
 
         leaf mac-move-limit-error-disable  {
+            if-feature feature-list:HAVE_L2;
             type  empty;
             description "This object specifies whether the interface is enabled for
                         mac-move-limit error-disable or not. If this is '0', then interface is
@@ -269,6 +301,13 @@ module ipi-if-extended {
             }
             description "Use this attribute to set the interface debounce timer value";
         } // END of debounce-time definition.
+
+        leaf protected-port  {
+            // when " !ipi-mlag:mlag-aggregation/config/mlag-id ";
+            type  ipi-if-types:if_protected_port_type_t;
+            default "promiscuous";
+            description "Attribute to change port protectedtype value";
+        } // END of protected-port definition.
 
     } // END of ipi-interface-extended-config definition.
     grouping ipi-interface-extended-state {
@@ -919,48 +958,6 @@ module ipi-if-extended {
         } // END of send-bit-rate definition.
 
     } // END of extended-ethernet-counters-state definition.
-    grouping subif-crossconnect-config {
-        description
-            "Grouping for Sub-interface cross-connect configurations";
-        leaf xc-name  {
-            type  string {
-                length "1..30";
-                pattern "[^?' =,>|]+";
-            }
-            description "This attribute specifies the cross-connect name. Use this attribute to
-                        cross-connect between subinterfaces.";
-        } // END of xc-name definition.
-
-        leaf-list endpoint-if  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "This attribute specifies the endpoint for cross-connect";
-        } // END of endpoint-if definition.
-
-        leaf xc-description  {
-            type  cml-data-types:cml_line_t {
-                length "1..1965";
-            }
-            description "This attribute secifies the description for cross-connect";
-        } // END of xc-description definition.
-
-        leaf admin-disable  {
-            type  empty;
-            description "This attribute is used to temporarily shutdown the cross-connect";
-        } // END of admin-disable definition.
-
-    } // END of subif-crossconnect-config definition.
-    grouping subif-crossconnect-state {
-        description
-            "Grouping for Sub-interface cross-connect operational data";
-        leaf operational-state  {
-            type  ipi-if-types:if_xc_oper_status_t;
-            description "This attribute shows the current status of cross-connect.";
-        } // END of operational-state definition.
-
-    } // END of subif-crossconnect-state definition.
     grouping subif-bridge-config {
         description
             "Grouping for Sub-interface bridge-domain configurations";
@@ -989,6 +986,28 @@ module ipi-if-extended {
         } // END of subif-description definition.
 
     } // END of subif-bridge-config definition.
+    grouping subif-bridge-instance {
+        description
+            "Grouping for Sub-interface bridge-domain configurations";
+        leaf bridge-id  {
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-network-instance:instance-name";
+            }
+            mandatory true;
+            description "Map bridge mst instance to bridge-domain";
+        } // END of bridge-id definition.
+
+        leaf instance-id  {
+            type  int8 {
+                 range "1..63"  {
+                    description "1..63:Value of instance id.";
+                 }
+            }
+            mandatory true;
+            description "Value of instance id";
+        } // END of instance-id definition.
+
+    } // END of subif-bridge-instance definition.
     grouping port-group-config {
         description
             "Grouping for port-group speed configurations";
@@ -1050,6 +1069,7 @@ module ipi-if-extended {
         } // END of error-disable-stp-bpdu-guard definition.
 
         leaf timeout-interval  {
+            if-feature feature-list:HAVE_L2;
             type  uint32 {
                  range "0..1000000"  {
                     description "0..1000000:timeout interval in seconds. Set 0 to disable automatic
@@ -1064,6 +1084,7 @@ module ipi-if-extended {
         leaf link-flap-max-count  {
             when " ../link-flap-timer-interval ";
             // when " ../reason >= '4' ";
+            if-feature feature-list:HAVE_L2;
             type  uint32 {
                  range "1..100"  {
                     description "1..100:Allowed Flap count range";
@@ -1077,6 +1098,7 @@ module ipi-if-extended {
         leaf link-flap-timer-interval  {
             when " ../link-flap-max-count ";
             // when " ../reason >= '4' ";
+            if-feature feature-list:HAVE_L2;
             type  uint32 {
                  range "1..1800"  {
                     description "1..1800:timeout interval in seconds";
@@ -1089,6 +1111,7 @@ module ipi-if-extended {
 
         leaf mac-move-limit  {
             // when " ../reason >= '8' ";
+            if-feature feature-list:HAVE_L2;
             type  uint32 {
                  range "1..1000"  {
                     description "1..1000:Allowed Mac movement in 5 seconds";
@@ -1311,7 +1334,7 @@ module ipi-if-extended {
         description
             "Grouping for dot1q and dot1ad encapsulation data";
         leaf vlan-action  {
-            when " ../enable-pop or ../push-tpid or ../translate-tpid ";
+            when " ../enable-pop or ../push-tpid or ../dot1q-dot1ad-tpid ";
             type  ipi-if-types:if_subif_l2_vlan_actiontype_t;
             mandatory true;
             description "This object is used to configure the rewrite action to push, pop or
@@ -1346,13 +1369,14 @@ module ipi-if-extended {
                 leaf push-tpid  {
                     when " ../vlan-action='2' and ../push-outer-vlan-id ";
                     type  string {
-                        length "1..1965";
-                        pattern "[^?' =,>|]+";
+                        length "6";
+                        pattern "0[xX][0-9a-fA-F]+";
                     }
                     mandatory true;
-                    description "This attribute is used to configure tpid.
-                                To change the rewrite config, delete and recreate the entire rewrite
-                                config.";
+                    description "This attribute is used to configure the tpid value for the interface
+                                in the format 0xhhhh. Currently supported values are 0x8100 or 0x88a8
+                                or 0x9100 or 0x9200.To change the rewrite config, delete and recreate
+                                the entire rewrite config.";
                 } // END of push-tpid definition.
 
                 leaf push-outer-vlan-id  {
@@ -1385,30 +1409,58 @@ module ipi-if-extended {
                 description
                     "Translate the outer vid for a tpid";
 
-                leaf translate-tpid  {
-                    when " ../vlan-action='3' and ../translate-vlan-id ";
-                    type  string {
-                        length "1..1965";
-                        pattern "[^?' =,>|]+";
-                    }
+                leaf rewrite-translate-action  {
+                    type  ipi-if-types:if_subif_l2_rewrite_actiontype_t;
                     mandatory true;
-                    description "This attribute is used to configure tpid.
+                    description "This object is used to configure the rewrite translate action the
+                                outer VLAN-id.
                                 To change the rewrite config, delete and recreate the entire rewrite
                                 config.";
-                } // END of translate-tpid definition.
+                } // END of rewrite-translate-action definition.
 
-                leaf translate-vlan-id  {
-                    when " ../vlan-action='3' and ../translate-tpid ";
+                leaf dot1q-dot1ad-tpid  {
+                    when " ../vlan-action='3' and ../outer-vlan-id ";
+                    type  ipi-if-types:cml_outer_tpid_type_t;
+                    mandatory true;
+                    description "This Object is used to configure outer VLAN ID range for rewrite.
+                                To change the rewrite config, delete and recreate the entire rewrite
+                                config.";
+                } // END of dot1q-dot1ad-tpid definition.
+
+                leaf outer-vlan-id  {
+                    when " ../vlan-action='3' and ../dot1q-dot1ad-tpid ";
                     type  uint16 {
                          range "1..4094"  {
-                            description "1..4094:Vid range";
+                            description "1..4094:Outer vlan-id";
                          }
                     }
                     mandatory true;
                     description "This Object is used to configure VLAN ID range for rewrite.
                                 To change the rewrite config, delete and recreate the entire rewrite
                                 config.";
-                } // END of translate-vlan-id definition.
+                } // END of outer-vlan-id definition.
+
+                leaf i-dot1q-dot1ad-tpid  {
+                    when " ../vlan-action='3' and ../inner-vlan-id ";
+                    type  ipi-if-types:cml_inner_tpid_type_t;
+                    mandatory true;
+                    description "This Object is used to configure outer VLAN ID range for rewrite.
+                                To change the rewrite config, delete and recreate the entire rewrite
+                                config.";
+                } // END of i-dot1q-dot1ad-tpid definition.
+
+                leaf inner-vlan-id  {
+                    when " ../vlan-action='3' and ../i-dot1q-dot1ad-tpid ";
+                    type  uint16 {
+                         range "1..4094"  {
+                            description "1..4094:inner vlan-id";
+                         }
+                    }
+                    mandatory true;
+                    description "This Object is used to configure VLAN ID range for rewrite.
+                                To change the rewrite config, delete and recreate the entire rewrite
+                                config.";
+                } // END of inner-vlan-id definition.
 
             }
         } // END of vlan-action-type-choice definition.
@@ -1421,36 +1473,20 @@ module ipi-if-extended {
             description "This attribute is used to configure the layer2 control-protocol type";
         } // END of l2cp-type definition.
 
-        choice l2protocol-option {
-            description
-                "Choice for options to be applied";
-            case tunnel-vlan {
+        leaf tunnel-vlan  {
+            if-feature feature-list:HAVE_SWFWDR;
+            type  int32;
+            description "This attribute is used to configure the layer2 control-protocol type
+                        tunnel VLAN";
+        } // END of tunnel-vlan definition.
 
-                description
-                    "Set tunnel VLAN";
+        leaf protocol-process  {
+            type  ipi-if-types:if_l2cp_process_t;
+            mandatory true;
+            description "This attribute is used to change the process of protocol to
+                        peer/discard/tunnel";
+        } // END of protocol-process definition.
 
-                leaf tunnel-vlan  {
-                    if-feature feature-list:HAVE_SWFWDR;
-                    type  int32;
-                    description "This attribute is used to configure the layer2 control-protocol type
-                                tunnel VLAN";
-                } // END of tunnel-vlan definition.
-
-            }
-            case protocol-process {
-
-                description
-                    "Set protocol process";
-
-                leaf protocol-process  {
-                    type  ipi-if-types:if_l2cp_process_t;
-                    mandatory true;
-                    description "This attribute is used to change the process of protocol to
-                                peer/discard/tunnel";
-                } // END of protocol-process definition.
-
-            }
-        } // END of l2protocol-option-choice definition.
     } // END of l2cp-config definition.
     grouping tdm-config {
         description
@@ -1702,6 +1738,55 @@ module ipi-if-extended {
         } // END of in-total-pkts definition.
 
     } // END of protocol-pkt-statistics definition.
+    grouping lb-modem-counters-state {
+        description
+            "Operational data representing LB modem counters";
+        leaf lbg_in_errors  {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_HAL;
+            if-feature feature-list:HAVE_LINK_BONDING;
+            type  yang:counter64;
+            config false;
+            description "The number of discard segments received per LBG";
+        } // END of lbg_in_errors definition.
+
+        leaf segments_sent  {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_HAL;
+            if-feature feature-list:HAVE_LINK_BONDING;
+            type  yang:counter64;
+            config false;
+            description "The number of Modem segments transmitted";
+        } // END of segments_sent definition.
+
+        leaf segment_bytes_sent  {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_HAL;
+            if-feature feature-list:HAVE_LINK_BONDING;
+            type  yang:counter64;
+            config false;
+            description "The number of Modem bytes transmitted";
+        } // END of segment_bytes_sent definition.
+
+        leaf segments_rcv  {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_HAL;
+            if-feature feature-list:HAVE_LINK_BONDING;
+            type  yang:counter64;
+            config false;
+            description "The number of Modem Segments received";
+        } // END of segments_rcv definition.
+
+        leaf segment_bytes_rcv  {
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_HAL;
+            if-feature feature-list:HAVE_LINK_BONDING;
+            type  yang:counter64;
+            config false;
+            description "The number of Modem bytes received";
+        } // END of segment_bytes_rcv definition.
+
+    } // END of lb-modem-counters-state definition.
     grouping obm-total-count-stats {
         description
             "Grouping for HAL interface OBM drop reason total statistics";
@@ -2075,6 +2160,7 @@ module ipi-if-extended {
             "Top-level container for extended interface module";
 
         list l2-control-protocol {
+            if-feature feature-list:HAVE_L2;
             key "l2cp-type";
             description
                 "Layer2 Control Protocol";
@@ -2174,7 +2260,6 @@ module ipi-if-extended {
                 uses native-layer2-encapsulation-config;
             } // END of state-container definition.
             container rewrite {
-                when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:single-tag-vlan-matches/ipi-if-extended:single-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:double-tag-vlan-matches/ipi-if-extended:double-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-default  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-untagged ";
                 description
                     "Container for rewrite action to push or translate the outer VLAN-id";
                 container config {
@@ -2315,6 +2400,15 @@ module ipi-if-extended {
         config false;
         description
             "A collection of extended interface-related statistics counters";
+        container lb-modem-stats {
+            if-feature feature-list:HAVE_HAL;
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_LINK_BONDING;
+            config false;
+            description
+                "Statistics for Link-bonding Modem interface";
+            uses lb-modem-counters-state;
+        } // END of lb-modem-stats-container definition.
         uses extended-counters-state;
         uses interface-counters-extended;
         uses error-discard-statistics;
@@ -2408,45 +2502,20 @@ module ipi-if-extended {
                     "Global configuration for bridge-domain";
                 uses subif-bridge-config;
             } // END of config-container definition.
+            container bridge-instance {
+                description
+                    "Global configuration for bridge-domain";
+                container config {
+                    when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-bridge:config/ipi-bridge:protocol = 'mstp' ";
+                    presence "MST instance for bridge-domain";
+                    description
+                        "Configuration for bridge-instance";
+                    uses subif-bridge-instance;
+                } // END of config-container definition.
+            } // END of bridge-instance-container definition.
         } // End of subinterface-bridge-domain-list
     } // END of bridge-domain-container definition.
     } // END of bridge-domain-grouping definition.
-
-    grouping  cross-connects-grouping {
-    description
-        "Global container for cross connect between subinterfaces";
-    container cross-connects {
-        description
-            "Global container for cross connect between subinterfaces";
-
-        list subinterface-cross-connect {
-            if-feature feature-list:HAVE_SUBINTERFACE;
-            key "xc-name";
-            description
-                "Global configuration for cross-connect between subinterfaces";
-            leaf xc-name  {
-                type  leafref {
-                    path  "../config/xc-name";
-                }
-                description "This attribute specifies the cross-connect name. Use this attribute to
-                            cross-connect between subinterfaces.";
-            } // END of xc-name definition.
-
-            container config {
-                description
-                    "Global configuration for cross-connect between subinterfaces";
-                uses subif-crossconnect-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "State data for cross-connect between subinterfaces";
-                uses subif-crossconnect-config;
-                uses subif-crossconnect-state;
-            } // END of state-container definition.
-        } // End of subinterface-cross-connect-list
-    } // END of cross-connects-container definition.
-    } // END of cross-connects-grouping definition.
 
     grouping  tunnel-grouping {
     description
@@ -2511,12 +2580,6 @@ module ipi-if-extended {
         description
             "Global container for bridge domain";
         uses bridge-domain-grouping;
-    }
-
-    augment /ipi-interface:interfaces {
-        description
-            "Global container for cross connect between subinterfaces";
-        uses cross-connects-grouping;
     }
 
     augment /ipi-interface:interfaces/ipi-interface:interface {

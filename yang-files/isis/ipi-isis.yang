@@ -28,7 +28,7 @@ module ipi-isis {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-isis-types {
@@ -43,12 +43,12 @@ module ipi-isis {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     include ipi-isis-extended { revision-date 2021-09-03;}
@@ -68,6 +68,11 @@ module ipi-isis {
     description
         "Model for managing IS-IS Instance";
 
+
+    revision "2021-12-07" {
+        description "Datamodel change for debug isis cspf command";
+        reference " 0.5.1.";
+    }
 
     revision "2021-09-08" {
         description "Datamodel change for passive-interface command";
@@ -1071,17 +1076,9 @@ module ipi-isis {
         description
             "Configuration items for ISIS MT";
         leaf level  {
-            type  ipi-isis-types:isis_level3_t;
-            default "level-1-2";
-            description "IS-IS instance level,(1|2|3)";
+            type  ipi-isis-types:isis_multi_topology_level_type_t;
+            description "Use this attribute to configure the ISIS MT";
         } // END of level definition.
-
-        leaf transition  {
-            type  boolean;
-            description "Use this attribute to configure the ISIS topology type. Use the no
-                        parameter with this command to set the topology type back to the
-                        default type, which is single";
-        } // END of transition definition.
 
     } // END of isis-mt-config definition.
     grouping isis-srv6-config {
@@ -1420,6 +1417,12 @@ module ipi-isis {
             description "Use this attribute to turn on debugging for ISIS SID hello";
         } // END of system-id-hello definition.
 
+        leaf cspf  {
+            if-feature feature-list:HAVE_ISIS_CSPF;
+            type  ipi-isis-types:isis_cspf_debug_t;
+            description "Use this attribute to enable CSPF debug logs.";
+        } // END of cspf definition.
+
     } // END of isis-conf-mode-debug-config definition.
     grouping isis-terminal-mode-debug-state {
         description
@@ -1453,6 +1456,12 @@ module ipi-isis {
                 }
                 description "Use this attribute to turn on debugging for ISIS SID hello";
             } // END of system-id-hello definition.
+
+            leaf cspf  {
+                if-feature feature-list:HAVE_ISIS_CSPF;
+                type  ipi-isis-types:isis_cspf_debug_t;
+                description "Use this attribute to enable CSPF debug logs.";
+            } // END of cspf definition.
 
         } // END of terminal-debug-container definition.
     } // END of isis-terminal-mode-debug-state definition.
@@ -1929,24 +1938,25 @@ module ipi-isis {
                 list multi-topology {
                     if-feature feature-list:HAVE_MULTI_TOPOLOGY;
                     key "level";
+                    max-elements 1;
                     description
-                        "This objectlist defines the Multi Topology List";
+                        "This objectlist defines the Multi-topology";
                     leaf level  {
                         type  leafref {
                             path  "../config/level";
                         }
-                        description "IS-IS instance level,(1|2|3)";
+                        description "Use this attribute to configure the ISIS Multi-topology";
                     } // END of level definition.
 
                     container config {
                         description
-                            "This container defines the ISIS Multi Topology Configurations";
+                            "This container defines the ISIS Multi topology configurations.";
                         uses isis-mt-config;
                     } // END of config-container definition.
                     container state {
                         config false;
                         description
-                            "This container defines the ISIS Multi Topology operational information";
+                            "This container defines the ISIS Multi topology.";
                         uses isis-mt-config;
                     } // END of state-container definition.
                 } // End of multi-topology-list
@@ -2539,6 +2549,39 @@ module ipi-isis {
                 type string;
                 mandatory true;
                 description "Use this attribute to turn off debugging for ISIS SID hello";
+            }
+        }
+    }
+
+    rpc isis-debug-cspf-on {
+        description "Use this RPC to enable debug on ISIS CSPF events.";
+        input  {
+            leaf cspf-debug  {
+                type ipi-isis-types:isis_cspf_debug_t;
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc isis-debug-cspf-off {
+        description "Use this RPC to disable debug on ISIS CSPF events.";
+        input  {
+            leaf cspf-debug  {
+                type ipi-isis-types:isis_cspf_debug_t;
+                mandatory true;
+                description "";
+            }
+        }
+    }
+
+    rpc isis-undebug-cspf {
+        description "Use this RPC to disable debug on ISIS CSPF events.";
+        input  {
+            leaf cspf-debug  {
+                type ipi-isis-types:isis_cspf_debug_t;
+                mandatory true;
+                description "";
             }
         }
     }

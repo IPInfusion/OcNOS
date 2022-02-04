@@ -23,12 +23,12 @@ module ipi-if-ip {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-vrf {
@@ -38,7 +38,7 @@ module ipi-if-ip {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ietf-inet-types {
@@ -48,7 +48,7 @@ module ipi-if-ip {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -63,6 +63,11 @@ module ipi-if-ip {
     description
         "Datamodel for IP interface module";
 
+
+    revision "2021-11-16" {
+        description "Added some if-feature to fix customer SKU compilation";
+        reference " 0.7.0.";
+    }
 
     revision "2021-09-01" {
         description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
@@ -110,6 +115,8 @@ module ipi-if-ip {
         } // END of primary-ip-addr definition.
 
         leaf enable-dhcp-ip-address  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            // when " !ipi-dhcp:dhcp/global/config/disable-dhcp-feature ";
             if-feature feature-list:HAVE_DHCP_CLIENT;
             type  empty;
             description "Use this attribute to  specify that a DHCP client will be used to
@@ -204,7 +211,8 @@ module ipi-if-ip {
         } // END of ipv6-unnumbered-if-name definition.
 
         leaf enable-dhcp-ipv6-address  {
-            // when " !ipi-if-ip:ipv6/config/enable-dhcp-temporary-ipv6-address + !ipi-dhcp-client:client/interfaces/interface/config/ipv6-information-request ";
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
+            // when " !ipi-if-ip:ipv6/config/enable-dhcp-temporary-ipv6-address + !ipi-dhcp-client:client/interfaces/interface/config/ipv6-information-request + !ipi-dhcp:dhcp/global/config/disable-dhcp-feature ";
             if-feature feature-list:HAVE_DHCP_CLIENT;
             type  empty;
             description "Use this attribute to  specify that a DHCP client will be used to
@@ -212,6 +220,7 @@ module ipi-if-ip {
         } // END of enable-dhcp-ipv6-address definition.
 
         leaf enable-dhcp-temporary-ipv6-address  {
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             // when " !ipi-if-ip:ipv6/config/enable-dhcp-ipv6-address + !ipi-dhcp-client:client/interfaces/interface/config/ipv6-information-request + !ipi-dhcp-client:client/interfaces/interface/config/request-ipv6-prefix ";
             if-feature feature-list:HAVE_DHCP_CLIENT;
             type  empty;
@@ -220,6 +229,7 @@ module ipi-if-ip {
         } // END of enable-dhcp-temporary-ipv6-address definition.
 
         leaf dhcp-address-prefix-length  {
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             if-feature feature-list:HAVE_DHCP_CLIENT;
             type  uint8 {
                  range "1..128"  {
@@ -265,13 +275,6 @@ module ipi-if-ip {
             config false;
             description "This attribute is used to describes DHCP IPv6 Address";
         } // END of dhcp-ipv6-adddress definition.
-
-        leaf ipv6-enabled-status  {
-            if-feature feature-list:HAVE_IPV6;
-            type  boolean;
-            config false;
-            description "This attribute describes the IPv6 capability status";
-        } // END of ipv6-enabled-status definition.
 
         leaf forwarding-status  {
             if-feature feature-list:HAVE_IPV6;
@@ -346,7 +349,7 @@ module ipi-if-ip {
             "Parameters for the IPv4 address family";
 
         list secondary-addresses {
-        // when " ipi-if-ip:ipv4/config/primary-ip-addr ";
+        // when " ipi-if-ip:ipv4/config/primary-ip-addr || ipi-if-ip:ipv4/config/enable-dhcp-ip-address ";
             key "ip-address";
             description
                 "List of secondary IPv4 Addresses for the interface";
@@ -391,6 +394,7 @@ module ipi-if-ip {
     description
         "Parameters for the IPv6 address family";
     container ipv6 {
+        if-feature feature-list:HAVE_IPV6;
         description
             "Parameters for the IPv6 address family";
 
