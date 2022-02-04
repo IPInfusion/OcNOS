@@ -21,7 +21,7 @@ submodule ipi-bgp-address-family-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     import ietf-inet-types {
@@ -31,16 +31,16 @@ submodule ipi-bgp-address-family-vrf {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-17;
     }
 
-    include ipi-bgp-common { revision-date 2021-09-20;}
-    include ipi-bgp-address-family { revision-date 2021-09-15;}
+    include ipi-bgp-common { revision-date 2022-01-17;}
+    include ipi-bgp-address-family { revision-date 2022-01-17;}
     organization
         "IP Infusion Inc.";
 
@@ -53,6 +53,26 @@ submodule ipi-bgp-address-family-vrf {
     description
         "";
 
+
+    revision "2022-01-17" {
+        description "Modified data type";
+        reference " 0.9.0.";
+    }
+
+    revision "2022-01-10" {
+        description "Added depenedency constraint between 'vrf address-family and route-redistribution' and rd_string/IP-VRF";
+        reference " 0.8.14.";
+    }
+
+    revision "2022-01-07" {
+        description "Modified Data Type";
+        reference " 0.9.0.";
+    }
+
+    revision "2021-11-15" {
+        description "Moved BFD depenedecies under HAVE_BFD";
+        reference " 0.8.0.";
+    }
 
     revision "2021-08-26" {
         description "Added dependency constraint between auth-key-encrypt and password attrs for the peer authentication password CLI";
@@ -690,6 +710,7 @@ submodule ipi-bgp-address-family-vrf {
                     uses bgp-vrf-srv6-config;
                 } // END of state-container definition.
                 container sid-alloc-mode {
+                    when " /bgp/bgp-instance/address-family-vrf/bgp-srv6/config/bgpSRv6enable ";
                     description
                         "To configure sid-alloc-mode";
                     container config {
@@ -1640,12 +1661,14 @@ submodule ipi-bgp-address-family-vrf {
 
         leaf enable-peer-bfd  {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
+            if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer";
         } // END of enable-peer-bfd definition.
 
         leaf enable-peer-bfd-multihop  {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/enable-peer-bfd ";
+            if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer with
                         multihop";

@@ -21,14 +21,9 @@ module ipi-ldp {
 
     prefix "ipi-ldp";
 
-    import cml-data-types {
-        prefix cml-data-types;
-        revision-date 2021-09-03;
-    }
-
     import ipi-ldp-types {
         prefix ipi-ldp-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ietf-inet-types {
@@ -38,11 +33,11 @@ module ipi-ldp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     include ipi-ldp-l2vpn { revision-date 2021-09-03;}
-    include ipi-ldp-interface { revision-date 2021-09-03;}
+    include ipi-ldp-interface { revision-date 2021-10-21;}
     include ipi-ldp-peer { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
@@ -56,6 +51,21 @@ module ipi-ldp {
     description
         "Datamodel for LDP protocol";
 
+
+    revision "2022-01-07" {
+        description "Modified Data Type";
+        reference " 0.5.0.";
+    }
+
+    revision "2021-10-21" {
+        description "Updated datatype of enable-ldp attributes for ldp-interface";
+        reference " 0.3.6.";
+    }
+
+    revision "2021-09-27" {
+        description "Added configurations and state attributes for LFA";
+        reference " 0.4.0.";
+    }
 
     revision "2021-09-17" {
         description "Added DC flag check for entropy command";
@@ -102,6 +112,117 @@ module ipi-ldp {
         reference " 0.1.0.";
     }
 
+    grouping ldp-lfa-state {
+        description
+            "Grouping for FEC primary paths";
+        container primary-paths {
+            config false;
+            description
+                "State data for FEC primary paths";
+
+            list primary-path {
+                key "nexthop-address nexthop-interface-name";
+                config false;
+                description
+                    "State data list for FEC primary paths";
+                leaf nexthop-address  {
+                    type  leafref {
+                        path  "../state/nexthop-address";
+                    }
+                    description "This attribute returns the next-hop address value of FEC primary path.";
+                } // END of nexthop-address definition.
+
+                leaf nexthop-interface-name  {
+                    type  leafref {
+                        path  "../state/nexthop-interface-name";
+                    }
+                    description "This attribute returns the interface name of FEC primary path.";
+                } // END of nexthop-interface-name definition.
+
+                container state {
+                    config false;
+                    description
+                        "FEC primary path state";
+                    leaf nexthop-address  {
+                        type  inet:ip-address;
+                        description "This attribute returns the nexthop address value.";
+                    } // END of nexthop-address definition.
+
+                    leaf nexthop-interface-name  {
+                        type  string {
+                            length "1..1965";
+                            pattern "[^?' =,>|]+";
+                        }
+                        description "This attribute returns the interface name.";
+                    } // END of nexthop-interface-name definition.
+
+                } // END of state-container definition.
+                container backup-path {
+                    config false;
+                    description
+                        "Backup path for FEC primary path";
+                    container state {
+                        config false;
+                        description
+                            "State data for backup path for FEC primary path";
+                        leaf backup-address  {
+                            type  inet:ip-address;
+                            description "This attribute returns the backup address value.";
+                        } // END of backup-address definition.
+
+                        leaf backup-interface-name  {
+                            type  string {
+                                length "1..1965";
+                                pattern "[^?' =,>|]+";
+                            }
+                            description "This attribute returns the backup interface name.";
+                        } // END of backup-interface-name definition.
+
+                    } // END of state-container definition.
+                } // END of backup-path-container definition.
+            } // End of primary-path-list
+        } // END of primary-paths-container definition.
+    } // END of ldp-lfa-state definition.
+    grouping ldp-lfa-top {
+        description
+            "Grouping for LDP LFA state";
+        container lfa {
+            when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config/ipi-ldp:fast-reroute ";
+            if-feature feature-list:HAVE_LDP_LFA;
+            description
+                "State data for LDP LFA feature";
+            container fecs {
+                config false;
+                description
+                    "State data for FECs";
+
+                list fec {
+                    key "prefix-address";
+                    config false;
+                    description
+                        "State data list for FECs";
+                    leaf prefix-address  {
+                        type  leafref {
+                            path  "../state/prefix-address";
+                        }
+                        description "This attribute returns the prefix address value of FEC.";
+                    } // END of prefix-address definition.
+
+                    container state {
+                        config false;
+                        description
+                            "LDP LFA FEC state";
+                        leaf prefix-address  {
+                            type  inet:ip-address;
+                            description "This attribute returns the prefix address value of FEC.";
+                        } // END of prefix-address definition.
+
+                    } // END of state-container definition.
+                    uses ldp-lfa-state;
+                } // End of fec-list
+            } // END of fecs-container definition.
+        } // END of lfa-container definition.
+    } // END of ldp-lfa-top definition.
     grouping ldp-capability-config {
         description
             "Grouping for LDP capabilities configuration";
@@ -190,6 +311,19 @@ module ipi-ldp {
             description "This attribute is used to propagate the release of labels to
                         downstream routers";
         } // END of propagate-release definition.
+
+        leaf fast-reroute  {
+            if-feature feature-list:HAVE_LDP_LFA;
+            type  empty;
+            description "This attribute is used to enable the use by LDP of the LFA next-hop";
+        } // END of fast-reroute definition.
+
+        leaf auto-targeted-session  {
+            if-feature feature-list:HAVE_LDP_LFA;
+            type  empty;
+            description "This attribute is used to dynamically create TLDP session for LDP
+                        RLFA.";
+        } // END of auto-targeted-session definition.
 
     } // END of ldp-capability-config definition.
     grouping ldp-label-management-config {
@@ -462,7 +596,7 @@ module ipi-ldp {
 
         leaf password-type  {
             when " /ipi-ldp:ldp/ipi-ldp:peer-authentication-list/ipi-ldp:config/ipi-ldp:password ";
-            type  cml-data-types:cml_md5_encrypt_password_t;
+            type  ipi-ldp-types:cml_md5_encrypt_password_t;
             mandatory true;
             description "Use this attribute to configure password type for LDP peer
                         authentication.";
@@ -470,7 +604,7 @@ module ipi-ldp {
 
         leaf password  {
             when " /ipi-ldp:ldp/ipi-ldp:peer-authentication-list/ipi-ldp:config/ipi-ldp:password-type ";
-            type  cml-data-types:cml_md5_password_t {
+            type  ipi-ldp-types:ldp_md5_password_t {
                 length "1..1965";
             }
             mandatory true;
@@ -628,7 +762,7 @@ module ipi-ldp {
         leaf neighbor-liveness-time  {
             type  uint16 {
                  range "5..300"  {
-                    description "5..300:Set the hold time for a targeted LDP peer";
+                    description "5..300:Set the neighbor-liveness timer";
                  }
             }
             units "seconds";
@@ -843,6 +977,7 @@ module ipi-ldp {
                 uses ldp-inter-chassis-communication-protocol-config;
             } // END of state-container definition.
         } // END of iccp-container definition.
+        uses ldp-lfa-top;
         uses ldp-transport-address-top;
         uses ldp-authentication-top;
         uses ldp-label-mapping-access-control-top;

@@ -21,12 +21,12 @@ submodule ipi-vrrp-common {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ietf-yang-types {
@@ -36,7 +36,7 @@ submodule ipi-vrrp-common {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-vrrp-types {
@@ -56,6 +56,11 @@ submodule ipi-vrrp-common {
     description
         "Virtual Router Redundancy Protocol Common Groups";
 
+
+    revision "2021-12-01" {
+        description "Added support for object tracking";
+        reference " 0.2.3.";
+    }
 
     revision "2021-09-08" {
         description "Add attributes wrong-authentication-password and refresh-rate-interval";
@@ -480,6 +485,79 @@ submodule ipi-vrrp-common {
             } // END of state-container definition.
         } // END of reasons-container definition.
     } // END of vrrp-interface-state-reasons-top definition.
+    grouping vrrp-object-tracking-config {
+        description
+            "Grouping for object tracking attributes";
+        leaf tracking-id  {
+            type  uint16 {
+                 range "1..500"  {
+                    description "1..500:Object identifier";
+                 }
+            }
+            description "Use this attribute to configure a VRRP routing process for an object
+                        tracking.";
+        } // END of tracking-id definition.
+
+        leaf decrement  {
+            type  uint8 {
+                 range "1..253"  {
+                    description "1..253:Priority decrement for a VRRP routing process for an interface";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to configure the priority decrement for a VRRP
+                        routing process for an object.";
+        } // END of decrement definition.
+
+    } // END of vrrp-object-tracking-config definition.
+    grouping vrrp-object-tracking-state {
+        description
+            "Grouping for object tracking attributes";
+        leaf object-status  {
+            type  ipi-vrrp-types:vrrp_iface_status_t;
+            description "Attribute to indicate the object status.";
+        } // END of object-status definition.
+
+        leaf object-down-events  {
+            type  uint32;
+            description "Attribute to indicate the object down event counter.";
+        } // END of object-down-events definition.
+
+    } // END of vrrp-object-tracking-state definition.
+    grouping vrrp-object-tracking-top {
+        description
+            "Grouping for VRRP object tracking";
+        container objects-tracking {
+            if-feature feature-list:HAVE_OBJ_TRACKING;
+            description
+                "VRRP object tracking container";
+
+            list object-tracking {
+                key "tracking-id";
+                description
+                    "VRRP object tracking List";
+                leaf tracking-id  {
+                    type  leafref {
+                        path  "../config/tracking-id";
+                    }
+                    description "Use this command to enable the VRRP object tracking feature.";
+                } // END of tracking-id definition.
+
+                container config {
+                    description
+                        "Virtual Router Redundancy Protocol Object tracking";
+                    uses vrrp-object-tracking-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Virtual Router Redundancy Protocol object tracking state";
+                    uses vrrp-object-tracking-config;
+                    uses vrrp-object-tracking-state;
+                } // END of state-container definition.
+            } // End of object-tracking-list
+        } // END of objects-tracking-container definition.
+    } // END of vrrp-object-tracking-top definition.
 
 
 }

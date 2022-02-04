@@ -21,17 +21,17 @@ submodule ipi-bgp-common {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-17;
     }
 
     import ietf-yang-types {
@@ -56,6 +56,21 @@ submodule ipi-bgp-common {
     description
         "Datamodel for bgp network list";
 
+
+    revision "2022-01-17" {
+        description "Modified data type";
+        reference " 0.8.1.";
+    }
+
+    revision "2022-01-07" {
+        description "Modified Data type";
+        reference " 0.8.0.";
+    }
+
+    revision "2021-11-16" {
+        description "SKU compilation error fixes";
+        reference " 0.7.5.";
+    }
 
     revision "2021-09-20" {
         description "Spelling has been corrected for an attribute";
@@ -260,7 +275,7 @@ submodule ipi-bgp-common {
         } // END of ip-routing-table definition.
 
         leaf-list advertised-non-peer-group-address  {
-            type  cml-data-types:cml_hostname_t;
+            type  ipi-bgp-types:bgp_hostname_t;
             config false;
             description "Advertised non peer-group peers.";
         } // END of advertised-non-peer-group-address definition.
@@ -295,7 +310,7 @@ submodule ipi-bgp-common {
         description
             "Operational state data for nexthop";
         leaf next-hop-address  {
-            type  cml-data-types:cml_hostname_t;
+            type  ipi-bgp-types:bgp_hostname_t;
             config false;
             description "NextHop Address";
         } // END of next-hop-address definition.
@@ -376,25 +391,25 @@ submodule ipi-bgp-common {
         } // END of aggregate-as-route definition.
 
         leaf aggregator-address-route  {
-            type  cml-data-types:cml_hostname_t;
+            type  ipi-bgp-types:bgp_hostname_t;
             config false;
             description "Aggregated by address";
         } // END of aggregator-address-route definition.
 
         leaf network-remote-address-route  {
-            type  cml-data-types:cml_hostname_t;
+            type  ipi-bgp-types:bgp_hostname_t;
             config false;
             description "Remote id";
         } // END of network-remote-address-route definition.
 
         leaf originator-id-route  {
-            type  cml-data-types:cml_hostname_t;
+            type  ipi-bgp-types:bgp_hostname_t;
             config false;
             description "Originator id";
         } // END of originator-id-route definition.
 
         leaf route-peer-address  {
-            type  cml-data-types:cml_hostname_t;
+            type  ipi-bgp-types:bgp_hostname_t;
             config false;
             description "Address of the peer";
         } // END of route-peer-address definition.
@@ -421,7 +436,7 @@ submodule ipi-bgp-common {
         } // END of route-community-string definition.
 
         leaf-list cluster-list-route  {
-            type  cml-data-types:cml_hostname_t;
+            type  ipi-bgp-types:bgp_hostname_t;
             config false;
             description "Cluster list";
         } // END of cluster-list-route definition.
@@ -1024,7 +1039,7 @@ submodule ipi-bgp-common {
             "Configuration parameters BGP address family VRF password";
         leaf password  {
             if-feature feature-list:HAVE_TCP_MD5SIG;
-            type  cml-data-types:cml_md5_password_t {
+            type  ipi-bgp-types:bgp_md5_password_t {
                 length "1..1965";
             }
             description "Enable authentication-key on this interface to be used in message
@@ -1108,6 +1123,7 @@ submodule ipi-bgp-common {
         description
             "Grouping for attributes related to Table map";
         container table-map {
+            if-feature feature-list:HAVE_BGP_TABLE_MAP;
             description
                 "Container for Attributes related to Table map";
             container config {
@@ -1403,13 +1419,13 @@ submodule ipi-bgp-common {
         } // END of remote-port definition.
 
         leaf remote-address  {
-            type  cml-data-types:cml_hostname_t;
+            type  ipi-bgp-types:bgp_hostname_t;
             config false;
             description "Peer remote address";
         } // END of remote-address definition.
 
         leaf local-host  {
-            type  cml-data-types:cml_hostname_t;
+            type  ipi-bgp-types:bgp_hostname_t;
             config false;
             description "Peer Local host";
         } // END of local-host definition.
@@ -2114,12 +2130,14 @@ submodule ipi-bgp-common {
 
         leaf enable-peer-bfd  {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
+            if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer";
         } // END of enable-peer-bfd definition.
 
         leaf enable-peer-bfd-multihop  {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/enable-peer-bfd ";
+            if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer with
                         multihop";
