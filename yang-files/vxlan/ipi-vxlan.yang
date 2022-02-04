@@ -23,7 +23,7 @@ module ipi-vxlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ietf-inet-types {
@@ -33,12 +33,12 @@ module ipi-vxlan {
 
     import ipi-vxlan-types {
         prefix ipi-vxlan-types;
-        revision-date 2021-09-03;
+        revision-date 2021-12-28;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-vrf {
@@ -48,12 +48,12 @@ module ipi-vxlan {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2021-07-29;
+        revision-date 2022-01-13;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ietf-yang-types {
@@ -63,7 +63,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -78,6 +78,31 @@ module ipi-vxlan {
     description
         "Datamodel for VxLAN protocol";
 
+
+    revision "2021-12-28" {
+        description "VxLAN Xconnect (ELINE) get-api update";
+        reference " 0.3.9.";
+    }
+
+    revision "2021-12-27" {
+        description "VxLAN Xconnect inner-vid-disabled option add";
+        reference " 0.3.8.";
+    }
+
+    revision "2021-11-29" {
+        description "VxLAN Xconnect (ELINE) New feature";
+        reference " 0.3.7.";
+    }
+
+    revision "2021-10-14" {
+        description "Modified the access interface grouping as separted for arp/nd cache inorder to max-cache-disable-count dependency needed only for tagged/stacked incase of Non-Dune";
+        reference " 0.3.6.";
+    }
+
+    revision "2021-09-29" {
+        description "changed ordering of mac-ageing timer and arp-nd refresh timer";
+        reference " 0.3.5.";
+    }
 
     revision "2021-09-15" {
         description "Added dependency for secondary ip address config and implicit_delete for parent container";
@@ -129,6 +154,7 @@ module ipi-vxlan {
             "Grouping for global vxlan configuration";
         leaf enable-vxlan  {
             type  empty;
+            mandatory true;
             description "Use this attribute to enable VxLAN module. Without this attribute
                         vxlan functionality can not be achieved";
         } // END of enable-vxlan definition.
@@ -138,18 +164,6 @@ module ipi-vxlan {
             description "Use this attribute to set source vtep global ip address. This will be
                         treated at vxlan tunnel source address";
         } // END of vtep-ipv4 definition.
-
-        leaf arp-nd-refresh-timer  {
-            if-feature feature-list:HAVE_BGP_EVPN;
-            type  uint32 {
-                 range "3..190"  {
-                    description "3..190:refresh timer value in seconds (age-out is refresh time * 3)";
-                 }
-            }
-            units "seconds";
-            description "Use this attribute to configure aging out the arp-cache and nd-cache
-                        entries for given time multiplied by 3 in secs.";
-        } // END of arp-nd-refresh-timer definition.
 
         leaf mac-ageing-timer  {
             type  uint32 {
@@ -162,6 +176,18 @@ module ipi-vxlan {
             description "Use this attribute to set the time till a learned mac address will
                         persist after last update";
         } // END of mac-ageing-timer definition.
+
+        leaf arp-nd-refresh-timer  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  uint32 {
+                 range "3..190"  {
+                    description "3..190:refresh timer value in seconds (age-out is refresh time * 3)";
+                 }
+            }
+            units "seconds";
+            description "Use this attribute to configure aging out the arp-cache and nd-cache
+                        entries for given time multiplied by 3 in secs.";
+        } // END of arp-nd-refresh-timer definition.
 
         leaf maximum-cache-disable-count  {
             if-feature feature-list:HAVE_BGP_EVPN;
@@ -219,9 +245,23 @@ module ipi-vxlan {
 
         leaf tenant-type  {
             type  ipi-vxlan-types:vxlan_tenant_type_t;
-            mandatory true;
             description "Use this attribute to create tenant with multicast tunnel";
         } // END of tenant-type definition.
+
+        leaf xconnect-identifier  {
+            if-feature feature-list:HAVE_EVPN_VPWS;
+            type  uint32 {
+                 range "1..16777215"  {
+                    description "1..16777215:Target-EVID";
+                 }
+            }
+            description "Use this attribute to create Xconnect tenant";
+        } // END of xconnect-identifier definition.
+
+        leaf tenant-xconnect-type  {
+            type  ipi-vxlan-types:vxlan_tenant_xconnect_type_t;
+            description "Use this attribute to create tenant with different type of tunnel";
+        } // END of tenant-xconnect-type definition.
 
     } // END of vxlan-tenant-global-config definition.
     grouping vxlan-tenant-config {
@@ -302,6 +342,67 @@ module ipi-vxlan {
         } // END of mac-ipv6 definition.
 
     } // END of vxlan-tenant-route-count-state definition.
+    grouping vxlan-tenant-xconnect-mapping-state {
+        description
+            "Grouping for vxlan xconnect mapping";
+        leaf source-tenant-description  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to show name of source tenant";
+        } // END of source-tenant-description definition.
+
+        leaf destination-vpws-identifier  {
+            type  uint32;
+            description "Use this attribute to show the remote vpws id";
+        } // END of destination-vpws-identifier definition.
+
+        leaf vlan-id  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "vlan id";
+        } // END of vlan-id definition.
+
+        leaf inner-vlan-id  {
+            type  uint32;
+            description "Inner vlan Id";
+        } // END of inner-vlan-id definition.
+
+        leaf source-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to show source connection of tunnel";
+        } // END of source-interface definition.
+
+        leaf destination-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to show destination connection of tunnel";
+        } // END of destination-interface definition.
+
+        leaf vtep-ip-address  {
+            type  inet:ipv4-address;
+            description "Use this attribute to show tunnel ip address";
+        } // END of vtep-ip-address definition.
+
+        leaf connection-type  {
+            type  ipi-vxlan-types:vxlan_tenant_xconnect_connection_type_t;
+            description "Use this attribute to show the type of network connection";
+        } // END of connection-type definition.
+
+        leaf connection-status  {
+            type  ipi-vxlan-types:vxlan_tenant_xconnect_connection_status_t;
+            description "Use this attribute to show status of network connection";
+        } // END of connection-status definition.
+
+    } // END of vxlan-tenant-xconnect-mapping-state definition.
     grouping vxlan-static-tenant-config {
         description
             "Grouping for vxlan-static tenant configuration";
@@ -628,43 +729,6 @@ module ipi-vxlan {
                         traffic and to enter NVO access interface mode";
         } // END of interface-name definition.
 
-        leaf arp-cache-disable  {
-            if-feature feature-list:HAVE_BGP_EVPN;
-            type  empty;
-            description "Use this attribute to disable the ARP cache for MAC/IP. When the ARP
-                        cache is disabled on a VxLAN access port, ZebOS-XP does not reply to
-                        any ARP arriving on this port from the cache. ZebOS-XP withdraws all
-                        MAC/IPs configured/learned on this access port and removes the MAC/IP
-                        entry for this access port from the local ARP cache. ZebOS-XP also
-                        makes sure that on withdrawing the MAC/IP route, the MAC does not
-                        become unknown. If all routes for this MAC are being withdrawn because
-                        of this command, then ZebOS-XP advertises a MAC-only route. This is
-                        done so that the MAC does not become unknown and only the cache
-                        functionality becomes disabled.See also nvo vxlan max-cache-disable.
-                        Use the no form of this command to enable ARP cache for MAC/IP. Note:
-                        On enabling the cache, an IP will be in conflict, then the cache
-                        enable will fail. The conflict has to be manually removed and then the
-                        cache enabled.";
-        } // END of arp-cache-disable definition.
-
-        leaf nd-cache-disable  {
-            if-feature feature-list:HAVE_BGP_EVPN;
-            type  empty;
-            description "Use this attribute to disable ND cache for MAC/IPv6. When the ARP
-                        cache is disabled on a VxLAN access port, ZebOS-XP does not reply to
-                        any ARP arriving on this port from the cache. ZebOS-XP withdraws all
-                        MAC/IPs configured/learned on this access port and removes the MAC/IP
-                        entry for this access port from the local ARP cache. ZebOS-XP also
-                        makes sure that on withdrawing the MAC/IP route, the MAC does not
-                        become unknown. If all routes for this MAC are being withdrawn because
-                        of this command, then ZebOS-XP advertises a MAC-only route. This is
-                        done so that the MAC does not become unknown and only the cache
-                        functionality becomes disabled. Use the no form of this command to
-                        enable ND cache for MAC/IPv6. Note: On enabling the cache, an IP will
-                        be in conflict, then the cache enable will fail. The conflict has to
-                        be manually removed and then the cache enabled.";
-        } // END of nd-cache-disable definition.
-
         leaf vxlan-identifier  {
             type  leafref {
                 path  "/vxlan/vxlan-tenant/config/vxlan-identifier";
@@ -739,6 +803,90 @@ module ipi-vxlan {
         } // END of mac-address definition.
 
     } // END of vxlan-access-interface-config definition.
+    grouping vxlan-untagged-access-interface-cache-config {
+        description
+            "Grouping for vxlan untagged access interface arp/nd cache
+                        configuration";
+        leaf arp-cache-disable  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  empty;
+            description "Use this attribute to disable the ARP cache for MAC/IP. When the ARP
+                        cache is disabled on a VxLAN access port, ZebOS-XP does not reply to
+                        any ARP arriving on this port from the cache. ZebOS-XP withdraws all
+                        MAC/IPs configured/learned on this access port and removes the MAC/IP
+                        entry for this access port from the local ARP cache. ZebOS-XP also
+                        makes sure that on withdrawing the MAC/IP route, the MAC does not
+                        become unknown. If all routes for this MAC are being withdrawn because
+                        of this command, then ZebOS-XP advertises a MAC-only route. This is
+                        done so that the MAC does not become unknown and only the cache
+                        functionality becomes disabled.See also nvo vxlan max-cache-disable.
+                        Use the no form of this command to enable ARP cache for MAC/IP. Note:
+                        On enabling the cache, an IP will be in conflict, then the cache
+                        enable will fail. The conflict has to be manually removed and then the
+                        cache enabled.";
+        } // END of arp-cache-disable definition.
+
+        leaf nd-cache-disable  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  empty;
+            description "Use this attribute to disable ND cache for MAC/IPv6. When the ARP
+                        cache is disabled on a VxLAN access port, ZebOS-XP does not reply to
+                        any ARP arriving on this port from the cache. ZebOS-XP withdraws all
+                        MAC/IPs configured/learned on this access port and removes the MAC/IP
+                        entry for this access port from the local ARP cache. ZebOS-XP also
+                        makes sure that on withdrawing the MAC/IP route, the MAC does not
+                        become unknown. If all routes for this MAC are being withdrawn because
+                        of this command, then ZebOS-XP advertises a MAC-only route. This is
+                        done so that the MAC does not become unknown and only the cache
+                        functionality becomes disabled. Use the no form of this command to
+                        enable ND cache for MAC/IPv6. Note: On enabling the cache, an IP will
+                        be in conflict, then the cache enable will fail. The conflict has to
+                        be manually removed and then the cache enabled.";
+        } // END of nd-cache-disable definition.
+
+    } // END of vxlan-untagged-access-interface-cache-config definition.
+    grouping vxlan-access-interface-cache-config {
+        description
+            "Grouping for vxlan tagged and stacked access interface arp/nd cache
+                        configuration";
+        leaf arp-cache-disable  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  empty;
+            description "Use this attribute to disable the ARP cache for MAC/IP. When the ARP
+                        cache is disabled on a VxLAN access port, ZebOS-XP does not reply to
+                        any ARP arriving on this port from the cache. ZebOS-XP withdraws all
+                        MAC/IPs configured/learned on this access port and removes the MAC/IP
+                        entry for this access port from the local ARP cache. ZebOS-XP also
+                        makes sure that on withdrawing the MAC/IP route, the MAC does not
+                        become unknown. If all routes for this MAC are being withdrawn because
+                        of this command, then ZebOS-XP advertises a MAC-only route. This is
+                        done so that the MAC does not become unknown and only the cache
+                        functionality becomes disabled.See also nvo vxlan max-cache-disable.
+                        Use the no form of this command to enable ARP cache for MAC/IP. Note:
+                        On enabling the cache, an IP will be in conflict, then the cache
+                        enable will fail. The conflict has to be manually removed and then the
+                        cache enabled.";
+        } // END of arp-cache-disable definition.
+
+        leaf nd-cache-disable  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  empty;
+            description "Use this attribute to disable ND cache for MAC/IPv6. When the ARP
+                        cache is disabled on a VxLAN access port, ZebOS-XP does not reply to
+                        any ARP arriving on this port from the cache. ZebOS-XP withdraws all
+                        MAC/IPs configured/learned on this access port and removes the MAC/IP
+                        entry for this access port from the local ARP cache. ZebOS-XP also
+                        makes sure that on withdrawing the MAC/IP route, the MAC does not
+                        become unknown. If all routes for this MAC are being withdrawn because
+                        of this command, then ZebOS-XP advertises a MAC-only route. This is
+                        done so that the MAC does not become unknown and only the cache
+                        functionality becomes disabled. Use the no form of this command to
+                        enable ND cache for MAC/IPv6. Note: On enabling the cache, an IP will
+                        be in conflict, then the cache enable will fail. The conflict has to
+                        be manually removed and then the cache enabled.";
+        } // END of nd-cache-disable definition.
+
+    } // END of vxlan-access-interface-cache-config definition.
     grouping vxlan-access-mac-ipv4-config {
         description
             "Grouping for vxlan access interface configuration";
@@ -955,7 +1103,7 @@ module ipi-vxlan {
             "Top-Level Grouping for VxLAN Tenant";
 
         list vxlan-tenant {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config ";
             key "vxlan-identifier";
             description
                 "Tenant related configurations";
@@ -990,6 +1138,18 @@ module ipi-vxlan {
                     uses vxlan-tenant-route-count-state;
                 } // END of state-container definition.
             } // END of route-count-info-container definition.
+            container xconnect-mapping-info {
+                if-feature feature-list:HAVE_EVPN_VPWS;
+                config false;
+                description
+                    "This holds data for VXLAN xconnect mapping summary";
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses vxlan-tenant-xconnect-mapping-state;
+                } // END of state-container definition.
+            } // END of xconnect-mapping-info-container definition.
             uses vxlan-static-tenant-list;
             uses vxlan-tenant-arp-cache-list;
             uses vxlan-tenant-nd-cache-list;
@@ -1204,7 +1364,7 @@ module ipi-vxlan {
             "Top-Level Grouping for VxLAN access interfaces";
 
         list untagged-access-interface {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             key "interface-name";
             description
                 "untagged access port related configurations";
@@ -1221,6 +1381,7 @@ module ipi-vxlan {
                     "Configuration data";
                 uses vxlan-access-interface-config;
                 uses vxlan-access-port-default-config;
+                uses vxlan-untagged-access-interface-cache-config;
             } // END of config-container definition.
             container state {
                 config false;
@@ -1228,6 +1389,7 @@ module ipi-vxlan {
                     "Operational state data";
                 uses vxlan-access-interface-config;
                 uses vxlan-access-port-default-config;
+                uses vxlan-untagged-access-interface-cache-config;
             } // END of state-container definition.
             uses vxlan-access-interface-port-only-mac-ipv4-list;
             uses vxlan-access-interface-port-only-mac-ipv6-list;
@@ -1235,7 +1397,7 @@ module ipi-vxlan {
         } // End of untagged-access-interface-list
 
         list tagged-access-interface {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             key "interface-name vlan-identifier";
             description
                 "single tagged vxlan access-port related configurations";
@@ -1258,6 +1420,7 @@ module ipi-vxlan {
                 description
                     "Configuration data";
                 uses vxlan-access-encapsulation-config;
+                uses vxlan-access-interface-cache-config;
                 uses vxlan-access-interface-config;
                 uses vxlan-access-port-vlan-config;
             } // END of config-container definition.
@@ -1266,6 +1429,7 @@ module ipi-vxlan {
                 description
                     "Operational state data";
                 uses vxlan-access-encapsulation-config;
+                uses vxlan-access-interface-cache-config;
                 uses vxlan-access-interface-config;
                 uses vxlan-access-port-vlan-config;
             } // END of state-container definition.
@@ -1275,7 +1439,7 @@ module ipi-vxlan {
         } // End of tagged-access-interface-list
 
         list double-tagged-access-interface {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             key "interface-name vlan-identifier inner-vlan-identifier";
             description
                 "double tagged access port related configurations";
@@ -1305,6 +1469,7 @@ module ipi-vxlan {
                 description
                     "Configuration data";
                 uses vxlan-access-encapsulation-config;
+                uses vxlan-access-interface-cache-config;
                 uses vxlan-access-interface-config;
                 uses vxlan-access-port-stacked-vlan-config;
             } // END of config-container definition.
@@ -1313,6 +1478,7 @@ module ipi-vxlan {
                 description
                     "Operational state data";
                 uses vxlan-access-encapsulation-config;
+                uses vxlan-access-interface-cache-config;
                 uses vxlan-access-interface-config;
                 uses vxlan-access-port-stacked-vlan-config;
             } // END of state-container definition.
@@ -1612,6 +1778,7 @@ module ipi-vxlan {
             description
                 "Configuration data for VxLAN global capability configuration";
             container config {
+                presence "Enable EVPN-VxLAN";
                 description
                     "Configuration data";
                 uses vxlan-global-config;
@@ -1684,7 +1851,7 @@ module ipi-vxlan {
                 description "interface name";
             }
             leaf vlan-identifier  {
-                type uint32;
+                type string;
                 mandatory true;
                 description "S-VLAN on which interface is mapped";
             }

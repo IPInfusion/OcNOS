@@ -21,29 +21,44 @@ module ipi-xstp {
 
     prefix "ipi-xstp";
 
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
+    }
+
     import ipi-xstp-types {
         prefix ipi-xstp-types;
-        revision-date 2021-09-03;
+        revision-date 2021-12-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2021-09-15;
+        revision-date 2022-01-13;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-vlan {
         prefix ipi-vlan;
-        revision-date 2021-09-18;
+        revision-date 2022-01-18;
+    }
+
+    import ipi-port-vlan {
+        prefix ipi-port-vlan;
+        revision-date 2022-01-13;
+    }
+
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -58,6 +73,16 @@ module ipi-xstp {
     description
         "IPI MSTP";
 
+
+    revision "2021-12-01" {
+        description "Added support for RPVST+ and XSTP operational data";
+        reference " 0.4.0.";
+    }
+
+    revision "2021-09-28" {
+        description "Added length constraint for mstp region-name";
+        reference " 0.3.0.";
+    }
 
     revision "2021-09-21" {
         description "Added dependency to delete interface configuration for mstp when bridge-group is deleted";
@@ -107,7 +132,7 @@ module ipi-xstp {
             "Grouping for MSTP configuration";
         leaf region-name  {
             type  string {
-                length "1..1965";
+                length "1..32";
                 pattern "[^?' =,>|]+";
             }
             default "Default";
@@ -385,6 +410,10 @@ module ipi-xstp {
             description "Use this attribute to add an MST instance to a bridge";
         } // END of instance-id definition.
 
+    } // END of mstp-if-restricted-config definition.
+    grouping xstp-if-restricted-common-config {
+        description
+            "Grouping for xstp instance restricted configuration";
         leaf enable-instance-restricted-role  {
             type  empty;
             description "Use this attribute to set the restricted role value for the instance
@@ -397,7 +426,23 @@ module ipi-xstp {
                         TRUE";
         } // END of enable-instance-restricted-tcn definition.
 
-    } // END of mstp-if-restricted-config definition.
+    } // END of xstp-if-restricted-common-config definition.
+    grouping rpvst-if-restricted-config {
+        description
+            "Grouping for xstp instance restricted configuration";
+        leaf enable-restricted-role  {
+            type  empty;
+            description "Use this attribute to set the restricted role value for the instance
+                        to TRUE";
+        } // END of enable-restricted-role definition.
+
+        leaf enable-restricted-tcn  {
+            type  empty;
+            description "Use this attribute to set the restricted TCN value for the instance to
+                        TRUE";
+        } // END of enable-restricted-tcn definition.
+
+    } // END of rpvst-if-restricted-config definition.
     grouping mstp-instance-interface-config {
         description
             "Grouping for common mstp interface configuration";
@@ -421,7 +466,7 @@ module ipi-xstp {
             type  int16 {
                  range "0..240"  {
                     description "0..240:port priority in increments of 16 (lower priority indicates
-                            greater likelihood of becoming root";
+                            greater likelihood of becoming root)";
                  }
             }
             default "128";
@@ -595,6 +640,615 @@ module ipi-xstp {
         } // END of terminal-debug-status definition.
 
     } // END of mstp-terminal-debug-state definition.
+    grouping rpvst-vlan-config {
+        description
+            "Grouping for Rapid per VLAN Spanning Tree VLAN configuration";
+        leaf vlan-id  {
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094:VLAN Id";
+                 }
+            }
+            description "Vlan ID";
+        } // END of vlan-id definition.
+
+    } // END of rpvst-vlan-config definition.
+    grouping xstp-common-config {
+        description
+            "Grouping for XSTP common configuration";
+        leaf port-priority  {
+            type  uint8 {
+                 range "0..240"  {
+                    description "0..240:port priority in increments of 16 (lower priority indicates
+                            greater likelihood of becoming root)";
+                 }
+            }
+            default "128";
+            description "Use this attribute to set the port instance priority.";
+        } // END of port-priority definition.
+
+        leaf path-cost  {
+            type  uint32 {
+                 range "1..200000000"  {
+                    description "1..200000000:path cost in range  1-200000000 (lower path cost
+                            indicates greater likelihood of becoming root)";
+                 }
+            }
+            default "1";
+            description "Use this attribute to set the bridge path cost.";
+        } // END of path-cost definition.
+
+    } // END of xstp-common-config definition.
+    grouping rpvst-global-config {
+        description
+            "Grouping for RPVST Global configuration";
+        leaf bridge-priority  {
+            type  uint32 {
+                 range "0..61440"  {
+                    description "0..61440:instance priority";
+                 }
+            }
+            default "32768";
+            description "Use this attribute to set the bridge instance priority.";
+        } // END of bridge-priority definition.
+
+    } // END of rpvst-global-config definition.
+    grouping customer-st-config {
+        description
+            "Grouping for Customer Spanning Tree configuration";
+        leaf bridge-priority  {
+            type  uint16 {
+                 range "0..61440"  {
+                    description "0..61440:bridge priority in increments of 4096 (Lower priority
+                            indicates greater likelihood of becoming root)";
+                 }
+            }
+            default "61440";
+            description "Use this attribute to set the bridge priority for the common instance.
+                        Using a lower priority indicates a greater likelihood of the bridge
+                        becoming root.
+                        The priority values can be set only in increments of 4096.";
+        } // END of bridge-priority definition.
+
+        leaf max-age  {
+            type  uint8 {
+                 range "6..40"  {
+                    description "6..40:seconds (6-40) - Maximum time to listen for root bridge in
+                            seconds";
+                 }
+            }
+            units "seconds";
+            default "20";
+            description "Use this attribute to set the maximum age for a bridge. This value is
+                        used by all
+                        instances. Maximum age is the maximum time in seconds for which (if a
+                        bridge is the root bridge)
+                        a message is considered valid. This prevents the frames from looping
+                        indefinitely. The value of
+                        maximum age should be greater than twice the value of hello time plus
+                        1, but less than twice the
+                        value of forward delay minus 1. The allowable range for max-age is
+                        6-40 seconds. Configure this
+                        value sufficiently high, so that a frame generated by root can be
+                        propagated to the leaf nodes
+                        without exceeding the maximum age.";
+        } // END of max-age definition.
+
+        leaf hello-time  {
+            type  uint8 {
+                 range "1..10"  {
+                    description "1..10:seconds (1-10) - Hello BPDU interval";
+                 }
+            }
+            units "seconds";
+            default "2";
+            description "Use this attribute to set the hello-time, the time in seconds after
+                        which (if this
+                        bridge is the root bridge) all the bridges.in a bridged LAN exchange
+                        Bridge Protocol Data Units
+                        (BPDUs). A very low value of this parameter leads to excessive traffic
+                        on the network, while a
+                        higher value delays the detection of topology change.This value is
+                        used by all instances. Configure
+                        the bridge instance name before using this attribute. The allowable
+                        range of values is 1-10 seconds.
+                        However, make sure that the value of hello time is always greater than
+                        the value of hold time (2
+                        seconds by default)";
+        } // END of hello-time definition.
+
+        leaf forward-delay  {
+            type  uint8 {
+                 range "4..30"  {
+                    description "4..30:forward delay time in seconds";
+                 }
+            }
+            units "seconds";
+            default "15";
+            description "Use this attribute to set the time (in seconds) after which (if this
+                        bridge is the
+                        root bridge) each port changes states to learning and forwarding. This
+                        value is used by all
+                        instances";
+        } // END of forward-delay definition.
+
+        leaf transmit-hold-count  {
+            type  uint8 {
+                 range "1..10"  {
+                    description "1..10:range of the transmitholdcount";
+                 }
+            }
+            default "6";
+            description "Use this attribute to set the maximum number of transmissions of BPDUs
+                        by the
+                        transmit state machine";
+        } // END of transmit-hold-count definition.
+
+    } // END of customer-st-config definition.
+    grouping mstp-svlan-config {
+        description
+            "Grouping for Provider Edge SVLAN configuration";
+        leaf svlan-id  {
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094:SVLAN ID Of Provider Edge Port";
+                 }
+            }
+            description "SVLAN ID Of Provider Edge Port";
+        } // END of svlan-id definition.
+
+    } // END of mstp-svlan-config definition.
+    grouping mstp-interface-state {
+        description
+            "Grouping for MSTP Interface State Attributes";
+        leaf link-type  {
+            type  ipi-xstp-types:xstp_link_type_t;
+            description "This attribute describes link type of interface";
+        } // END of link-type definition.
+
+        leaf bpdu-filter  {
+            type  ipi-xstp-types:xstp_bpdu_t;
+            description "This attribute describes the status of BPDU Filter";
+        } // END of bpdu-filter definition.
+
+        leaf bpdu-guard  {
+            type  ipi-xstp-types:xstp_bpdu_t;
+            description "This attribute describes the status of BPDU Guard";
+        } // END of bpdu-guard definition.
+
+        leaf root-guard  {
+            type  empty;
+            description "This attribute describes whether root guard is enabled";
+        } // END of root-guard definition.
+
+        leaf cist-path-cost  {
+            type  uint32;
+            description "This attribute describes the CIST path cost";
+        } // END of cist-path-cost definition.
+
+        leaf cist-priority  {
+            type  uint32;
+            description "This attribute describes the CIST priority";
+        } // END of cist-priority definition.
+
+        leaf cist-port-id  {
+            type  uint16;
+            description "This attribute describes the CIST port ID";
+        } // END of cist-port-id definition.
+
+        leaf cist-port-number  {
+            type  uint16;
+            description "This attribute describes CIST port number";
+        } // END of cist-port-number definition.
+
+        leaf cist-root  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute describes the CIST Root";
+        } // END of cist-root definition.
+
+        leaf cist-regional-root  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute describes the CIST Regional Root";
+        } // END of cist-regional-root definition.
+
+        leaf cist-designated-bridge  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute describes the CIST designated bridge";
+        } // END of cist-designated-bridge definition.
+
+        leaf cist-designated-root-path-cost  {
+            type  uint32;
+            description "This attribute describes the CIST designated root path cost";
+        } // END of cist-designated-root-path-cost definition.
+
+        leaf cist-designated-external-root-path-cost  {
+            type  uint32;
+            description "This attribute describes the CIST designated external root path cost";
+        } // END of cist-designated-external-root-path-cost definition.
+
+        leaf cist-designated-internal-root-path-cost  {
+            type  uint32;
+            description "This attribute describes the CIST designated internal root path cost";
+        } // END of cist-designated-internal-root-path-cost definition.
+
+        leaf cist-designated-port-id  {
+            type  uint32;
+            description "This attribute describes CIST designated port id";
+        } // END of cist-designated-port-id definition.
+
+        leaf cist-hello-time-remaining  {
+            type  uint32;
+            units "seconds";
+            description "This attribute describes the CIST hello time remaining";
+        } // END of cist-hello-time-remaining definition.
+
+        leaf cist-forward-time-remaining  {
+            type  uint32;
+            units "seconds";
+            description "This attribute describes the CIST forward time remaining";
+        } // END of cist-forward-time-remaining definition.
+
+        leaf cist-message-age-time-remaining  {
+            type  uint32;
+            units "seconds";
+            description "This attribute describes the CIST message age time remaining";
+        } // END of cist-message-age-time-remaining definition.
+
+        leaf cist-topology-change-time-remaining  {
+            type  uint32;
+            units "seconds";
+            description "This attribute describes the CIST topology change time remaining";
+        } // END of cist-topology-change-time-remaining definition.
+
+        leaf cist-port-state  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute describes the CIST port state. The possible values of
+                        this attribute are  Disabled, Blocked, Listening, Learning,
+                        Forwarding,
+                        Discard/Blocking, Error, Discarding, and root-inconsistent.";
+        } // END of cist-port-state definition.
+
+        leaf cist-port-role  {
+            type  ipi-xstp-types:mstp_port_role_t;
+            description "This attribute describes the CIST port role";
+        } // END of cist-port-role definition.
+
+        leaf cist-forward-transitions  {
+            type  uint32;
+            description "This attribute describes the CIST forward transitions";
+        } // END of cist-forward-transitions definition.
+
+        leaf service-vlan-id  {
+            if-feature feature-list:HAVE_PROVIDER_BRIDGE;
+            type  uint16;
+            description "This attribute describes the service vlan id used";
+        } // END of service-vlan-id definition.
+
+    } // END of mstp-interface-state definition.
+    grouping mstp-interface-state-counters {
+        description
+            "Grouping for MSTP Interface State Counter Attributes";
+        leaf config-bpdu-sent  {
+            type  uint32;
+            description "This attribute shows the number of config BPDU sent";
+        } // END of config-bpdu-sent definition.
+
+        leaf config-bpdu-received  {
+            type  uint32;
+            description "This attribute shows the number of config BPDU received";
+        } // END of config-bpdu-received definition.
+
+        leaf tcn-bpdu-sent  {
+            type  uint32;
+            description "This attribute shows the number of TCN BPDU sent";
+        } // END of tcn-bpdu-sent definition.
+
+        leaf tcn-bpdu-received  {
+            type  uint32;
+            description "This attribute shows the number of TCN BPDU received";
+        } // END of tcn-bpdu-received definition.
+
+        leaf source-mac-count  {
+            type  uint32;
+            description "This attribute shows the number of src MAC";
+        } // END of source-mac-count definition.
+
+        leaf similar-bpdu-count  {
+            type  uint32;
+            description "This attribute shows the number of similar bpdu";
+        } // END of similar-bpdu-count definition.
+
+        leaf total-src-mac-count  {
+            type  uint32;
+            description "This attribute shows the total number of src MAC";
+        } // END of total-src-mac-count definition.
+
+    } // END of mstp-interface-state-counters definition.
+    grouping mstp-bridge-state {
+        description
+            "Grouping for MSTP Bridge State Attributes";
+        leaf topology-change-detected  {
+            type  boolean;
+            description "This attribute describes whether topology change has detected or not";
+        } // END of topology-change-detected definition.
+
+        leaf last-topology-change  {
+            type  yang:date-and-time {
+                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                }
+                description "This attribute describes the time at which the last topology change
+                            occurred";
+            } // END of last-topology-change definition.
+
+            leaf topology-change-initiator  {
+                type  uint16;
+                description "This attribute describes the toppology change initiator";
+            } // END of topology-change-initiator definition.
+
+            leaf topology-change-last-received-from  {
+                type  string {
+                    length "1..1965";
+                    pattern "[^?' =,>|]+";
+                }
+                description "This attribute describes the node from which the topology change was
+                            last received";
+            } // END of topology-change-last-received-from definition.
+
+            leaf cist-bridge-id  {
+                type  string {
+                    length "1..1965";
+                    pattern "[^?' =,>|]+";
+                }
+                description "This attribute describes the CIST bridge ID";
+            } // END of cist-bridge-id definition.
+
+            leaf cist-designated-root  {
+                type  string {
+                    length "1..1965";
+                    pattern "[^?' =,>|]+";
+                }
+                description "This attribute describes the CIST designated root";
+            } // END of cist-designated-root definition.
+
+            leaf cist-regional-root  {
+                type  string {
+                    length "1..1965";
+                    pattern "[^?' =,>|]+";
+                }
+                description "This attribute describes the CIST regional root";
+            } // END of cist-regional-root definition.
+
+            leaf cist-designated-bridge  {
+                type  string {
+                    length "1..1965";
+                    pattern "[^?' =,>|]+";
+                }
+                description "This attribute describes the CIST designated bridge";
+            } // END of cist-designated-bridge definition.
+
+            leaf cist-port-root-id  {
+                type  uint16;
+                description "This attribute describes the port ID of CIST port";
+            } // END of cist-port-root-id definition.
+
+            leaf external-root-path-cost  {
+                type  uint32;
+                description "This attribute describes the external root path cost";
+            } // END of external-root-path-cost definition.
+
+            leaf internal-root-path-cost  {
+                type  uint32;
+                description "This attribute describes the internal root path cost";
+            } // END of internal-root-path-cost definition.
+
+    } // END of mstp-bridge-state definition.
+    grouping mstp-bridge-state-counters {
+        description
+            "Grouping for MSTP Bridge State Counter Attributes";
+        leaf topology-changes-count  {
+            type  uint32;
+            description "This attribute shows the number of topology changes";
+        } // END of topology-changes-count definition.
+
+        leaf total-topology-changes-count  {
+            type  uint32;
+            description "This attribute shows the total number of topology changes";
+        } // END of total-topology-changes-count definition.
+
+        leaf max-age-count  {
+            type  uint32;
+            description "This attribute shows the max age transitions";
+        } // END of max-age-count definition.
+
+    } // END of mstp-bridge-state-counters definition.
+    grouping mstp-instance-state {
+        description
+            "Grouping for MSTP Bridge Instance State Attributes";
+        leaf bridge-id  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute describes the bridge ID";
+        } // END of bridge-id definition.
+
+        leaf designated-root-priority  {
+            type  uint16;
+            description "This attribute describes the designated root priority";
+        } // END of designated-root-priority definition.
+
+        leaf designated-root-address  {
+            type  yang:mac-address {
+                pattern "[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}";
+                }
+                description "This attribute describes designated root address";
+            } // END of designated-root-address definition.
+
+            leaf internal-root-path-cost  {
+                type  uint32;
+                description "This attribute describes the inter root path cost";
+            } // END of internal-root-path-cost definition.
+
+            leaf root-port-ifindex  {
+                type  uint32;
+                description "This attribute describes the ifindex of root port";
+            } // END of root-port-ifindex definition.
+
+            leaf topology-change-detected  {
+                type  boolean;
+                description "This attribute describes whether topology change has occurred or not";
+            } // END of topology-change-detected definition.
+
+            leaf topology-change-initiator  {
+                type  uint16;
+                description "This attribute describes the topology change initiator";
+            } // END of topology-change-initiator definition.
+
+            leaf topology-change-last-received-from  {
+                type  string {
+                    length "1..1965";
+                    pattern "[^?' =,>|]+";
+                }
+                description "This attribute describes the node from which the topology change was
+                            last received";
+            } // END of topology-change-last-received-from definition.
+
+            leaf last-topology-change  {
+                type  yang:date-and-time {
+                    pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                    }
+                    description "This attribute describes the time at which the last topology change
+                                occurred";
+                } // END of last-topology-change definition.
+
+                leaf topology-changes  {
+                    type  uint32;
+                    description "This attribute shows the number of topology changes";
+                } // END of topology-changes definition.
+
+    } // END of mstp-instance-state definition.
+    grouping mstp-instance-interface-state {
+        description
+            "Grouping for MSTP Bridge Instance Interface State Attributes";
+        leaf port-id  {
+            type  uint16;
+            description "This attribute describes the port ID";
+        } // END of port-id definition.
+
+        leaf internal-root-path-cost  {
+            type  uint32;
+            description "This attribute describes the internal root path cost";
+        } // END of internal-root-path-cost definition.
+
+        leaf designated-root-priority  {
+            type  uint16;
+            description "This attribute describes the designated root priority";
+        } // END of designated-root-priority definition.
+
+        leaf designated-root-address  {
+            type  yang:mac-address {
+                pattern "[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}";
+                }
+                description "This attribute describes the designated root address";
+            } // END of designated-root-address definition.
+
+            leaf designated-bridge-priority  {
+                type  uint16;
+                description "This attribute describes the designated bridge priority";
+            } // END of designated-bridge-priority definition.
+
+            leaf designated-bridge-address  {
+                type  yang:mac-address {
+                    pattern "[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}";
+                    }
+                    description "This attribute describes the designated bridge address";
+                } // END of designated-bridge-address definition.
+
+                leaf designated-port-priority  {
+                    type  uint16;
+                    description "This attribute describes the designated port priority";
+                } // END of designated-port-priority definition.
+
+                leaf designated-port-num  {
+                    type  uint16;
+                    description "This attribute describes the number of designated port";
+                } // END of designated-port-num definition.
+
+                leaf designated-cost  {
+                    type  uint16;
+                    description "This attribute describes the designated cost";
+                } // END of designated-cost definition.
+
+                leaf hello-time-remaining  {
+                    type  uint32;
+                    units "seconds";
+                    description "This attribute describes the hello time remaining";
+                } // END of hello-time-remaining definition.
+
+                leaf forward-time-remaining  {
+                    type  uint32;
+                    units "seconds";
+                    description "This attribute describes the forward time remaining";
+                } // END of forward-time-remaining definition.
+
+                leaf message-age-time-remaining  {
+                    type  uint32;
+                    units "seconds";
+                    description "This attribute describes the message age time remaining";
+                } // END of message-age-time-remaining definition.
+
+                leaf port-state  {
+                    type  ipi-xstp-types:mstp_port_state_t;
+                    description "This attribute describes the port state";
+                } // END of port-state definition.
+
+                leaf port-role  {
+                    type  ipi-xstp-types:mstp_port_role_t;
+                    description "This attribute describes the port role";
+                } // END of port-role definition.
+
+    } // END of mstp-instance-interface-state definition.
+    grouping mstp-instance-interface-state-counters {
+        description
+            "Grouping for MSTP Bridge Instance Interface State Attributes";
+        leaf config-bpdu-sent  {
+            type  uint32;
+            description "This attribute shows the number of config BPDU sent";
+        } // END of config-bpdu-sent definition.
+
+        leaf config-bpdu-received  {
+            type  uint32;
+            description "This attribute shows the number of config BPDU received";
+        } // END of config-bpdu-received definition.
+
+        leaf tcn-bpdu-sent  {
+            type  uint32;
+            description "This attribute shows the number of TCN BPDU sent";
+        } // END of tcn-bpdu-sent definition.
+
+        leaf tcn-bpdu-received  {
+            type  uint32;
+            description "This attribute shows the number of TCN BPDU received";
+        } // END of tcn-bpdu-received definition.
+
+        leaf similar-bpdu-count  {
+            type  uint32;
+            description "This attribute shows the number of similar bpdu";
+        } // END of similar-bpdu-count definition.
+
+    } // END of mstp-instance-interface-state-counters definition.
 
     grouping  stp-grouping {
     description
@@ -701,7 +1355,14 @@ module ipi-xstp {
                 config false;
                 description
                     "MSTP state data";
+                container counters {
+                    config false;
+                    description
+                        "MSTP state counters";
+                    uses mstp-bridge-state-counters;
+                } // END of counters-container definition.
                 uses mstp-bridge-config;
+                uses mstp-bridge-state;
             } // END of state-container definition.
             container mst-instances {
                 description
@@ -728,6 +1389,7 @@ module ipi-xstp {
                         description
                             "Operational data for MSTP instance";
                         uses mstp-instance-global-config;
+                        uses mstp-instance-state;
                     } // END of state-container definition.
                     container interfaces {
                         description
@@ -755,8 +1417,15 @@ module ipi-xstp {
                                 config false;
                                 description
                                     "Operational state data for MSTP on each interface";
+                                container counters {
+                                    config false;
+                                    description
+                                        "Operational state data for MSTP instance interface counters";
+                                    uses mstp-instance-interface-state-counters;
+                                } // END of counters-container definition.
                                 uses mstp-instance-interface-common-config;
                                 uses mstp-instance-interface-config;
+                                uses mstp-instance-interface-state;
                             } // END of state-container definition.
                         } // End of interface-list
                     } // END of interfaces-container definition.
@@ -774,6 +1443,7 @@ module ipi-xstp {
                         description
                             "Operational data for TE MST instance";
                         uses te-mst-instance-config;
+                        uses mstp-instance-state;
                     } // END of state-container definition.
                     container interfaces {
                         description
@@ -800,13 +1470,56 @@ module ipi-xstp {
                                 config false;
                                 description
                                     "Operational state data for MSTP on each interface";
+                                container counters {
+                                    config false;
+                                    description
+                                        "Operational state data for MSTP instance interface counters";
+                                    uses mstp-instance-interface-state-counters;
+                                } // END of counters-container definition.
                                 uses mstp-instance-interface-common-config;
+                                uses mstp-instance-interface-state;
                             } // END of state-container definition.
                         } // End of interface-list
                     } // END of interfaces-container definition.
                 } // END of te-mst-instance-container definition.
             } // END of mst-instances-container definition.
         } // END of mstp-container definition.
+        container rapid-pvst {
+            if-feature feature-list:HAVE_RPVST_PLUS;
+            description
+                "Rapid Per VLAN Spanning-tree protocol configuration and operation data";
+            container vlans {
+                description
+                    "Configuration and operation data RPVST Vlans";
+
+                list vlan {
+                when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id ";
+                    key "vlan-id";
+                    description
+                        "List of the RPVST Vlans";
+                    leaf vlan-id  {
+                        type  leafref {
+                            path  "../config/vlan-id";
+                        }
+                        description "Vlan ID";
+                    } // END of vlan-id definition.
+
+                    container config {
+                        description
+                            "Configuration data for global RPVST";
+                        uses rpvst-global-config;
+                        uses rpvst-vlan-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational state data for gloabl RPVST";
+                        uses rpvst-global-config;
+                        uses rpvst-vlan-config;
+                    } // END of state-container definition.
+                } // End of vlan-list
+            } // END of vlans-container definition.
+        } // END of rapid-pvst-container definition.
     } // END of stp-container definition.
     } // END of stp-grouping definition.
 
@@ -828,11 +1541,58 @@ module ipi-xstp {
                 config false;
                 description
                     "MSTP port bridge operational data";
+                container counters {
+                    config false;
+                    description
+                        "MSTP port bridge operational counters";
+                    uses mstp-interface-state-counters;
+                } // END of counters-container definition.
                 uses mstp-if-common-config;
+                uses mstp-interface-state;
             } // END of state-container definition.
         } // END of port-bridge-container definition.
     } // END of mstp-port-container definition.
     } // END of mstp-port-grouping definition.
+
+    grouping  vlan-port-grouping {
+    description
+        "Top level container for RPVST Port";
+    container vlan-port {
+        if-feature feature-list:HAVE_RPVST_PLUS;
+        description
+            "Top level container for RPVST Port";
+        container vlans {
+            description
+                "Configuration and operation data RPVST Vlans";
+
+            list vlan {
+                key "vlan-id";
+                description
+                    "List of the RPVST Vlans";
+                leaf vlan-id  {
+                    type  leafref {
+                        path  "../config/vlan-id";
+                    }
+                    description "Vlan ID";
+                } // END of vlan-id definition.
+
+                container config {
+                    description
+                        "Configuration data for RPVST on each interface";
+                    uses rpvst-vlan-config;
+                    uses xstp-common-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for RPVST on each interface";
+                    uses rpvst-vlan-config;
+                    uses xstp-common-config;
+                } // END of state-container definition.
+            } // End of vlan-list
+        } // END of vlans-container definition.
+    } // END of vlan-port-container definition.
+    } // END of vlan-port-grouping definition.
 
     grouping  xstp-grouping {
     description
@@ -891,16 +1651,120 @@ module ipi-xstp {
                                 description
                                     "Configuration data for MSTP instance on each interface";
                                 uses mstp-if-restricted-config;
+                                uses xstp-if-restricted-common-config;
                             } // END of config-container definition.
                             container state {
                                 config false;
                                 description
                                     "Operational state data for MSTP instance on each interface";
                                 uses mstp-if-restricted-config;
+                                uses xstp-if-restricted-common-config;
                             } // END of state-container definition.
                         } // End of mst-instance-list
                     } // END of mst-instances-container definition.
                 } // END of mstp-container definition.
+                container rapid-pvst {
+                    if-feature feature-list:HAVE_RPVST_PLUS;
+                    description
+                        "Top level container for Rapid per VLAN Spanning Tree Protocols";
+                    container vlans {
+                        description
+                            "Configuration and operation data RPVST Vlans";
+
+                        list vlan {
+                            key "vlan-id";
+                            description
+                                "List of the RPVST Vlans";
+                            leaf vlan-id  {
+                                type  leafref {
+                                    path  "../config/vlan-id";
+                                }
+                                description "Vlan ID";
+                            } // END of vlan-id definition.
+
+                            container config {
+                                description
+                                    "Configuration data for RPVST on each interface";
+                                uses rpvst-if-restricted-config;
+                                uses rpvst-vlan-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "Operational state data for RPVST on each interface";
+                                uses rpvst-if-restricted-config;
+                                uses rpvst-vlan-config;
+                            } // END of state-container definition.
+                        } // End of vlan-list
+                    } // END of vlans-container definition.
+                } // END of rapid-pvst-container definition.
+                container customer-spanning-tree {
+                    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '41'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '42'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '43' ";
+                    if-feature feature-list:HAVE_PROVIDER_BRIDGE;
+                    description
+                        "Top level container for Customer Spanning Tree Protocols";
+                    container config {
+                        description
+                            "Configuration data for Customer Spanning Tree Protocols";
+                        uses customer-st-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational data for Customer Spanning Tree Protocols";
+                        uses customer-st-config;
+                    } // END of state-container definition.
+                    container customer-edge {
+                        description
+                            "Configuration data for Customer Edge Spanning Tree Protocols";
+                        container config {
+                            description
+                                "Configuration data for Customer Edge Spanning Tree Protocols";
+                            uses xstp-common-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "Operational data for Customer Edge Spanning Tree Protocols";
+                            uses xstp-common-config;
+                        } // END of state-container definition.
+                    } // END of customer-edge-container definition.
+                    container provider-edge {
+                        description
+                            "Configuration data for Provider Edge Spanning Tree Protocols";
+                        container vlans {
+                            description
+                                "Configuration and operation data Provider Edge Vlans";
+
+                            list vlan {
+                            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:global/ipi-port-vlan:config/ipi-port-vlan:cvlan-registration-table ";
+                                key "svlan-id";
+                                description
+                                    "List of the Provider Edge Vlans";
+                                leaf svlan-id  {
+                                    type  leafref {
+                                        path  "../config/svlan-id";
+                                    }
+                                    description "Svlan ID";
+                                } // END of svlan-id definition.
+
+                                container config {
+                                    description
+                                        "Configuration data for Provider Edge Spanning Tree Protocols";
+                                    uses mstp-svlan-config;
+                                    uses xstp-common-config;
+                                } // END of config-container definition.
+                                container state {
+                                    config false;
+                                    description
+                                        "Operational state data for Provider Edge Spanning Tree Protocols";
+                                    uses mstp-svlan-config;
+                                    uses xstp-common-config;
+                                } // END of state-container definition.
+                            } // End of vlan-list
+                        } // END of vlans-container definition.
+                    } // END of provider-edge-container definition.
+                } // END of customer-spanning-tree-container definition.
             } // End of interface-list
         } // END of interfaces-container definition.
         container mstp {

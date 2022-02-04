@@ -28,7 +28,7 @@ module ipi-qos-if {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2021-07-29;
+        revision-date 2022-01-13;
     }
 
     import ipi-qos-types {
@@ -43,12 +43,12 @@ module ipi-qos-if {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -294,6 +294,7 @@ module ipi-qos-if {
             when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             if-feature feature-list:HAVE_DIFFSERV;
             if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:NOT_HAVE_CUSTOM3_QOS;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -342,16 +343,6 @@ module ipi-qos-if {
             description "Use this attibute to attach a queue color to Precedence profile to the
                         interface";
         } // END of queue-to-precedence definition.
-
-        leaf queue-to-exp  {
-            if-feature feature-list:HAVE_DIFFSERV;
-            if-feature feature-list:HAVE_CUSTOM1_QOS;
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attibute to attach a queue to exp profile to the interface";
-        } // END of queue-to-exp definition.
 
     } // END of qos-map-profile-ref-config definition.
     grouping qos-map-profile-ref-top {
@@ -751,15 +742,6 @@ module ipi-qos-if {
     grouping qos-service-policy-egress-config {
         description
             "Grouping for QoS service policy egress configuration";
-        leaf type-qos-policy-map-name  {
-            type  string {
-                length "1..32";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to attach a service-policy of type qos to the
-                        interface";
-        } // END of type-qos-policy-map-name definition.
-
         leaf type-queuing-policy-map-name  {
             type  string {
                 length "1..32";
@@ -829,7 +811,7 @@ module ipi-qos-if {
             "Configuration data for interface QoS";
 
         list interface {
-        when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) ";
+        when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos + not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) ";
             key "name";
             description
                 "Configuration data list for interface QoS";
@@ -860,7 +842,6 @@ module ipi-qos-if {
     } // END of interfaces-grouping definition.
 
     augment /ipi-qos:qos {
-    when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
         description
             "Configuration data for interface QoS";
         uses interfaces-grouping;

@@ -21,7 +21,7 @@ submodule ipi-ospfv3-area {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     import ietf-yang-types {
@@ -34,14 +34,9 @@ submodule ipi-ospfv3-area {
         revision-date 2013-07-15;
     }
 
-    import ipi-routemap {
-        prefix ipi-routemap;
-        revision-date 2021-09-03;
-    }
-
     import ipi-ospfv3-types {
         prefix ipi-ospfv3-types;
-        revision-date 2021-09-03;
+        revision-date 2021-11-17;
     }
 
     organization
@@ -56,6 +51,16 @@ submodule ipi-ospfv3-area {
     description
         "Layer-3 OSPFv3 configurations";
 
+
+    revision "2021-10-27" {
+        description "Stub and nsssa config container presence, and enable leaf mandatory";
+        reference " 0.1.4.";
+    }
+
+    revision "2021-10-06" {
+        description "Removed area route-map leafref";
+        reference " 0.1.3.";
+    }
 
     revision "2021-09-03" {
         description "Update descriptions of attribute";
@@ -339,11 +344,11 @@ submodule ipi-ospfv3-area {
             "Grouping for OSPFv3 Not-So-Stubby Area (NSSA) configuration data";
         leaf enable  {
             type  empty;
+            mandatory true;
             description "Use this attribute to set an area as a Not-So-Stubby-Area (NSSA).";
         } // END of enable definition.
 
         leaf no-summary  {
-            when " /ospfv3/processes/process/areas/area/nssa/config/enable ";
             type  empty;
             description "Use this attribute to do not send summary LSA into NSSA.";
         } // END of no-summary definition.
@@ -401,8 +406,9 @@ submodule ipi-ospfv3-area {
 
         leaf route-map  {
             when " /ospfv3/processes/process/areas/area/nssa/config/default-information-originate ";
-            type  leafref {
-                path  "/ipi-routemap:routemaps/ipi-routemap:routemap/ipi-routemap:routemap-name";
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
             }
             description "Use this attributes to import routes from other routing protocols, or
                         from another OSPF instance, into OSPFv3 AS-external-LSAs.";
@@ -417,6 +423,7 @@ submodule ipi-ospfv3-area {
             description
                 "Configuration data for OSPFv3 Not-So-Stubby Area (NSSA)";
             container config {
+                presence "yes";
                 description
                     "Configuration data for OSPFv3 Not-So-Stubby Area (NSSA)";
                 uses ospfv3-area-nssa-config;
@@ -434,11 +441,11 @@ submodule ipi-ospfv3-area {
             "Grouping for OSPFv3 stub area configuration data";
         leaf enable  {
             type  empty;
+            mandatory true;
             description "Use this attribute to define an area as a stub area on all routers.";
         } // END of enable definition.
 
         leaf no-summary  {
-            when " /ospfv3/processes/process/areas/area/stub/config/enable ";
             type  empty;
             description "Use this attribute to do not inject inter-area routes into stub.";
         } // END of no-summary definition.
@@ -451,6 +458,7 @@ submodule ipi-ospfv3-area {
             description
                 "Configuration data for OSPFv3 stub area";
             container config {
+                presence "yes";
                 description
                     "Configuration data for OSPFv3 stub area";
                 uses ospfv3-area-stub-config;

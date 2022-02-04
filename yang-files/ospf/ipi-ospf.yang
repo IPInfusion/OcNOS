@@ -33,17 +33,17 @@ module ipi-ospf {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-ospf-types {
         prefix ipi-ospf-types;
-        revision-date 2021-09-20;
+        revision-date 2022-01-07;
     }
 
     import ipi-vrf {
@@ -53,7 +53,7 @@ module ipi-ospf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     include ipi-ospf-redistribute { revision-date 2021-09-03;}
@@ -64,9 +64,9 @@ module ipi-ospf {
     include ipi-ospf-timers { revision-date 2021-09-03;}
     include ipi-ospf-area { revision-date 2021-09-03;}
     include ipi-ospf-te-link { revision-date 2021-09-03;}
-    include ipi-ospf-debug { revision-date 2021-09-10;}
+    include ipi-ospf-debug { revision-date 2021-10-25;}
     include ipi-ospf-interface { revision-date 2021-09-03;}
-    include ipi-ospf-authentication { revision-date 2021-09-03;}
+    include ipi-ospf-authentication { revision-date 2022-01-07;}
     organization
         "IP Infusion Inc.";
 
@@ -80,94 +80,104 @@ module ipi-ospf {
         "Layer-3 Open Shortest Path First (OSPF)";
 
 
+    revision "2022-01-07" {
+        description "Modified Submodules";
+        reference " 0.4.0.";
+    }
+
+    revision "2021-10-25" {
+        description "Added debug packet options type";
+        reference " 0.3.7.";
+    }
+
     revision "2021-09-10" {
         description "Added debug terminal state tree";
-        reference "Initial Version";
+        reference " 0.3.6.";
     }
 
     revision "2021-09-03" {
         description "Update descriptions of attribute";
-        reference "Initial Version";
+        reference " 0.3.5.";
     }
 
     revision "2021-08-20" {
         description "Add config false for the TE link-delay state container";
-        reference "Initial Version";
+        reference " 0.3.4.";
     }
 
     revision "2021-08-18" {
         description "State attributes for Segment Routing, TI LFA and TE";
-        reference "Initial Version";
+        reference " 0.3.3.";
     }
 
     revision "2021-08-05" {
         description "Graceful restart disable-all-neighbors triggers deletion of disable-all-neighbor when set";
-        reference "Initial Version";
+        reference " 0.3.2.";
     }
 
     revision "2021-07-30" {
         description "Added support for sham-links";
-        reference "Initial Version";
+        reference " 0.3.1.";
     }
 
     revision "2021-07-27" {
         description "Created new datatype OSPF_PASSIVE_ADDR_MODE_T that contains only the option enable to be used in passive-interface IFNAME A.B.C.D";
-        reference "Initial Version";
+        reference " 0.3.0.";
     }
 
     revision "2021-06-11" {
         description "Added the new attribute ldp-igp-sync-enable for the mpls ldp-igp sync ospf";
-        reference "Initial Version";
+        reference " 0.2.8.";
     }
 
     revision "2021-06-02" {
         description "Removed if-feature from leaves that are referenced by leaves that are list keys";
-        reference "Initial Version";
+        reference " 0.2.7.";
     }
 
     revision "2021-05-22" {
         description "Fix passive-interface to allow enable/disable mode";
-        reference "Initial Version";
+        reference " 0.2.6.";
     }
 
     revision "2021-05-07" {
         description "Fix NSSA CLI command to avoid show duplicate nssa input";
-        reference "Initial Version";
+        reference " 0.2.5.";
     }
 
     revision "2021-05-05" {
         description "Update redistribute OSPF data-model";
-        reference "Initial Version";
+        reference " 0.2.4.";
     }
 
     revision "2021-05-01" {
         description "Added attribute passive-interface-all and removed space in cisco helpstring of type OSPF_ABR_TYPE_T";
-        reference "Initial Version";
+        reference " 0.2.3.";
     }
 
     revision "2021-04-30" {
         description "Restructured filter-list prefix-list and acl-list from lists to containers, and value range for ospfv2-processes list";
-        reference "Initial Version";
+        reference " 0.2.2.";
     }
 
     revision "2021-04-29" {
         description "timers lsa min-delay and max-delay range updated to 1-600000";
-        reference "Initial Version";
+        reference " 0.2.2.";
     }
 
     revision "2021-04-28" {
         description "Add on command overflow external LSA a verification to check if is all attributes are filled before accept the configuration";
-        reference "Initial Version";
+        reference " 0.2.1.";
     }
 
     revision "2021-04-06" {
         description "Restructured module in accordance with OpenConfig style";
-        reference "Initial Version";
+        reference " 0.2.0.";
     }
 
     revision "2018-06-21" {
         description "Initial Version";
-        reference "Initial Version";
+        reference " 0.1.0.";
     }
 
     grouping ospfv2-administrative-distance-network-config {
@@ -2138,7 +2148,7 @@ module ipi-ospf {
     container ospfv2 {
         description
             "Grouping for Open Shortest Path First (OSPF)";
-        uses ospfv2-global;
+        uses ospfv2-global-top;
         uses ospfv2-processes-top;
         uses ospfv2-traffic-engineering-link-top;
         uses ospfv2-multi-area-interface-top;
@@ -2231,24 +2241,134 @@ module ipi-ospf {
         }
     }
 
-    rpc ospfv2-terminal-debug-packet-on {
+    rpc ospfv2-terminal-debug-packet-all-on {
         description "OSPF packets";
         input  {
-            leaf packet  {
-                type ipi-ospf-types:ospf_debug_packet_t;
+            leaf all  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
                 mandatory true;
                 description "Use this attribute to enable OSPF packets debug.";
             }
         }
     }
 
-    rpc ospfv2-terminal-debug-packet-off {
+    rpc ospfv2-terminal-debug-packet-all-off {
         description "OSPF packets";
         input  {
-            leaf packet  {
-                type ipi-ospf-types:ospf_debug_packet_t;
+            leaf all  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
                 mandatory true;
                 description "Use this attribute to enable OSPF packets debug.";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-hello-on {
+        description "OSPF packet hello";
+        input  {
+            leaf hello  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Hello";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-hello-off {
+        description "OSPF packet hello";
+        input  {
+            leaf hello  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Hello";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-dd-on {
+        description "OSPF packet database description";
+        input  {
+            leaf dd  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Database Description";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-dd-off {
+        description "OSPF packet database description";
+        input  {
+            leaf dd  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Database Description";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-ls-request-on {
+        description "OSPF packet link state request";
+        input  {
+            leaf ls-request  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Link State Request";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-ls-request-off {
+        description "OSPF packet link state request";
+        input  {
+            leaf ls-request  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Link State Request";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-ls-update-on {
+        description "OSPF packet link state update";
+        input  {
+            leaf ls-update  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Link State Update";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-ls-update-off {
+        description "OSPF packet link state update";
+        input  {
+            leaf ls-update  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Link State Update";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-ls-ack-on {
+        description "OSPF packet link state acknowledgment";
+        input  {
+            leaf ls-ack  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Link State Acknowledgment";
+            }
+        }
+    }
+
+    rpc ospfv2-terminal-debug-packet-ls-ack-off {
+        description "OSPF packet link state acknowledgment";
+        input  {
+            leaf ls-ack  {
+                type ipi-ospf-types:ospf_debug_packet_options_t;
+                mandatory true;
+                description "OSPF Link State Acknowledgment";
             }
         }
     }

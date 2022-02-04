@@ -23,27 +23,27 @@ module ipi-port-vlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-port-vlan-types {
         prefix ipi-port-vlan-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-13;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-vlan {
         prefix ipi-vlan;
-        revision-date 2021-09-18;
+        revision-date 2022-01-18;
     }
 
     import ipi-if-aggregate {
@@ -53,12 +53,12 @@ module ipi-port-vlan {
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2021-09-15;
+        revision-date 2022-01-13;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -73,6 +73,26 @@ module ipi-port-vlan {
     description
         "Port VLAN configuration";
 
+
+    revision "2022-01-13" {
+        description "Modified sub module";
+        reference " 0.9.0.";
+    }
+
+    revision "2021-11-16" {
+        description "SKU compilation fixes";
+        reference " 0.8.2.";
+    }
+
+    revision "2021-10-27" {
+        description "Added switchport private-vlan association trunk";
+        reference " 0.8.1.";
+    }
+
+    revision "2021-10-18" {
+        description "Removed custom DB triggers and added Netconf support for private VLAN feature";
+        reference " 0.8.0.";
+    }
 
     revision "2021-09-21" {
         description "Added when tags and a custom DB trigger to fix JIRA-50460 ";
@@ -209,9 +229,19 @@ module ipi-port-vlan {
         } // END of associate-vlan-id definition.
 
         leaf mapping-vlan-id  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:private-vlan/ipi-port-vlan:config/ipi-port-vlan:mode = '2' ";
             type  cml-data-types:cml_range_t;
             description "private-vlan Mapping";
         } // END of mapping-vlan-id definition.
+
+        leaf association-trunk-vlan-id  {
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094:VLAN range";
+                 }
+            }
+            description "private-vlan Mapping";
+        } // END of association-trunk-vlan-id definition.
 
     } // END of mapping-config definition.
     grouping association-top {
@@ -231,7 +261,6 @@ module ipi-port-vlan {
             } // END of vlan-id definition.
 
             container config {
-                when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:private-vlan/ipi-port-vlan:association/ipi-port-vlan:config/ipi-port-vlan:associate-vlan-id  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:private-vlan/ipi-port-vlan:association/ipi-port-vlan:config/ipi-port-vlan:mapping-vlan-id ";
                 description
                     "Configuration data for private vlan mapping";
                 uses mapping-config;
@@ -258,6 +287,25 @@ module ipi-port-vlan {
     grouping port-private-vlan-top {
         description
             "Top level grouping for private vlan";
+        container private-vlan {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '1'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '3' ";
+            if-feature feature-list:HAVE_PVLAN;
+            description
+                "Container for private vlan configuration and state data";
+            container config {
+                presence "Configure private vlan mode";
+                description
+                    "Configuration data for port private vlan";
+                uses port-private-vlan-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses port-private-vlan-config;
+            } // END of state-container definition.
+            uses association-top;
+        } // END of private-vlan-container definition.
     } // END of port-private-vlan-top definition.
     grouping port-security-mac-default-vlan-config {
         description
@@ -437,6 +485,7 @@ module ipi-port-vlan {
             "Top level grouping for port MAC security data";
         container secure-mac {
             when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:port-security/ipi-port-vlan:config/ipi-port-vlan:mode ";
+            if-feature feature-list:HAVE_PROVIDER_BRIDGE;
             description
                 "Configure data for static MAC entries";
             uses port-security-mac-list;
@@ -755,16 +804,18 @@ module ipi-port-vlan {
         description
             "Grouping for port switched VLAN configuration data";
         leaf vlan-id  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '1'   or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '2'   or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '41'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '42' + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
             type  uint16 {
                  range "2..4094"  {
                     description "2..4094:VLAN range";
                  }
             }
-            description "VLAN identifier";
+            description "Default VLAN identifier";
         } // END of vlan-id definition.
 
         leaf native-vlan-id  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:allowed-vlan/ipi-port-vlan:config/ipi-port-vlan:allowed-vlan-id + /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '3' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:allowed-vlan/ipi-port-vlan:config/ipi-port-vlan:allowed-vlan-id + /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '3' + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
+            // when " !ipi-port-vlan:port-vlan/switched-vlan/config/disable-native-vlan ";
             type  uint16 {
                  range "2..4094"  {
                     description "2..4094:VLAN range";
@@ -815,6 +866,12 @@ module ipi-port-vlan {
             description "Use this attribute to set the interface acceptable frame types. This
                         processing occurs after VLAN classification";
         } // END of acceptable-frame-type definition.
+
+        leaf disable-native-vlan  {
+            type  empty;
+            description "Use this attribute to disable native VLAN for the port. Untagged
+                        frames will be dropped.";
+        } // END of disable-native-vlan definition.
 
     } // END of switched-vlan-config definition.
     grouping switched-vlan-top {

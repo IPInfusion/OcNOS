@@ -37,6 +37,11 @@ submodule ipi-bgp-epe {
         "";
 
 
+    revision "2021-10-03" {
+        description "Added BGP-LS-EPE runtime attributes";
+        reference " 0.1.2.";
+    }
+
     revision "2021-09-03" {
         description "Update descriptions of attribute";
         reference " 0.1.1.";
@@ -114,7 +119,7 @@ submodule ipi-bgp-epe {
     } // END of bgp-epe-backup-peer-adjacency-config definition.
     grouping bgp-epe-backup-peer-config {
         description
-            "Configurational parameters       for backup peers";
+            "Configurational parameters  for backup peers";
         choice backup-peer-type {
             description
                 "backup-peer-type";
@@ -134,6 +139,58 @@ submodule ipi-bgp-epe {
             }
         } // END of backup-peer-type-choice definition.
     } // END of bgp-epe-backup-peer-config definition.
+    grouping bgp-epe-peer-sid-state {
+        description
+            "bgpCMLSEPepeCMLSEPpeerCMLSEPsidCMLSEPstate";
+        leaf in-label  {
+            type  uint32;
+            description "This attribute holds the EPE label for a particular type of
+                        SID allocation for a peer.";
+        } // END of in-label definition.
+
+    } // END of bgp-epe-peer-sid-state definition.
+    grouping bgp-epe-peer-out-segments-state {
+        description
+            "bgpCMLSEPepeCMLSEPpeerCMLSEPoutCMLSEPsegmentsCMLSEPstate";
+        leaf nexthop-ip-address  {
+            type  inet:ipv4-address;
+            description "This attribute displays the nexthop address used to reach
+                        the EPE peer for a particular SID allocation";
+        } // END of nexthop-ip-address definition.
+
+        leaf out-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute displays the out-interface used to reach the
+                        EPE peer for a particular SID allocation";
+        } // END of out-interface definition.
+
+    } // END of bgp-epe-peer-out-segments-state definition.
+    grouping bgp-epe-peer-node-state {
+        description
+            "peer node";
+        uses bgp-epe-peer-sid-state;
+        uses bgp-epe-peer-out-segments-state;
+    } // END of bgp-epe-peer-node-state definition.
+    grouping bgp-epe-peer-set-state {
+        description
+            "peer set";
+        uses bgp-epe-peer-sid-state;
+        uses bgp-epe-peer-out-segments-state;
+    } // END of bgp-epe-peer-set-state definition.
+    grouping bgp-epe-peer-adjacency-state {
+        description
+            "peer adjacency";
+        uses bgp-epe-peer-sid-state;
+        uses bgp-epe-peer-out-segments-state;
+    } // END of bgp-epe-peer-adjacency-state definition.
+    grouping bgp-epe-backup-peer-state {
+        description
+            "backup peer";
+        uses bgp-epe-peer-out-segments-state;
+    } // END of bgp-epe-backup-peer-state definition.
     grouping bgp-epe-backup-config {
         description
             "Parameters for EPE backups";
@@ -150,6 +207,7 @@ submodule ipi-bgp-epe {
                 description
                     "State of backup EPE for peer";
                 uses bgp-epe-backup-peer-config;
+                uses bgp-epe-backup-peer-state;
             } // END of state-container definition.
         } // END of peer-container definition.
     } // END of bgp-epe-backup-config definition.
@@ -203,6 +261,7 @@ submodule ipi-bgp-epe {
                 description
                     "";
                 uses bgp-epe-peer-adjacency-config;
+                uses bgp-epe-peer-adjacency-state;
             } // END of state-container definition.
             container backup {
                 description
@@ -220,6 +279,7 @@ submodule ipi-bgp-epe {
             description
                 "";
             uses bgp-epe-peer-node-config;
+            uses bgp-epe-peer-node-state;
         } // END of state-container definition.
         container peer-set {
             description
@@ -234,6 +294,7 @@ submodule ipi-bgp-epe {
                 description
                     "";
                 uses bgp-epe-peer-set-config;
+                uses bgp-epe-peer-set-state;
             } // END of state-container definition.
         } // END of peer-set-container definition.
         container backup {

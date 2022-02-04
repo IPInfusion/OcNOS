@@ -23,7 +23,7 @@ module ipi-l2vpn-vpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-vpls-types {
@@ -36,29 +36,34 @@ module ipi-l2vpn-vpls {
         revision-date 2013-07-15;
     }
 
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
+    }
+
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-09-03;
+        revision-date 2021-11-10;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2021-09-01;
+        revision-date 2021-12-08;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2021-07-29;
+        revision-date 2022-01-13;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -73,6 +78,41 @@ module ipi-l2vpn-vpls {
     description
         "YANG version of the ipi-l2vpn-vpls";
 
+
+    revision "2022-01-20" {
+        description "Updated RDN for ro objectlist network-interface-counters";
+        reference " 0.6.4.";
+    }
+
+    revision "2021-12-30" {
+        description "Updated length constraint for tunnel-name";
+        reference " 0.6.3.";
+    }
+
+    revision "2021-12-28" {
+        description "Added when constraints for vpls-peer tunnel-identifier,tunnel-name and tunnel-policy";
+        reference " 0.6.2.";
+    }
+
+    revision "2021-12-20" {
+        description "Updated datatype and range for tunnel-identifier";
+        reference " 0.6.1.";
+    }
+
+    revision "2021-12-15" {
+        description "Added VPLS counters related operational attributes";
+        reference " 0.6.0.";
+    }
+
+    revision "2021-11-30" {
+        description "Updated dependency condition for signaling-ldp on vpls-peer";
+        reference " 0.5.1.";
+    }
+
+    revision "2021-11-16" {
+        description "Adding L2CP support";
+        reference " 0.5.0.";
+    }
 
     revision "2021-09-06" {
         description "Removed the dependency of L2VPN VPLS configuration in subinterface with global L2VPN VPLS configurataion";
@@ -186,8 +226,9 @@ module ipi-l2vpn-vpls {
         } // END of mac-learning definition.
 
         leaf allow-layer2-bridge-pdu  {
+            if-feature feature-list:HAVE_CUSTOM1_MPLS;
             type  empty;
-            description "Specify allowed L2 packts through VPLS network";
+            description "Specify allowed L2 control packets in peer-mode";
         } // END of allow-layer2-bridge-pdu definition.
 
         leaf-list static-mac-address  {
@@ -668,7 +709,7 @@ module ipi-l2vpn-vpls {
 
         leaf vpls-description  {
             type  cml-data-types:cml_line_t {
-                length "1..1965";
+                length "1..64";
             }
             default "NULL";
             description "Specify a description for this VPLS instance";
@@ -758,7 +799,7 @@ module ipi-l2vpn-vpls {
                 "Top level container for vpls peer";
 
             list vpls-peer {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:vpls-peer/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:peer-type = '1'  or /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-ldp ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:vpls-peer/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:peer-type = '1'  or /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config ";
                 key "peer-address";
                 description
                     "Configuration data for VPLS peer";
@@ -827,14 +868,16 @@ module ipi-l2vpn-vpls {
         } // END of peer-address definition.
 
         leaf tunnel-name  {
+            when " not(../tunnel-identifier) + not(../tunnel-policy) ";
             type  string {
-                length "1..1965";
+                length "1..128";
                 pattern "[^?' =,>|]+";
             }
             description "Specify tunnel name";
         } // END of tunnel-name definition.
 
         leaf tunnel-policy  {
+            when " not(../tunnel-identifier) + not(../tunnel-name) ";
             if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
             type  string {
                 length "1..127";
@@ -844,9 +887,11 @@ module ipi-l2vpn-vpls {
         } // END of tunnel-policy definition.
 
         leaf tunnel-identifier  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
+            when " not(../tunnel-name) + not(../tunnel-policy) ";
+            type  uint32 {
+                 range "1..5000"  {
+                    description "1..5000:Identifying value for Tunnel-id";
+                 }
             }
             description "Specify static tunnel identifier value";
         } // END of tunnel-identifier definition.
@@ -1057,27 +1102,27 @@ module ipi-l2vpn-vpls {
     grouping vpls-network-interface-counters-state {
         description
             "Top level grouping for network-interface-counters";
-        leaf interface-name  {
-            type  leafref {
-                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-            }
-            description "Attribute to acquire network interface name";
-        } // END of interface-name definition.
+        leaf peer-address  {
+            type  inet:ipv4-address;
+            description "Attribute to acquire peer-address for VPLS instance";
+        } // END of peer-address definition.
 
         leaf vpls-identifier  {
             type  uint32;
             description "Attribute to acquire vpls-id for a VPLS instance";
         } // END of vpls-identifier definition.
 
-        leaf peer-address  {
-            type  inet:ipv4-address;
-            description "Attribute to acquire mac-address learnt on VPLS instance";
-        } // END of peer-address definition.
-
         leaf peer-state  {
             type  ipi-vpls-types:vpls_peer_state_t;
             description "Attribute to acquire vpls-id for a VPLS instance";
         } // END of peer-state definition.
+
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Attribute to acquire network interface name";
+        } // END of interface-name definition.
 
         leaf in-packets  {
             type  uint64;
@@ -1128,16 +1173,16 @@ module ipi-l2vpn-vpls {
 
         list network-interface-counters {
             if-feature feature-list:HAVE_MPLS_STATS;
-            key "interface-name";
+            key "peer-address";
             config false;
             description
                 "";
-            leaf interface-name  {
+            leaf peer-address  {
                 type  leafref {
-                    path  "../state/interface-name";
+                    path  "../state/peer-address";
                 }
-                description "";
-            } // END of interface-name definition.
+                description "Attribute to acquire peer-address for VPLS instance";
+            } // END of peer-address definition.
 
             container state {
                 config false;
@@ -1199,7 +1244,6 @@ module ipi-l2vpn-vpls {
         description
             "Top level grouping for L2VPN VPLS configuration";
         container vpls-access {
-            // when " ipi-if-extended:extended/subinterface-encapsulation/single-tag-vlan-matches/single-tag-vlan-match/config/encapsulation-type ||                           ipi-if-extended:extended/subinterface-encapsulation/double-tag-vlan-matches/double-tag-vlan-match/config/encapsulation-type ||                           ipi-if-extended:extended/subinterface-encapsulation/config/encap-default ||                           ipi-if-extended:extended/subinterface-encapsulation/config/encap-untagged ";
             if-feature feature-list:HAVE_SUBINTERFACE;
             description
                 "Container for L2vpn Vpls data";
@@ -1247,6 +1291,44 @@ module ipi-l2vpn-vpls {
         } // END of static-mac-address definition.
 
     } // END of l2vpn-vpls-config definition.
+    grouping vpls-global-counters-state {
+        description
+            "Grouping for global counters for VPLS";
+        leaf total-instances  {
+            type  yang:counter32;
+            description "This attribute acquires total VPLS instances";
+        } // END of total-instances definition.
+
+        leaf active-instances  {
+            type  yang:counter32;
+            description "This attribute acquires total active VPLS instances";
+        } // END of active-instances definition.
+
+        leaf inactive-instances  {
+            type  yang:counter32;
+            description "This attribute acquires total non-active VPLS instances";
+        } // END of inactive-instances definition.
+
+    } // END of vpls-global-counters-state definition.
+    grouping vpls-global-top {
+        description
+            "Top level grouping for global VPLS attributes";
+        container global {
+            description
+                "Top level container for global configuration for VPLS";
+            container state {
+                config false;
+                description
+                    "State container for operational attributes";
+                container counters {
+                    config false;
+                    description
+                        "Operational container for VPLS counters";
+                    uses vpls-global-counters-state;
+                } // END of counters-container definition.
+            } // END of state-container definition.
+        } // END of global-container definition.
+    } // END of vpls-global-top definition.
 
     grouping  vpls-grouping {
     description
@@ -1266,6 +1348,7 @@ module ipi-l2vpn-vpls {
             uses vpls-static-hvpls-top;
         } // END of static-forwarding-container definition.
         uses vpls-interface-top;
+        uses vpls-global-top;
     } // END of vpls-container definition.
     } // END of vpls-grouping definition.
 

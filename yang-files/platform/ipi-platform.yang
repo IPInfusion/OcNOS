@@ -23,12 +23,12 @@ module ipi-platform {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
     }
 
     import ipi-platform-types {
         prefix ipi-platform-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-06;
     }
 
     import ipi-platform-transceiver-types {
@@ -43,12 +43,12 @@ module ipi-platform {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     include ipi-platform-temperature { revision-date 2021-09-03;}
@@ -59,10 +59,12 @@ module ipi-platform {
     include ipi-platform-power-supply { revision-date 2021-09-03;}
     include ipi-platform-fan { revision-date 2021-09-03;}
     include ipi-platform-fan-tray { revision-date 2021-09-03;}
-    include ipi-platform-chassis { revision-date 2021-09-03;}
+    include ipi-platform-chassis { revision-date 2021-12-10;}
     include ipi-platform-linecard { revision-date 2021-09-03;}
     include ipi-platform-power-rail { revision-date 2021-09-03;}
-    include ipi-platform-profile { revision-date 2021-09-06;}
+    include ipi-platform-poe { revision-date 2021-12-20;}
+    include ipi-platform-profile { revision-date 2022-01-07;}
+    include ipi-platform-profile-extended { revision-date 2022-01-11;}
     organization
         "IP Infusion Inc.";
 
@@ -79,6 +81,61 @@ module ipi-platform {
                 relationship supported by the model is containment, e.g.,
                 components containing subcomponents.";
 
+
+    revision "2022-01-11" {
+        description "Added when tag to inner-ipv4 non-symmetric on ipi-platform-profile-extended submodule";
+        reference " 0.12.9.";
+    }
+
+    revision "2022-01-07" {
+        description "Changed cpu-q-default from attribute to rpc on platform-profile";
+        reference " 0.12.8.";
+    }
+
+    revision "2022-01-06" {
+        description "Added new attribute hardware-profile port-config";
+        reference " 0.12.7.";
+    }
+
+    revision "2022-01-03" {
+        description "Added implicit-delete to load-balance config on ipi-platform-profile";
+        reference " 0.12.6.";
+    }
+
+    revision "2021-12-30" {
+        description "Removed autoPopulate tag from platform container on ipi-platform-profile-extended";
+        reference " 0.12.5.";
+    }
+
+    revision "2021-12-27" {
+        description "Added when tag to mpls-ler container on ipi-platform-profile-extended";
+        reference " 0.12.4.";
+    }
+
+    revision "2021-12-20" {
+        description "Introduced new sub-module ipi-platform-poe.";
+        reference " 0.12.3.";
+    }
+
+    revision "2021-12-10" {
+        description "Changed datatype of system status attributes";
+        reference " 0.12.2.";
+    }
+
+    revision "2021-11-22" {
+        description "Updated ipi-platform-profile submodule with DNX Broadcom platform hardware profiles";
+        reference " 0.12.1.";
+    }
+
+    revision "2021-11-16" {
+        description "Added new attributes for disk activity monitoring ";
+        reference " 0.12.0.";
+    }
+
+    revision "2021-10-12" {
+        description "Updated ipi-platform-profile submodule";
+        reference " 0.11.1.";
+    }
 
     revision "2021-09-06" {
         description "Updated ipi-platform-profile submodule";
@@ -401,6 +458,11 @@ module ipi-platform {
             type  ipi-platform-types:cmm_monitor_state;
             description "To enable DDM monitor for current transceiver.";
         } // END of monitor-port definition.
+
+        leaf poe-enable  {
+            type  empty;
+            description "To enable PoE for current interface.";
+        } // END of poe-enable definition.
 
         leaf videopiu-port  {
             if-feature feature-list:HAVE_VPIU_EMULATION;
@@ -781,6 +843,33 @@ module ipi-platform {
             description "To enable DDM monitor for all transceivers.";
         } // END of enable-ddm-monitor definition.
 
+        leaf disk-activity-monitoring-interval  {
+            type  uint16 {
+                 range "30..1200"  {
+                    description "30..1200:30-1200 seconds";
+                 }
+            }
+            description "To set disk activity sampling window interval time.";
+        } // END of disk-activity-monitoring-interval definition.
+
+        leaf disk-activity-monitoring-threshold-read  {
+            type  uint32 {
+                 range "1..20000"  {
+                    description "1..20000:1-20000 KB/s";
+                 }
+            }
+            description "To set disk read activity alarm threshold.";
+        } // END of disk-activity-monitoring-threshold-read definition.
+
+        leaf disk-activity-monitoring-threshold-write  {
+            type  uint32 {
+                 range "1..20000"  {
+                    description "1..20000:1-20000 KB/s";
+                 }
+            }
+            description "To set disk write activity alarm threshold.";
+        } // END of disk-activity-monitoring-threshold-write definition.
+
     } // END of component-hardware-global definition.
     grouping gps-position-config {
         description
@@ -1033,6 +1122,7 @@ module ipi-platform {
             uses chassis-grouping;
             uses linecard-grouping;
             uses power-rail-grouping;
+            uses poe-grouping;
         } // End of component-list
         uses platform-component-debug;
         uses platform-component-global;
@@ -2045,6 +2135,106 @@ module ipi-platform {
         }
     }
 
+    notification storage-harddisk-monitoring-read-alert {
+
+        description "Notification for storage harddisk read activity when it exceeds alert threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf harddisk-monitoring-read {
+            type  int32;
+        description
+            "Hard disk's average read activity in KBps.";
+        }
+
+        leaf harddisk-monitoring-read-threshold {
+            type  int32;
+        description
+            "Hard disk's read activity threshold in KBps.";
+        }
+    }
+
+    notification storage-harddisk-recovery-from-read-alert-level {
+
+        description "Notification for storage harddisk read activity when it recovers from alert level.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf harddisk-monitoring-read {
+            type  int32;
+        description
+            "Hard disk's average read activity in KBps.";
+        }
+
+        leaf harddisk-monitoring-read-threshold {
+            type  int32;
+        description
+            "Hard disk's read activity threshold in KBps.";
+        }
+    }
+
+    notification storage-harddisk-monitoring-write-alert {
+
+        description "Notification for storage harddisk write activity when it exceeds alert threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf harddisk-monitoring-write {
+            type  int32;
+        description
+            "Hard disk's average write activity in KBps.";
+        }
+
+        leaf harddisk-monitoring-write-threshold {
+            type  int32;
+        description
+            "Hard disk's write activity threshold in KBps.";
+        }
+    }
+
+    notification storage-harddisk-recovery-from-write-alert-level {
+
+        description "Notification for storage harddisk write activity when it recovers from alert level.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf harddisk-monitoring-write {
+            type  int32;
+        description
+            "Hard disk's average write activity in KBps.";
+        }
+
+        leaf harddisk-monitoring-write-threshold {
+            type  int32;
+        description
+            "Hard disk's write activity threshold in KBps.";
+        }
+    }
+
     notification ram-usage-rising-critical {
 
         description "Notification for RAM usage rising critical threshold.";
@@ -2785,6 +2975,2182 @@ module ipi-platform {
             type  string;
         description
             "References the component name";
+        }
+    }
+
+    notification psu-vin-low-alert {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input voltage of power supply";
+        }
+
+        leaf vin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge alert threshold minimum value";
+        }
+
+        leaf vin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge alert threshold maximum value";
+        }
+    }
+
+    notification psu-vin-high-alert {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input voltage of power supply";
+        }
+
+        leaf vin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge alert threshold minimum value";
+        }
+
+        leaf vin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge alert threshold maximum value";
+        }
+    }
+
+    notification psu-vin-low-critical {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input voltage of power supply";
+        }
+
+        leaf vin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge critical threshold minimun value";
+        }
+
+        leaf vin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge critical threshold maximum value";
+        }
+    }
+
+    notification psu-vin-high-critical {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input voltage of power supply";
+        }
+
+        leaf vin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge critical threshold minimun value";
+        }
+
+        leaf vin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge critical threshold maximum value";
+        }
+    }
+
+    notification psu-vin-low-alert-recovery {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input voltage of power supply";
+        }
+
+        leaf vin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge alert threshold minimum value";
+        }
+
+        leaf vin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge alert threshold maximum value";
+        }
+    }
+
+    notification psu-vin-high-alert-recovery {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input voltage of power supply";
+        }
+
+        leaf vin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge alert threshold minimum value";
+        }
+
+        leaf vin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge alert threshold maximum value";
+        }
+    }
+
+    notification psu-vin-low-critical-recovery {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input voltage of power supply";
+        }
+
+        leaf vin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge critical threshold minimun value";
+        }
+
+        leaf vin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge critical threshold maximum value";
+        }
+    }
+
+    notification psu-vin-high-critical-recovery {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input voltage of power supply";
+        }
+
+        leaf vin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge critical threshold minimun value";
+        }
+
+        leaf vin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input volatge critical threshold maximum value";
+        }
+    }
+
+    notification psu-vout-low-alert {
+
+        description "This notification is sent when output voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output voltage of power supply";
+        }
+
+        leaf vout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge alert threshold minimum value";
+        }
+
+        leaf vout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge alert threshold maximum value";
+        }
+    }
+
+    notification psu-vout-high-alert {
+
+        description "This notification is sent when output voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output voltage of power supply";
+        }
+
+        leaf vout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge alert threshold minimum value";
+        }
+
+        leaf vout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge alert threshold maximum value";
+        }
+    }
+
+    notification psu-vout-low-critical {
+
+        description "This notification is sent when output voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output voltage of power supply";
+        }
+
+        leaf vout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge critical threshold minimum value";
+        }
+
+        leaf vout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge critical threshold maximum value";
+        }
+    }
+
+    notification psu-vout-high-critical {
+
+        description "This notification is sent when output voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output voltage of power supply";
+        }
+
+        leaf vout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge critical threshold minimum value";
+        }
+
+        leaf vout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge critical threshold maximum value";
+        }
+    }
+
+    notification psu-vout-low-alert-recovery {
+
+        description "This notification is sent when output voltage of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output voltage of power supply";
+        }
+
+        leaf vout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge alert threshold minimum value";
+        }
+
+        leaf vout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge alert threshold maximum value";
+        }
+    }
+
+    notification psu-vout-high-alert-recovery {
+
+        description "This notification is sent when output voltage violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output voltage of power supply";
+        }
+
+        leaf vout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge alert threshold minimum value";
+        }
+
+        leaf vout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge alert threshold maximum value";
+        }
+    }
+
+    notification psu-vout-low-critical-recovery {
+
+        description "This notification is sent when output voltage violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output voltage of power supply";
+        }
+
+        leaf vout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge critical threshold minimum value";
+        }
+
+        leaf vout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge critical threshold maximum value";
+        }
+    }
+
+    notification psu-vout-high-critical-recovery {
+
+        description "This notification is sent when output voltage violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-voltage {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output voltage of power supply";
+        }
+
+        leaf vout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge critical threshold minimum value";
+        }
+
+        leaf vout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output volatge critical threshold maximum value";
+        }
+    }
+
+    notification psu-pin-low-alert {
+
+        description "This notification is sent when input power of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-power {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input power of power supply";
+        }
+
+        leaf pin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power alert threshold minimum value";
+        }
+
+        leaf pin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power alert threshold maximum value";
+        }
+    }
+
+    notification psu-pin-high-alert {
+
+        description "This notification is sent when input power of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-power {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input power of power supply";
+        }
+
+        leaf pin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power alert threshold minimum value";
+        }
+
+        leaf pin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power alert threshold maximum value";
+        }
+    }
+
+    notification psu-pin-low-critical {
+
+        description "This notification is sent when input power of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-power {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input power of power supply";
+        }
+
+        leaf pin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power critical threshold minimum value";
+        }
+
+        leaf pin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power critical threshold maximum value";
+        }
+    }
+
+    notification psu-pin-high-critical {
+
+        description "This notification is sent when input power of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-power {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input power of power supply";
+        }
+
+        leaf pin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power critical threshold minimum value";
+        }
+
+        leaf pin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power critical threshold maximum value";
+        }
+    }
+
+    notification psu-pin-low-alert-recovery {
+
+        description "This notification is sent when input power of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-power {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input power of power supply";
+        }
+
+        leaf pin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power alert threshold minimum value";
+        }
+
+        leaf pin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power alert threshold maximum value";
+        }
+    }
+
+    notification psu-pin-high-alert-recovery {
+
+        description "This notification is sent when input power violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-power {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input power of power supply";
+        }
+
+        leaf pin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power alert threshold minimum value";
+        }
+
+        leaf pin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power alert threshold maximum value";
+        }
+    }
+
+    notification psu-pin-low-critical-recovery {
+
+        description "This notification is sent when input power violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-power {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input power of power supply";
+        }
+
+        leaf pin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power critical threshold minimum value";
+        }
+
+        leaf pin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power critical threshold maximum value";
+        }
+    }
+
+    notification psu-pin-high-critical-recovery {
+
+        description "This notification is sent when input power violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-power {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input power of power supply";
+        }
+
+        leaf pin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power critical threshold minimum value";
+        }
+
+        leaf pin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input power critical threshold maximum value";
+        }
+    }
+
+    notification psu-pout-low-alert {
+
+        description "This notification is sent when output power of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf power-consumption {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output power of power supply";
+        }
+
+        leaf pout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power alert threshold minimum value";
+        }
+
+        leaf pout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power alert threshold maximum value";
+        }
+    }
+
+    notification psu-pout-high-alert {
+
+        description "This notification is sent when output power of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf power-consumption {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output power of power supply";
+        }
+
+        leaf pout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power alert threshold minimum value";
+        }
+
+        leaf pout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power alert threshold maximum value";
+        }
+    }
+
+    notification psu-pout-low-critical {
+
+        description "This notification is sent when output power of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf power-consumption {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output power of power supply";
+        }
+
+        leaf pout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power critical threshold minimum value";
+        }
+
+        leaf pout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power critical threshold maximum value";
+        }
+    }
+
+    notification psu-pout-high-critical {
+
+        description "This notification is sent when output power of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf power-consumption {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output power of power supply";
+        }
+
+        leaf pout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power critical threshold minimum value";
+        }
+
+        leaf pout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power critical threshold maximum value";
+        }
+    }
+
+    notification psu-pout-low-alert-recovery {
+
+        description "This notification is sent when output power of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf power-consumption {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output power of power supply";
+        }
+
+        leaf pout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power alert threshold minimum value";
+        }
+
+        leaf pout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power alert threshold maximum value";
+        }
+    }
+
+    notification psu-pout-high-alert-recovery {
+
+        description "This notification is sent when output power violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf power-consumption {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output power of power supply";
+        }
+
+        leaf pout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power alert threshold minimum value";
+        }
+
+        leaf pout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power alert threshold maximum value";
+        }
+    }
+
+    notification psu-pout-low-critical-recovery {
+
+        description "This notification is sent when output power violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf power-consumption {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output power of power supply";
+        }
+
+        leaf pout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power critical threshold minimum value";
+        }
+
+        leaf pout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power critical threshold maximum value";
+        }
+    }
+
+    notification psu-pout-high-critical-recovery {
+
+        description "This notification is sent when output power violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf power-consumption {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output power of power supply";
+        }
+
+        leaf pout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power critical threshold minimum value";
+        }
+
+        leaf pout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output power critical threshold maximum value";
+        }
+    }
+
+    notification psu-iout-low-alert {
+
+        description "This notification is sent when output current of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output current of power supply";
+        }
+
+        leaf iout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current alert threshold minimum value";
+        }
+
+        leaf iout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current alert threshold maximum value";
+        }
+    }
+
+    notification psu-iout-high-alert {
+
+        description "This notification is sent when output current of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output current of power supply";
+        }
+
+        leaf iout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current alert threshold minimum value";
+        }
+
+        leaf iout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current alert threshold maximum value";
+        }
+    }
+
+    notification psu-iout-low-critical {
+
+        description "This notification is sent when output current of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output current of power supply";
+        }
+
+        leaf iout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current critical threshold minimum value";
+        }
+
+        leaf iout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current critical threshold maximum value";
+        }
+    }
+
+    notification psu-iout-high-critical {
+
+        description "This notification is sent when output current of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output current of power supply";
+        }
+
+        leaf iout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current critical threshold minimum value";
+        }
+
+        leaf iout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current critical threshold maximum value";
+        }
+    }
+
+    notification psu-iout-low-alert-recovery {
+
+        description "This notification is sent when output current of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output current of power supply";
+        }
+
+        leaf iout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current alert threshold minimum value";
+        }
+
+        leaf iout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current alert threshold maximum value";
+        }
+    }
+
+    notification psu-iout-high-alert-recovery {
+
+        description "This notification is sent when output current violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output current of power supply";
+        }
+
+        leaf iout-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current alert threshold minimum value";
+        }
+
+        leaf iout-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current alert threshold maximum value";
+        }
+    }
+
+    notification psu-iout-low-critical-recovery {
+
+        description "This notification is sent when output current violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output current of power supply";
+        }
+
+        leaf iout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current critical threshold minimum value";
+        }
+
+        leaf iout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current critical threshold maximum value";
+        }
+    }
+
+    notification psu-iout-high-critical-recovery {
+
+        description "This notification is sent when output current violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf output-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Output current of power supply";
+        }
+
+        leaf iout-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current critical threshold minimum value";
+        }
+
+        leaf iout-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu output current critical threshold maximum value";
+        }
+    }
+
+    notification psu-iin-low-alert {
+
+        description "This notification is sent when input current of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input current of power supply";
+        }
+
+        leaf iin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current alert threshold minimum value";
+        }
+
+        leaf iin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current alert threshold maximum value";
+        }
+    }
+
+    notification psu-iin-high-alert {
+
+        description "This notification is sent when input current of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input current of power supply";
+        }
+
+        leaf iin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current alert threshold minimum value";
+        }
+
+        leaf iin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current alert threshold maximum value";
+        }
+    }
+
+    notification psu-iin-low-critical {
+
+        description "This notification is sent when input current of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input current of power supply";
+        }
+
+        leaf iin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current critical threshold minimum value";
+        }
+
+        leaf iin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current critical threshold maximum value";
+        }
+    }
+
+    notification psu-iin-high-critical {
+
+        description "This notification is sent when input current of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input current of power supply";
+        }
+
+        leaf iin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current critical threshold minimum value";
+        }
+
+        leaf iin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current critical threshold maximum value";
+        }
+    }
+
+    notification psu-iin-low-alert-recovery {
+
+        description "This notification is sent when input current of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input current of power supply";
+        }
+
+        leaf iin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current alert threshold minimum value";
+        }
+
+        leaf iin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current alert threshold maximum value";
+        }
+    }
+
+    notification psu-iin-high-alert-recovery {
+
+        description "This notification is sent when input current violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input current of power supply";
+        }
+
+        leaf iin-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current alert threshold minimum value";
+        }
+
+        leaf iin-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current alert threshold maximum value";
+        }
+    }
+
+    notification psu-iin-low-critical-recovery {
+
+        description "This notification is sent when input current violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input current of power supply";
+        }
+
+        leaf iin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current critical threshold minimum value";
+        }
+
+        leaf iin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current critical threshold maximum value";
+        }
+    }
+
+    notification psu-iin-high-critical-recovery {
+
+        description "This notification is sent when input current violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf input-current {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Input current of power supply";
+        }
+
+        leaf iin-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current critical threshold minimum value";
+        }
+
+        leaf iin-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu input current critical threshold maximum value";
+        }
+    }
+
+    notification psu-temp1-low-alert {
+
+        description "This notification is sent when temp1 of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor1 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 1";
+        }
+
+        leaf temp1-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 alert threshold minimum value";
+        }
+
+        leaf temp1-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 alert threshold maximum value";
+        }
+    }
+
+    notification psu-temp1-high-alert {
+
+        description "This notification is sent when temp1 of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor1 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 1";
+        }
+
+        leaf temp1-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 alert threshold minimum value";
+        }
+
+        leaf temp1-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 alert threshold maximum value";
+        }
+    }
+
+    notification psu-temp1-low-critical {
+
+        description "This notification is sent when temp1 of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor1 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 1";
+        }
+
+        leaf temp1-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 critical threshold minimum value";
+        }
+
+        leaf temp1-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 critical threshold maximum value";
+        }
+    }
+
+    notification psu-temp1-high-critical {
+
+        description "This notification is sent when temp1 of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor1 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 1";
+        }
+
+        leaf temp1-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 critical threshold minimum value";
+        }
+
+        leaf temp1-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 critical threshold maximum value";
+        }
+    }
+
+    notification psu-temp1-low-alert-recovery {
+
+        description "This notification is sent when temp1 of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor1 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 1";
+        }
+
+        leaf temp1-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 alert threshold minimum value";
+        }
+
+        leaf temp1-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 alert threshold maximum value";
+        }
+    }
+
+    notification psu-temp1-high-alert-recovery {
+
+        description "This notification is sent when temp1 violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor1 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 1";
+        }
+
+        leaf temp1-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 alert threshold minimum value";
+        }
+
+        leaf temp1-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 alert threshold maximum value";
+        }
+    }
+
+    notification psu-temp1-low-critical-recovery {
+
+        description "This notification is sent when temp1 violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor1 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 1";
+        }
+
+        leaf temp1-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 critical threshold minimum value";
+        }
+
+        leaf temp1-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 critical threshold maximum value";
+        }
+    }
+
+    notification psu-temp1-high-critical-recovery {
+
+        description "This notification is sent when temp1 violation is recovered.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor1 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 1";
+        }
+
+        leaf temp1-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 critical threshold minimum value";
+        }
+
+        leaf temp1-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 1 critical threshold maximum value";
+        }
+    }
+
+    notification psu-temp2-low-alert {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor2 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 2";
+        }
+
+        leaf temp2-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 alert threshold minimum value";
+        }
+
+        leaf temp2-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 alert threshold maximum value";
+        }
+    }
+
+    notification psu-temp2-high-alert {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor2 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 2";
+        }
+
+        leaf temp2-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 alert threshold minimum value";
+        }
+
+        leaf temp2-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 alert threshold maximum value";
+        }
+    }
+
+    notification psu-temp2-low-critical {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor2 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 2";
+        }
+
+        leaf temp2-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 critical threshold minimum value";
+        }
+
+        leaf temp2-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 critical threshold maximum value";
+        }
+    }
+
+    notification psu-temp2-high-critical {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "CRITICAL";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor2 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 2";
+        }
+
+        leaf temp2-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 critical threshold minimum value";
+        }
+
+        leaf temp2-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 critical threshold maximum value";
+        }
+    }
+
+    notification psu-temp2-low-alert-recovery {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor2 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 2";
+        }
+
+        leaf temp2-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 alert threshold minimum value";
+        }
+
+        leaf temp2-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 alert threshold maximum value";
+        }
+    }
+
+    notification psu-temp2-high-alert-recovery {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor2 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 2";
+        }
+
+        leaf temp2-alert-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 alert threshold minimum value";
+        }
+
+        leaf temp2-alert-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 alert threshold maximum value";
+        }
+    }
+
+    notification psu-temp2-low-critical-recovery {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor2 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 2";
+        }
+
+        leaf temp2-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 critical threshold minimum value";
+        }
+
+        leaf temp2-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 critical threshold maximum value";
+        }
+    }
+
+    notification psu-temp2-high-critical-recovery {
+
+        description "This notification is sent when input voltage of PSU exceeds a given threshold.";
+
+        // severity "INFO";
+        // eventClass "STATE";
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf temperature-sensor2 {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Temperature of power supply sensor 2";
+        }
+
+        leaf temp2-critical-threshold-min {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 critical threshold minimum value";
+        }
+
+        leaf temp2-critical-threshold-max {
+            type  decimal64 {
+                 fraction-digits 2;            }
+        description
+            "Psu temperature 2 critical threshold maximum value";
         }
     }
 

@@ -23,7 +23,17 @@ module ipi-igp-te {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-09-28;
+        revision-date 2021-12-15;
+    }
+
+    import cml-data-types {
+        prefix cml-data-types;
+        revision-date 2022-01-07;
+    }
+
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-01-21;
     }
 
     organization
@@ -38,6 +48,11 @@ module ipi-igp-te {
     description
         "Datamodel for IGP-TE";
 
+
+    revision "2021-10-21" {
+        description "Added IGP-TE dynamic cli with TWAMP configuration";
+        reference " 0.1.4.";
+    }
 
     revision "2021-09-01" {
         description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
@@ -80,8 +95,8 @@ module ipi-igp-te {
                  }
             }
             units "microseconds";
-            description "Use this attribute to specify a unidirectional, link delay value for
-                        the interface";
+            description "Use this attribute to specify a unidirectional, link delay variation
+                        value for the interface";
         } // END of delay-variation definition.
 
         leaf loss-percentage  {
@@ -92,6 +107,58 @@ module ipi-igp-te {
         } // END of loss-percentage definition.
 
     } // END of igp-te-config definition.
+    grouping loss-dynamic-config {
+        description
+            "loss-dynamic-config";
+        leaf loss-dynamic  {
+            when " /ipi-igp-te:igp-te/ipi-igp-te:interfaces/ipi-igp-te:interface/ipi-igp-te:uni-link/ipi-igp-te:twamp-session-parameters/ipi-igp-te:twamp-session-parameter/ipi-igp-te:config/ipi-igp-te:delay-dynamic-twamp ";
+            type  empty;
+            description "Use this attribute to specify a loss percentage value dynamically for
+                        the interface";
+        } // END of loss-dynamic definition.
+
+    } // END of loss-dynamic-config definition.
+    grouping twamp-session-parameters-config {
+        description
+            "TWAMP session parameters";
+        leaf delay-dynamic-twamp  {
+            type  empty;
+            description "Use this command to start the delay measurement for the interface";
+        } // END of delay-dynamic-twamp definition.
+
+        leaf reflector-ip  {
+            type  cml-data-types:cml_hostpname_t;
+            description "";
+        } // END of reflector-ip definition.
+
+        leaf reflector-port  {
+            type  uint16 {
+                 range "1025..65535"  {
+                    description "1025..65535:1025-65535";
+                 }
+            }
+            description "";
+        } // END of reflector-port definition.
+
+        leaf sender-ip  {
+            type  cml-data-types:cml_hostpname_t;
+            description "";
+        } // END of sender-ip definition.
+
+        leaf dscp  {
+            type  string {
+                length "1..8";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to classify traffic based on the Differentiated
+                        Services Code Point (DSCP) value. The DSCP value range is
+                        0-63.Warning: In CLI show running, DSCP values with well-known names
+                        (ex.: af11, cs0) will be displayed as such.On Netconf, DSCP values
+                        will always be numeric. The string type allow up to 8 characters on
+                        well-known name.";
+        } // END of dscp definition.
+
+    } // END of twamp-session-parameters-config definition.
     grouping uni-link-loss-a-bit-config {
         description
             "Grouping for uni-link-loss a-bit configuration on interface";
@@ -216,6 +283,59 @@ module ipi-igp-te {
                     "Operational state data";
                 uses igp-te-config;
             } // END of state-container definition.
+            container twamp-loss-parameter {
+                if-feature feature-list:HAVE_TWAMP;
+                description
+                    "TWAMP loss parameter";
+                container config {
+                    description
+                        "Configuration data";
+                    uses loss-dynamic-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses loss-dynamic-config;
+                } // END of state-container definition.
+            } // END of twamp-loss-parameter-container definition.
+            container twamp-session-parameters {
+                if-feature feature-list:HAVE_TWAMP;
+                description
+                    "TWAMP session parameters";
+
+                list twamp-session-parameter {
+                    key "delay-dynamic-twamp reflector-ip";
+                    max-elements 1;
+                    description
+                        "TWAMP session parameter list";
+                    leaf delay-dynamic-twamp  {
+                        type  leafref {
+                            path  "../config/delay-dynamic-twamp";
+                        }
+                        description "Use this command to start the delay measurement for the interface";
+                    } // END of delay-dynamic-twamp definition.
+
+                    leaf reflector-ip  {
+                        type  leafref {
+                            path  "../config/reflector-ip";
+                        }
+                        description "";
+                    } // END of reflector-ip definition.
+
+                    container config {
+                        description
+                            "Configuration data";
+                        uses twamp-session-parameters-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational state data";
+                        uses twamp-session-parameters-config;
+                    } // END of state-container definition.
+                } // End of twamp-session-parameter-list
+            } // END of twamp-session-parameters-container definition.
             container delay-threshold {
                 description
                     "This container defines the min and max values for uni-link-delay";
@@ -408,5 +528,22 @@ module ipi-igp-te {
     } // END of igp-te-grouping definition.
 
     uses igp-te-grouping;
+
+    rpc twamp-clear-measurement-intf {
+        description "Clear and restart the twamp measurement on an interface";
+        input  {
+            leaf interface-name  {
+                type string {
+                    length "1..128";
+                }
+                mandatory true;
+                description "Interface name";
+            }
+        }
+    }
+
+    rpc twamp-clear-measurement-all {
+        description "Clear and restart the twamp measurement on all interfaces";
+    }
 
 }

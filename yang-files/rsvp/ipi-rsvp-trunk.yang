@@ -21,17 +21,17 @@ submodule ipi-rsvp-trunk {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2021-09-30;
+        revision-date 2022-01-21;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2021-09-03;
+        revision-date 2022-01-07;
     }
 
     import ipi-rsvp-types {
         prefix ipi-rsvp-types;
-        revision-date 2021-09-03;
+        revision-date 2021-10-01;
     }
 
     import ietf-inet-types {
@@ -52,6 +52,16 @@ submodule ipi-rsvp-trunk {
     description
         "Resource Reservation Protocol";
 
+
+    revision "2021-12-22" {
+        description "Introduced HAVE_CUSTOM2_MPLS for Dune platforms and replaced HAVE_CUSTOM2_QOS";
+        reference " 0.7.0.";
+    }
+
+    revision "2021-10-01" {
+        description "Added DC flag check for bypass-trunk";
+        reference " 0.6.4.";
+    }
 
     revision "2021-08-27" {
         description "Updated length constraint for rsvp path-name";
@@ -436,7 +446,7 @@ submodule ipi-rsvp-trunk {
         description
             "rsvp ds-info llsp information for the bypass trunk";
         leaf llsp-class  {
-            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            if-feature feature-list:NOT_HAVE_CUSTOM2_MPLS;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -558,7 +568,7 @@ submodule ipi-rsvp-trunk {
         description
             "rsvp ds-info llsp information for the rsvp trunk";
         leaf llsp-class  {
-            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            if-feature feature-list:NOT_HAVE_CUSTOM2_MPLS;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -1020,7 +1030,7 @@ submodule ipi-rsvp-trunk {
         leaf protection  {
             if-feature feature-list:HAVE_MPLS_FRR;
             type  ipi-rsvp-types:rsvp_frr_protection_t;
-            description "iUse this attribute to create an Fast Reroute backup and to set an LSP
+            description "Use this attribute to create an Fast Reroute backup and to set an LSP
                         one-to-one protection mechanism. This command can also be used to
                         create an FRR Facility (Bypass) backup and assign a Facility Backup
                         (Bypass Tunnel) available to the protected LSP.";
@@ -1445,6 +1455,7 @@ submodule ipi-rsvp-trunk {
 
         list bypass-trunk {
             if-feature feature-list:HAVE_MPLS_FRR;
+            if-feature feature-list:NOT_HAVE_CUSTOM1_MPLS;
             key "bypass-name";
             description
                 "list of bypass trunk";
@@ -1541,6 +1552,7 @@ submodule ipi-rsvp-trunk {
 
                     list dscp-exp-map {
                     when " /rsvp-te/trunks/bypass-trunk/session/diff-serv-info/dscp-exp-map/config/dscp-exp-map-class-name ";
+                        if-feature feature-list:NOT_HAVE_CUSTOM1_MPLS;
                         key "dscp-exp-map-exp-val";
                         description
                             "Top Level list for dscp exp";
