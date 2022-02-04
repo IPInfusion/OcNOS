@@ -1,0 +1,96 @@
+    IPI-CMM-POE-MIB DEFINITIONS ::= BEGIN
+
+    --  This module provides authoritative definitions for Ceragon specific modules
+    --
+    --  This module will be extended, as needed.
+    --
+
+    IMPORTS
+        OBJECT-TYPE, MODULE-IDENTITY,
+        Gauge32, Counter32, Unsigned32,
+        TimeTicks, NOTIFICATION-TYPE
+            FROM SNMPv2-SMI
+        DateAndTime, DisplayString,
+        MacAddress, RowStatus, TEXTUAL-CONVENTION
+            FROM SNMPv2-TC
+        MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+            FROM SNMPv2-CONF
+        enterprises,OBJECT-IDENTITY
+            FROM SNMPv2-SMI
+      ipi FROM IPI-MODULE-MIB
+      cmmChassisObject,
+      cmmStackUnitIndex FROM IPI-CMM-CHASSIS-MIB;
+
+   cmm  MODULE-IDENTITY
+   LAST-UPDATED "202112160000Z"   -- 2021 Dec 16, 12:00:00 GMT
+   ORGANIZATION "IPI."
+   CONTACT-INFO
+    "support@ipinfusion.com"
+
+   DESCRIPTION
+      "The Structure of CMM Management Information for
+       the IPI enterprise."
+   REVISION "202112160000Z"
+   DESCRIPTION
+      "Complying to level 3 of SMILINT"
+   ::= { ipi 100 }
+
+
+    -- ### Groups ###
+
+    cmmPoePortObjects          OBJECT IDENTIFIER ::={ cmmChassisObject 17 }
+
+    cmmPoePortTable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmPoePortTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of entries containing poe port information."
+        ::= { cmmPoePortObjects 1 }
+
+    cmmPoePortTableEntry OBJECT-TYPE
+      SYNTAX         CmmPoePortTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing poe port information."
+      INDEX    { cmmStackUnitIndex,cmmPoePortIndex }
+        ::= { cmmPoePortTable 1 }
+
+    CmmPoePortTableEntry   ::=
+       SEQUENCE {
+         cmmPoePortIndex        INTEGER,
+         cmmPoePortName         DisplayString,
+         cmmPoePortstatus       INTEGER
+       }
+
+    cmmPoePortIndex OBJECT-TYPE
+       SYNTAX        INTEGER (1..128)
+       MAX-ACCESS      read-only
+       STATUS          current
+       DESCRIPTION
+         "Port index number."
+       ::= { cmmPoePortTableEntry 1 }
+
+    cmmPoePortName OBJECT-TYPE
+       SYNTAX          DisplayString
+       MAX-ACCESS      read-only
+       STATUS          current
+       DESCRIPTION
+       "Port name."
+       ::= { cmmPoePortTableEntry 2 }
+
+    cmmPoePortstatus OBJECT-TYPE
+       SYNTAX          INTEGER {
+                         enable(1),
+                         disable(2),
+                         unavailable(-100001),
+                         not-applicable(-100002)
+                       }
+       MAX-ACCESS      read-only
+       STATUS          current
+       DESCRIPTION
+       "Port status."
+       ::= { cmmPoePortTableEntry 3 }
+
+ END
