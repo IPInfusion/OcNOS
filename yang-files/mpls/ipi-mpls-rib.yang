@@ -48,12 +48,12 @@ module ipi-mpls-rib {
 
     import ipi-mpls-types {
         prefix ipi-mpls-types;
-        revision-date 2021-09-03;
+        revision-date 2022-02-15;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-01-21;
+        revision-date 2022-03-03;
     }
 
     organization
@@ -68,6 +68,11 @@ module ipi-mpls-rib {
     description
         "Data model for MPLS RIB";
 
+
+    revision "2022-01-24" {
+        description "Added backup nhlfe support for FTN Entries";
+        reference " 0.8.0.";
+    }
 
     revision "2021-06-26" {
         description "Added multipath runtime attribute for FTN Entries";
@@ -431,6 +436,11 @@ module ipi-mpls-rib {
             description "IP address of the next hop";
         } // END of nexthop-address definition.
 
+        leaf nhlfe-type  {
+            type  ipi-mpls-types:mpls_rib_nhlfe_type_t;
+            description "Type of the next hop";
+        } // END of nhlfe-type definition.
+
     } // END of mpls-rib-ipv4-ftn-nhlfe-entry-state definition.
     grouping mpls-rib-ipv6-ftn-nhlfe-entry-state {
         description
@@ -452,14 +462,19 @@ module ipi-mpls-rib {
             description "IP address of the next hop";
         } // END of nexthop-address definition.
 
+        leaf nhlfe-type  {
+            type  ipi-mpls-types:mpls_rib_nhlfe_type_t;
+            description "Type of the next hop";
+        } // END of nhlfe-type definition.
+
     } // END of mpls-rib-ipv6-ftn-nhlfe-entry-state definition.
     grouping mpls-rib-ip-ftn-nhlfe-entry-state {
         description
             "mplsCMLSEPribCMLSEPipCMLSEPftnCMLSEPnhlfeCMLSEPentryCMLSEPstate";
-        leaf admin-status  {
+        leaf administrative-status  {
             type  ipi-mpls-types:mpls_rib_entry_admin_status_t;
-            description "Admin status of this FTN NHLFE entry";
-        } // END of admin-status definition.
+            description "Administrative status of this FTN NHLFE entry";
+        } // END of administrative-status definition.
 
         leaf oper-status  {
             type  ipi-mpls-types:mpls_rib_entry_oper_status_t;
@@ -907,7 +922,7 @@ module ipi-mpls-rib {
 
 
                 list nhlfe-entry {
-                    key "out-interface out-label";
+                    key "out-interface out-label administrative-status";
                     config false;
                     description
                         "NHLFE entry";
@@ -924,6 +939,13 @@ module ipi-mpls-rib {
                         }
                         description "Label value that is pushed to the outgoing MPLS header";
                     } // END of out-label definition.
+
+                    leaf administrative-status  {
+                        type  leafref {
+                            path  "../state/administrative-status";
+                        }
+                        description "Administrative status of this FTN NHLFE entry";
+                    } // END of administrative-status definition.
 
                     container state {
                         config false;
@@ -978,7 +1000,7 @@ module ipi-mpls-rib {
 
 
                 list nhlfe-entry {
-                    key "out-interface out-label";
+                    key "out-interface out-label administrative-status";
                     config false;
                     description
                         "NHLFE entry";
@@ -995,6 +1017,13 @@ module ipi-mpls-rib {
                         }
                         description "Label value that is pushed to the outgoing MPLS header";
                     } // END of out-label definition.
+
+                    leaf administrative-status  {
+                        type  leafref {
+                            path  "../state/administrative-status";
+                        }
+                        description "Administrative status of this FTN NHLFE entry";
+                    } // END of administrative-status definition.
 
                     container state {
                         config false;

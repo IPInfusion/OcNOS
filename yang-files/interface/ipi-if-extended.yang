@@ -43,7 +43,7 @@ module ipi-if-extended {
 
     import ipi-vxlan {
         prefix ipi-vxlan;
-        revision-date 2021-12-28;
+        revision-date 2022-02-16;
     }
 
     import ipi-network-instance {
@@ -68,7 +68,7 @@ module ipi-if-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-01-21;
+        revision-date 2022-03-03;
     }
 
     organization
@@ -83,6 +83,16 @@ module ipi-if-extended {
     description
         "Datamodel for IPI Interface extended module";
 
+
+    revision "2022-02-17" {
+        description "Remodelled attribute subif-service-queue for sub-interface";
+        reference " 0.11.4.";
+    }
+
+    revision "2022-02-10" {
+        description "Added interface MACsec capability show";
+        reference " 0.11.3.";
+    }
 
     revision "2021-12-22" {
         description "FEC will be reset to auto mode upon speed change";
@@ -613,6 +623,14 @@ module ipi-if-extended {
             }
             description "This Object describes the Interface fec Capability";
         } // END of fec definition.
+
+        leaf macsec  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This Object describes the Interface macsec Capability";
+        } // END of macsec definition.
 
     } // END of capabilities-state definition.
     grouping extended-counters-state {
@@ -1265,15 +1283,15 @@ module ipi-if-extended {
             } // End of single-tag-vlan-match-list
         } // END of single-tag-vlan-matches-container definition.
     } // END of subif-encapsulation-single-tag-top definition.
-    grouping subif-service-queue {
+    grouping subif-service-queue-config {
         description
-            "configure the service queue type physical/flowid";
+            "Configuration data for service queue";
         leaf subif-service-queue  {
             type  ipi-if-types:if_subif_sevice_queue_t;
             description "This attribute specifies the sub interface queue type";
         } // END of subif-service-queue definition.
 
-    } // END of subif-service-queue definition.
+    } // END of subif-service-queue-config definition.
     grouping subif-encapsulation-double-tag-top {
         description
             "Top level groupig for double tagged encapsulations";
@@ -2242,7 +2260,17 @@ module ipi-if-extended {
             if-feature feature-list:HAVE_SUBINTERFACE;
             description
                 "configure subinterface queue type";
-            uses subif-service-queue;
+            container config {
+                description
+                    "Configuration data for subinterface queue type";
+                uses subif-service-queue-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for subinterface queue type";
+                uses subif-service-queue-config;
+            } // END of state-container definition.
         } // END of service-queue-container definition.
         container subinterface-encapsulation {
             if-feature feature-list:HAVE_SUBINTERFACE;
