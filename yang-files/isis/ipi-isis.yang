@@ -33,7 +33,7 @@ module ipi-isis {
 
     import ipi-isis-types {
         prefix ipi-isis-types;
-        revision-date 2021-09-03;
+        revision-date 2022-02-07;
     }
 
     import ietf-inet-types {
@@ -48,7 +48,7 @@ module ipi-isis {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-01-21;
+        revision-date 2022-03-03;
     }
 
     include ipi-isis-extended { revision-date 2021-09-03;}
@@ -68,6 +68,11 @@ module ipi-isis {
     description
         "Model for managing IS-IS Instance";
 
+
+    revision "2022-02-07" {
+        description "Datamodel change for isis ol-bit on-startup and net commands";
+        reference " 0.6.0.";
+    }
 
     revision "2021-12-07" {
         description "Datamodel change for debug isis cspf command";
@@ -300,26 +305,6 @@ module ipi-isis {
             description "Use this attribute to configure ISIS Protocol Topology Support.";
         } // END of protocol-topology definition.
 
-        leaf-list net  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to add a Network Entity Title (NET) for the
-                        instance.On a router running ISIS, a NET can be 8 to 20 bytes in
-                        length. The last byte is always the n-selector, and must be zero. The
-                        n-selector indicates no transport entity, and means that the packet is
-                        for the routing software of the system. The six bytes directly
-                        preceding the n-selector are the system ID. The system ID length is a
-                        fixed size and cannot be changed. The system ID must be unique
-                        throughout each area (Level 1) and throughout the backbone (Level 2).
-                        The bytes preceding the system ID are the area ID, which can be from 1
-                        - 13 bytes in length. By default, a maximum of three NETs per router
-                        are allowed with a different area ID but the system ID should be the
-                        same for all NETs. You can increase the number of area IDs per system
-                        ID with the max-area-address command.";
-        } // END of net definition.
-
         leaf level-capability  {
             type  ipi-isis-types:isis_is_type_t;
             default "level-1-2";
@@ -402,6 +387,30 @@ module ipi-isis {
         } // END of distribute-bgp-ls definition.
 
     } // END of isis-global-config definition.
+    grouping isis-net-config {
+        description
+            "Configure NET for ISIS instance";
+        leaf-list net  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to add a Network Entity Title (NET) for the
+                        instance.On a router running ISIS, a NET can be 8 to 20 bytes in
+                        length. The last byte is always the n-selector, and must be zero. The
+                        n-selector indicates no transport entity, and means that the packet is
+                        for the routing software of the system. The six bytes directly
+                        preceding the n-selector are the system ID. The system ID length is a
+                        fixed size and cannot be changed. The system ID must be unique
+                        throughout each area (Level 1) and throughout the backbone (Level 2).
+                        The bytes preceding the system ID are the area ID, which can be from 1
+                        - 13 bytes in length. By default, a maximum of three NETs per router
+                        are allowed with a different area ID but the system ID should be the
+                        same for all NETs. You can increase the number of area IDs per system
+                        ID with the max-area-address command.";
+        } // END of net definition.
+
+    } // END of isis-net-config definition.
     grouping isis-mpls-traffic-engg-config {
         description
             "Configuration items for ISIS MPLS Traffic Engineering";
@@ -1718,6 +1727,21 @@ module ipi-isis {
                     uses isis-area-auth-config;
                 } // END of state-container definition.
             } // END of area-authentication-container definition.
+            container network-entity-title {
+                description
+                    "To configure NET for an ISIS instance";
+                container config {
+                    description
+                        "This container defines the ISIS NET configuration.";
+                    uses isis-net-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container defines the ISIS net operational parameter.";
+                    uses isis-net-config;
+                } // END of state-container definition.
+            } // END of network-entity-title-container definition.
             container domain-authentication {
                 description
                     "This container defines the ISIS Domain Auth";

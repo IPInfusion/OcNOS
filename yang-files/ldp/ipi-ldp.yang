@@ -23,7 +23,7 @@ module ipi-ldp {
 
     import ipi-ldp-types {
         prefix ipi-ldp-types;
-        revision-date 2022-01-07;
+        revision-date 2022-01-24;
     }
 
     import ietf-inet-types {
@@ -33,12 +33,12 @@ module ipi-ldp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-01-21;
+        revision-date 2022-03-03;
     }
 
     include ipi-ldp-l2vpn { revision-date 2021-09-03;}
     include ipi-ldp-interface { revision-date 2021-10-21;}
-    include ipi-ldp-peer { revision-date 2021-09-03;}
+    include ipi-ldp-peer { revision-date 2022-01-18;}
     organization
         "IP Infusion Inc.";
 
@@ -51,6 +51,11 @@ module ipi-ldp {
     description
         "Datamodel for LDP protocol";
 
+
+    revision "2022-01-19" {
+        description "Added configurations and state attributes for LDP Session Protection";
+        reference " 0.6.0.";
+    }
 
     revision "2022-01-07" {
         description "Modified Data Type";
@@ -112,6 +117,56 @@ module ipi-ldp {
         reference " 0.1.0.";
     }
 
+    grouping session-protection-config {
+        description
+            "Grouping for LDP Session protection";
+        leaf session-protection-enable  {
+            type  empty;
+            mandatory true;
+            description "This attribute is used to activate adjacency session protection.";
+        } // END of session-protection-enable definition.
+
+        leaf duration  {
+            type  uint32 {
+                 range "5..86400"  {
+                    description "5..86400:Session protection duration in seconds";
+                 }
+            }
+            description "Set adjacency session protection duration. Protection is infinite, it
+                        is not configured";
+        } // END of duration definition.
+
+        leaf session-protection-prefix-list-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute is used to set adjacency prefixes for session
+                        protection.";
+        } // END of session-protection-prefix-list-name definition.
+
+    } // END of session-protection-config definition.
+    grouping session-protection-top {
+        description
+            "Grouping for LDP Session protection";
+        container session-protection {
+            if-feature feature-list:HAVE_LDP_SESS_PROT;
+            description
+                "Session protection container";
+            container config {
+                presence "yes";
+                description
+                    "Session protection config";
+                uses session-protection-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Session protection state";
+                uses session-protection-config;
+            } // END of state-container definition.
+        } // END of session-protection-container definition.
+    } // END of session-protection-top definition.
     grouping ldp-lfa-state {
         description
             "Grouping for FEC primary paths";
@@ -925,6 +980,7 @@ module ipi-ldp {
                     uses ldp-loop-detection-config;
                 } // END of state-container definition.
             } // END of loop-detection-policy-container definition.
+            uses session-protection-top;
         } // END of global-container definition.
         container debug {
             description

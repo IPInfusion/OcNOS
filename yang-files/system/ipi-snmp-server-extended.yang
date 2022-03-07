@@ -48,7 +48,7 @@ module ipi-snmp-server-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-01-21;
+        revision-date 2022-03-03;
     }
 
     organization
@@ -64,6 +64,11 @@ module ipi-snmp-server-extended {
         "This module provides Simple Network Management Protocol server
                 configuration";
 
+
+    revision "2022-01-20" {
+        description "New leafrefs re-added and some new flags";
+        reference " 0.2.2.";
+    }
 
     revision "2021-12-15" {
         description "New if-feature HAVE_HOSTPD added";
@@ -248,10 +253,9 @@ module ipi-snmp-server-extended {
                     "Configure community";
 
                 leaf community  {
-                    when " ../snmp-version='1' or ../snmp-version='2' + not(../snmpv3-user) ";
-                    type  string {
-                        length "1..1965";
-                        pattern "[^?' =,>|]+";
+                    when " ../snmp-version='1' or ../snmp-version='2' ";
+                    type  leafref {
+                        path  "/ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server/communities/community/community-name";
                     }
                     description "Use this attribute to point to a pre-configured community. This can be
                                 configured when SNMP version is 1 or 2c.";
@@ -271,10 +275,9 @@ module ipi-snmp-server-extended {
                 } // END of snmpv3-auth-type definition.
 
                 leaf snmpv3-user  {
-                    when " ../snmp-version='3' + not(../community) + ../snmpv3-auth-type ";
-                    type  string {
-                        length "1..1965";
-                        pattern "[^?' =,>|]+";
+                    when " ../snmp-version='3' + ../snmpv3-auth-type ";
+                    type  leafref {
+                        path  "/ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server/users/user/config/user-name";
                     }
                     description "Use this attribute to point to a pre-configured SNMPv3 user. This can
                                 be configured when SNMP version is 3.";
@@ -306,6 +309,7 @@ module ipi-snmp-server-extended {
         list host {
             if-feature feature-list:HAVE_SNMP_AGENT;
             key "host-name";
+            max-elements 8;
             description
                 "SNMP server host list configuration";
             leaf host-name  {
@@ -430,9 +434,8 @@ module ipi-snmp-server-extended {
             "SNMP server commmunity view configuration";
         leaf community-view-name  {
             when " ../version and ../access ";
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
+            type  leafref {
+                path  "/ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server/snmp-views/snmp-view/view-name";
             }
             description "Name of snmp view for a snmp community";
         } // END of community-view-name definition.
@@ -495,9 +498,8 @@ module ipi-snmp-server-extended {
 
                 leaf acl-name  {
                     when " /ipi-acl:acl/ipi-acl:standard-acl-sets/ipi-acl:standard-acl-set/ipi-acl:type = '6' ";
-                    type  string {
-                        length "1..1965";
-                        pattern "[^?' =,>|]+";
+                    type  leafref {
+                        path  "/ipi-acl:acl/ipi-acl:standard-acl-sets/ipi-acl:standard-acl-set/ipi-acl:name";
                     }
                     description "Use this attribute to create an SNMP community string and user-acl.";
                 } // END of acl-name definition.

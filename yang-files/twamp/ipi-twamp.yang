@@ -49,6 +49,16 @@ module ipi-twamp {
         "Two-Way Active Measurement Protocol (TWAMP)";
 
 
+    revision "2022-01-31" {
+        description "Added VRF name handling for both test-session and reflector";
+        reference " 0.3.0.";
+    }
+
+    revision "2022-01-28" {
+        description "Introduced Multiple Reflector Session";
+        reference " 0.2.0.";
+    }
+
     revision "2021-09-10" {
         description "Restructured module in accordance with OpenConfig style";
         reference " 0.1.0.";
@@ -74,22 +84,73 @@ module ipi-twamp {
             description "Sets TWAMP Light Session Reflector administrative state";
         } // END of administrative-state definition.
 
+    } // END of twamp-session-reflector-config definition.
+    grouping twamp-session-reflector-address-top {
+        description
+            "TWAMP session reflector address grouping";
+        container sessions {
+            description
+                "TWAMP reflector sessions";
+
+            list session {
+            when " /ipi-twamp:twamp/ipi-twamp:light/ipi-twamp:session-reflector/ipi-twamp:config/ipi-twamp:enable ";
+                key "name";
+                description
+                    "List of TWAMP Light Reflector sessions";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Sets Reflector Session Name";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data for TWAMP Light Session Reflector Ip address";
+                    uses twamp-session-reflector-address-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "operational state data for TWAMP Light Session Reflector IP address";
+                    uses twamp-session-reflector-address-config;
+                } // END of state-container definition.
+            } // End of session-list
+        } // END of sessions-container definition.
+    } // END of twamp-session-reflector-address-top definition.
+    grouping twamp-session-reflector-address-config {
+        description
+            "Grouping for TWAMP Light Session Reflector configuration data";
+        leaf name  {
+            type  string {
+                length "1..128";
+                pattern "[^?' =,>|]+";
+            }
+            description "Sets Reflector Session Name";
+        } // END of name definition.
+
         leaf reflector-ip-address  {
             type  ipi-twamp-types:twamp_hostname_t;
-            description "Use this attribute to set Reflector IP Address";
+            mandatory true;
+            description "Set TWAMP Reflector Session IP address";
         } // END of reflector-ip-address definition.
 
         leaf reflector-udp-port  {
-            when " /ipi-twamp:twamp/ipi-twamp:light/ipi-twamp:session-reflector/ipi-twamp:config/ipi-twamp:reflector-ip-address ";
-            type  uint16 {
-                 range "1025..65535"  {
-                    description "1025..65535:Reflector UDP port value";
-                 }
-            }
+            type  ipi-twamp-types:twamp_udp_port_t;
+            mandatory true;
             description "Use this attribute to set Reflector UDP Port";
         } // END of reflector-udp-port definition.
 
-    } // END of twamp-session-reflector-config definition.
+        leaf vrf-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            mandatory true;
+            description "Use this attribute to set the Reflector VRF name";
+        } // END of vrf-name definition.
+
+    } // END of twamp-session-reflector-address-config definition.
     grouping twamp-session-reflector-top {
         description
             "Grouping for TWAMP Session Reflector";
@@ -105,9 +166,10 @@ module ipi-twamp {
             container state {
                 config false;
                 description
-                    "Operational state data for TWAMP Ligth Session Reflector";
+                    "operational state data for TWAMP Light Reflector Session";
                 uses twamp-session-reflector-config;
             } // END of state-container definition.
+            uses twamp-session-reflector-address-top;
         } // END of session-reflector-container definition.
     } // END of twamp-session-reflector-top definition.
     grouping twamp-control-test-session-statistics-common {
@@ -294,6 +356,15 @@ module ipi-twamp {
             type  ipi-twamp-types:twamp_dscp_t;
             description "Use this attribute to set test session DSCP value";
         } // END of dscp-value definition.
+
+        leaf vrf-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            mandatory true;
+            description "Use this attribute to set the session VRF name";
+        } // END of vrf-name definition.
 
     } // END of twamp-control-test-session-config definition.
     grouping twamp-control-test-sessions-top {
