@@ -1,5 +1,5 @@
 # OcNOS™ Network Operating System 
-OcNOS SP 5.1 Refers to ocnos-sp-5.1 branch Release (Build #173 )
+OcNOS SP 5.1 Refers to ocnos-5.1 branch Release (Build #201)
 
 Contains the SNMP MIB files, Yang files, Ansible modules etc. to use with OcNOS. (There are no changes to SNMP MIB, Yang files and Ansible modules in this patch release)
 
