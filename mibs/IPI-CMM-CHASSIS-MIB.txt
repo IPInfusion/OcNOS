@@ -17,7 +17,7 @@
             FROM SNMPv2-CONF
         enterprises,OBJECT-IDENTITY
             FROM SNMPv2-SMI
-    ipi FROM IPI-MODULE-MIB;
+        ipi FROM IPI-MODULE-MIB;
 
 
     cmm  MODULE-IDENTITY
@@ -4508,7 +4508,8 @@
           cmmSysHardDiskManufacturerId               DisplayString,
           cmmSysHardDiskManufactureDate               DisplayString,
           cmmSysHardDiskDeviceType               DisplayString,
-          cmmSysHardDiskCacheSize               INTEGER
+          cmmSysHardDiskCacheSize               INTEGER,
+          cmmSysHardDiskStorageStatus           INTEGER
         }
 
         cmmSysHarddiskSerialno    OBJECT-TYPE
@@ -4613,7 +4614,7 @@
         ::= { cmmSysHardDiskEntry 11 }
 
         cmmSysHarddiskFreeMem  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        deprecated
@@ -4623,7 +4624,7 @@
         ::= { cmmSysHardDiskEntry 12 }
 
         cmmSysHarddiskUsageCriticalThreshold  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -4633,7 +4634,7 @@
         ::= { cmmSysHardDiskEntry 13 }
 
         cmmSysHarddiskUsageAlertThreshold  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -4643,7 +4644,7 @@
         ::= { cmmSysHardDiskEntry 14 }
 
         cmmSysHardDiskRemainLifeCriticalThreshold  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -4653,7 +4654,7 @@
         ::= { cmmSysHardDiskEntry 15 }
 
         cmmSysHardDiskRemainLifeAlertThreshold     OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -4663,7 +4664,7 @@
         ::= { cmmSysHardDiskEntry 16 }
 
         cmmSysHardDiskRemainLife                   OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -4673,7 +4674,7 @@
         ::= { cmmSysHardDiskEntry 17 }
 
         cmmSysHardDiskAvailableReservedSpaceCriticalThreshold     OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -4683,7 +4684,7 @@
         ::= { cmmSysHardDiskEntry 18 }
 
         cmmSysHardDiskAvailableReservedSpaceAlertThreshold     OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " % "
         MAX-ACCESS    read-only
         STATUS        current
@@ -4703,7 +4704,7 @@
         ::= { cmmSysHardDiskEntry 20 }
 
         cmmSysHardDiskReallocSectorsCount                  OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " 1 "
         MAX-ACCESS    read-only
         STATUS        current
@@ -4713,12 +4714,12 @@
         ::= { cmmSysHardDiskEntry 21 }
 
         cmmSysHardDiskUncorrectSectorCount                   OBJECT-TYPE
-        SYNTAX        INTEGER 
+        SYNTAX        INTEGER
         UNITS         " 1 "
         MAX-ACCESS    read-only
         STATUS        current
         DESCRIPTION
-             "Harddisk Uncorrectable Sectors Count. 
+             "Harddisk Uncorrectable Sectors Count.
              '-100001' indicates unavailable"
         ::= { cmmSysHardDiskEntry 22 }
 
@@ -4827,6 +4828,23 @@
              '0' indicates unavailable"
         ::= { cmmSysHardDiskEntry 33 }
 
+        cmmSysHardDiskStorageStatus    OBJECT-TYPE
+        SYNTAX        INTEGER {
+                            normal(1),
+                            alert(2),
+                            critical(3),
+                            undefined(4),
+                            unavailable(-100001),
+                            not-applicable(-100002)
+                            }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Hard disk storage status (EOL).
+            '-100001' indicates unavailable,
+            '-100002' indicates not-applicable."
+        ::= { cmmSysHardDiskEntry 34 }
+
 -- ## System Overall Status Table
         cmmSystemStatusTable OBJECT-TYPE
         SYNTAX        SEQUENCE OF CmmSystemStatusEntry
@@ -4890,7 +4908,7 @@
             "Value represents the Color of the system led."
         ::= { cmmSystemStatusEntry 4 }
 
--- CPU per core utilisation table 
+-- CPU per core utilisation table
 
         cmmCpuCoreUtilTable OBJECT-TYPE
         SYNTAX        SEQUENCE OF CmmCpuCoreUtilEntry
@@ -5787,19 +5805,19 @@
         STATUS        current
         DESCRIPTION
            "An entry containing Hard disk mounted information of the mounted partitions."
-        INDEX    { cmmStackUnitIndex, cmmPartionNumber }
+        INDEX    { cmmStackUnitIndex, cmmSysHardDiskPartitionIndex }
         ::= { cmmSysHardDiskPartitionTable 1 }
 
         CmmSysHardDiskPartitionEntry    ::=
           SEQUENCE {
-            cmmSysHarddiskPartitionIndex                INTEGER,
-            cmmSysHarddiskPartitionName                 DisplayString,
-            cmmSysHarddiskPartitionTotalMem             INTEGER,
-            cmmSysHarddiskPartitionUsedMem              INTEGER,
-            cmmSysHarddiskPartitionFreeMem              INTEGER
+            cmmSysHardDiskPartitionIndex                INTEGER,
+            cmmSysHardDiskPartitionName                 DisplayString,
+            cmmSysHardDiskPartitionTotalMem 		INTEGER,
+            cmmSysHardDiskPartitionUsedMem  		INTEGER,
+            cmmSysHardDiskPartitionFreeMem   		INTEGER
           }
 
-        cmmSysHarddiskPartitionIndex OBJECT-TYPE
+        cmmSysHardDiskPartitionIndex OBJECT-TYPE
         SYNTAX        INTEGER (1..65535)
         MAX-ACCESS                read-only
         STATUS                    current
@@ -5807,7 +5825,7 @@
             "The mounted partition index."
         ::= { cmmSysHardDiskPartitionEntry 1 }
 
-        cmmSysPartitionMountPointName OBJECT-TYPE
+        cmmSysHardDiskPartitionName OBJECT-TYPE
         SYNTAX                    DisplayString
         MAX-ACCESS                read-only
         STATUS                    current
@@ -5816,7 +5834,7 @@
              Blank indicates unavailable"
         ::= { cmmSysHardDiskPartitionEntry 2 }
 
-        cmmSysPartitionTotalMem     OBJECT-TYPE
+        cmmSysHardDiskPartitionTotalMem OBJECT-TYPE
         SYNTAX                    INTEGER
         UNITS                     " MBytes "
         MAX-ACCESS                read-only
@@ -5826,7 +5844,7 @@
             '-100001' indicates unavailable"
         ::= { cmmSysHardDiskPartitionEntry 3 }
 
-        cmmSysPartitionUsedMem        OBJECT-TYPE
+        cmmSysHardDiskPartitionUsedMem  OBJECT-TYPE
         SYNTAX                    INTEGER
         UNITS                     " MBytes "
         MAX-ACCESS                read-only
@@ -5836,7 +5854,7 @@
             '-100001' indicates unavailable"
         ::= { cmmSysHardDiskPartitionEntry 4 }
 
-        cmmSysPartitionFreeMem         OBJECT-TYPE
+        cmmSysHardDiskPartitionFreeMem   OBJECT-TYPE
         SYNTAX                   INTEGER
         UNITS                    " MBytes "
         MAX-ACCESS               read-only
@@ -6204,6 +6222,16 @@
         DESCRIPTION
             "Trap to send when Hard Disk write activity violation recovers."
         ::= { cmmAlarmMibNotifications 38 }
+
+     cmmSysHardDiskStorageStatusNotification  NOTIFICATION-TYPE
+        OBJECTS       {
+                      cmmStackUnitIndex,
+                      cmmSysHardDiskStorageStatus
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when Hard Disk Storage Status (EOL) Change"
+        ::= { cmmAlarmMibNotifications 39 }
 
     cmmTemperatureLowEmergency   NOTIFICATION-TYPE
         OBJECTS      {

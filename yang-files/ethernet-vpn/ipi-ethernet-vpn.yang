@@ -23,7 +23,7 @@ module ipi-ethernet-vpn {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-01-07;
+        revision-date 2022-04-04;
     }
 
     import ietf-inet-types {
@@ -48,22 +48,17 @@ module ipi-ethernet-vpn {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-12-15;
+        revision-date 2022-04-05;
     }
 
     import ipi-if-aggregate {
         prefix ipi-if-aggregate;
-        revision-date 2021-09-03;
-    }
-
-    import ipi-evpn-mpls {
-        prefix ipi-evpn-mpls;
-        revision-date 2021-12-10;
+        revision-date 2022-04-20;
     }
 
     import ipi-if-extended {
         prefix ipi-if-extended;
-        revision-date 2022-02-17;
+        revision-date 2022-03-22;
     }
 
     import ipi-evpn-mpls-types {
@@ -73,7 +68,7 @@ module ipi-ethernet-vpn {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-04-28;
     }
 
     organization
@@ -136,7 +131,6 @@ module ipi-ethernet-vpn {
         } // END of enable-vxlan-multihoming definition.
 
         leaf enable-evpn-mpls-multihoming  {
-            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
             if-feature feature-list:HAVE_MPLS;
             if-feature feature-list:HAVE_BGP_EVPN;
             if-feature feature-list:HAVE_NVO;
@@ -187,7 +181,7 @@ module ipi-ethernet-vpn {
         description
             "MH interface configuration for esi";
         leaf evpn-segment-id  {
-            when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-evpn-mpls-multihoming  or /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-vxlan-multihoming ";
+            when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-vxlan-multihoming ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -197,7 +191,7 @@ module ipi-ethernet-vpn {
         } // END of evpn-segment-id definition.
 
         leaf system-mac  {
-            when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-evpn-mpls-multihoming  or /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-vxlan-multihoming ";
+            when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-vxlan-multihoming ";
             type  cml-data-types:cml_mac_addr_t {
                 length "1..1965";
             }
@@ -255,8 +249,10 @@ module ipi-ethernet-vpn {
             if-feature feature-list:HAVE_MPLS;
             if-feature feature-list:HAVE_BGP_EVPN;
             if-feature feature-list:HAVE_NVO;
-            type  leafref {
-                path  "/ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:mpls-tenant/ipi-evpn-mpls:config/ipi-evpn-mpls:tenant-identifier";
+            type  uint32 {
+                 range "1..16777215"  {
+                    description "1..16777215:VPNID";
+                 }
             }
             description "Map already created tenant id";
         } // END of evpn-identifier definition.
@@ -448,7 +444,7 @@ module ipi-ethernet-vpn {
                 "Top level container for interface level configuration";
 
             list access-interface {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:single-tag-vlan-matches/ipi-if-extended:single-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:double-tag-vlan-matches/ipi-if-extended:double-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-default  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-untagged + not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) + /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:single-tag-vlan-matches/ipi-if-extended:single-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:double-tag-vlan-matches/ipi-if-extended:double-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-default  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-untagged + not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
                 if-feature feature-list:HAVE_SUBINTERFACE;
                 if-feature feature-list:HAVE_NVO;
                 key "access-if";

@@ -33,7 +33,7 @@ module ipi-ospf {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-12-15;
+        revision-date 2022-04-05;
     }
 
     import ipi-network-instance {
@@ -53,7 +53,7 @@ module ipi-ospf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-04-28;
     }
 
     include ipi-ospf-redistribute { revision-date 2021-09-03;}
@@ -79,6 +79,16 @@ module ipi-ospf {
     description
         "Layer-3 Open Shortest Path First (OSPF)";
 
+
+    revision "2022-04-05" {
+        description "Removed distance of network adm distance as mandatory and enforce configuration via when";
+        reference " 0.4.1.";
+    }
+
+    revision "2022-03-28" {
+        description "Added attribute for supporting SNMP context-name";
+        reference " 0.5.0.";
+    }
 
     revision "2022-01-07" {
         description "Modified Submodules";
@@ -195,7 +205,6 @@ module ipi-ospf {
                     description "1..255:Administrative distance values";
                  }
             }
-            mandatory true;
             description "Use this attribute to specifies administrative distance.";
         } // END of distance definition.
 
@@ -204,7 +213,6 @@ module ipi-ospf {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
             }
-            mandatory true;
             description "Use this attribute to specifies administrative distance network ACL.";
         } // END of access-control-list definition.
 
@@ -217,6 +225,7 @@ module ipi-ospf {
                 "OSPF networks administrative distance";
 
             list network {
+            when " /ipi-ospf:ospfv2/ipi-ospf:processes/ipi-ospf:process/ipi-ospf:administrative-distance/ipi-ospf:networks/ipi-ospf:network/ipi-ospf:config/ipi-ospf:distance ";
                 key "prefix";
                 description
                     "List of OSPF networks administrative distance";
@@ -1877,6 +1886,14 @@ module ipi-ospf {
             description "Use this attribute to enable unicast packet on point-point interface.";
         } // END of p2p-rfc-incompatible definition.
 
+        leaf snmp-context-name  {
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set the SNMP context name for OSPF instance.";
+        } // END of snmp-context-name definition.
+
     } // END of ospfv2-process-config definition.
     grouping ospfv2-processes-top {
         description
@@ -2185,16 +2202,6 @@ module ipi-ospf {
         description "OSPF Database Timers Rate Limiting Values for LSA Throttling";
     }
 
-    rpc ospfv2-terminal-debug-sr-on {
-        if-feature feature-list:HAVE_SR_MPLS;
-        description "Segment Routing";
-    }
-
-    rpc ospfv2-terminal-debug-sr-off {
-        if-feature feature-list:HAVE_SR_MPLS;
-        description "Segment Routing";
-    }
-
     rpc ospfv2-terminal-debug-route-on {
         description "OSPF route information";
         input  {
@@ -2483,52 +2490,12 @@ module ipi-ospf {
         }
     }
 
-    rpc ospfv2-terminal-debug-cspf-events-on {
-        if-feature feature-list:HAVE_OSPF_CSPF;
-        description "CSPF Information";
-    }
-
-    rpc ospfv2-terminal-debug-cspf-events-off {
-        if-feature feature-list:HAVE_OSPF_CSPF;
-        description "CSPF Information";
-    }
-
-    rpc ospfv2-terminal-debug-cspf-hexdump-on {
-        if-feature feature-list:HAVE_OSPF_CSPF;
-        description "CSPF message hexdump";
-    }
-
-    rpc ospfv2-terminal-debug-cspf-hexdump-off {
-        if-feature feature-list:HAVE_OSPF_CSPF;
-        description "CSPF message hexdump";
-    }
-
     rpc ospfv2-terminal-debug-retransmission-on {
         description "OSPF Debug retransmission information";
     }
 
     rpc ospfv2-terminal-debug-retransmission-off {
         description "OSPF Debug retransmission information";
-    }
-
-    rpc ospfv2-terminal-debug-dist-ls-on {
-        if-feature feature-list:HAVE_BGP_LS;
-        description "OSPF distribute linkstate details";
-    }
-
-    rpc ospfv2-terminal-debug-dist-ls-off {
-        if-feature feature-list:HAVE_BGP_LS;
-        description "OSPF distribute linkstate details";
-    }
-
-    rpc ospfv2-terminal-debug-topology-independent-lfa-on {
-        if-feature feature-list:HAVE_OSPF_TI_LFA;
-        description "Topology Independent LFA";
-    }
-
-    rpc ospfv2-terminal-debug-topology-independent-lfa-off {
-        if-feature feature-list:HAVE_OSPF_TI_LFA;
-        description "Topology Independent LFA";
     }
 
     rpc ospfv2-terminal-debug-lfa-on {

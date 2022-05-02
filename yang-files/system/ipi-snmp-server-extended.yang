@@ -23,7 +23,7 @@ module ipi-snmp-server-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-01-07;
+        revision-date 2022-04-04;
     }
 
     import ipi-snmp {
@@ -38,7 +38,7 @@ module ipi-snmp-server-extended {
 
     import ipi-snmp-server-extended-types {
         prefix ipi-snmp-server-extended-types;
-        revision-date 2021-11-16;
+        revision-date 2022-03-20;
     }
 
     import ipi-acl {
@@ -48,7 +48,7 @@ module ipi-snmp-server-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-04-28;
     }
 
     organization
@@ -64,6 +64,21 @@ module ipi-snmp-server-extended {
         "This module provides Simple Network Management Protocol server
                 configuration";
 
+
+    revision "2022-04-11" {
+        description "Remove acl leaf from choice structure in SNMP community";
+        reference " 0.2.5.";
+    }
+
+    revision "2022-04-05" {
+        description "Moved community context mapping cli out of config container";
+        reference " 0.2.4.";
+    }
+
+    revision "2022-03-10" {
+        description "Added new cli's for SNMP context support";
+        reference " 0.2.3.";
+    }
 
     revision "2022-01-20" {
         description "New leafrefs re-added and some new flags";
@@ -345,9 +360,17 @@ module ipi-snmp-server-extended {
         } // END of user-name definition.
 
         leaf user-type  {
-            type  ipi-snmp-server-extended-types:snmp_server_user_type_t;
+            type  ipi-snmp-server-extended-types:snmp_server_group_name_t;
             description "Use this attribute to create an SNMP server user of specified type.";
         } // END of user-type definition.
+
+        leaf user-group  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to add an SNMP server user to a group.";
+        } // END of user-group definition.
 
         leaf encryption-type  {
             type  ipi-snmp-server-extended-types:snmp_server_key_type_t;
@@ -399,6 +422,46 @@ module ipi-snmp-server-extended {
         } // END of privilege-password definition.
 
     } // END of snmp-server-user-config definition.
+    grouping snmp-server-context-config {
+        description
+            "SNMP server context configuration";
+        leaf context-name  {
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to create an SNMP server context";
+        } // END of context-name definition.
+
+    } // END of snmp-server-context-config definition.
+    grouping snmp-server-context-top {
+        description
+            "SNMP server context top level configuration";
+
+        list context {
+            key "context-name";
+            description
+                "SNMP server context list configuration";
+            leaf context-name  {
+                type  leafref {
+                    path  "../config/context-name";
+                }
+                description "Use this attribute to create an SNMP server context";
+            } // END of context-name definition.
+
+            container config {
+                description
+                    "Configuration data for SNMP server context";
+                uses snmp-server-context-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for SNMP server context";
+                uses snmp-server-context-config;
+            } // END of state-container definition.
+        } // End of context-list
+    } // END of snmp-server-context-top definition.
     grouping snmp-server-user-top {
         description
             "SNMP server user top level configuration";
@@ -453,6 +516,36 @@ module ipi-snmp-server-extended {
         } // END of access definition.
 
     } // END of snmp-server-community-view-config definition.
+    grouping snmp-server-group-config {
+        description
+            "SNMP server group configuration";
+        leaf group-name  {
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to create an SNMP group string.";
+        } // END of group-name definition.
+
+        leaf group-version  {
+            type  ipi-snmp-server-extended-types:snmp_server_version_t;
+            description "Use this attribute to specify group-version to be used with group
+                        configuration.";
+        } // END of group-version definition.
+
+        leaf snmpv3-group-auth-type  {
+            when " ../group-version='3' ";
+            type  ipi-snmp-server-extended-types:snmp_v3_server_group_auth_type_t;
+            description "Use this attribute to configure the snmpv3 authentication type.
+                        This can be configured only with SNMP version 3.";
+        } // END of snmpv3-group-auth-type definition.
+
+        leaf-list context  {
+            type  ipi-snmp-server-extended-types:snmp_server_context_name_t;
+            description "Use this attribute to create an SNMP server context";
+        } // END of context definition.
+
+    } // END of snmp-server-group-config definition.
     grouping snmp-server-community-config {
         description
             "SNMP server commmunity configuration";
@@ -464,6 +557,14 @@ module ipi-snmp-server-extended {
             description "Use this attribute to create an SNMP community string and access
                         privileges.";
         } // END of community-name definition.
+
+        leaf acl-name  {
+            when " /ipi-acl:acl/ipi-acl:standard-acl-sets/ipi-acl:standard-acl-set/ipi-acl:type = '6' ";
+            type  leafref {
+                path  "/ipi-acl:acl/ipi-acl:standard-acl-sets/ipi-acl:standard-acl-set/ipi-acl:name";
+            }
+            description "Use this attribute to create an SNMP community string and user-acl.";
+        } // END of acl-name definition.
 
         choice community-option {
             description
@@ -491,20 +592,6 @@ module ipi-snmp-server-extended {
                 } // END of access-privileges definition.
 
             }
-            case use-acl {
-
-                description
-                    "Configure community acl";
-
-                leaf acl-name  {
-                    when " /ipi-acl:acl/ipi-acl:standard-acl-sets/ipi-acl:standard-acl-set/ipi-acl:type = '6' ";
-                    type  leafref {
-                        path  "/ipi-acl:acl/ipi-acl:standard-acl-sets/ipi-acl:standard-acl-set/ipi-acl:name";
-                    }
-                    description "Use this attribute to create an SNMP community string and user-acl.";
-                } // END of acl-name definition.
-
-            }
             case use-view {
 
                 description
@@ -514,6 +601,73 @@ module ipi-snmp-server-extended {
             }
         } // END of community-option-choice definition.
     } // END of snmp-server-community-config definition.
+    grouping snmp-server-community-context {
+        description
+            "SNMP server community context mapping configuration";
+        leaf community-context  {
+            type  leafref {
+                path  "/ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server/contexts/context/config/context-name";
+            }
+            description "Use this attribute to map a community with an SNMP server context";
+        } // END of community-context definition.
+
+        leaf community-user  {
+            type  leafref {
+                path  "/ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server/users/user/config/user-name";
+            }
+            description "Use this attribute to point to a pre-configured SNMPv3 user. This can
+                        be configured when SNMP version is 3.";
+        } // END of community-user definition.
+
+    } // END of snmp-server-community-context definition.
+    grouping snmp-community-context-mapping {
+        description
+            "SNMP server community context mapping configuration";
+        container community-context-mapping {
+            description
+                "SNMP server community context mapping configuration";
+            container config {
+                description
+                    "SNMP server community context mapping configuration";
+                uses snmp-server-community-context;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Community context mapping state data";
+                uses snmp-server-community-context;
+            } // END of state-container definition.
+        } // END of community-context-mapping-container definition.
+    } // END of snmp-community-context-mapping definition.
+    grouping snmp-server-group-top {
+        description
+            "SNMP server group top level configuration";
+
+        list server-group {
+            if-feature feature-list:HAVE_SNMP_AGENT;
+            key "group-name";
+            description
+                "Group list configuration";
+            leaf group-name  {
+                type  leafref {
+                    path  "../config/group-name";
+                }
+                description "Use this attribute to create an SNMP group string.";
+            } // END of group-name definition.
+
+            container config {
+                description
+                    "Configuration data for SNMP Server server-groups";
+                uses snmp-server-group-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for SNMP Server Communities";
+                uses snmp-server-group-config;
+            } // END of state-container definition.
+        } // End of server-group-list
+    } // END of snmp-server-group-top definition.
     grouping snmp-server-community-top {
         description
             "SNMP server commmunity top level configuration";
@@ -542,6 +696,7 @@ module ipi-snmp-server-extended {
                     "Operational state data for SNMP Server Communities";
                 uses snmp-server-community-config;
             } // END of state-container definition.
+            uses snmp-community-context-mapping;
         } // End of community-list
     } // END of snmp-server-community-top definition.
     grouping snmp-statistics-state {
@@ -607,6 +762,16 @@ module ipi-snmp-server-extended {
     } // END of users-container definition.
     } // END of users-grouping definition.
 
+    grouping  contexts-grouping {
+    description
+        "Container for SNMP servers contexts configuration";
+    container contexts {
+        description
+            "Container for SNMP servers contexts configuration";
+        uses snmp-server-context-top;
+    } // END of contexts-container definition.
+    } // END of contexts-grouping definition.
+
     grouping  communities-grouping {
     description
         "Container for SNMP servers communities configuration";
@@ -616,6 +781,16 @@ module ipi-snmp-server-extended {
         uses snmp-server-community-top;
     } // END of communities-container definition.
     } // END of communities-grouping definition.
+
+    grouping  server-groups-grouping {
+    description
+        "Container for SNMP servers groups configuration";
+    container server-groups {
+        description
+            "Container for SNMP servers groups configuration";
+        uses snmp-server-group-top;
+    } // END of server-groups-container definition.
+    } // END of server-groups-grouping definition.
 
     grouping  statistics-grouping {
     description
@@ -664,8 +839,22 @@ module ipi-snmp-server-extended {
     augment /ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server {
         if-feature feature-list:HAVE_SNMP_AGENT;
         description
+            "Container for SNMP servers contexts configuration";
+        uses contexts-grouping;
+    }
+
+    augment /ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server {
+        if-feature feature-list:HAVE_SNMP_AGENT;
+        description
             "Container for SNMP servers communities configuration";
         uses communities-grouping;
+    }
+
+    augment /ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server {
+        if-feature feature-list:HAVE_SNMP_AGENT;
+        description
+            "Container for SNMP servers groups configuration";
+        uses server-groups-grouping;
     }
 
     augment /ipi-snmp:snmp {
