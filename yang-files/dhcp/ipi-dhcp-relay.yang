@@ -21,7 +21,7 @@ submodule ipi-dhcp-relay {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ipi-dhcp-relay-types {
@@ -41,17 +41,17 @@ submodule ipi-dhcp-relay {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     organization
@@ -66,6 +66,11 @@ submodule ipi-dhcp-relay {
     description
         "dhcp_relay_configuration";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.6.0.";
+    }
 
     revision "2021-11-30" {
         description "Changes to support DHCP Relay across VRF feature";
@@ -523,7 +528,7 @@ submodule ipi-dhcp-relay {
                 "Top level container for DHCP relay on each interface";
 
             list interface {
-            // when " !ipi-if-aggregate:member-aggregation ";
+            // when " !ipi-interface:interfaces/interface/config/enable-switchport ";
                 key "name";
                 description
                     "List of interfaces mapped with DHCP relay";
@@ -613,7 +618,10 @@ submodule ipi-dhcp-relay {
     description
         "DHCP relay related operations";
     container relay {
-        when " /dhcp/global/config/disable-dhcp-feature != 1 ";
+        when " not(/dhcp/global/config/disable-dhcp-feature) ";
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_DHCP_CLIENT;
+        if-feature feature-list:HAVE_DHCP_SERVER_OR_HAVE_DHCP_SNOOP_OR_HAVE_DHCP_UPDATE_STYLE;
         description
             "DHCP relay related operations";
         uses relay-global-top;

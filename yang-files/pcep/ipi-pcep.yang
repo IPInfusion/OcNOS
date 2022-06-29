@@ -26,19 +26,19 @@ module ipi-pcep {
         revision-date 2021-09-03;
     }
 
-    import ietf-inet-types {
-        prefix inet;
-        revision-date 2013-07-15;
-    }
-
     import ietf-yang-types {
         prefix yang;
         revision-date 2013-07-15;
     }
 
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
     include ipi-pcep-lsp { revision-date 2021-09-03;}
@@ -83,7 +83,7 @@ module ipi-pcep {
         leaf entity-id  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Entity ID";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             description "This attribute is used to configure PCEP Entity.";
@@ -92,7 +92,7 @@ module ipi-pcep {
         leaf keep-alive-interval  {
             type  uint8 {
                  range "0..255"  {
-                    description "0..255:Timer value for keep-alive";
+                    description "0..255: Supported range 0 - 255";
                  }
             }
             units "seconds";
@@ -108,7 +108,7 @@ module ipi-pcep {
         leaf dead-interval  {
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:Timer value for dead timer";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             units "seconds";
@@ -124,7 +124,7 @@ module ipi-pcep {
         leaf request-timeout  {
             type  uint16 {
                  range "1..20"  {
-                    description "1..20:Value for request timeout";
+                    description "1..20: Supported range 1 - 20";
                  }
             }
             units "seconds";
@@ -136,7 +136,7 @@ module ipi-pcep {
         leaf tolerance-keepalive  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Tolerance value for keep-alive";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             description "This attribute is used to set the tolerance value for keep-alive
@@ -146,7 +146,7 @@ module ipi-pcep {
         leaf tolerance-dead-interval  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Tolerance value for deadtimer";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             description "This attribute is used to set the tolerance value for dead interval
@@ -156,14 +156,14 @@ module ipi-pcep {
         leaf cool-off-timeout  {
             type  int32 {
                  range "1..300"  {
-                    description "1..300:Value in seconds";
+                    description "1..300: Supported range 1 - 300";
                  }
             }
             description "This attribute is used to set Flap dampening time.";
         } // END of cool-off-timeout definition.
 
         leaf source-address  {
-            type  inet:ipv4-address;
+            type  inet:ip-address;
             description "This attribute is used to configure the local Internet address
                         of this PCEP entity.
                         If operating as a PCE server, the PCEP entity
@@ -259,6 +259,16 @@ module ipi-pcep {
         } // END of keep-wait-timer definition.
 
     } // END of pcep-entity-state definition.
+    grouping pcep-entity-srv6-capability-config {
+        description
+            "Configuration data corresponds to PCE auto discovery information";
+        leaf segment-routing-v6  {
+            if-feature feature-list:HAVE_PCEP_SRV6;
+            type  empty;
+            description "This attribute is used to enable segment-routing ipv6 capability.";
+        } // END of segment-routing-v6 definition.
+
+    } // END of pcep-entity-srv6-capability-config definition.
     grouping pcep-entity-capability-config {
         description
             "Configuration data corresponds to PCE auto discovery information";
@@ -285,12 +295,14 @@ module ipi-pcep {
                 description
                     "Configuration data relevant to PCE selection";
                 uses pcep-entity-capability-config;
+                uses pcep-entity-srv6-capability-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operational state data of local PCEP entity";
                 uses pcep-entity-capability-config;
+                uses pcep-entity-srv6-capability-config;
             } // END of state-container definition.
         } // END of capability-container definition.
     } // END of pcep-entity-capability definition.
@@ -301,7 +313,7 @@ module ipi-pcep {
             when " ../flap-interval ";
             type  int32 {
                  range "10..1000"  {
-                    description "10..1000:Number of flaps allowed";
+                    description "10..1000: Supported range 10 - 1000";
                  }
             }
             mandatory true;
@@ -312,7 +324,7 @@ module ipi-pcep {
             when " ../flap-count ";
             type  int32 {
                  range "10..36000"  {
-                    description "10..36000:Time unit for flap dampening in seconds";
+                    description "10..36000: Supported range 10 - 36000";
                  }
             }
             mandatory true;
@@ -347,7 +359,7 @@ module ipi-pcep {
             when " ../interval ";
             type  int32 {
                  range "1..1000"  {
-                    description "1..1000:Number of updates allowed";
+                    description "1..1000: Supported range 1 - 1000";
                  }
             }
             mandatory true;
@@ -359,7 +371,7 @@ module ipi-pcep {
             when " ../count ";
             type  int32 {
                  range "10..36000"  {
-                    description "10..36000:Time unit for update dampening in seconds";
+                    description "10..36000: Supported range 10 - 36000";
                  }
             }
             mandatory true;
@@ -394,7 +406,7 @@ module ipi-pcep {
         leaf redelegation-timeout  {
             type  uint32 {
                  range "1..600"  {
-                    description "1..600:Value in seconds";
+                    description "1..600: Supported range 1 - 600";
                  }
             }
             units "seconds";
@@ -440,7 +452,7 @@ module ipi-pcep {
         leaf lsp-limit  {
             type  uint32 {
                  range "1..1048575"  {
-                    description "1..1048575:Number of PCE Initiate Allowed";
+                    description "1..1048575: Supported range 1 - 1048575";
                  }
             }
             mandatory true;
@@ -507,11 +519,41 @@ module ipi-pcep {
             } // END of state-container definition.
         } // END of debug-container definition.
     } // END of pcep-debug definition.
+    grouping pcep-srv6-spirent-comp-config {
+        description
+            "Configuration data related to pcep srv6 spirent compliance option";
+        leaf srv6-spirent-comp  {
+            type  empty;
+            description "This attribute is used to enable/disable PCEP SRv6 spirent TLV value
+                        compliance.";
+        } // END of srv6-spirent-comp definition.
+
+    } // END of pcep-srv6-spirent-comp-config definition.
+    grouping pcep-srv6-spirent-comp {
+        description
+            "PCEP SRv6 spirent compliance grouping";
+        container srv6-spirent-comp {
+            description
+                "PCEP SRv6 spirent compliance information";
+            container config {
+                description
+                    "Configuration data for PCEP SRv6 spirent compliance parameters";
+                uses pcep-srv6-spirent-comp-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational data for PCEP SRv6 spirent compliance parameters";
+                uses pcep-srv6-spirent-comp-config;
+            } // END of state-container definition.
+        } // END of srv6-spirent-comp-container definition.
+    } // END of pcep-srv6-spirent-comp definition.
 
     grouping  pcep-grouping {
     description
         "Generic configuration and operational model for PCEP entity";
     container pcep {
+        if-feature feature-list:HAVE_PCEP;
         description
             "Generic configuration and operational model for PCEP entity";
 
@@ -547,40 +589,41 @@ module ipi-pcep {
         } // End of entity-list
         uses pcep-init-lsp-top;
         uses pcep-debug;
+        uses pcep-srv6-spirent-comp;
     } // END of pcep-container definition.
     } // END of pcep-grouping definition.
 
     uses pcep-grouping;
 
     rpc clear-pcep-peer-all {
+        if-feature feature-list:HAVE_PCEP;
         description "Clear all PCEP Peer session";
     }
 
     rpc clear-pcep-peer {
+        if-feature feature-list:HAVE_PCEP;
         description "Clear a PCEP peer session";
         input  {
             leaf address  {
-                type inet:ipv4-address;
+                type inet:ip-address;
                 mandatory true;
-                description "The local Internet address of this PCEP
-                            peer.";
+                description "The local Internet address of this PCEP peer.";
             }
         }
     }
 
     rpc clear-pcep-statistics {
+        if-feature feature-list:HAVE_PCEP;
         description "Clear PCEP Peer statistics information";
     }
 
     rpc debug-pcep-all {
+        if-feature feature-list:HAVE_PCEP;
         description "Enable all debugging functions of PCEP";
     }
 
-    rpc undebug-pcep-all {
-        description "Disable all debugging functions of PCEP";
-    }
-
     rpc pcep-terminal-debug-on {
+        if-feature feature-list:HAVE_PCEP;
         description "Enable debugging functions of PCEP";
         input  {
             leaf debug-options  {
@@ -593,6 +636,7 @@ module ipi-pcep {
     }
 
     rpc pcep-terminal-debug-off {
+        if-feature feature-list:HAVE_PCEP;
         description "Disable debugging functions of PCEP";
         input  {
             leaf debug-options  {
@@ -604,6 +648,7 @@ module ipi-pcep {
     }
 
     rpc clear-pcep-requests {
+        if-feature feature-list:HAVE_PCEP;
         description "Clear PCEP request of a tunnel interface";
         input  {
             leaf tunnel-id  {
@@ -616,13 +661,16 @@ module ipi-pcep {
     }
 
     notification pcep-session-up {
+        if-feature feature-list:HAVE_PCEP;
 
         description "This notification is sent when the value of enters the 'session-up' state.";
 
         // severity "INFO";
+
         // eventClass "STATE";
+
         leaf address {
-            type  inet:ipv4-address;
+            type ipi-pcep-types:pcep_ip_addr_t;
         description
             "The local Internet address of this PCEP peer.";
         }
@@ -660,13 +708,16 @@ module ipi-pcep {
     }
 
     notification pcep-session-down {
+        if-feature feature-list:HAVE_PCEP;
 
         description "This notification is sent when the value of leaves the 'session-up' state.";
 
         // severity "CRITICAL";
+
         // eventClass "STATE";
+
         leaf address {
-            type  inet:ipv4-address;
+            type ipi-pcep-types:pcep_ip_addr_t;
         description
             "The local Internet address of this PCEP peer.";
         }
@@ -704,12 +755,14 @@ module ipi-pcep {
     }
 
     notification pcep-session-peer-overload {
+        if-feature feature-list:HAVE_PCEP;
 
         description "This notification is sent when a peer enters overload state.";
 
         // eventClass "STATE";
+
         leaf address {
-            type  inet:ipv4-address;
+            type ipi-pcep-types:pcep_ip_addr_t;
         description
             "The local Internet address of this PCEP peer.";
         }
@@ -747,12 +800,14 @@ module ipi-pcep {
     }
 
     notification pcep-session-peer-overload-clear {
+        if-feature feature-list:HAVE_PCEP;
 
         description "This notification is sent when a peer leaves overload state.";
 
         // eventClass "STATE";
+
         leaf address {
-            type  inet:ipv4-address;
+            type ipi-pcep-types:pcep_ip_addr_t;
         description
             "The local Internet address of this PCEP peer.";
         }

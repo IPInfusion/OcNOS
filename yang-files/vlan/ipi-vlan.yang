@@ -28,27 +28,27 @@ module ipi-vlan {
 
     import ipi-vlan-types {
         prefix ipi-vlan-types;
-        revision-date 2021-09-07;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -58,7 +58,7 @@ module ipi-vlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -73,6 +73,11 @@ module ipi-vlan {
     description
         "VLAN configuration";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.6.4.";
+    }
 
     revision "2022-01-18" {
         description "Remove yang-drop tag to show type parameter of customer-vlan list";
@@ -373,7 +378,6 @@ module ipi-vlan {
             "Top level grouping for vlan configuration and state data";
 
         list vlan {
-        when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan/ipi-vlan:config/ipi-vlan:type  or /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
             key "vlan-id";
             description
                 "List for vlan configuration and state data";
@@ -448,7 +452,7 @@ module ipi-vlan {
         leaf rule-id  {
             type  uint16 {
                  range "1..256"  {
-                    description "1..256:VLAN classifier rule ID";
+                    description "1..256: Supported range 1 - 256";
                  }
             }
             description "Classifier rule ID";
@@ -491,7 +495,7 @@ module ipi-vlan {
         leaf group-id  {
             type  uint8 {
                  range "1..16"  {
-                    description "1..16:VLAN classifier group ID";
+                    description "1..16: Supported range 1 - 16";
                  }
             }
             description "VLAN classifier group ID";
@@ -644,13 +648,13 @@ module ipi-vlan {
     grouping ovc-oep-config {
         description
             "Grouping for OEP configuration";
-        leaf id  {
+        leaf ovc-id  {
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Operator Virtual Connection identifier";
-        } // END of id definition.
+        } // END of ovc-id definition.
 
         leaf oep-id  {
             type  string {
@@ -664,30 +668,6 @@ module ipi-vlan {
     grouping oep-config-top {
         description
             "Top level grouping for OVC configuration";
-
-        list oep {
-            key "id";
-            description
-                "List for ovc end point configuration and state data";
-            leaf id  {
-                type  leafref {
-                    path  "../config/id";
-                }
-                description "Operator Virtual Connection identifier";
-            } // END of id definition.
-
-            container config {
-                description
-                    "Configuration data for OEP";
-                uses ovc-oep-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses ovc-oep-config;
-            } // END of state-container definition.
-        } // End of oep-list
     } // END of oep-config-top definition.
     grouping ovc-config {
         description
@@ -695,10 +675,10 @@ module ipi-vlan {
         leaf svlan-id  {
             type  uint16 {
                  range "2..4094"  {
-                    description "2..4094:S-VLAN ID";
+                    description "2..4094: Supported range 2 - 4094";
                  }
             }
-            description "Servivce vlan identifier";
+            description "Servivce VLAN identifier";
         } // END of svlan-id definition.
 
         leaf evc-id  {
@@ -712,7 +692,7 @@ module ipi-vlan {
         leaf maximum-uni-number  {
             type  uint32 {
                  range "1..32"  {
-                    description "1..32:enter the number of max uni for the EVC/SVLAN";
+                    description "1..32: Supported range 1 - 32";
                  }
             }
             description "Specifies maximum mumber of UNIs for the given EVC/SVLAN";
@@ -723,7 +703,6 @@ module ipi-vlan {
         description
             "Grouping for OVC preserve configuration";
         leaf ovc-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:operator-virtual-connection/ipi-vlan:config/ipi-vlan:svlan-id ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -770,6 +749,9 @@ module ipi-vlan {
             "Top level grouping for OVC end point mapping vlan configuration";
 
         list vlan {
+            if-feature feature-list:HAVE_PROVIDER_BRIDGE;
+            if-feature feature-list:HAVE_SWFWDR;
+            if-feature feature-list:NOT_HAVE_FLEXLM;
             key "type oep-vlan-id";
             description
                 "List for oep vlans";
@@ -989,7 +971,7 @@ module ipi-vlan {
         leaf sequence-number  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Enter sequence number";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Attribute to create, update or deletes a vlan access-map with
@@ -1139,7 +1121,8 @@ module ipi-vlan {
         leaf svlan-id  {
             type  uint16 {
                  range "1..4095"  {
-                    description "1..4095:SVLAN ID";
+                    description "1..4095:Feature : HAVE_4K_VLAN Supported range 1 - 4095Not Feature :
+                            HAVE_4K_VLAN  Supported range 1 - 4094";
                  }
             }
             description "Service VLAN ID in registration table";
@@ -1158,7 +1141,8 @@ module ipi-vlan {
         leaf translated-cvlan-id  {
             type  uint16 {
                  range "1..4095"  {
-                    description "1..4095:Translated CVID";
+                    description "1..4095:Feature : HAVE_4K_VLAN Supported range 1 - 4095Not Feature :
+                            HAVE_4K_VLAN  Supported range 1 - 4094";
                  }
             }
             description "Translated customer VLAN ID";
@@ -1168,7 +1152,7 @@ module ipi-vlan {
             if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Specify COS value 0-7";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Class of Service in the Priority Code Point (PCP) field of the Service
@@ -1179,7 +1163,7 @@ module ipi-vlan {
             if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..1"  {
-                    description "0..1:Specify CFI value 0-1";
+                    description "0..1: Supported range 0 - 1";
                  }
             }
             description "Canonical Format Indicator in the Drop Eligible Indicator (DEI) field
@@ -1190,7 +1174,7 @@ module ipi-vlan {
             if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Specify COS value 0-7";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Class of Service in the PCP field of the customer tag (CTAG)";
@@ -1200,7 +1184,7 @@ module ipi-vlan {
             if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..1"  {
-                    description "0..1:Specify CFI value 0-1";
+                    description "0..1: Supported range 0 - 1";
                  }
             }
             description "Canonical Format Indicator in the DEI field of the CTAG";
@@ -1215,7 +1199,6 @@ module ipi-vlan {
         } // END of cos-to-queue definition.
 
         leaf remark-cos  {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             if-feature feature-list:HAVE_QOS;
             type  empty;
@@ -1240,6 +1223,7 @@ module ipi-vlan {
     description
         "Top level container for vlan configuration and state data";
     container vlans {
+        if-feature feature-list:HAVE_VLAN;
         description
             "Top level container for vlan configuration and state data";
         uses vlan-top;
@@ -1252,6 +1236,7 @@ module ipi-vlan {
     container vlan-classifier {
         when " not(/ipi-vlan:layer2-global/ipi-vlan:config/ipi-vlan:disable-vlan-classifier-feature) ";
         if-feature feature-list:HAVE_VLAN_CLASS;
+        if-feature feature-list:HAVE_VLAN;
         description
             "Top level container for VLAN classifier configuration and state data";
         uses rule-top;
@@ -1265,6 +1250,7 @@ module ipi-vlan {
         "Top level container for VLAN reservation configuration and state data";
     container vlan-reservation {
         if-feature feature-list:HAVE_FLEXPORT;
+        if-feature feature-list:HAVE_VLAN;
         description
             "Top level container for VLAN reservation configuration and state data";
         uses reserve-vlan-top;
@@ -1275,6 +1261,7 @@ module ipi-vlan {
     description
         "Top level container for Layer2 global configuration and state data";
     container layer2-global {
+        if-feature feature-list:HAVE_VLAN;
         description
             "Top level container for Layer2 global configuration and state data";
         container config {
@@ -1307,6 +1294,7 @@ module ipi-vlan {
     } // END of cvlan-registration-tables-grouping definition.
 
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge {
+        if-feature feature-list:HAVE_L2;
         description
             "Top level container for vlan configuration and state data";
         uses vlans-grouping;
@@ -1316,6 +1304,7 @@ module ipi-vlan {
     uses vlan-reservation-grouping;
     uses layer2-global-grouping;
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge {
+        if-feature feature-list:HAVE_L2;
         description
             "Top level container for CVLAN registration table configuration and
                     state data";

@@ -28,17 +28,17 @@ module ipi-bgp-vrf {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2022-01-17;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -48,7 +48,7 @@ module ipi-bgp-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -63,6 +63,11 @@ module ipi-bgp-vrf {
     description
         "Datamodel for BGP VRF";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.0.";
+    }
 
     revision "2021-03-05" {
         description "Added BGP statistics attributes";
@@ -690,6 +695,7 @@ module ipi-bgp-vrf {
     description
         "BGP VRF Information";
     container bgp-vrf {
+        if-feature feature-list:HAVE_BGPD;
         description
             "BGP VRF Information";
         container config {
@@ -748,6 +754,7 @@ module ipi-bgp-vrf {
     container evpn-service-type {
         if-feature feature-list:HAVE_MPLS;
         if-feature feature-list:HAVE_BGP_EVPN;
+        if-feature feature-list:HAVE_BGPD;
         description
             "EVPN VLAN Service Type";
         container config {
@@ -765,9 +772,17 @@ module ipi-bgp-vrf {
     } // END of evpn-service-type-grouping definition.
 
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf {
+        if-feature feature-list:HAVE_VRF;
         description
             "BGP VRF Information";
         uses bgp-vrf-grouping;
+    }
+
+    augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf {
+        if-feature feature-list:HAVE_VRF;
+        description
+            "EVPN VLAN Service Type";
+        uses evpn-service-type-grouping;
     }
 
 

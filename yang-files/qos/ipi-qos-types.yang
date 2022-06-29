@@ -21,6 +21,11 @@ module ipi-qos-types {
 
     prefix "ipi-qos-types";
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
     organization
         "IP Infusion Inc.";
 
@@ -33,6 +38,11 @@ module ipi-qos-types {
     description
         "Quality of Service (QoS) types";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference "Initial Version";
+    }
 
     revision "2021-06-30" {
         description "Modify enumeration values descriptions for QOS_RATE_UNIT_T type.";
@@ -198,6 +208,16 @@ module ipi-qos-types {
                 value 3;
                 description "Queuing is egress policy-map,Default queue of port";
             }
+            enum vlan-queuing {
+                value 4;
+                if-feature feature-list:HAVE_CUSTOM1_QOS;
+                description "Vlan-Queuing is egress policy-map";
+            }
+            enum hybrid-queuing {
+                value 6;
+                if-feature feature-list:HAVE_CUSTOM1_QOS;
+                description "Hybrid-Queuing is egress policy-map";
+            }
         }
         description "type definition for QOS_POLICY_MAP_T";
     }
@@ -349,6 +369,11 @@ module ipi-qos-types {
                 value 3;
                 description "Default queuing";
             }
+            enum vlan-queuing {
+                value 4;
+                if-feature feature-list:HAVE_CUSTOM1_QOS;
+                description "Match on Egress Vlan Queuing class";
+            }
         }
         description "type definition for QOS_CLASS_MAP_T";
     }
@@ -377,29 +402,32 @@ module ipi-qos-types {
 
     typedef  qos_threshold_t {
         type enumeration {
-            enum packets {
-                value 1;
-                description "Number of Packets (min 9 - max 614400)";
-            }
-            enum bytes {
-                value 2;
-                description "bytes (min 9416 - max 629145600)";
-            }
-            enum kbytes {
-                value 3;
-                description "kilo-bytes (min 9 - max 614400)";
-            }
             enum mbytes {
                 value 4;
+                if-feature feature-list:HAVE_CUSTOM2_QOS;
                 description "mega-bytes (min 1 - max 600)";
             }
             enum ms {
                 value 6;
+                if-feature feature-list:HAVE_CUSTOM2_QOS;
                 description "milli-seconds (min 1 - max 50)";
             }
             enum us {
                 value 7;
+                if-feature feature-list:HAVE_CUSTOM2_QOS;
                 description "micro-seconds (min 1 - max 50000)";
+            }
+            enum packets {
+                if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+                description "Number of Packets (min 1 - max 600)";
+            }
+            enum bytes {
+                if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+                description "bytes (min 1024 - max 524288)";
+            }
+            enum kbytes {
+                if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+                description "kilo-bytes (min 1 - max 512)";
             }
         }
         description "type definition for QOS_THRESHOLD_T";
@@ -537,12 +565,24 @@ module ipi-qos-types {
 
     typedef  qos_traffic_type_t {
         type enumeration {
+            enum l2-uc {
+                value 1;
+                if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+                description "L2 Unicast";
+            }
+            enum l2-uc-unknown {
+                value 2;
+                if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+                description "Unknown L2 Unicast";
+            }
             enum l2-mc {
                 value 3;
+                if-feature feature-list:HAVE_CUSTOM2_QOS;
                 description "L2 Multicast";
             }
             enum l2-bc {
                 value 5;
+                if-feature feature-list:HAVE_CUSTOM2_QOS;
                 description "L2 Broadcast";
             }
             enum default {
@@ -551,6 +591,7 @@ module ipi-qos-types {
             }
             enum l2-unknown {
                 value 7;
+                if-feature feature-list:HAVE_CUSTOM2_QOS;
                 description "Unknown L2 traffic";
             }
         }

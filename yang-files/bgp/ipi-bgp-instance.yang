@@ -21,7 +21,7 @@ submodule ipi-bgp-instance {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ietf-inet-types {
@@ -31,15 +31,17 @@ submodule ipi-bgp-instance {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2022-01-17;
+        revision-date 2022-06-01;
     }
 
-    include ipi-bgp-common { revision-date 2022-01-17;}
-    include ipi-bgp-evpn-rib { revision-date 2021-09-03;}
-    include ipi-bgp-address-family { revision-date 2022-01-17;}
-    include ipi-bgp-peer-group { revision-date 2022-01-07;}
-    include ipi-bgp-peer { revision-date 2022-01-17;}
-    include ipi-bgp-address-family-vrf { revision-date 2022-01-17;}
+    include ipi-bgp-common { revision-date 2022-06-20;}
+    include ipi-bgp-evpn-rib { revision-date 2022-06-01;}
+    include ipi-bgp-link-state { revision-date 2022-06-01;}
+    include ipi-bgp-address-family { revision-date 2022-06-20;}
+    include ipi-bgp-peer-group { revision-date 2022-06-20;}
+    include ipi-bgp-peer { revision-date 2022-06-21;}
+    include ipi-bgp-address-family-vrf { revision-date 2022-06-20;}
+    include ipi-bgp-epe { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -52,6 +54,21 @@ submodule ipi-bgp-instance {
     description
         "";
 
+
+    revision "2022-06-20" {
+        description "Added new attribute 'de-activate' for BGP Peer-group feature.";
+        reference " 0.7.1.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.7.0.";
+    }
+
+    revision "2022-04-04" {
+        description "Added Support for BGP AIGP Feature";
+        reference " 0.6.1.";
+    }
 
     revision "2022-01-17" {
         description "Modified data type";
@@ -104,6 +121,7 @@ submodule ipi-bgp-instance {
     description
         "bgp-instance list inside bgp conatiner";
         list bgp-instance {
+            if-feature feature-list:HAVE_BGPD;
             key "bgp-as";
             description
                 "bgp-instance list inside bgp conatiner";
@@ -320,6 +338,7 @@ submodule ipi-bgp-instance {
                         } // End of route-list
                     } // END of routes-container definition.
                     uses evpn-routes-grouping;
+                    uses link-state-grouping;
                 } // End of address-family-list
             } // END of rib-container definition.
             uses bgp-allocate-label-top;
@@ -327,6 +346,7 @@ submodule ipi-bgp-instance {
             uses peer-group-grouping;
             uses peer-grouping;
             uses address-family-vrf-grouping;
+            uses peer-engineering-grouping;
         } // End of bgp-instance-list
     } // END of bgp-instance-grouping definition.
     grouping bgp-instance-rib-address-family-state {
@@ -368,12 +388,14 @@ submodule ipi-bgp-instance {
         description
             "allocate label configuration for  BGP instance";
         leaf all-routes  {
+            when " not(/bgp/bgp-instance/allocate-label/config/route-map-name) ";
             if-feature feature-list:HAVE_BGP_LU;
             type  empty;
             description "Use this attribute to allocate label to all the advertised routes";
         } // END of all-routes definition.
 
         leaf route-map-name  {
+            when " not(/bgp/bgp-instance/allocate-label/config/all-routes) ";
             if-feature feature-list:HAVE_BGP_LU;
             type  string {
                 length "1..1965";
@@ -416,7 +438,7 @@ submodule ipi-bgp-instance {
         leaf distance  {
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:Administrative distance";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             mandatory true;
@@ -522,7 +544,7 @@ submodule ipi-bgp-instance {
         leaf confederation-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Set routing domain confederation AS";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to specify a BGP confederation identifier";
@@ -531,7 +553,7 @@ submodule ipi-bgp-instance {
         leaf local-preference  {
             type  uint32 {
                  range "0..4294967295"  {
-                    description "0..4294967295:Configure default local preference value";
+                    description "0..4294967295: Supported range 0 - 4294967295";
                  }
             }
             default "100";
@@ -559,7 +581,7 @@ submodule ipi-bgp-instance {
         leaf graceful-shutdown-local-preference  {
             type  uint32 {
                  range "0..4294967295"  {
-                    description "0..4294967295:g-shut local preference value";
+                    description "0..4294967295: Supported range 0 - 4294967295";
                  }
             }
             default "0";
@@ -599,7 +621,7 @@ submodule ipi-bgp-instance {
         leaf scan-interval  {
             type  uint32 {
                  range "0..60"  {
-                    description "0..60:Scan interval (sec) [Default:60; Disable:0]";
+                    description "0..60: Supported range 0 - 60";
                  }
             }
             default "60";
@@ -658,7 +680,7 @@ submodule ipi-bgp-instance {
         leaf local-as-count  {
             type  uint8 {
                  range "2..64"  {
-                    description "2..64:Number of times local-as to be prepended";
+                    description "2..64: Supported range 2 - 64";
                  }
             }
             description "Use this attribute to set the number of times the local-AS (Autonomous
@@ -703,13 +725,14 @@ submodule ipi-bgp-instance {
         leaf-list peer-as-number  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:AS number";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to specify peer AS number in BGP confederation";
         } // END of peer-as-number definition.
 
         leaf enable-mpls-nexthop-tracking  {
+            when " /bgp/global/config/enable-nexthop-tracking ";
             if-feature feature-list:HAVE_MPLS_LSP_TRACKING;
             type  empty;
             description "Use this attribute to enable mpls nexthop address tracking. MPLS
@@ -725,6 +748,13 @@ submodule ipi-bgp-instance {
                         if there are still some selected BGP routes, BGP de-registers the
                         nexthops of all selected BGP routes from NSM.";
         } // END of enable-mpls-nexthop-tracking definition.
+
+        leaf ignore-aigp-for-bestpath  {
+            if-feature feature-list:HAVE_BGP_AIGP;
+            type  empty;
+            description "Use this config to ignore aigp attr in BGP best-path selection
+                        alogorithm.";
+        } // END of ignore-aigp-for-bestpath definition.
 
     } // END of bgp-instance-common-config definition.
     grouping bgp-graceful-restart-config {
@@ -748,7 +778,7 @@ submodule ipi-bgp-instance {
             if-feature feature-list:HAVE_RESTART;
             type  uint32 {
                  range "1..3600"  {
-                    description "1..3600:Delay value (seconds)";
+                    description "1..3600: Supported range 1 - 3600";
                  }
             }
             default "90";
@@ -763,7 +793,7 @@ submodule ipi-bgp-instance {
             if-feature feature-list:HAVE_RESTART;
             type  uint32 {
                  range "1..3600"  {
-                    description "1..3600:Delay value (seconds)";
+                    description "1..3600: Supported range 1 - 3600";
                  }
             }
             default "360";
@@ -778,7 +808,7 @@ submodule ipi-bgp-instance {
             if-feature feature-list:HAVE_RESTART;
             type  uint32 {
                  range "1..3600"  {
-                    description "1..3600:Delay value (seconds)";
+                    description "1..3600: Supported range 1 - 3600";
                  }
             }
             default "120";
@@ -857,7 +887,7 @@ submodule ipi-bgp-instance {
         leaf bgp-as  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:AS number";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to start a BGP process.";
@@ -870,7 +900,7 @@ submodule ipi-bgp-instance {
         leaf keep-alive  {
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:Keepalive interval in seconds";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             mandatory true;
@@ -881,7 +911,7 @@ submodule ipi-bgp-instance {
         leaf hold-time  {
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:Holdtime in seconds";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             mandatory true;

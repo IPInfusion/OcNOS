@@ -21,12 +21,12 @@ submodule ipi-isis-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ipi-isis-types {
         prefix ipi-isis-types;
-        revision-date 2022-02-07;
+        revision-date 2022-06-01;
     }
 
     import cml-data-types {
@@ -52,6 +52,16 @@ submodule ipi-isis-extended {
         "Model for managing IS-IS Extended Parameters";
 
 
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.5.0.";
+    }
+
+    revision "2022-04-27" {
+        description "Get Api changes for ISIS-TILFA";
+        reference " 0.4.0.";
+    }
+
     revision "2021-09-03" {
         description "Update descriptions of attribute";
         reference " 0.3.0.";
@@ -73,6 +83,7 @@ submodule ipi-isis-extended {
     description
         "This objectlist defines the ISIS LFA Route";
         list ipv4-lfa-route {
+            if-feature feature-list:HAVE_ISISD;
             key "destination-prefix";
             config false;
             description
@@ -128,6 +139,7 @@ submodule ipi-isis-extended {
     description
         "This objectlist defines the ISIS IPv6 LFA Route";
         list ipv6-lfa-route {
+            if-feature feature-list:HAVE_ISISD;
             key "destination-prefix";
             config false;
             description
@@ -173,6 +185,7 @@ submodule ipi-isis-extended {
     description
         "This objectlist defines the Fast Reroute";
         list fast-reroute {
+            if-feature feature-list:HAVE_ISISD;
             key "level-type";
             description
                 "This objectlist defines the Fast Reroute";
@@ -278,6 +291,180 @@ submodule ipi-isis-extended {
                 uses isis-frr-level-type-config;
                 uses isis-remote-lfa-config;
             } // END of state-container definition.
+            container ipv4-tilfa-routes {
+                description
+                    "This container defines the ISIS TI-LFA routes";
+
+                list ipv4-tilfa-route {
+                    key "destination-prefix";
+                    config false;
+                    description
+                        "This ObjectList defines the ISIS TI-LFA route information";
+                    leaf destination-prefix  {
+                        type  leafref {
+                            path  "../state/destination-prefix";
+                        }
+                        description "Destination Prefix for the TI-LFA route";
+                    } // END of destination-prefix definition.
+
+                    container state {
+                        config false;
+                        description
+                            "This container defines the ISIS TI-LFA Route State";
+                        uses ipv4-tilfa-route-state;
+                    } // END of state-container definition.
+                    container nexthops {
+                        config false;
+                        description
+                            "This container defines the ISIS TI-LFA route Next Hops information";
+
+                        list nexthop {
+                            key "primary-nexthop";
+                            config false;
+                            description
+                                "This ObjectList defines the ISIS TI-LFA Route Next Hop information";
+                            leaf primary-nexthop  {
+                                type  leafref {
+                                    path  "../state/primary-nexthop";
+                                }
+                                description "Primary Nexthop address of TI-LFA route";
+                            } // END of primary-nexthop definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "This container defines the ISIS TI-LFA Route Next Hop State";
+                                uses ipv4-tilfa-route-nexthop-state;
+                            } // END of state-container definition.
+                        } // End of nexthop-list
+                    } // END of nexthops-container definition.
+                    container pq-trunks {
+                        config false;
+                        description
+                            "This container defines the ISIS TI-LFA route PQ Trunk Information";
+
+                        list pq-trunk {
+                            key "trunk-id";
+                            config false;
+                            description
+                                "This ObjectList defines the ISIS TI-LFA Route PQ Trunk Information";
+                            leaf trunk-id  {
+                                type  leafref {
+                                    path  "../state/trunk-id";
+                                }
+                                description "PQ Trunk Id of TI-LFA Route";
+                            } // END of trunk-id definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "This container defines the ISIS TI-LFA Route PQ Trunk state";
+                                uses tilfa-pq-trunk-state;
+                            } // END of state-container definition.
+                        } // End of pq-trunk-list
+                    } // END of pq-trunks-container definition.
+                } // End of ipv4-tilfa-route-list
+            } // END of ipv4-tilfa-routes-container definition.
+            container tilfa-pq-nodes {
+                description
+                    "This container defines ISIS TI-LFA pq nodes";
+                container circuit-levels {
+                    description
+                        "This container defines ISIS TI-LFA circuit levels";
+
+                    list circuit-level {
+                        key "level";
+                        config false;
+                        description
+                            "This ObjectList defines the ISIS TI-LFA circuit level";
+                        leaf level  {
+                            type  leafref {
+                                path  "../state/level";
+                            }
+                            description "ISIS level of TI-LFA PQ Nodes";
+                        } // END of level definition.
+
+                        container state {
+                            config false;
+                            description
+                                "This container defines ISIS TI-LFA circuit level state";
+                            uses tilfa-pq-state;
+                        } // END of state-container definition.
+                        container vertices {
+                            config false;
+                            description
+                                "This container defines ISIS TILFA PQ Node vertices";
+
+                            list vertex {
+                                key "destination-vertex";
+                                config false;
+                                description
+                                    "This ObjectList defines ISIS TILFA PQ Node vertex";
+                                leaf destination-vertex  {
+                                    type  leafref {
+                                        path  "../state/destination-vertex";
+                                    }
+                                    description "ISIS destination vertex of TI-LFA PQ Nodes";
+                                } // END of destination-vertex definition.
+
+                                container state {
+                                    config false;
+                                    description
+                                        "This container defines ISIS TILFA PQ Node vertex state";
+                                    uses tilfa-pq-vertex-state;
+                                } // END of state-container definition.
+                                container interfaces {
+                                    config false;
+                                    description
+                                        "This container defines ISIS TILFA PQ Node interfaces";
+
+                                    list interface {
+                                        key "name";
+                                        config false;
+                                        description
+                                            "This ObjectList defines ISIS TI-LFA PQ node interface";
+                                        leaf name  {
+                                            type  leafref {
+                                                path  "../state/name";
+                                            }
+                                            description "";
+                                        } // END of name definition.
+
+                                        container state {
+                                            config false;
+                                            description
+                                                "This container defines ISIS TILFA PQ Node interface state";
+                                            uses tilfa-pq-interface-state;
+                                        } // END of state-container definition.
+                                        container link-protection {
+                                            config false;
+                                            description
+                                                "This container defines ISIS TI-LFA Link protecting PQ Nodes";
+                                            container state {
+                                                config false;
+                                                description
+                                                    "This container defines ISIS TI-LFA Link protecting PQ Node state";
+                                                uses tilfa-pq-link-protection-state;
+                                            } // END of state-container definition.
+                                        } // END of link-protection-container definition.
+                                        container node-protection {
+                                            config false;
+                                            description
+                                                "This container defines ISIS TI-LFA Node  protecting PQ Nodes";
+                                            container state {
+                                                config false;
+                                                description
+                                                    "This container defines ISIS TI-LFA Node protecting PQ Node state";
+                                                uses tilfa-pq-node-protection-state;
+                                            } // END of state-container definition.
+                                        } // END of node-protection-container definition.
+                                    } // End of interface-list
+                                } // END of interfaces-container definition.
+                            } // End of vertex-list
+                        } // END of vertices-container definition.
+                    } // End of circuit-level-list
+                } // END of circuit-levels-container definition.
+            } // END of tilfa-pq-nodes-container definition.
         } // End of fast-reroute-list
     } // END of fast-reroute-grouping definition.
     grouping isis-lfa-route-state {
@@ -478,7 +665,7 @@ submodule ipi-isis-extended {
         leaf preference-index  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Index";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             mandatory true;
@@ -492,7 +679,7 @@ submodule ipi-isis-extended {
         leaf grace-period  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Seconds (Default value is 65535)";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             description "The period within which ISIS should come up";
@@ -511,11 +698,210 @@ submodule ipi-isis-extended {
         } // END of suppress-adjacency definition.
 
     } // END of isis-gr-config definition.
+    grouping ipv4-tilfa-route-state {
+        description
+            "State items for ISIS TI-LFA Route";
+        leaf destination-prefix  {
+            type  inet:ipv4-address;
+            description "Destination Prefix of TI-LFA route";
+        } // END of destination-prefix definition.
+
+        leaf path-type  {
+            type  ipi-isis-types:isis_path_type_t;
+            description "Destination Path Type of TI-LFA route";
+        } // END of path-type definition.
+
+    } // END of ipv4-tilfa-route-state definition.
+    grouping ipv4-tilfa-route-nexthop-state {
+        description
+            "State items for ISIS TI-LFA Route Next Hop";
+        leaf primary-nexthop  {
+            type  inet:ipv4-address;
+            description "Primary Nexthop address of TI-LFA route";
+        } // END of primary-nexthop definition.
+
+        leaf protection-type  {
+            type  ipi-isis-types:isis_tilfa_protection_type_t;
+            description "Nexthop protection type of TI-LFA route";
+        } // END of protection-type definition.
+
+        leaf backup-nexthop  {
+            type  inet:ipv4-address;
+            description "Backup Nexthop of TI-LFA route";
+        } // END of backup-nexthop definition.
+
+        leaf pq-node-router-id  {
+            type  inet:ipv4-address;
+            description "PQ Router-ID of TI-LFA route";
+        } // END of pq-node-router-id definition.
+
+        leaf pq-trunk-id  {
+            type  uint32;
+            description "PQ Trunk-id of TI-LFA route";
+        } // END of pq-trunk-id definition.
+
+        leaf primary-outgoing-label  {
+            type  uint32;
+            description "Primary Out-going Label of TI-LFA route";
+        } // END of primary-outgoing-label definition.
+
+        leaf primary-incoming-label  {
+            type  uint32;
+            description "Primary In-coming Label of TI-LFA route";
+        } // END of primary-incoming-label definition.
+
+        leaf backup-outgoing-label  {
+            type  uint32;
+            description "Backup Out-coming Label of TI-LFA route";
+        } // END of backup-outgoing-label definition.
+
+        leaf backup-outgoing-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Backup Out-going Interface of TI-LFA route";
+        } // END of backup-outgoing-interface definition.
+
+    } // END of ipv4-tilfa-route-nexthop-state definition.
+    grouping tilfa-pq-trunk-state {
+        description
+            "State items for IPV4 ISIS TI-LFA pq trunk";
+        leaf trunk-id  {
+            type  uint32;
+            description "Tilfa PQ Trunk Id";
+        } // END of trunk-id definition.
+
+        leaf trunk-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Tilfa PQ Trunk name";
+        } // END of trunk-name definition.
+
+        leaf nexthop  {
+            type  inet:ipv4-address;
+            description "PQ Trunk Nexthop Address";
+        } // END of nexthop definition.
+
+        leaf outgoing-label  {
+            type  uint32;
+            description "PQ Trunk Outgoing Label";
+        } // END of outgoing-label definition.
+
+    } // END of tilfa-pq-trunk-state definition.
+    grouping tilfa-pq-state {
+        description
+            "State items for TI-LFA PQ Nodes";
+        leaf level  {
+            type  ipi-isis-types:isis_level2_t;
+            description "TI-LFA PQ Nodes level";
+        } // END of level definition.
+
+    } // END of tilfa-pq-state definition.
+    grouping tilfa-pq-vertex-state {
+        description
+            "State items for TI-LFA PQ Nodes vertex";
+        leaf destination-vertex  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "TI-LFA PQ Node destination vertex";
+        } // END of destination-vertex definition.
+
+    } // END of tilfa-pq-vertex-state definition.
+    grouping tilfa-pq-interface-state {
+        description
+            "State items for TI-LFA PQ Nodes interface state";
+        leaf name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "TI-LFA PQ Node interface name";
+        } // END of name definition.
+
+    } // END of tilfa-pq-interface-state definition.
+    grouping tilfa-pq-link-protection-state {
+        description
+            "State items for TI-LFA PQ Nodes link protection state";
+        leaf-list pnodes  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA P nodes";
+        } // END of pnodes definition.
+
+        leaf-list qnodes  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA Q nodes";
+        } // END of qnodes definition.
+
+        leaf pq-node  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA PQ node";
+        } // END of pq-node definition.
+
+        leaf q-node-disjoint  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA  Q node disjoint";
+        } // END of q-node-disjoint definition.
+
+    } // END of tilfa-pq-link-protection-state definition.
+    grouping tilfa-pq-node-protection-state {
+        description
+            "State items for TI-LFA PQ Nodes Node  protection state";
+        leaf-list p_nodes_id  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA P nodes";
+        } // END of p_nodes_id definition.
+
+        leaf-list q_nodes_id  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA Q nodes";
+        } // END of q_nodes_id definition.
+
+        leaf pq-node_id  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA PQ node";
+        } // END of pq-node_id definition.
+
+        leaf q-node-disjoint_id  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA  Q node disjoint";
+        } // END of q-node-disjoint_id definition.
+
+    } // END of tilfa-pq-node-protection-state definition.
 
     grouping  graceful-restart-grouping {
     description
         "This container defines the ISIS Graceful Restart";
     container graceful-restart {
+        if-feature feature-list:HAVE_ISISD;
         description
             "This container defines the ISIS Graceful Restart";
         container config {

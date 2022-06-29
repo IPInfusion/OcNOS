@@ -21,12 +21,12 @@ submodule ipi-dhcp-client {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -51,6 +51,11 @@ submodule ipi-dhcp-client {
     description
         "dhcp_client_configuration";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.5.0.";
+    }
 
     revision "2021-11-16" {
         description "Added some if-feature to fix customer SKU compilation";
@@ -131,7 +136,6 @@ submodule ipi-dhcp-client {
         } // END of request-ipv6-vendor-opts definition.
 
         leaf ipv6-information-request  {
-            // when " ipi-dhcp-client:client/interfaces/interface/config/ipv6-client-duid-type != 2 + !ipi-if-ip:ipv6/config/enable-dhcp-ipv6-address + !ipi-if-ip:ipv6/config/enable-dhcp-temporary-ipv6-address ";
             if-feature feature-list:HAVE_IPV6;
             type  empty;
             description "Use this attribute to get only stateless configuration parameters
@@ -142,7 +146,7 @@ submodule ipi-dhcp-client {
             if-feature feature-list:HAVE_IPV6;
             type  uint16 {
                  range "1..600"  {
-                    description "1..600:DAD wait time in seconds";
+                    description "1..600: Supported range 1 - 600";
                  }
             }
             description "Use this attribute to Specify maximum time (in seconds) that the
@@ -157,7 +161,6 @@ submodule ipi-dhcp-client {
         } // END of ipv6-client-duid-type definition.
 
         leaf request-ipv6-prefix  {
-            // when " !ipi-dhcp-client:client/interfaces/interface/config/ipv6-information-request + !ipi-if-ip:ipv6/config/enable-dhcp-temporary-ipv6-address ";
             if-feature feature-list:HAVE_IPV6;
             type  string {
                 length "1..1965";
@@ -310,7 +313,9 @@ submodule ipi-dhcp-client {
     description
         "DHCP client related operations";
     container client {
-        when " /dhcp/global/config/disable-dhcp-feature != 1 ";
+        when " not(/dhcp/global/config/disable-dhcp-feature) ";
+        if-feature feature-list:HAVE_DHCP_CLIENT;
+        if-feature feature-list:HAVE_DHCP_SERVER_OR_HAVE_DHCP_SNOOP_OR_HAVE_DHCP_UPDATE_STYLE;
         description
             "DHCP client related operations";
         uses dhcp-interface-top;

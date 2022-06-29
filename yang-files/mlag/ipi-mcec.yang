@@ -23,12 +23,12 @@ module ipi-mcec {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ipi-mcec-types {
         prefix ipi-mcec-types;
-        revision-date 2021-04-19;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -38,17 +38,17 @@ module ipi-mcec {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -63,6 +63,16 @@ module ipi-mcec {
     description
         "Multi Chassis Ethernet Channel (MCEC)";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.2.";
+    }
+
+    revision "2022-05-05" {
+        description "Add mlag idl higig config for XGS platform";
+        reference " 0.4.1.";
+    }
 
     revision "2021-11-15" {
         description "IDP CLI applicable only for DUNE platform";
@@ -178,7 +188,7 @@ module ipi-mcec {
         leaf system-number  {
             type  uint8 {
                  range "1..2"  {
-                    description "1..2:Domain System Number";
+                    description "1..2: Supported range 1 - 2";
                  }
             }
             description "Use this attribute to configure domain system number, which uniquely
@@ -196,7 +206,7 @@ module ipi-mcec {
         leaf priority  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Priority value";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "32768";
@@ -474,6 +484,13 @@ module ipi-mcec {
             description "Use this attribute to map an interface as intra domain link that
                         connects the domain system with its neighbour in a mcec domain";
         } // END of interface definition.
+
+        leaf higig  {
+            when " /ipi-mcec:mcec/ipi-mcec:intra-domain/ipi-mcec:peer-link/ipi-mcec:config/ipi-mcec:interface ";
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  empty;
+            description "Turn on/off higig on inter domain link";
+        } // END of higig definition.
 
     } // END of mcec-intra-domain-link-config definition.
     grouping mcec-intra-domain-peer-address-config {
@@ -857,7 +874,7 @@ module ipi-mcec {
             "Grouping for mlag interface configuration";
         leaf interface-mode  {
             type  ipi-mcec-types:mcec_mode_type_t;
-            default "active-standby";
+            default "active-active";
             description "Use this attribute to set the MC-LAG mode. active-standby: The
                         interface is ready to transition from active to standby state should a
                         failure occur in the other node.";
@@ -871,7 +888,7 @@ module ipi-mcec {
             when " /ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:switchover-type/ipi-mcec:config/ipi-mcec:enable-non-revertive != '1' + /ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:config/ipi-mcec:interface-mode != '1' ";
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:Revertive switchover timer value in seconds";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "10";
@@ -945,6 +962,8 @@ module ipi-mcec {
     description
         "Multi-Chassis-Ethernet-Channel";
     container mcec {
+        if-feature feature-list:HAVE_LAGD;
+        if-feature feature-list:HAVE_MCEC;
         description
             "Multi-Chassis-Ethernet-Channel";
         uses mcec-debug-top;
@@ -960,6 +979,8 @@ module ipi-mcec {
     uses mcec-grouping;
 
     rpc mcec-terminal-debug-on {
+        if-feature feature-list:HAVE_LAGD;
+        if-feature feature-list:HAVE_MCEC;
         description "Enable MCEC debug options";
         input  {
             leaf options  {
@@ -971,6 +992,8 @@ module ipi-mcec {
     }
 
     rpc mcec-terminal-debug-off {
+        if-feature feature-list:HAVE_LAGD;
+        if-feature feature-list:HAVE_MCEC;
         description "Disable MCEC debug options";
         input  {
             leaf options  {
@@ -982,6 +1005,8 @@ module ipi-mcec {
     }
 
     rpc clear-mcec-statistics {
+        if-feature feature-list:HAVE_LAGD;
+        if-feature feature-list:HAVE_MCEC;
         description "Clear mcec statistic";
     }
 

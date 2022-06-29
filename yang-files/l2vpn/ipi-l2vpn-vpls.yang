@@ -23,12 +23,12 @@ module ipi-l2vpn-vpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-01-07;
+        revision-date 2022-04-04;
     }
 
     import ipi-vpls-types {
         prefix ipi-vpls-types;
-        revision-date 2022-02-16;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -43,27 +43,27 @@ module ipi-l2vpn-vpls {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-12-15;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2021-12-08;
+        revision-date 2022-06-01;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -78,6 +78,21 @@ module ipi-l2vpn-vpls {
     description
         "YANG version of the ipi-l2vpn-vpls";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.7.2.";
+    }
+
+    revision "2022-04-04" {
+        description "Added if-feature whereever needed";
+        reference " 0.7.1.";
+    }
+
+    revision "2022-03-21" {
+        description "Added flow label attributes for VPLS virtual circuit.";
+        reference " 0.7.0.";
+    }
 
     revision "2022-01-20" {
         description "Updated RDN for ro objectlist network-interface-counters";
@@ -592,8 +607,9 @@ module ipi-l2vpn-vpls {
             "Grouping for VPLS static forwarding configuration attributes";
         leaf in-label  {
             type  uint32 {
-                 range "16..15999"  {
-                    description "16..15999:In-coming Label";
+                 range "16..52443"  {
+                    description "16..52443:Feature : HAVE_SR_MPLS Supported range 16 - 15999Not Feature
+                            : HAVE_SR_MPLS  Supported range 16 - 52443";
                  }
             }
             mandatory true;
@@ -602,8 +618,9 @@ module ipi-l2vpn-vpls {
 
         leaf out-label  {
             type  uint32 {
-                 range "16..15999"  {
-                    description "16..15999:Out-going Label <16-15999>";
+                 range "16..52443"  {
+                    description "16..52443:Feature : HAVE_SR_MPLS Supported range 16 - 15999Not Feature
+                            : HAVE_SR_MPLS  Supported range 16 - 52443";
                  }
             }
             mandatory true;
@@ -684,7 +701,7 @@ module ipi-l2vpn-vpls {
         leaf vpls-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Identifying value for VPLS";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             mandatory true;
@@ -699,7 +716,7 @@ module ipi-l2vpn-vpls {
         leaf maximum-transmission-unit  {
             type  uint16 {
                  range "576..65535"  {
-                    description "576..65535:Identifying value for VPLS";
+                    description "576..65535: Supported range 576 - 65535";
                  }
             }
             default "1500";
@@ -730,7 +747,7 @@ module ipi-l2vpn-vpls {
             if-feature feature-list:NOT_HAVE_TRIDENT2PLUS;
             type  uint32 {
                  range "5..32767"  {
-                    description "5..32767:Mac learning limit value";
+                    description "5..32767: Supported range 5 - 32767";
                  }
             }
             default "32767";
@@ -841,7 +858,7 @@ module ipi-l2vpn-vpls {
         description
             "Grouping for global vpls peer configuration attributes";
         leaf signaling-protocol-ldp  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:vpls-peer/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:peer-type != '1'  + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:bgp-signaling/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-bgp) ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:vpls-peer/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:peer-type != '1' ";
             type  empty;
             mandatory true;
             description "Specify protocol used for signaling is ldp";
@@ -868,7 +885,7 @@ module ipi-l2vpn-vpls {
         } // END of peer-address definition.
 
         leaf tunnel-name  {
-            when " not(../tunnel-identifier) + not(../tunnel-policy) ";
+            when " not(../tunnel-identifier) ";
             type  string {
                 length "1..128";
                 pattern "[^?' =,>|]+";
@@ -878,7 +895,7 @@ module ipi-l2vpn-vpls {
 
         leaf tunnel-policy  {
             when " not(../tunnel-identifier) + not(../tunnel-name) ";
-            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            if-feature feature-list:HAVE_SERVICE_MAPPING;
             type  string {
                 length "1..127";
                 pattern "[^?' =,>|]+";
@@ -887,17 +904,17 @@ module ipi-l2vpn-vpls {
         } // END of tunnel-policy definition.
 
         leaf tunnel-identifier  {
-            when " not(../tunnel-name) + not(../tunnel-policy) ";
+            when " not(../tunnel-name) ";
             type  uint32 {
                  range "1..5000"  {
-                    description "1..5000:Identifying value for Tunnel-id";
+                    description "1..5000: Supported range 1 - 5000";
                  }
             }
             description "Specify static tunnel identifier value";
         } // END of tunnel-identifier definition.
 
         leaf peer-type  {
-            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-ldp ) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:bgp-signaling/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-bgp) ";
+            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-ldp) ";
             type  ipi-vpls-types:vpls_peer_type_t;
             default "manual";
             description "Specify that peer type is manual and  no signaling is used to set-up
@@ -905,6 +922,50 @@ module ipi-l2vpn-vpls {
         } // END of peer-type definition.
 
     } // END of vpls-peer-config definition.
+    grouping vpls-fat-config {
+        description
+            "Grouping for vpls fat label configuration attributes";
+        leaf enable-flow-label  {
+            type  empty;
+            mandatory true;
+            description "Use this attribute to enable flow label for VPLS Virtual Circuits";
+        } // END of enable-flow-label definition.
+
+        leaf flow-label-direction  {
+            when " ../enable-flow-label ";
+            type  ipi-vpls-types:vpls_mpls_flow_label_direction_t;
+            description "Use this attribute to configure flow label direction to transmit,
+                        receive or both for VPLS Virtual Circuits";
+        } // END of flow-label-direction definition.
+
+        leaf enable-static-flow-label  {
+            when " ../enable-flow-label ";
+            type  empty;
+            description "Use this attribute to configure static flow label for VPLS Virtual
+                        Circuits.";
+        } // END of enable-static-flow-label definition.
+
+    } // END of vpls-fat-config definition.
+    grouping vpls-fat-top {
+        description
+            "Grouping for fat label configuration attributes";
+        container fat-label {
+            description
+                "Top level container for flow-label";
+            container config {
+                presence "Enable FAT Label";
+                description
+                    "Configuration data for fat label";
+                uses vpls-fat-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operation state data for fat label";
+                uses vpls-fat-config;
+            } // END of state-container definition.
+        } // END of fat-label-container definition.
+    } // END of vpls-fat-top definition.
     grouping vpls-peer-fec129-top {
         description
             "Top level grouping for Fec129 (Genfec) VPLS Peer";
@@ -987,7 +1048,7 @@ module ipi-l2vpn-vpls {
 
         leaf tunnel-policy  {
             when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpls:vpls-instance/ipi-l2vpn-vpls:vpls-peers/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:signaling-protocol-ldp) ";
-            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            if-feature feature-list:HAVE_SERVICE_MAPPING;
             type  string {
                 length "1..127";
                 pattern "[^?' =,>|]+";
@@ -1008,6 +1069,7 @@ module ipi-l2vpn-vpls {
         description
             "Top level grouping for BGP VPLS";
         container bgp-signaling {
+            if-feature feature-list:HAVE_BGP_VPLS;
             description
                 "Top level container for BGP vpls";
             container config {
@@ -1037,14 +1099,14 @@ module ipi-l2vpn-vpls {
         leaf vpls-edge-identifier  {
             type  int32 {
                  range "1..1000"  {
-                    description "1..1000:VE ID Range";
+                    description "1..1000: Supported range 1 - 1000";
                  }
             }
             description "Specify VPLS edge identifier value";
         } // END of vpls-edge-identifier definition.
 
         leaf tunnel-policy  {
-            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            if-feature feature-list:HAVE_SERVICE_MAPPING;
             type  string {
                 length "1..127";
                 pattern "[^?' =,>|]+";
@@ -1212,7 +1274,6 @@ module ipi-l2vpn-vpls {
                 "Top level container for interface level configuration for VPLS";
 
             list interface {
-            when " /ipi-l2vpn-vpls:vpls/ipi-l2vpn-vpls:interfaces/ipi-l2vpn-vpls:interface/ipi-l2vpn-vpls:vpls-access/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:enable ";
                 key "name";
                 description
                     "VPLS interface related configuration";
@@ -1225,7 +1286,6 @@ module ipi-l2vpn-vpls {
                 } // END of name definition.
 
                 container config {
-                    when " /ipi-l2vpn-vpls:vpls/ipi-l2vpn-vpls:interfaces/ipi-l2vpn-vpls:interface/ipi-l2vpn-vpls:vpls-access/ipi-l2vpn-vpls:config/ipi-l2vpn-vpls:enable ";
                     description
                         "Configuration container for interface list";
                     uses vpls-interface-config;
@@ -1334,6 +1394,8 @@ module ipi-l2vpn-vpls {
     description
         "VPLS global level container";
     container vpls {
+        if-feature feature-list:HAVE_VPLS;
+        if-feature feature-list:HAVE_MPLS;
         description
             "VPLS global level container";
         container attachment-circuit {
@@ -1356,6 +1418,8 @@ module ipi-l2vpn-vpls {
     description
         "Top level list for VPLS-Instance";
     container vpls-instance {
+        if-feature feature-list:HAVE_VPLS;
+        if-feature feature-list:HAVE_MPLS;
         description
             "Top level list for VPLS-Instance";
         container config {
@@ -1372,6 +1436,7 @@ module ipi-l2vpn-vpls {
             uses vpls-instance-global-state;
         } // END of state-container definition.
         uses vpls-spoke-pseudowire-top;
+        uses vpls-fat-top;
         uses vpls-peer-top;
         uses vpls-bgp-top;
         uses vpls-quality-of-service-top;
@@ -1391,6 +1456,9 @@ module ipi-l2vpn-vpls {
 
 
     rpc clear-mpls-vpls-name-statistics-port-type {
+        if-feature feature-list:HAVE_MPLS_STATS;
+        if-feature feature-list:HAVE_VPLS;
+        if-feature feature-list:HAVE_MPLS;
         description "Use this attribute to clear mpls vpls statistics by portType";
         input  {
             leaf port-type  {
@@ -1407,6 +1475,9 @@ module ipi-l2vpn-vpls {
     }
 
     rpc clear-mpls-vpls-name-statistics-network-port-peer {
+        if-feature feature-list:HAVE_MPLS_STATS;
+        if-feature feature-list:HAVE_VPLS;
+        if-feature feature-list:HAVE_MPLS;
         description "Use this attribute to clear mpls vpls statistics by network portType";
         input  {
             leaf port-circuit-name  {
@@ -1423,6 +1494,9 @@ module ipi-l2vpn-vpls {
     }
 
     rpc clear-mpls-vpls-name-statistics-network-port-spoke {
+        if-feature feature-list:HAVE_MPLS_STATS;
+        if-feature feature-list:HAVE_VPLS;
+        if-feature feature-list:HAVE_MPLS;
         description "Use this attribute to clear mpls vpls statistics by network portType";
         input  {
             leaf port-circuit-name  {
@@ -1439,6 +1513,9 @@ module ipi-l2vpn-vpls {
     }
 
     rpc clear-mpls-vpls-name-statistics-access-port {
+        if-feature feature-list:HAVE_MPLS_STATS;
+        if-feature feature-list:HAVE_VPLS;
+        if-feature feature-list:HAVE_MPLS;
         description "Use this attribute to clear mpls l2-circuit statistics by access
                     portType";
         input  {
@@ -1461,6 +1538,9 @@ module ipi-l2vpn-vpls {
     }
 
     rpc clear-mpls-vpls-name-statistics {
+        if-feature feature-list:HAVE_VPLS;
+        if-feature feature-list:HAVE_MPLS_STATS;
+        if-feature feature-list:HAVE_MPLS;
         description "Use this attribute to clear vpls statistics";
         input  {
             leaf vpls-circuit-name  {
@@ -1472,6 +1552,8 @@ module ipi-l2vpn-vpls {
     }
 
     rpc clear-mpls-vpls-mac-addresses-for-instance {
+        if-feature feature-list:HAVE_VPLS;
+        if-feature feature-list:HAVE_MPLS;
         description "Use this attribute to clear mpls vpls by NAME and mac_addresses";
         input  {
             leaf name  {
@@ -1483,6 +1565,8 @@ module ipi-l2vpn-vpls {
     }
 
     rpc clear-mpls-vpls-mac-addresses-all {
+        if-feature feature-list:HAVE_VPLS;
+        if-feature feature-list:HAVE_MPLS;
         description "Use this attribute to clear mpls vpls mac_addresses";
     }
 

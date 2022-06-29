@@ -21,7 +21,7 @@ submodule ipi-platform-profile {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import cml-data-types {
@@ -31,10 +31,10 @@ submodule ipi-platform-profile {
 
     import ipi-platform-types {
         prefix ipi-platform-types;
-        revision-date 2022-02-17;
+        revision-date 2022-06-01;
     }
 
-    include ipi-platform-profile-extended { revision-date 2022-01-21;}
+    include ipi-platform-profile-extended { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -47,6 +47,16 @@ submodule ipi-platform-profile {
     description
         "Datamodel for Platform profile object";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.11.0.";
+    }
+
+    revision "2022-05-02" {
+        description "Added new attribute for hardware-profile port mode for UFIS9600-64X and UFIS9600-32X mode";
+        reference " 0.10.3.";
+    }
 
     revision "2022-01-07" {
         description "Changed cpu-q-default from attribute to rpc";
@@ -122,8 +132,8 @@ submodule ipi-platform-profile {
         description
             "Grouping for hardware-profile config objects.";
         leaf flow-control  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_BCM_UFT;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable hardware profile flowcontrol.";
         } // END of flow-control definition.
@@ -134,13 +144,29 @@ submodule ipi-platform-profile {
             description "Use this attribute to enable or disable hardware profile micro-bfd.";
         } // END of micro-bfd definition.
 
-        leaf port-config  {
+        leaf ufis9510-28dc-port-mode  {
             if-feature feature-list:HAVE_DUNE;
-            type  ipi-platform-types:platform_port_config_type_t;
+            type  ipi-platform-types:platform_ufis9510_28dc_port_mode_type_t;
             default "mode2";
-            description "use this attribute to configure or unconfigure hardware profile
-                        port-config.";
-        } // END of port-config definition.
+            description "use this attribute to configure or unconfigure hardware profile port
+                        modes";
+        } // END of ufis9510-28dc-port-mode definition.
+
+        leaf ufis9600-64x-port-mode  {
+            if-feature feature-list:HAVE_DUNE;
+            type  ipi-platform-types:platform_ufis9600_64x_port_mode_type_t;
+            default "mode2";
+            description "use this attribute to configure or unconfigure hardware profile port
+                        modes";
+        } // END of ufis9600-64x-port-mode definition.
+
+        leaf ufis9600-32x-port-mode  {
+            if-feature feature-list:HAVE_DUNE;
+            type  ipi-platform-types:platform_ufis9600_32x_port_mode_type_t;
+            default "mode2";
+            description "use this attribute to configure or unconfigure hardware profile port
+                        modes";
+        } // END of ufis9600-32x-port-mode definition.
 
         leaf custom-service-queue-profile  {
             if-feature feature-list:HAVE_DUNE;
@@ -163,24 +189,24 @@ submodule ipi-platform-profile {
         } // END of egress-ipv6 definition.
 
         leaf egress-dst-ipv6  {
-            if-feature feature-list:HAVE_CUSTOM3_ACL;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_CUSTOM3_ACL;
             type  empty;
             description "Use this attribute to enable or disable Egress Dst IPv6 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-dst-ipv6 definition.
 
         leaf egress-src-ipv6  {
-            if-feature feature-list:HAVE_CUSTOM3_ACL;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_CUSTOM3_ACL;
             type  empty;
             description "Use this attribute to enable or disable Egress Src IPv6 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-src-ipv6 definition.
 
         leaf egress-ipv6-dnx  {
-            if-feature feature-list:HAVE_DNX;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DNX;
             type  cml-data-types:cml_enable_disable_t;
             default "enable";
             description "Use this command to enable or disable egress IPv6 filter groups.
@@ -188,8 +214,8 @@ submodule ipi-platform-profile {
         } // END of egress-ipv6-dnx definition.
 
         leaf ingress-ipv6  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Ingress IPv6 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
@@ -204,7 +230,6 @@ submodule ipi-platform-profile {
         } // END of ingress-ipv6-acl definition.
 
         leaf ingress-ipv4  {
-            when " not(/profiles/hardware-profile/filters/config/ingress-ipv4-extended) ";
             if-feature feature-list:HAVE_ACL;
             type  cml-data-types:cml_enable_disable_t;
             description "Use this attribute to enable or disable Ingress IPv4 filter groups.
@@ -212,9 +237,8 @@ submodule ipi-platform-profile {
         } // END of ingress-ipv4 definition.
 
         leaf ingress-ipv4-extended  {
-            when " /profiles/hardware-profile/filters/config/ingress-ipv4 != 'enable' ";
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Ingress IPv4 extended filter
                         groups. Disabling filter groups increases the configurable filter
@@ -222,8 +246,8 @@ submodule ipi-platform-profile {
         } // END of ingress-ipv4-extended definition.
 
         leaf ingress-ipv4-qos  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Ingress IPv4 QoS filter
                         groups. Disabling filter groups increases the configurable filter
@@ -237,8 +261,8 @@ submodule ipi-platform-profile {
         } // END of ingress-arp definition.
 
         leaf ingress-ipv6-qos  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Ingress IPv6 QoS filter
                         groups. Disabling filter groups increases the configurable filter
@@ -247,8 +271,8 @@ submodule ipi-platform-profile {
 
         leaf qos  {
             when " not(/profiles/hardware-profile/filters/config/qos-extended) + not(/profiles/hardware-profile/filters/config/qos-policer) ";
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable QoS filter groups. Disabling
                         filter groups increases the configurable filter entries.";
@@ -256,8 +280,8 @@ submodule ipi-platform-profile {
 
         leaf qos-extended  {
             when " not(/profiles/hardware-profile/filters/config/qos) + not(/profiles/hardware-profile/filters/config/qos-policer) ";
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable QoS extended filter groups.
                         Disabling filter groups increases the configurable filter entries.";
@@ -265,17 +289,17 @@ submodule ipi-platform-profile {
 
         leaf qos-policer  {
             when " not(/profiles/hardware-profile/filters/config/qos) + not(/profiles/hardware-profile/filters/config/qos-extended) ";
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable QoS policer filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of qos-policer definition.
 
         leaf egress-qos-policer  {
-            if-feature feature-list:HAVE_DNX;
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable Egress QoS policer filter
                         groups. Disabling filter groups increases the configurable filter
@@ -283,8 +307,8 @@ submodule ipi-platform-profile {
         } // END of egress-qos-policer definition.
 
         leaf egress-qos-policer-ext  {
-            if-feature feature-list:HAVE_CUSTOM3_ACL;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_CUSTOM3_ACL;
             type  empty;
             description "Use this attribute to enable or disable Egress QoS policer filter
                         groups. Disabling filter groups increases the configurable filter
@@ -292,8 +316,8 @@ submodule ipi-platform-profile {
         } // END of egress-qos-policer-ext definition.
 
         leaf qos-ipv6  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable QoS filter group for IPv6
                         traffic. Disabling filter groups increases the configurable filter
@@ -301,8 +325,8 @@ submodule ipi-platform-profile {
         } // END of qos-ipv6 definition.
 
         leaf egress-ipv4  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:NOT_HAVE_CUSTOM3_ACL;
             type  empty;
             description "Use this attribute to enable or disable Egress IPv4 filter groups.
@@ -310,25 +334,25 @@ submodule ipi-platform-profile {
         } // END of egress-ipv4 definition.
 
         leaf egress-ipv4-dnx  {
-            if-feature feature-list:HAVE_CUSTOM3_ACL;
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_CUSTOM3_ACL;
             type  empty;
             description "Use this attribute to enable or disable Egress IPv4 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-ipv4-dnx definition.
 
         leaf egress-ipv4-ext  {
-            if-feature feature-list:HAVE_DNX;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable Egress IPv4 ext filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-ipv4-ext definition.
 
         leaf egress-layer2  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:NOT_HAVE_CUSTOM3_ACL;
             type  empty;
             description "Use this attribute to enable or disable Egress L2 filter groups.
@@ -336,16 +360,16 @@ submodule ipi-platform-profile {
         } // END of egress-layer2 definition.
 
         leaf egress-layer2-dnx  {
-            if-feature feature-list:HAVE_CUSTOM3_ACL;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_CUSTOM3_ACL;
             type  empty;
             description "Use this attribute to enable or disable Egress L2 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-layer2-dnx definition.
 
         leaf egress-layer2-ext  {
-            if-feature feature-list:HAVE_DNX;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable Egress L2 ext filter groups.
                         Disabling filter groups increases the configurable filter entries.";
@@ -353,8 +377,8 @@ submodule ipi-platform-profile {
 
         leaf ingress-layer2  {
             when " not(/profiles/hardware-profile/filters/config/ingress-layer2-extended) ";
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Ingress L2 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
@@ -362,8 +386,8 @@ submodule ipi-platform-profile {
 
         leaf ingress-layer2-extended  {
             when " not(/profiles/hardware-profile/filters/config/ingress-layer2) ";
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Ingress L2 extended filter
                         groups. Disabling filter groups increases the configurable filter
@@ -371,25 +395,26 @@ submodule ipi-platform-profile {
         } // END of ingress-layer2-extended definition.
 
         leaf forwarding-ipv4  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable forwarding-ipv4 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of forwarding-ipv4 definition.
 
         leaf cfm-domain-name-string  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_CFM;
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable CFM domain name filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of cfm-domain-name-string definition.
 
         leaf twamp-ipv4  {
-            if-feature feature-list:HAVE_DUNE;
-            if-feature feature-list:HAVE_TWAMP;
             if-feature feature-list:HAVE_TWAMP_HW_OFFLOAD;
+            if-feature feature-list:HAVE_TWAMP;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable TWAMP IPv4 Forwarding filter
                         groups. Disabling filter groups increases the configurable filter
@@ -397,9 +422,9 @@ submodule ipi-platform-profile {
         } // END of twamp-ipv4 definition.
 
         leaf twamp-ipv6  {
-            if-feature feature-list:HAVE_DUNE;
-            if-feature feature-list:HAVE_TWAMP;
             if-feature feature-list:HAVE_TWAMP_HW_OFFLOAD;
+            if-feature feature-list:HAVE_TWAMP;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable TWAMP IPv6 Forwarding filter
                         groups. Disabling filter groups increases the configurable filter
@@ -407,8 +432,8 @@ submodule ipi-platform-profile {
         } // END of twamp-ipv6 definition.
 
         leaf vxlan-arp-nd  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_VXLAN;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable VxLAN Forwarding filter
                         groups. Disabling filter groups increases the configurable filter
@@ -416,8 +441,8 @@ submodule ipi-platform-profile {
         } // END of vxlan-arp-nd definition.
 
         leaf vxlan-multi-homing  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_VXLAN;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable VxLAN Multi Homing Forwarding
                         filter groups. Disabling filter groups increases the configurable
@@ -425,9 +450,9 @@ submodule ipi-platform-profile {
         } // END of vxlan-multi-homing definition.
 
         leaf evpn-mpls-multi-homing  {
-            if-feature feature-list:HAVE_DUNE;
-            if-feature feature-list:HAVE_MPLS;
             if-feature feature-list:HAVE_NVO;
+            if-feature feature-list:HAVE_MPLS;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable EVPN-MPLS Multi Homing
                         Forwarding filter groups. Disabling filter groups increases the
@@ -443,16 +468,16 @@ submodule ipi-platform-profile {
         } // END of ingress-bfd definition.
 
         leaf dhcp-snoop  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_DHCP_SNOOP;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Dhcp snooping filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of dhcp-snoop definition.
 
         leaf dhcp-snoop-ipv6  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_DHCP_SNOOP;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable Dhcp snooping ipv6 filter
                         groups. Disabling filter groups increases the configurable filter
@@ -460,8 +485,8 @@ submodule ipi-platform-profile {
         } // END of dhcp-snoop-ipv6 definition.
 
         leaf ipsg  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_DHCP_SNOOP;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable IP Source Guard(IPSG) filter
                         groups. Disabling filter groups increases the configurable filter
@@ -469,8 +494,8 @@ submodule ipi-platform-profile {
         } // END of ipsg definition.
 
         leaf ipsg-ipv6  {
-            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:HAVE_DHCP_SNOOP;
+            if-feature feature-list:HAVE_DUNE;
             type  empty;
             description "Use this attribute to enable or disable IP Source Guard(IPSG) ipv6
                         filter groups. Disabling filter groups increases the configurable
@@ -525,9 +550,9 @@ submodule ipi-platform-profile {
         } // END of tunnel-logical-if definition.
 
         leaf evpn-mpls-stats  {
-            if-feature feature-list:HAVE_DUNE;
-            if-feature feature-list:HAVE_MPLS;
             if-feature feature-list:HAVE_NVO;
+            if-feature feature-list:HAVE_MPLS;
+            if-feature feature-list:HAVE_DUNE;
             if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable hardware statistics for
@@ -535,8 +560,8 @@ submodule ipi-platform-profile {
         } // END of evpn-mpls-stats definition.
 
         leaf mpls-pseudowire  {
-            if-feature feature-list:HAVE_MPLS_STATS;
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_MPLS_STATS;
             if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable MPLS Pseudowire filter groups.
@@ -544,9 +569,8 @@ submodule ipi-platform-profile {
         } // END of mpls-pseudowire definition.
 
         leaf cfm-frame-loss-measurements  {
-            if-feature feature-list:HAVE_CFM;
             if-feature feature-list:HAVE_DUNE;
-            if-feature feature-list:NOT_HAVE_DNX;
+            if-feature feature-list:HAVE_CFM;
             type  empty;
             description "Use this attribute to enable or disable CFM Loss Measurements filter
                         groups. Disabling filter groups increases the configurable filter
@@ -554,8 +578,8 @@ submodule ipi-platform-profile {
         } // END of cfm-frame-loss-measurements definition.
 
         leaf cfm-continuity-check-messages  {
-            if-feature feature-list:CCM_HW_OFFLOAD;
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:CCM_HW_OFFLOAD;
             if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
             description "Use this attribute to enable or disable CFM Continuity Check Messages
@@ -685,7 +709,7 @@ submodule ipi-platform-profile {
         leaf ipv4-percentage  {
             type  uint8 {
                  range "10..90"  {
-                    description "10..90:percent of ipv4 routes";
+                    description "10..90: Supported range 10 - 90";
                  }
             }
             units "%";
@@ -696,7 +720,7 @@ submodule ipi-platform-profile {
         leaf ipv6-percentage  {
             type  uint8 {
                  range "10..90"  {
-                    description "10..90:percent of ipv6 routes";
+                    description "10..90: Supported range 10 - 90";
                  }
             }
             units "%";
@@ -764,8 +788,8 @@ submodule ipi-platform-profile {
         leaf rate  {
             type  int32 {
                  range "0..100000"  {
-                    description "0..100000:Rate in kbps. Granularity is from 469 Kbps to 1.56% of the
-                            configured rate.";
+                    description "0..100000:Feature : HAVE_DUNE Supported range 0 - 100000Not Feature :
+                            HAVE_DUNE  Supported range 0 - 100000";
                  }
             }
             description "CPU queue Rate";
@@ -866,7 +890,6 @@ submodule ipi-platform-profile {
                             information.";
 
                 list rate-limit {
-                when " /hardware/cpu-queue/rate-limits/rate-limit/config/rate  or /hardware/cpu-queue/rate-limits/rate-limit/config/monitor-status ";
                     key "queue-name";
                     description
                         "The list of rate-limit configuration.";
@@ -934,6 +957,8 @@ submodule ipi-platform-profile {
         "Top level container for platform profiles, including configuration and
                 state data";
     container profiles {
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         description
             "Top level container for platform profiles, including configuration and
                     state data";
@@ -1168,6 +1193,8 @@ submodule ipi-platform-profile {
         "Top level container for hardware, including configuration and state
                 data";
     container hardware {
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         description
             "Top level container for hardware, including configuration and state
                     data";

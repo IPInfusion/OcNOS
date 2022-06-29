@@ -23,7 +23,7 @@ module ipi-tfo {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import cml-data-types {
@@ -33,7 +33,12 @@ module ipi-tfo {
 
     import ipi-tfo-types {
         prefix ipi-tfo-types;
-        revision-date 2021-07-28;
+        revision-date 2022-06-01;
+    }
+
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -48,6 +53,31 @@ module ipi-tfo {
     description
         "Datamodel for TFO Configuration";
 
+
+    revision "2022-06-17" {
+        description "Added implicit_delele tag in tfo config and tfo_groups containers";
+        reference " 0.4.3.";
+    }
+
+    revision "2022-06-14" {
+        description "link-type config is not deleting with tfo disable";
+        reference " 0.4.2.";
+    }
+
+    revision "2022-06-08" {
+        description "Added a dependent object for TFO to handel re-ordering of configuration";
+        reference " 0.4.1.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-05-18" {
+        description "link-type config getting removed while deleting fog type when global fog is disable";
+        reference " 0.3.0.";
+    }
 
     revision "2021-10-19" {
         description "TFO Configuration are not deleting after global tfo disable";
@@ -89,8 +119,10 @@ module ipi-tfo {
         description
             "Grouping for trigger-failover interface config objects.";
         leaf group-id  {
-            type  leafref {
-                path  "/trigger-failover/failover-groups/failover-group/group-id";
+            type  uint32 {
+                 range "1..64"  {
+                    description "1..64: Supported range 1 - 64";
+                 }
             }
             description "Use this attribute to Create or delete a failover group (FOG) on
                         interface.";
@@ -110,7 +142,7 @@ module ipi-tfo {
         leaf group-id  {
             type  uint32 {
                  range "1..64"  {
-                    description "1..64:Failovergroup ID";
+                    description "1..64: Supported range 1 - 64";
                  }
             }
             description "Use this attribute to Create or delete a failover group (FOG).";
@@ -125,7 +157,7 @@ module ipi-tfo {
         leaf failover-trigger-count  {
             type  uint32 {
                  range "0..63"  {
-                    description "0..63:tfc count from 0 to 63";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "Use this attribute to set the number of links to trigger failover for
@@ -183,6 +215,7 @@ module ipi-tfo {
         "Top level container for Trigger Failover, including configuration and
                 state data";
     container trigger-failover {
+        if-feature feature-list:HAVE_TFO;
         description
             "Top level container for Trigger Failover, including configuration and
                     state data";
@@ -215,6 +248,7 @@ module ipi-tfo {
                 } // END of name definition.
 
                 container config {
+                    when " /ipi-tfo:trigger-failover/ipi-tfo:config/ipi-tfo:admin-status = 'enable' ";
                     description
                         "This container defines Trigger Failover Interface configuration.";
                     uses trigger-failover-interface-config;
@@ -301,11 +335,13 @@ module ipi-tfo {
     uses trigger-failover-grouping;
 
     rpc tfo-clear-counters-all {
+        if-feature feature-list:HAVE_TFO;
         description "Use this attribute to clear the TFO counters.This command clears
                     counters for all FOG indexes.";
     }
 
     rpc tfo-clear-fog-counters {
+        if-feature feature-list:HAVE_TFO;
         description "Use this attribute to clear the TFO counters.This command clears
                     counters for specified FOG indexes.";
         input  {

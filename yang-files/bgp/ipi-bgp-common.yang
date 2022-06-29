@@ -21,7 +21,7 @@ submodule ipi-bgp-common {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import cml-data-types {
@@ -31,7 +31,7 @@ submodule ipi-bgp-common {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2022-01-17;
+        revision-date 2022-06-01;
     }
 
     import ietf-yang-types {
@@ -56,6 +56,21 @@ submodule ipi-bgp-common {
     description
         "Datamodel for bgp network list";
 
+
+    revision "2022-06-20" {
+        description "Added new attribute 'de-activate' for BGP Peer-group feature.";
+        reference " 0.8.4.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.8.3.";
+    }
+
+    revision "2022-04-19" {
+        description "Added new attribute 'peer-shutdown-description' for support of BGP Administrative Shutdown Communication feature.";
+        reference " 0.8.2.";
+    }
 
     revision "2022-01-17" {
         description "Modified data type";
@@ -168,7 +183,7 @@ submodule ipi-bgp-common {
         leaf ebgp-max-path  {
             type  int32 {
                  range "2..64"  {
-                    description "2..64:Supported multipath number";
+                    description "2..64: Supported range 2 - 64";
                  }
             }
             default "2";
@@ -180,7 +195,7 @@ submodule ipi-bgp-common {
         leaf ibgp-max-path  {
             type  int32 {
                  range "2..64"  {
-                    description "2..64:Supported multipath number";
+                    description "2..64: Supported range 2 - 64";
                  }
             }
             default "2";
@@ -192,7 +207,7 @@ submodule ipi-bgp-common {
         leaf eibgp-max-path  {
             type  int32 {
                  range "2..64"  {
-                    description "2..64:Supported multipath number";
+                    description "2..64: Supported range 2 - 64";
                  }
             }
             default "2";
@@ -682,7 +697,7 @@ submodule ipi-bgp-common {
         leaf optional-as  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:AS number";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "This attribute specifies an  optional AS Number to a dynamic
@@ -696,7 +711,7 @@ submodule ipi-bgp-common {
         leaf bgp-port  {
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:TCP port number";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "179";
@@ -704,11 +719,18 @@ submodule ipi-bgp-common {
         } // END of bgp-port definition.
 
         leaf activate  {
-            when " /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
+            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  empty;
             description "Activate/Deactivate neighbor. This attribute enables or disables the
                         exchange of AF information with a neighboring router.";
         } // END of activate definition.
+
+        leaf de-activate  {
+            when " /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
+            type  empty;
+            description "Deactivate neighbor. This attribute disables the exchange of AF
+                        information with a neighboring router.";
+        } // END of de-activate definition.
 
         leaf default-peer-route-map-name  {
             type  empty;
@@ -742,7 +764,7 @@ submodule ipi-bgp-common {
         leaf weight  {
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:Configure weight";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "0";
@@ -824,7 +846,7 @@ submodule ipi-bgp-common {
         leaf allow-as-number  {
             type  uint32 {
                  range "1..10"  {
-                    description "1..10:Number of occurrences of AS number";
+                    description "1..10: Supported range 1 - 10";
                  }
             }
             default "3";
@@ -899,7 +921,7 @@ submodule ipi-bgp-common {
         leaf prefix-count  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:maximum no. of prefix limit";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "This attribute specifies number of prefixes that a BGP router is
@@ -923,7 +945,7 @@ submodule ipi-bgp-common {
         leaf threshold-percentage  {
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:threshold-value 1 to 100 percent";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             default "75";
@@ -1065,7 +1087,7 @@ submodule ipi-bgp-common {
         leaf keep-alive  {
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:Keepalive interval in seconds";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             mandatory true;
@@ -1076,7 +1098,7 @@ submodule ipi-bgp-common {
         leaf hold-time  {
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:Holdtime in seconds";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             mandatory true;
@@ -1861,7 +1883,7 @@ submodule ipi-bgp-common {
         leaf group-limit  {
             type  uint8 {
                  range "1..200"  {
-                    description "1..200:dynamic peer-group limit";
+                    description "1..200: Supported range 1 - 200";
                  }
             }
             description "Use this attribute to specify max number of peers in a dynamic
@@ -1881,7 +1903,7 @@ submodule ipi-bgp-common {
         leaf peer-as  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:AS number";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "This attribute specifies a neighbors autonomous system number. If the
@@ -1910,7 +1932,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:AS number";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to specify an AS (autonomous system) number to use
@@ -1932,7 +1954,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:Connect timer";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "1";
@@ -1962,6 +1984,16 @@ submodule ipi-bgp-common {
                         could be terminated.";
         } // END of peer-shutdown definition.
 
+        leaf peer-shutdown-description  {
+            when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-shutdown ";
+            type  cml-data-types:cml_line_t {
+                length "1..255";
+            }
+            description "Use this attribute to send shutdown communication message to inform
+                        peer the reason for the shutdown of the BGP session.";
+        } // END of peer-shutdown-description definition.
+
         leaf neighbor-passive  {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
             type  empty;
@@ -1972,7 +2004,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:maximum hop count";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "255";
@@ -2002,7 +2034,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
             type  int32 {
                  range "1..65535"  {
-                    description "1..65535:Connect timer";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "120";
@@ -2022,7 +2054,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
             type  uint32 {
                  range "0..65535"  {
-                    description "0..65535:time in seconds";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "0";
@@ -2037,7 +2069,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:time in seconds";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "1";
@@ -2081,7 +2113,7 @@ submodule ipi-bgp-common {
             if-feature feature-list:HAVE_VRF;
             type  uint32 {
                  range "1..3600"  {
-                    description "1..3600:BGP peer g-shut time in secs";
+                    description "1..3600: Supported range 1 - 3600";
                  }
             }
             description "This attribute sets a different restart-time other than the global
@@ -2120,7 +2152,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
             type  uint32 {
                  range "10..65535"  {
-                    description "10..65535:BGP peer g-shut time in secs";
+                    description "10..65535: Supported range 10 - 65535";
                  }
             }
             description "Use this attribute to configure the value of the graceful shutdown
@@ -2143,6 +2175,13 @@ submodule ipi-bgp-common {
                         multihop";
         } // END of enable-peer-bfd-multihop definition.
 
+        leaf enable-ext-opt-param-len  {
+            when " /bgp/bgp-instance/address-family-vrf/peer-group/config/peer-as ";
+            type  empty;
+            description "Use this attribute for a specific peer to encode extended optional
+                        parameter length.";
+        } // END of enable-ext-opt-param-len definition.
+
     } // END of bgp-address-family-vrf-peer-group-config definition.
     grouping bgp-address-family-peer-group-vrf-config {
         description
@@ -2151,7 +2190,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/activate ";
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:TCP port number";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "179";
@@ -2201,7 +2240,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/activate ";
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:Configure weight";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "0";
@@ -2290,7 +2329,7 @@ submodule ipi-bgp-common {
             when " /bgp/bgp-instance/address-family-vrf/peer-group/config/activate ";
             type  uint32 {
                  range "1..10"  {
-                    description "1..10:Number of occurrences of AS number";
+                    description "1..10: Supported range 1 - 10";
                  }
             }
             default "3";

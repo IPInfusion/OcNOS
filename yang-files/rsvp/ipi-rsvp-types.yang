@@ -21,6 +21,11 @@ module ipi-rsvp-types {
 
     prefix "ipi-rsvp-types";
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
     organization
         "IP Infusion Inc.";
 
@@ -33,6 +38,11 @@ module ipi-rsvp-types {
     description
         "YANG version of the ipi-rsvp-types";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.6.0.";
+    }
 
     revision "2021-10-01" {
         description "Update DC flag for facility";
@@ -133,10 +143,6 @@ module ipi-rsvp-types {
 
     typedef  rsvp_capability_type_t {
         type enumeration {
-            enum psc-1 {
-                value 1;
-                description "Packet Switch Capable-1";
-            }
             enum psc-2 {
                 value 2;
                 description "Packet Switch Capable-2";
@@ -148,6 +154,38 @@ module ipi-rsvp-types {
             enum psc-4 {
                 value 8;
                 description "Packet Switch Capable-4";
+            }
+            enum l2sc {
+                value 16;
+                if-feature feature-list:HAVE_TDM;
+                description "Layer-2 Switch Capable (L2SC)";
+            }
+            enum tdm {
+                value 32;
+                if-feature feature-list:HAVE_TDM;
+                description "Time-Division-Multiplex Capable (TDM)";
+            }
+            enum lsc {
+                value 64;
+                if-feature feature-list:HAVE_TDM;
+                description "Lambda-Switch Capable (LSC)";
+            }
+            enum fsc {
+                value 128;
+                if-feature feature-list:HAVE_TDM;
+                description "Fiber-Switch Capable (FSC)";
+            }
+            enum pbb-te {
+                value 256;
+                if-feature feature-list:HAVE_PBB_TE;
+                description "PBB-TE Switching";
+            }
+            enum psc-1 {
+                description "Packet Switch Capable-1";
+            }
+            enum psc {
+                if-feature feature-list:HAVE_TDM;
+                description "Packet Switch Capable (PSC)";
             }
         }
         description "type definition for RSVP_CAPABILITY_TYPE_T";
@@ -347,6 +385,7 @@ module ipi-rsvp-types {
             }
             bit cspf {
                 position 6;
+                if-feature feature-list:HAVE_CSPF;
                 description "CSPF messages";
             }
             bit fsm-egress {
@@ -367,6 +406,7 @@ module ipi-rsvp-types {
             }
             bit rib {
                 position 11;
+                if-feature feature-list:HAVE_RIBD;
                 description "RIB messages";
             }
         }
@@ -377,11 +417,17 @@ module ipi-rsvp-types {
         type enumeration {
             enum gmpls {
                 value 1;
+                if-feature feature-list:HAVE_GMPLS;
                 description "GMPLS enabled trunk";
             }
             enum ipv4 {
                 value 2;
                 description "IPv4 address family trunk";
+            }
+            enum ipv6 {
+                value 10;
+                if-feature feature-list:HAVE_MPLS_FWD;
+                description "IPv6 address family trunk";
             }
         }
         description "type definition for RSVP_TRUNK_FAMILY_T";
@@ -395,6 +441,7 @@ module ipi-rsvp-types {
             }
             enum facility {
                 value 2;
+                if-feature feature-list:NOT_HAVE_CUSTOM1_MPLS;
                 description "Facility Backup (Bypass) protection";
             }
         }

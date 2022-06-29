@@ -28,7 +28,12 @@ module ipi-ping {
 
     import ipi-ping-types {
         prefix ipi-ping-types;
-        revision-date 2020-12-01;
+        revision-date 2022-06-01;
+    }
+
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -43,6 +48,11 @@ module ipi-ping {
     description
         "IPI Ping";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.3.0.";
+    }
 
     revision "2021-01-27" {
         description "Updated default values for timeout and deadline";
@@ -162,14 +172,18 @@ module ipi-ping {
 
         leaf success-rate  {
             type  uint8 {
-                 range "0..100";
+                 range "0..100"  {
+                    description "0..100: Supported range 0 - 100";
+                 }
             }
             description "Success Rate";
         } // END of success-rate definition.
 
         leaf loss-rate  {
             type  uint8 {
-                 range "0..100";
+                 range "0..100"  {
+                    description "0..100: Supported range 0 - 100";
+                 }
             }
             description "Loss Rate";
         } // END of loss-rate definition.
@@ -223,6 +237,7 @@ module ipi-ping {
     description
         "Top level container for ping data model";
     container ping {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "Top level container for ping data model";
 
@@ -297,6 +312,7 @@ module ipi-ping {
     uses ping-grouping;
 
     rpc ping-start-test {
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this RPC to run a ping test for a given host";
         input  {
             leaf test-name  {
@@ -370,6 +386,7 @@ module ipi-ping {
     }
 
     rpc ping-stop {
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this RPC to stop an ongoing ping test";
         input  {
             leaf test-name  {
@@ -381,11 +398,14 @@ module ipi-ping {
     }
 
     notification ping-test-completed {
+        if-feature feature-list:HAVE_HOSTPD;
 
         description "This notification is sent when a ping test test is completed.";
 
         // severity "INFO";
+
         // eventClass "STATE";
+
         leaf test-name {
             type  string;
         description

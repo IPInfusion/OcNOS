@@ -28,12 +28,12 @@ module ipi-qos {
 
     import ipi-qos-types {
         prefix ipi-qos-types;
-        revision-date 2021-06-30;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -48,6 +48,11 @@ module ipi-qos {
     description
         "Quality of Service (QoS)";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference "Initial Version";
+    }
 
     revision "2022-01-13" {
         description "Added the new objectlist queue-color-to-exp in queues-to-exp container";
@@ -549,7 +554,7 @@ module ipi-qos {
         leaf port-all  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:TCP/UDP port value 1-65535";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             description "Use this attribute to classify traffic based on the port";
@@ -621,6 +626,7 @@ module ipi-qos {
         } // END of rtp definition.
 
         leaf mpls-exp  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
             if-feature feature-list:HAVE_DIFFSERV;
             type  cml-data-types:cml_range_t;
             description "Use this attribute to classify traffic based on the MPLS experimental
@@ -669,12 +675,14 @@ module ipi-qos {
         } // END of ipv6-precedence definition.
 
         leaf-list packet-protocol  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  ipi-qos-types:qos_proto_type_t;
             description "Use this attribute to classify traffic based on the protocol";
         } // END of packet-protocol definition.
 
         leaf-list source-mac  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  ipi-qos-types:qos_mac_address_t {
                 length "1..17";
@@ -685,6 +693,7 @@ module ipi-qos {
         } // END of source-mac definition.
 
         leaf-list destination-mac  {
+            when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps/ipi-qos:class-map/ipi-qos:match-any-conditions/ipi-qos:config/ipi-qos:access-control-list-name) ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  ipi-qos-types:qos_mac_address_t {
                 length "1..17";
@@ -715,7 +724,7 @@ module ipi-qos {
         leaf cos-all  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to classify traffic based on the Class of Service
@@ -725,7 +734,7 @@ module ipi-qos {
         leaf inner-cos-all  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to classify traffic based on the inner Class of
@@ -735,7 +744,7 @@ module ipi-qos {
         leaf vlan-all  {
             type  uint16 {
                  range "1..4094"  {
-                    description "1..4094:VLAN values";
+                    description "1..4094: Supported range 1 - 4094";
                  }
             }
             description "Use this attribute to classify traffic based on the VLAN ID";
@@ -744,7 +753,7 @@ module ipi-qos {
         leaf inner-vlan-all  {
             type  uint16 {
                  range "1..4094"  {
-                    description "1..4094:Inner VLAN values";
+                    description "1..4094: Supported range 1 - 4094";
                  }
             }
             description "Use this attribute to classify traffic based on the inner VLAN ID";
@@ -753,7 +762,7 @@ module ipi-qos {
         leaf rtp-all  {
             type  uint32 {
                  range "2000..65535"  {
-                    description "2000..65535:Specify rtp value 2000-65535";
+                    description "2000..65535: Supported range 2000 - 65535";
                  }
             }
             description "Use this attribute to classify traffic based on the Real-time
@@ -764,7 +773,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_DIFFSERV;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:EXP value";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to classify traffic based on the MPLS experimental
@@ -855,10 +864,9 @@ module ipi-qos {
         description
             "Grouping for QoS class-map-queuing configuration";
         leaf vlan-queue  {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:class-maps-queuing/ipi-qos:class-map-queuing/ipi-qos:config/ipi-qos:type = 2 ";
             type  uint16 {
                  range "1..4094"  {
-                    description "1..4094:VLAN values";
+                    description "1..4094: Supported range 1 - 4094";
                  }
             }
             description "Use this attribute to classify traffic based on the VLAN ID";
@@ -868,8 +876,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_SERVICE_QUEUING_2;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Valid range of hardware-queue is 0-3 for services and 0-7 for
-                            port";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to classify traffic based on queue value";
@@ -905,7 +912,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint32 {
                  range "1..2000"  {
-                    description "1..2000:QoS group value 1-2000";
+                    description "1..2000: Supported range 1 - 2000";
                  }
             }
             description "Use this attribute to classify traffic QoS group";
@@ -998,7 +1005,7 @@ module ipi-qos {
         leaf cos-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to map a Class of Service (CoS) value to a
@@ -1008,7 +1015,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -1019,7 +1026,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM3_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:remarked Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select the remarked queue cos is mapped to";
@@ -1154,7 +1161,7 @@ module ipi-qos {
         leaf cos-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to map a Class of Service (CoS) value to a
@@ -1171,7 +1178,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -1276,7 +1283,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "Use this attribute to select Differentiated Services Control Protocol
@@ -1292,7 +1299,7 @@ module ipi-qos {
         leaf remark-dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             mandatory true;
@@ -1385,7 +1392,7 @@ module ipi-qos {
         leaf precedence-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Precedence values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select IP Precedence value in";
@@ -1394,7 +1401,7 @@ module ipi-qos {
         leaf remark-precedence-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Precedence values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -1486,7 +1493,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "Use this attribute to map a Differentiated Services Control Protocol
@@ -1496,7 +1503,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -1512,7 +1519,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "Use this attribute to select Differentiated Services Control Protocol
@@ -1603,7 +1610,7 @@ module ipi-qos {
         leaf precedence-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Precedence values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to map a IP Precedence value to a particular queue";
@@ -1612,7 +1619,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -1623,7 +1630,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Precedence values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select IP Precedence value out.";
@@ -1736,7 +1743,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select the queue to map";
@@ -1751,7 +1758,7 @@ module ipi-qos {
         leaf exp-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:MPLS experimental values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -1808,7 +1815,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "Use this attribute to map a Differentiated Services Control Protocol
@@ -1818,7 +1825,7 @@ module ipi-qos {
         leaf exp-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:MPLS experimental values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -1929,7 +1936,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select the queue to map";
@@ -1944,7 +1951,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:Select DSCP value";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             mandatory true;
@@ -2000,7 +2007,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:Select DSCP value";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "Use this attribute to map a Differentiated Services Control Protocol
@@ -2010,7 +2017,7 @@ module ipi-qos {
         leaf dscp-encap-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:Select dscp value";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             mandatory true;
@@ -2101,7 +2108,7 @@ module ipi-qos {
         leaf exp-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:MPLS experimental values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select the MPLS experimental (EXP) value to map";
@@ -2110,7 +2117,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -2126,7 +2133,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM3_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:remark queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select the remark queue is mapped to";
@@ -2136,6 +2143,38 @@ module ipi-qos {
     grouping qos-queue-to-exp-profile-top {
         description
             "Grouping for QoS MPLS queue to exp profile";
+        container queue-to-exp-profiles {
+            if-feature feature-list:HAVE_DIFFSERV;
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM3_QOS;
+            description
+                "Configuration data for QoS MPLS queue to exp profile";
+
+            list queue-to-exp-profile {
+                key "name";
+                description
+                    "Configuration data list for QoS MPLS queue to exp profile";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Use this attribute to set a name to MPLS experimental (EXP) to queue
+                                profile name";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data for QoS MPLS queue to exp profile";
+                    uses qos-queue-to-exp-profile-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for QoS MPLS queue to exp profile";
+                    uses qos-queue-to-exp-profile-config;
+                } // END of state-container definition.
+                uses qos-queue-to-exp;
+            } // End of queue-to-exp-profile-list
+        } // END of queue-to-exp-profiles-container definition.
     } // END of qos-queue-to-exp-profile-top definition.
     grouping qos-queue-to-exp-profile-config {
         description
@@ -2220,7 +2259,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select the queue to map";
@@ -2229,7 +2268,7 @@ module ipi-qos {
         leaf exp-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:MPLS experimental values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -2328,7 +2367,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select the queue to map";
@@ -2343,7 +2382,7 @@ module ipi-qos {
         leaf cos-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -2441,7 +2480,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select the queue to map";
@@ -2456,7 +2495,7 @@ module ipi-qos {
         leaf dscp-value  {
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             mandatory true;
@@ -2548,7 +2587,7 @@ module ipi-qos {
         leaf queue-id  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Queue values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to select the queue to map";
@@ -2557,7 +2596,7 @@ module ipi-qos {
         leaf precedence-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Precedence values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -2627,7 +2666,7 @@ module ipi-qos {
         leaf class-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Class values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to map a class value to a particular MPLS
@@ -2637,7 +2676,7 @@ module ipi-qos {
         leaf exp-value  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:MPLS experimental values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -2698,7 +2737,7 @@ module ipi-qos {
         leaf unicast-queue-weight  {
             type  uint8 {
                  range "1..127"  {
-                    description "1..127:Weight Value assigned to UC queues";
+                    description "1..127: Supported range 1 - 127";
                  }
             }
             description "Use this attribute to set action as change qos wrr weigth for uc queue
@@ -2708,7 +2747,7 @@ module ipi-qos {
         leaf non-unicast-queue-weight  {
             type  uint8 {
                  range "1..127"  {
-                    description "1..127:Weight Value assigned to Non-UC queues";
+                    description "1..127: Supported range 1 - 127";
                  }
             }
             description "Use this attribute to set action as change qos wrr weigth for non-uc
@@ -2750,6 +2789,7 @@ module ipi-qos {
         description
             "Grouping for QoS queue scheduler";
         container scheduler-mode {
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             description
                 "Configuration data for QoS queue scheduler";
@@ -2914,7 +2954,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  int8 {
                  range "-64..64"  {
-                    description "-64..64:Compensation values";
+                    description "-64..64: Supported range -64 - 64";
                  }
             }
             description "Use this attribute to set the compensation used to adjust this byte
@@ -2931,7 +2971,8 @@ module ipi-qos {
             if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "1..127"  {
-                    description "1..127:Weight values";
+                    description "1..127:Feature : HAVE_WRR_MAX_WEIGHT_63 Supported range 1 - 63Not
+                            Feature : HAVE_WRR_MAX_WEIGHT_63  Supported range 1 - 127";
                  }
             }
             description "Use this attribute to set the weight for Weighted Round Robin queue
@@ -2949,7 +2990,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Priority level values. 0 to 7 for ports and 0 to 3 for services";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to set the class traffic level for Priority queue
@@ -2961,7 +3002,7 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "1..63"  {
-                    description "1..63:Weigth values";
+                    description "1..63: Supported range 1 - 63";
                  }
             }
             description "Use this attribute to set the weight for Weighted Fair Queueing queue
@@ -2996,7 +3037,8 @@ module ipi-qos {
         leaf weight  {
             type  uint8 {
                  range "0..31"  {
-                    description "0..31:Weight values";
+                    description "0..31:Feature : HAVE_CUSTOM1_QOS Supported range 0 - 15Feature :
+                            HAVE_CUSTOM2_QOS Supported range 0 - 31";
                  }
             }
             description "Use this attribute to set weight for Weighted Random Early Detection";
@@ -3049,7 +3091,7 @@ module ipi-qos {
         leaf min-threshold  {
             type  uint32 {
                  range "1..629145600"  {
-                    description "1..629145600:Minimal threshold values";
+                    description "1..629145600: Supported range 1 - 629145600";
                  }
             }
             mandatory true;
@@ -3066,7 +3108,7 @@ module ipi-qos {
         leaf max-threshold  {
             type  uint32 {
                  range "1..629145600"  {
-                    description "1..629145600:Maximum threshold values";
+                    description "1..629145600: Supported range 1 - 629145600";
                  }
             }
             mandatory true;
@@ -3083,7 +3125,7 @@ module ipi-qos {
         leaf drop-probability  {
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:Drop probability percentage. (default value is 80)";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             mandatory true;
@@ -3116,7 +3158,11 @@ module ipi-qos {
         description
             "Grouping for QoS queue weighted random early detection configuration";
         leaf min-threshold  {
-            type  uint32;
+            type  uint32 {
+                 range "1..524288"  {
+                    description "1..524288:Not Feature : HAVE_CUSTOM2_QOS  Supported range 1 - 524288";
+                 }
+            }
             mandatory true;
             description "Use this attribute to set Weighted Random Early Detection minimum
                         threshold";
@@ -3131,7 +3177,7 @@ module ipi-qos {
         leaf max-threshold  {
             type  uint32 {
                  range "1..524288"  {
-                    description "1..524288:Maximum threshold values";
+                    description "1..524288: Supported range 1 - 524288";
                  }
             }
             mandatory true;
@@ -3141,7 +3187,7 @@ module ipi-qos {
         leaf drop-probability  {
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:Drop probability percentage. (default value is 80)";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             mandatory true;
@@ -3152,7 +3198,7 @@ module ipi-qos {
         leaf min-threshold-yellow  {
             type  uint32 {
                  range "1..524288"  {
-                    description "1..524288:Minimal threshold values";
+                    description "1..524288: Supported range 1 - 524288";
                  }
             }
             description "Use this attribute to set Weighted Random Early Detection minimum
@@ -3162,7 +3208,7 @@ module ipi-qos {
         leaf max-threshold-yellow  {
             type  uint32 {
                  range "1..524288"  {
-                    description "1..524288:Maximum threshold values";
+                    description "1..524288: Supported range 1 - 524288";
                  }
             }
             description "Use this attribute to set maximum threshold unit";
@@ -3171,7 +3217,7 @@ module ipi-qos {
         leaf drop-probability-yellow  {
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:Drop probability percentage. (default value is 80)";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             description "Use this attribute to set the percentage of packet drops when average
@@ -3181,7 +3227,7 @@ module ipi-qos {
         leaf min-threshold-red  {
             type  uint32 {
                  range "1..524288"  {
-                    description "1..524288:Minimal threshold values";
+                    description "1..524288: Supported range 1 - 524288";
                  }
             }
             description "Use this attribute to set Weighted Random Early Detection minimum
@@ -3191,7 +3237,7 @@ module ipi-qos {
         leaf max-threshold-red  {
             type  uint32 {
                  range "1..524288"  {
-                    description "1..524288:Maximum threshold values";
+                    description "1..524288: Supported range 1 - 524288";
                  }
             }
             description "Use this attribute to set maximum threshold unit";
@@ -3200,7 +3246,7 @@ module ipi-qos {
         leaf drop-probability-red  {
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:Drop probability percentage. (default value is 80)";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             description "Use this attribute to set the percentage of packet drops when average
@@ -3259,7 +3305,8 @@ module ipi-qos {
         leaf max-threshold  {
             type  uint32 {
                  range "1..629145600"  {
-                    description "1..629145600:Maximum threshold values";
+                    description "1..629145600:Not Feature : HAVE_CUSTOM2_QOS  Supported range 1 -
+                            524288Feature : HAVE_CUSTOM2_QOS Supported range 1 - 629145600";
                  }
             }
             description "Use this attribute to set tail drop limits on egress queue";
@@ -3407,7 +3454,7 @@ module ipi-qos {
         leaf priority  {
             type  uint16 {
                  range "1..1000"  {
-                    description "1..1000:Priority values";
+                    description "1..1000: Supported range 1 - 1000";
                  }
             }
             description "Use this attribute to set the user priority for the class attached to
@@ -3457,7 +3504,7 @@ module ipi-qos {
                 leaf cos-value  {
                     type  uint8 {
                          range "0..7"  {
-                            description "0..7:CoS values";
+                            description "0..7: Supported range 0 - 7";
                          }
                     }
                     description "Use this attribute to match traffic classes set action as change CoS
@@ -3474,7 +3521,7 @@ module ipi-qos {
                     if-feature feature-list:HAVE_CUSTOM1_QOS;
                     type  uint8 {
                          range "0..7"  {
-                            description "0..7:CoS values";
+                            description "0..7: Supported range 0 - 7";
                          }
                     }
                     description "Use this attribute to enable remarking only bridged packets";
@@ -3529,7 +3576,7 @@ module ipi-qos {
                 leaf queue-id  {
                     type  uint8 {
                          range "0..7"  {
-                            description "0..7:Queue values";
+                            description "0..7: Supported range 0 - 7";
                          }
                     }
                     description "Use this attribute to match traffic classes set action as change queue
@@ -3546,7 +3593,7 @@ module ipi-qos {
                     if-feature feature-list:HAVE_CUSTOM1_QOS;
                     type  uint8 {
                          range "0..7"  {
-                            description "0..7:Queue values";
+                            description "0..7: Supported range 0 - 7";
                          }
                     }
                     description "Use this attribute to enable remarking only bridged packets";
@@ -3562,7 +3609,7 @@ module ipi-qos {
                     if-feature feature-list:HAVE_CUSTOM1_QOS;
                     type  uint16 {
                          range "1..2000"  {
-                            description "1..2000:QoS group values";
+                            description "1..2000: Supported range 1 - 2000";
                          }
                     }
                     description "Use this attribute to set action as change QoS group in the egress
@@ -3603,8 +3650,11 @@ module ipi-qos {
 
         leaf cir  {
             type  uint64 {
-                 range "1..720000000"  {
-                    description "1..720000000:Committed Information Rate values";
+                 range "1..2000000000"  {
+                    description "1..2000000000:Feature : HAVE_POLICE_MAX_RATE_500GBPS Supported range 1
+                            - 500000000Not Feature : HAVE_POLICE_MAX_RATE_500GBPS  Supported range
+                            1 - 720000000Not Feature : HAVE_CUSTOM2_QOS  Supported range 1 -
+                            2000000000";
                  }
             }
             mandatory true;
@@ -3621,8 +3671,9 @@ module ipi-qos {
 
         leaf bc  {
             type  uint64 {
-                 range "1..4161"  {
-                    description "1..4161:Committed Burst values";
+                 range "1..256000"  {
+                    description "1..256000:Feature : HAVE_CUSTOM2_QOS Supported range 1 - 4161Not
+                            Feature : HAVE_CUSTOM2_QOS  Supported range 1 - 256000";
                  }
             }
             description "Use this attribute to set a Committed Burst";
@@ -3638,7 +3689,9 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint64 {
                  range "1..720000000"  {
-                    description "1..720000000:Excess Information Rate values";
+                    description "1..720000000:Feature : HAVE_POLICE_MAX_RATE_500GBPS Supported range 1
+                            - 500000000Not Feature : HAVE_POLICE_MAX_RATE_500GBPS  Supported range
+                            1 - 720000000";
                  }
             }
             description "Use this attribute to set an Excess Information Rate";
@@ -3655,13 +3708,14 @@ module ipi-qos {
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint64 {
                  range "1..2000000000"  {
-                    description "1..2000000000:Peak Information Rate values";
+                    description "1..2000000000: Supported range 1 - 2000000000";
                  }
             }
             description "Use this attribute to set a Peak Information Rate";
         } // END of pir definition.
 
         leaf pir-unit  {
+            when " ../pir ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  ipi-qos-types:qos_rate_unit_t;
             description "Use this attribute to set a Peak Information Rate unit";
@@ -3669,8 +3723,9 @@ module ipi-qos {
 
         leaf be  {
             type  uint32 {
-                 range "1..4161"  {
-                    description "1..4161:Extended Burst values";
+                 range "1..256000"  {
+                    description "1..256000:Feature : HAVE_CUSTOM2_QOS Supported range 1 - 4161Not
+                            Feature : HAVE_CUSTOM2_QOS  Supported range 1 - 256000";
                  }
             }
             description "Use this attribute to set an Extended Burst";
@@ -3690,41 +3745,45 @@ module ipi-qos {
         } // END of set-conform-action definition.
 
         leaf conform-cos  {
+            when " ../set-conform-action='set-cos-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "CoS value to be set on packets that conform";
         } // END of conform-cos definition.
 
         leaf conform-dscp  {
+            when " ../set-conform-action='set-dscp-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "DSCP value to be set on packets that conform";
         } // END of conform-dscp definition.
 
         leaf conform-precedence  {
+            when " ../set-conform-action='set-prec-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Precedence value";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Precedence value to be set on packets that conform";
         } // END of conform-precedence definition.
 
         leaf conform-exp  {
+            when " ../set-conform-action='set-mpls-class' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             if-feature feature-list:HAVE_DIFFSERV;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:EXP values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "MPLS class value to be set on packets that conform";
@@ -3738,31 +3797,34 @@ module ipi-qos {
         } // END of set-exceed-action definition.
 
         leaf exceed-cos  {
+            when " ../set-exceed-action='set-cos-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "CoS value to be set on packets that exceed";
         } // END of exceed-cos definition.
 
         leaf exceed-dscp  {
+            when " ../set-exceed-action='set-dscp-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "DSCP value to be set on packets that exceed";
         } // END of exceed-dscp definition.
 
         leaf exceed-exp  {
+            when " ../set-exceed-action='set-mpls-class' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             if-feature feature-list:HAVE_DIFFSERV;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:EXP values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "MPLS class value to be set on packets that exceed";
@@ -3776,31 +3838,34 @@ module ipi-qos {
         } // END of set-violate-action definition.
 
         leaf violate-cos  {
+            when " ../set-violate-action='set-cos-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "CoS value to be set on packets that violate";
         } // END of violate-cos definition.
 
         leaf violate-dscp  {
+            when " ../set-violate-action='set-dscp-transmit' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "DSCP value to be set on packets that violate";
         } // END of violate-dscp definition.
 
         leaf violate-exp  {
+            when " ../set-violate-action='set-mpls-class' ";
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             if-feature feature-list:HAVE_DIFFSERV;
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:EXP values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "MPLS class value to be set on packets that violate";
@@ -3824,7 +3889,7 @@ module ipi-qos {
             when " ../set-conform-action='set-cos-transmit' ";
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "CoS value to be set on packets that conform";
@@ -3834,7 +3899,7 @@ module ipi-qos {
             when " ../set-conform-action='set-dscp-transmit' ";
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "DSCP value to be set on packets that conform";
@@ -3844,7 +3909,7 @@ module ipi-qos {
             when " ../set-conform-action='set-prec-transmit' ";
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Precedence value";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Precedence value to be set on packets that conform";
@@ -3860,7 +3925,7 @@ module ipi-qos {
             when " ../set-exceed-action='set-cos-transmit' ";
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "CoS value to be set on packets that exceed";
@@ -3870,7 +3935,7 @@ module ipi-qos {
             when " ../set-exceed-action='set-dscp-transmit' ";
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "DSCP value to be set on packets that exceed";
@@ -3886,7 +3951,7 @@ module ipi-qos {
             when " ../set-violate-action='set-mpls-class' ";
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:CoS values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "CoS value to be set on packets that violate";
@@ -3896,7 +3961,7 @@ module ipi-qos {
             when " ../set-violate-action='set-dscp-transmit' ";
             type  uint8 {
                  range "0..63"  {
-                    description "0..63:DSCP values";
+                    description "0..63: Supported range 0 - 63";
                  }
             }
             description "DSCP value to be set on packets that violate";
@@ -3991,11 +4056,12 @@ module ipi-qos {
         } // END of statistics-enabled definition.
 
         leaf block-size  {
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
             if-feature feature-list:HAVE_FLEXPORT;
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
                  range "1..8"  {
-                    description "1..8:Block-size values";
+                    description "1..8: Supported range 1 - 8";
                  }
             }
             default "1";
@@ -4035,6 +4101,7 @@ module ipi-qos {
     description
         "Quality of Service (QoS)";
     container qos {
+        if-feature feature-list:HAVE_QOS;
         description
             "Quality of Service (QoS)";
         uses qos-global-top;
@@ -4044,6 +4111,7 @@ module ipi-qos {
     uses qos-grouping;
 
     rpc qos-clear-statistics {
+        if-feature feature-list:HAVE_QOS;
         description "Clears QoS statistics";
         input  {
             leaf interface-name  {

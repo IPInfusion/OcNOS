@@ -23,7 +23,7 @@ module ipi-synce {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-12-15;
+        revision-date 2022-06-01;
     }
 
     import ipi-synce-types {
@@ -33,7 +33,7 @@ module ipi-synce {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -48,6 +48,11 @@ module ipi-synce {
     description
         "Synchronous Ethernet configurations";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.0.";
+    }
 
     revision "2021-09-03" {
         description "Update descriptions of attribute";
@@ -97,7 +102,7 @@ module ipi-synce {
         leaf holdover-timer  {
             type  uint16 {
                  range "0..1440"  {
-                    description "0..1440:synce holdover range (0-1440) in minutes";
+                    description "0..1440: Supported range 0 - 1440";
                  }
             }
             default "120";
@@ -193,8 +198,7 @@ module ipi-synce {
         leaf input-source-priority  {
             type  uint8 {
                  range "0..255"  {
-                    description "0..255:0 - interface will not be included for clock selection. 1 is
-                            the highest priority, 255 is the lowest priority";
+                    description "0..255: Supported range 0 - 255";
                  }
             }
             default "255";
@@ -212,7 +216,7 @@ module ipi-synce {
         leaf wait-to-restore-timer  {
             type  uint8 {
                  range "0..12"  {
-                    description "0..12:Enter Wait to restore timer value in minutes (default is 5 min)";
+                    description "0..12: Supported range 0 - 12";
                  }
             }
             default "5";
@@ -222,10 +226,19 @@ module ipi-synce {
                         it is fault free for a certain time.";
         } // END of wait-to-restore-timer definition.
 
+        leaf vlan-id  {
+            type  uint16 {
+                 range "1..4095"  {
+                    description "1..4095: Supported range 1 - 4095";
+                 }
+            }
+            description "use this command to configure and unconfigure the dot1q 1-4095";
+        } // END of vlan-id definition.
+
         leaf hold-off-timer  {
             type  uint16 {
                  range "300..1800"  {
-                    description "300..1800:Enter Hold-off timer value (Default is 300ms)";
+                    description "300..1800: Supported range 300 - 1800";
                  }
             }
             default "300";
@@ -245,7 +258,7 @@ module ipi-synce {
         leaf clock-source-id  {
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:Specify clock-source ID";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             description "Configure clock-source-identifier";
@@ -380,8 +393,7 @@ module ipi-synce {
         leaf input-source-priority  {
             type  uint8 {
                  range "0..255"  {
-                    description "0..255:0 - interface will not be included for clock selection. 1 is
-                            the highest priority 255 is the lowest priority";
+                    description "0..255: Supported range 0 - 255";
                  }
             }
             default "255";
@@ -393,7 +405,7 @@ module ipi-synce {
         leaf wait-to-restore-timer  {
             type  uint8 {
                  range "0..12"  {
-                    description "0..12:Enter Wait to restore timer value in minutes (default is 5 min)";
+                    description "0..12: Supported range 0 - 12";
                  }
             }
             default "5";
@@ -406,7 +418,7 @@ module ipi-synce {
         leaf hold-off-timer  {
             type  uint16 {
                  range "300..1800"  {
-                    description "300..1800:Enter Hold-off timer value (Default is 300ms)";
+                    description "300..1800: Supported range 300 - 1800";
                  }
             }
             default "300";
@@ -528,6 +540,7 @@ module ipi-synce {
     uses synce-grouping;
 
     rpc clear-synce-stats {
+        if-feature feature-list:HAVE_SYNCED;
         description "clear Ethernet Synchronization Messaging Chanel (ESMC) counters in all
                     interface or in specified interface";
         input  {
@@ -541,6 +554,7 @@ module ipi-synce {
     }
 
     rpc synce-debug-on {
+        if-feature feature-list:HAVE_SYNCED;
         description "turn on  transmission ,reception ,event  debugging";
         input  {
             leaf debug-options  {
@@ -552,6 +566,7 @@ module ipi-synce {
     }
 
     rpc synce-debug-off {
+        if-feature feature-list:HAVE_SYNCED;
         description "turn off transmission ,reception ,event  debugging";
         input  {
             leaf debug-options  {
@@ -563,11 +578,14 @@ module ipi-synce {
     }
 
     notification synce-clock-status {
+        if-feature feature-list:HAVE_SYNCED;
 
         description "Notify the SyncE Clock State Status.";
 
         // severity "CRITICAL";
+
         // eventClass "MESSAGE";
+
         leaf message {
             type string;
             description " alarm message notification";
@@ -575,10 +593,12 @@ module ipi-synce {
     }
 
     notification synce-clock-state-change-notify {
+        if-feature feature-list:HAVE_SYNCED;
 
         description "Notify when there is SyncE Clock State transition.";
 
         // eventClass "STATE";
+
         leaf previous-clock-state {
             type ipi-synce-types:synce_clock_state_t;
         description
@@ -595,10 +615,12 @@ module ipi-synce {
     }
 
     notification synce-clock-state-transition-locked-interface {
+        if-feature feature-list:HAVE_SYNCED;
 
         description "Notify when there is SyncE Clock State transition and locked interface.";
 
         // eventClass "STATE";
+
         leaf previous-clock-state {
             type ipi-synce-types:synce_clock_state_t;
         description

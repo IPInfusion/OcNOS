@@ -28,27 +28,27 @@ module ipi-bridge {
 
     import ipi-bridge-types {
         prefix ipi-bridge-types;
-        revision-date 2022-01-25;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-port-vlan-types {
         prefix ipi-port-vlan-types;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -63,6 +63,16 @@ module ipi-bridge {
     description
         "Layer-2 bridge configurations";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.9.0.";
+    }
+
+    revision "2022-03-30" {
+        description "Fixed Hybrid port VLAN Netconf issues and enabled support for Bridge related RPCs";
+        reference " 0.8.0.";
+    }
 
     revision "2022-01-13" {
         description "Modified sub module";
@@ -168,12 +178,12 @@ module ipi-bridge {
             description "This attribute changes L2 protocol destination MAC";
         } // END of l2-protocol-destination-mac definition.
 
-        leaf dot1q-encapsulation  {
+        leaf dot1ad-encapsulation  {
             if-feature feature-list:HAVE_DUNE;
             type  empty;
-            description "Configure to use encapsulated dot1q value for switching and routing by
-                        bridge ports";
-        } // END of dot1q-encapsulation definition.
+            description "Configure to use encapsulated dot1ad value for switching and routing
+                        by bridge ports";
+        } // END of dot1ad-encapsulation definition.
 
     } // END of bridge-config definition.
     grouping bridge-interface-state {
@@ -467,7 +477,7 @@ module ipi-bridge {
         leaf maximum-uni  {
             type  uint32 {
                  range "1..32"  {
-                    description "1..32:Maximum UNI number for the EVC/SVLAN";
+                    description "1..32: Supported range 1 - 32";
                  }
             }
             mandatory true;
@@ -486,6 +496,7 @@ module ipi-bridge {
     description
         "Bridge configuration and state data";
     container bridge {
+        if-feature feature-list:HAVE_L2;
         description
             "Bridge configuration and state data";
         container config {
@@ -513,5 +524,164 @@ module ipi-bridge {
         uses bridge-grouping;
     }
 
+
+    rpc bridge-clear-provider-edge-mac-address-table {
+        if-feature feature-list:HAVE_L2;
+        description "Use this RPC to clear FDB entries for given customer/service VLAN for
+                    Provider Bridge";
+        input  {
+            leaf mac-type  {
+                type ipi-bridge-types:bridge_mac_type_t;
+                mandatory true;
+                description "MAC address type";
+            }
+            leaf cvlan-id  {
+                type uint16;
+                mandatory true;
+                description "Customer vlan ID";
+            }
+            leaf svlan-id  {
+                type uint16;
+                mandatory true;
+                description "Service vlan ID";
+            }
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                mandatory true;
+                description "Bridge group number";
+            }
+        }
+    }
+
+    rpc bridge-clear-mac-address-table {
+        if-feature feature-list:HAVE_L2;
+        description "Use this RPC to clear FDB entries for given MAC/interface/vlan or all
+                    muticast FDB entries";
+        input  {
+            leaf mac-type  {
+                type ipi-bridge-types:bridge_mac_type_t;
+                mandatory true;
+                description "MAC address type";
+            }
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                mandatory true;
+                description "Bridge group number";
+            }
+            leaf interface-name  {
+                type string {
+                    length "1..33";
+                }
+                description "The textual name of the interface";
+            }
+            leaf mac-address  {
+                type cml-data-types:cml_mac_addr_t;
+                description "Interface MAC address";
+            }
+            leaf vlan-id  {
+                type uint16;
+                description "Vlan ID";
+            }
+        }
+    }
+
+    rpc bridge-clear-provider-edge-dynamic-mac-address-table {
+        if-feature feature-list:HAVE_L2;
+        description "Use this RPC to clear dynamic MAC address table entries for given
+                    customer/service vlan";
+        input  {
+            leaf cvlan-id  {
+                type uint16;
+                mandatory true;
+                description "Customer vlan ID";
+            }
+            leaf svlan-id  {
+                type uint16;
+                mandatory true;
+                description "Service vlan ID";
+            }
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                mandatory true;
+                description "Bridge group number";
+            }
+        }
+    }
+
+    rpc bridge-clear-dynamic-mac-address-table {
+        if-feature feature-list:HAVE_L2;
+        description "Use this RPC to clear dynamic MAC FDB entries for given
+                    interface/MAC/vlan or all dynamic entries for the bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                mandatory true;
+                description "Bridge group number";
+            }
+            leaf mac-address  {
+                type cml-data-types:cml_mac_addr_t;
+                description "Interface MAC address";
+            }
+            leaf interface-name  {
+                type string {
+                    length "1..33";
+                }
+                description "The textual name of the interface";
+            }
+            leaf vlan-id  {
+                type uint16;
+                description "Vlan ID";
+            }
+        }
+    }
+
+    rpc bridge-clear-allowed-ethertype-stats {
+        if-feature feature-list:HAVE_ALLOWED_ETHERTYPE;
+        if-feature feature-list:HAVE_L2;
+        description "Use this RPC to clear allowed ethertype statistics";
+        input  {
+            leaf interface-name  {
+                type string {
+                    length "1..33";
+                }
+                description "The textual name of the interface";
+            }
+        }
+    }
+
+    rpc bridge-clear-mstp-port-dynamic-mac-address-table {
+        if-feature feature-list:HAVE_L2;
+        description "Use this RPC to clear dynamic MAC address table entries for given MSTP
+                    instance";
+        input  {
+            leaf interface-name  {
+                type string {
+                    length "1..33";
+                }
+                mandatory true;
+                description "The textual name of the interface";
+            }
+            leaf instance-id  {
+                type uint32;
+                mandatory true;
+                description "MSTP instance ID";
+            }
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                mandatory true;
+                description "Bridge group number";
+            }
+        }
+    }
 
 }

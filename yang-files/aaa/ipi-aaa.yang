@@ -28,17 +28,22 @@ module ipi-aaa {
 
     import ipi-aaa-types {
         prefix ipi-aaa-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
+    }
+
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -53,6 +58,11 @@ module ipi-aaa {
     description
         "Layer-3 aaa configurations";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.0.";
+    }
 
     revision "2021-12-02" {
         description "Remodeled AAA Group Server list and added dependency constraints";
@@ -185,7 +195,7 @@ module ipi-aaa {
         leaf authentication-max-failure-attempts  {
             type  uint8 {
                  range "1..25"  {
-                    description "1..25:number of unsuccessful attempts";
+                    description "1..25: Supported range 1 - 25";
                  }
             }
             description "Use this attribute to set the number of unsuccessful authentication
@@ -195,8 +205,7 @@ module ipi-aaa {
         leaf local-user-unlock-timeout  {
             type  uint16 {
                  range "1..3600"  {
-                    description "1..3600:Timeout value to unlock local user-acoounts in seconds
-                            (default : 1200)";
+                    description "1..3600: Supported range 1 - 3600";
                  }
             }
             units "seconds";
@@ -227,6 +236,8 @@ module ipi-aaa {
     description
         "AAA Top level container for configuration and operational data";
     container aaa {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_AAA;
         description
             "AAA Top level container for configuration and operational data";
         container vrfs {
@@ -330,14 +341,20 @@ module ipi-aaa {
     uses aaa-grouping;
 
     rpc aaa-terminal-debugging-on {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_AAA;
         description "Use this RPC to turn on AAA terminal debug logs";
     }
 
     rpc aaa-terminal-debugging-off {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_AAA;
         description "Use this RPC to turn off AAA terminal debug logs";
     }
 
     rpc aaa-clear-local-user-lockout {
+        if-feature feature-list:HAVE_AAA;
+        if-feature feature-list:HAVE_HOSTPD;
         description "This RPC is to clear the user lockout";
         input  {
             leaf username  {

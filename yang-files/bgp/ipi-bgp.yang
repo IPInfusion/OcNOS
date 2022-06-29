@@ -28,31 +28,33 @@ module ipi-bgp {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2022-01-17;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
-    include ipi-bgp-instance { revision-date 2022-01-17;}
-    include ipi-bgp-common { revision-date 2022-01-17;}
-    include ipi-bgp-address-family { revision-date 2022-01-17;}
-    include ipi-bgp-evpn-rib { revision-date 2021-09-03;}
-    include ipi-bgp-peer-group { revision-date 2022-01-07;}
-    include ipi-bgp-peer { revision-date 2022-01-17;}
-    include ipi-bgp-address-family-vrf { revision-date 2022-01-17;}
+    include ipi-bgp-instance { revision-date 2022-06-20;}
+    include ipi-bgp-common { revision-date 2022-06-20;}
+    include ipi-bgp-address-family { revision-date 2022-06-20;}
+    include ipi-bgp-evpn-rib { revision-date 2022-06-01;}
+    include ipi-bgp-peer-group { revision-date 2022-06-20;}
+    include ipi-bgp-peer { revision-date 2022-06-21;}
+    include ipi-bgp-address-family-vrf { revision-date 2022-06-20;}
+    include ipi-bgp-link-state { revision-date 2022-06-01;}
+    include ipi-bgp-epe { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -65,6 +67,36 @@ module ipi-bgp {
     description
         "YANG version of the ipi-bgp";
 
+
+    revision "2022-06-21" {
+        description "Updated when tag constraints for peer's mapped peer-group tag attribute";
+        reference " 0.8.23.";
+    }
+
+    revision "2022-06-20" {
+        description "Modified Submodule";
+        reference " 0.8.22.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.8.21.";
+    }
+
+    revision "2022-04-28" {
+        description "Modified Submodule";
+        reference " 0.8.20.";
+    }
+
+    revision "2022-04-19" {
+        description "Updated sub-module for support of BGP Administrative Shutdown Communication feature.";
+        reference " 0.8.19.";
+    }
+
+    revision "2022-04-04" {
+        description "Added support for BGP AIGP Feature";
+        reference " 0.8.18.";
+    }
 
     revision "2022-02-28" {
         description "Modified EPE Backup attributes heirarchy";
@@ -295,7 +327,7 @@ tion' and rd_string/IP-VRF";
             when " /ipi-bgp:bgp/ipi-bgp:global/ipi-bgp:config/ipi-bgp:enable-nexthop-tracking ";
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:Nexthop Trigger Delay time interval between 1 and 100";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             default "5";
@@ -513,7 +545,7 @@ tion' and rd_string/IP-VRF";
         leaf standard-number  {
             type  uint32 {
                  range "1..99"  {
-                    description "1..99:Community list number (standard)";
+                    description "1..99: Supported range 1 - 99";
                  }
             }
             description "Community list standard number";
@@ -878,7 +910,7 @@ tion' and rd_string/IP-VRF";
         leaf standard-number  {
             type  uint32 {
                  range "1..99"  {
-                    description "1..99:Extended Community list number (standard)";
+                    description "1..99: Supported range 1 - 99";
                  }
             }
             description "Extended Community list number";
@@ -1322,6 +1354,7 @@ tion' and rd_string/IP-VRF";
     description
         "Top-level configuration and state for the BGP router";
     container bgp {
+        if-feature feature-list:HAVE_BGPD;
         description
             "Top-level configuration and state for the BGP router";
         container global {
@@ -1340,43 +1373,42 @@ tion' and rd_string/IP-VRF";
 
     uses bgp-grouping;
 
-    rpc clear-ip-bgp-all {
-        description "clear all bgp instances and peer";
+    rpc clear-ip-bgp-peer {
+        if-feature feature-list:HAVE_BGPD;
+        description "clear specific peer";
         input  {
-            leaf afi  {
-                type ipi-bgp-types:bgp_afi_type_t;
-                mandatory true;
-                description "BGP address family identifier";
-            }
-            leaf safi  {
-                type ipi-bgp-types:bgp_rpc_safi_type_t;
-                mandatory true;
-                description "BGP sub address family identifier";
-            }
-            leaf clear-type  {
-                type ipi-bgp-types:bgp_clear_type_t;
-                mandatory true;
-                description "BGP 'clear' Types";
-            }
-            leaf clear-soft  {
-                type ipi-bgp-types:bgp_clear_soft_t;
-                mandatory true;
-                description "clear flag for peer soft, route flap dampening and table map";
-            }
             leaf arg  {
                 type ipi-bgp-types:bgp_hostname_t;
                 mandatory true;
                 description "input arguments (peer Address, prefix address, peer-group name, bgp
                             As)";
             }
+            leaf peer-reset-description  {
+                type cml-data-types:cml_line_t {
+                    length "1..255";
+                }
+                description "Use this attribute to send shutdown communication message to inform
+                            peer the reason for the reset of the BGP session.";
+            }
         }
     }
 
     rpc clear-ip-bgp-all-peer {
+        if-feature feature-list:HAVE_BGPD;
         description "clear all bgp peers";
+        input  {
+            leaf peer-reset-description  {
+                type cml-data-types:cml_line_t {
+                    length "1..255";
+                }
+                description "Use this attribute to send shutdown communication message to inform
+                            peer the reason for the reset of the BGP session.";
+            }
+        }
     }
 
-    rpc clear-ip-bgp-all-peer-vrf {
+    rpc clear-ip-bgp-all-vrf {
+        if-feature feature-list:HAVE_BGPD;
         description "clear all bgp instances and peer in vrf(all|default)";
         input  {
             leaf vrf-name  {
@@ -1384,84 +1416,58 @@ tion' and rd_string/IP-VRF";
                 mandatory true;
                 description "vrf name";
             }
-            leaf afi  {
-                type ipi-bgp-types:bgp_afi_type_t;
-                mandatory true;
-                description "BGP address family identifier";
-            }
-            leaf safi  {
-                type ipi-bgp-types:bgp_rpc_safi_type_t;
-                mandatory true;
-                description "BGP sub address family identifier";
-            }
-            leaf clear-type  {
-                type ipi-bgp-types:bgp_clear_type_t;
-                mandatory true;
-                description "BGP 'clear' Types";
-            }
-            leaf clear-soft  {
-                type ipi-bgp-types:bgp_clear_soft_t;
-                mandatory true;
-                description "clear flag for peer soft, route flap dampening and table map";
-            }
-            leaf address  {
-                type ipi-bgp-types:bgp_hostname_t;
-                mandatory true;
-                description "input arguments (peer Address, prefix address, peer-group name, bgp
-                            As)";
+            leaf peer-reset-description  {
+                type cml-data-types:cml_line_t {
+                    length "1..255";
+                }
+                description "Use this attribute to send shutdown communication message to inform
+                            peer the reason for the reset of the BGP session.";
             }
         }
     }
 
-    rpc clear-ip-bgp-all-vrf {
-        description "clear all bgp instances and peer in specific vrf";
+    rpc clear-ip-bgp-vrf-peer {
+        if-feature feature-list:HAVE_BGPD;
+        description "clear bgp peer in specific vrf";
         input  {
             leaf vrf-name  {
                 type string;
                 mandatory true;
                 description "vrf name";
             }
-            leaf afi  {
-                type ipi-bgp-types:bgp_afi_type_t;
-                mandatory true;
-                description "BGP address family identifier";
-            }
-            leaf safi  {
-                type ipi-bgp-types:bgp_rpc_safi_type_t;
-                mandatory true;
-                description "BGP sub address family identifier";
-            }
-            leaf clear-type  {
-                type ipi-bgp-types:bgp_clear_type_t;
-                mandatory true;
-                description "BGP 'clear' Types";
-            }
-            leaf clear-soft  {
-                type ipi-bgp-types:bgp_clear_soft_t;
-                mandatory true;
-                description "clear flag for peer soft, route flap dampening and table map";
-            }
             leaf address  {
                 type ipi-bgp-types:bgp_hostname_t;
                 mandatory true;
                 description "input arguments (peer Address,prefix address, peer-group name, bgp As)";
             }
+            leaf peer-reset-description  {
+                type cml-data-types:cml_line_t {
+                    length "1..255";
+                }
+                description "Use this attribute to send shutdown communication message to inform
+                            peer the reason for the reset of the BGP session.";
+            }
         }
     }
 
     rpc bgp-graceful-restart {
+        if-feature feature-list:HAVE_RESTART;
+        if-feature feature-list:HAVE_BGPD;
         description "Graceful restart of bgp";
     }
 
     rpc clear-bgp-statistics {
+        if-feature feature-list:HAVE_BGPD;
         description "clear all bgp peer Statistics fields";
     }
 
     rpc bgp-snmp-restart {
+        if-feature feature-list:HAVE_BGPD;
         description "restart SNMP in Border Gateway Protocol (BGP)";
     }
 
     rpc bgp-debug-on {
+        if-feature feature-list:HAVE_BGPD;
         description "Use this RPC to enable debug on BGP";
         input  {
             leaf debug-options  {
@@ -1475,6 +1481,7 @@ tion' and rd_string/IP-VRF";
     }
 
     rpc bgp-debug-off {
+        if-feature feature-list:HAVE_BGPD;
         description "Use this RPC to disable debug on BGP";
         input  {
             leaf debug-options  {
@@ -1486,6 +1493,7 @@ tion' and rd_string/IP-VRF";
     }
 
     rpc bgp-debug-updates-type-on {
+        if-feature feature-list:HAVE_BGPD;
         description "Use this RPC to enable BGP update debug";
         input  {
             leaf debug-update-type  {
@@ -1496,30 +1504,18 @@ tion' and rd_string/IP-VRF";
         }
     }
 
-    rpc bgp-undebug {
-        description "Use this RPC to disable debug on BGP.";
-        input  {
-            leaf undebug-options  {
-                type ipi-bgp-types:bgp_debug_type_t;
-                mandatory true;
-                description "Use this command to turn off, BGP debugging at various levels.";
-            }
-        }
-    }
-
     rpc bgp-all-debug-off {
-        description "Use this RPC to disable debug on BGP.";
-    }
-
-    rpc bgp-all-undebug {
+        if-feature feature-list:HAVE_BGPD;
         description "Use this RPC to disable debug on BGP.";
     }
 
     notification bgp-established-notification {
+        if-feature feature-list:HAVE_BGPD;
 
         description "Notify BGP Peer established notification.";
 
         // eventClass "STATE";
+
         leaf peer-address {
             type ipi-bgp-types:bgp_ip_addr_t;
         description
@@ -1543,10 +1539,12 @@ tion' and rd_string/IP-VRF";
     }
 
     notification bgp-backward-transition-notification {
+        if-feature feature-list:HAVE_BGPD;
 
         description "Notify Peer State backward transition notification.";
 
         // eventClass "STATE";
+
         leaf peer-address {
             type ipi-bgp-types:bgp_ip_addr_t;
         description

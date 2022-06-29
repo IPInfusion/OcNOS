@@ -23,17 +23,17 @@ module ipi-segment-routing {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-01-07;
+        revision-date 2022-04-04;
     }
 
     import ipi-sr-types {
         prefix ipi-sr-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-12-15;
+        revision-date 2022-06-01;
     }
 
     import ietf-yang-types {
@@ -48,7 +48,7 @@ module ipi-segment-routing {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -64,6 +64,16 @@ module ipi-segment-routing {
         "Model for managing segment-routing global configurations and state
                 which includes traffic-enireening for sr as well";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.7.0.";
+    }
+
+    revision "2022-04-05" {
+        description "Merging SRv6 and SR-MPLS";
+        reference " 0.6.0.";
+    }
 
     revision "2021-06-16" {
         description "Moved prefix-sid configs from ipi-if-extended module to here";
@@ -110,7 +120,7 @@ module ipi-segment-routing {
         leaf start-sid  {
             type  uint32 {
                  range "0..1048575"  {
-                    description "0..1048575:Starting SID-number <0-1048575>";
+                    description "0..1048575: Supported range 0 - 1048575";
                  }
             }
             description "";
@@ -119,7 +129,7 @@ module ipi-segment-routing {
         leaf range  {
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:SID-Interval <1-65535>";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             description "";
@@ -138,7 +148,7 @@ module ipi-segment-routing {
             when " ../end ";
             type  uint32 {
                  range "16000..1048575"  {
-                    description "16000..1048575:SRGB Starting Range";
+                    description "16000..1048575: Supported range 16000 - 1048575";
                  }
             }
             mandatory true;
@@ -149,7 +159,7 @@ module ipi-segment-routing {
             when " ../start ";
             type  uint32 {
                  range "16000..1048575"  {
-                    description "16000..1048575:SRGB End Range (block size can not exceed 262143)";
+                    description "16000..1048575: Supported range 16000 - 1048575";
                  }
             }
             mandatory true;
@@ -174,7 +184,7 @@ module ipi-segment-routing {
         leaf sid-absolute  {
             type  uint32 {
                  range "16000..1048575"  {
-                    description "16000..1048575:SID Absolute-value";
+                    description "16000..1048575: Supported range 16000 - 1048575";
                  }
             }
             description "This attribute is used to configure Segment Route Prefix SID absolute
@@ -184,7 +194,7 @@ module ipi-segment-routing {
         leaf sid-index  {
             type  uint32 {
                  range "0..1048575"  {
-                    description "0..1048575:SID Index-value";
+                    description "0..1048575: Supported range 0 - 1048575";
                  }
             }
             description "This attribute is used to configure Segment Route Prefix SID
@@ -217,7 +227,7 @@ module ipi-segment-routing {
         leaf preference  {
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:Preference value <1-255>";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             description "preference for segment routing mapping server";
@@ -273,6 +283,26 @@ module ipi-segment-routing {
         } // END of enable definition.
 
     } // END of te-config definition.
+    grouping srv6-config {
+        description
+            "config attribute for SRv6 for SR Policies";
+        leaf enable  {
+            type  empty;
+            mandatory true;
+            description "";
+        } // END of enable definition.
+
+    } // END of srv6-config definition.
+    grouping srv6-locators-config {
+        description
+            "config attribute for SRv6 Locators";
+        leaf enable  {
+            type  empty;
+            mandatory true;
+            description "";
+        } // END of enable definition.
+
+    } // END of srv6-locators-config definition.
     grouping prefix-sid-map-ipv4-config {
         description
             "config attribute for prefix-sid-map-ipv4";
@@ -287,6 +317,7 @@ module ipi-segment-routing {
         description
             "config attribute for frr for SR Policies";
         leaf fast-reroute-enable  {
+            if-feature feature-list:HAVE_SR_POLICY;
             type  empty;
             description "Enable fast reroute for traffic engineering polices";
         } // END of fast-reroute-enable definition.
@@ -299,7 +330,7 @@ module ipi-segment-routing {
         leaf segment-index  {
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:Index number";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             description "Index of the segment through which it can be modified or unconfigured";
@@ -311,19 +342,47 @@ module ipi-segment-routing {
         } // END of type definition.
 
     } // END of segment-properties-common-config definition.
+    grouping segment-v6-properties-common-config {
+        description
+            "Common properties of segment which includes it's index value and it's
+                        type.";
+        leaf segment-index  {
+            type  uint32 {
+                 range "1..65535"  {
+                    description "1..65535: Supported range 1 - 65535";
+                 }
+            }
+            description "Index of the segment through which it can be modified or unconfigured";
+        } // END of segment-index definition.
+
+        leaf type  {
+            type  ipi-sr-types:srte_segment_type_2_t;
+            description "Type of the segment";
+        } // END of type definition.
+
+    } // END of segment-v6-properties-common-config definition.
     grouping segment-type-1-properties-config {
         description
             "grouping for the properties of segment type 1";
         leaf sid-value  {
             type  uint32 {
                  range "0..1048575"  {
-                    description "0..1048575:Label value";
+                    description "0..1048575: Supported range 0 - 1048575";
                  }
             }
             description "MPLS label value";
         } // END of sid-value definition.
 
     } // END of segment-type-1-properties-config definition.
+    grouping segment-type-2-properties-config {
+        description
+            "grouping for the properties of segment type 2";
+        leaf prefix  {
+            type  inet:ipv6-address;
+            description "SRV6 Prefix";
+        } // END of prefix definition.
+
+    } // END of segment-type-2-properties-config definition.
     grouping attributes-config {
         description
             "Grouping containing attributes applicable to all SR policies";
@@ -345,12 +404,71 @@ module ipi-segment-routing {
         } // END of list-name definition.
 
     } // END of segment-list-config definition.
+    grouping locators-list-config {
+        description
+            "config attributes for locator list";
+        leaf locator-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Locator name";
+        } // END of locator-name definition.
+
+        leaf prefix  {
+            type  inet:ipv6-prefix;
+            description "Ipv6 Address for locator";
+        } // END of prefix definition.
+
+    } // END of locators-list-config definition.
+    grouping locator-state {
+        description
+            "SRv6 Locator State";
+        leaf uptime  {
+            type  string {
+                length "1..1965";
+                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
+            }
+            description "Locator up time in seconds";
+        } // END of uptime definition.
+
+    } // END of locator-state definition.
+    grouping locators-lists-config {
+        description
+            "Locators lists grouping";
+
+        list locator {
+        when " /ipi-segment-routing:segment-routing/ipi-segment-routing:srv6/ipi-segment-routing:locators/ipi-segment-routing:config/ipi-segment-routing:enable ";
+            key "locator-name";
+            description
+                "Properties of a locator list";
+            leaf locator-name  {
+                type  leafref {
+                    path  "../config/locator-name";
+                }
+                description "Locator name";
+            } // END of locator-name definition.
+
+            container config {
+                description
+                    "Config parameters for locator-list configuration";
+                uses locators-list-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "";
+                uses locators-list-config;
+                uses locator-state;
+            } // END of state-container definition.
+        } // End of locator-list
+    } // END of locators-lists-config definition.
     grouping segment-lists-config {
         description
             "Segment lists grouping";
         container segment-lists {
             when " /ipi-segment-routing:segment-routing/ipi-segment-routing:traffic-engineering/ipi-segment-routing:config/ipi-segment-routing:enable ";
-            if-feature feature-list:HAVE_SR_POLICY;
+            if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6;
             description
                 "Segment-lists properties";
 
@@ -410,6 +528,7 @@ module ipi-segment-routing {
                             uses segment-properties-common-config;
                         } // END of state-container definition.
                         container segment-type-1 {
+                            if-feature feature-list:HAVE_SR_MPLS;
                             description
                                 "Segment declared by MPLS label";
                             container config {
@@ -425,6 +544,53 @@ module ipi-segment-routing {
                             } // END of state-container definition.
                         } // END of segment-type-1-container definition.
                     } // End of segment-list
+
+                    list segment-v6 {
+                        key "segment-index type";
+                        description
+                            "Configure a segment at given index";
+                        leaf segment-index  {
+                            type  leafref {
+                                path  "../config/segment-index";
+                            }
+                            description "Index of the segment through which it can be modified or unconfigured";
+                        } // END of segment-index definition.
+
+                        leaf type  {
+                            type  leafref {
+                                path  "../config/type";
+                            }
+                            description "Type of the segment";
+                        } // END of type definition.
+
+                        container config {
+                            description
+                                "Contains config parameters for configuring segment index and type";
+                            uses segment-v6-properties-common-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "Contains operational information about segment index and type";
+                            uses segment-v6-properties-common-config;
+                        } // END of state-container definition.
+                        container segment-type-2 {
+                            if-feature feature-list:HAVE_SRV6;
+                            description
+                                "Segment declared by SRv6 SID";
+                            container config {
+                                description
+                                    "Contains parameters to configure segment-type-2";
+                                uses segment-type-2-properties-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "Contains operational information regarding segment-type-2";
+                                uses segment-type-2-properties-config;
+                            } // END of state-container definition.
+                        } // END of segment-type-2-container definition.
+                    } // End of segment-v6-list
                 } // END of segments-container definition.
             } // End of segment-list-list
         } // END of segment-lists-container definition.
@@ -434,7 +600,7 @@ module ipi-segment-routing {
             "SR policy grouping";
         container policies {
             when " /ipi-segment-routing:segment-routing/ipi-segment-routing:traffic-engineering/ipi-segment-routing:config/ipi-segment-routing:enable ";
-            if-feature feature-list:HAVE_SR_POLICY;
+            if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6;
             description
                 "SR Policy container";
 
@@ -569,6 +735,7 @@ module ipi-segment-routing {
                     description
                         "SR policy state container";
                     container statistics {
+                        if-feature feature-list:HAVE_SR_POLICY;
                         config false;
                         description
                             "Segment Routing Policy packet stats";
@@ -586,14 +753,14 @@ module ipi-segment-routing {
         leaf color  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:color value";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Color associated with the policy";
         } // END of color definition.
 
         leaf end-point  {
-            type  inet:ipv4-address;
+            type  inet:ip-address;
             description "Policy end point IP address";
         } // END of end-point definition.
 
@@ -615,14 +782,16 @@ module ipi-segment-routing {
         } // END of admin-state definition.
 
         leaf explicit-null  {
+            if-feature feature-list:HAVE_SR_POLICY;
             type  ipi-sr-types:srte_explicite_null_type_t;
             description "To set explicit null behaviour for the policy";
         } // END of explicit-null definition.
 
         leaf cspf-retry-limit  {
+            if-feature feature-list:HAVE_SR_POLICY;
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:Number of times CSPF should retry";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             description "Limit on the number of times a dynamic candidate path will retry to
@@ -630,9 +799,10 @@ module ipi-segment-routing {
         } // END of cspf-retry-limit definition.
 
         leaf cspf-retry-interval  {
+            if-feature feature-list:HAVE_SR_POLICY;
             type  uint32 {
                  range "1..600"  {
-                    description "1..600:Time in seconds between successive retries";
+                    description "1..600: Supported range 1 - 600";
                  }
             }
             description "Interval between two successive retries for calculating
@@ -640,24 +810,24 @@ module ipi-segment-routing {
         } // END of cspf-retry-interval definition.
 
         leaf pce-lsp-delegate  {
-            if-feature feature-list:HAVE_PCEP_SR;
+            if-feature feature-list:HAVE_PCEP_SR_OR_HAVE_PCEP_SRV6;
             type  empty;
             description "To delegate all the configured candidate path of policy to PCE
                         controller";
         } // END of pce-lsp-delegate definition.
 
         leaf pce-state-report  {
-            if-feature feature-list:HAVE_PCEP_SR;
+            if-feature feature-list:HAVE_PCEP_SR_OR_HAVE_PCEP_SRV6;
             type  empty;
             description "To only report all the configured candidate path of policy to PCE
                         controller";
         } // END of pce-state-report definition.
 
         leaf pce-entity-id  {
-            if-feature feature-list:HAVE_PCEP_SR;
+            if-feature feature-list:HAVE_PCEP_SR_OR_HAVE_PCEP_SRV6;
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:PCE Entity ID";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             description "Entity Id of PCEP entity to which this policy should be
@@ -670,9 +840,10 @@ module ipi-segment-routing {
         description
             "SR Policy BSID properties grouping";
         leaf bsid-value  {
+            if-feature feature-list:HAVE_SR_POLICY;
             type  uint32 {
                  range "16..15999"  {
-                    description "16..15999:MPLS label";
+                    description "16..15999: Supported range 16 - 15999";
                  }
             }
             description "configurable value for static binding sid";
@@ -750,7 +921,7 @@ module ipi-segment-routing {
         leaf discriminator  {
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:Identifier value for candidate path";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             description "Candidate path distinguisher, it's taken as a unique
@@ -776,7 +947,7 @@ module ipi-segment-routing {
         leaf preference  {
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:Preference value for candidate path";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "100";
@@ -793,9 +964,8 @@ module ipi-segment-routing {
         } // END of is-valid definition.
 
         leaf non-selection-reason  {
-            type  string {
+            type  cml-data-types:cml_line_t {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
             }
             description "Specifies the inactive reason for candidate path";
         } // END of non-selection-reason definition.
@@ -852,7 +1022,7 @@ module ipi-segment-routing {
         description
             "Candidate path type grouping";
         container dynamic {
-            if-feature feature-list:HAVE_SR_POLICY;
+            if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_PCEP_SRV6;
             description
                 "Candidate path with dynamic computed segment-list";
             container config {
@@ -867,7 +1037,6 @@ module ipi-segment-routing {
                 uses dynamic-path-properties-config;
             } // END of state-container definition.
             container constraints {
-                when " /ipi-segment-routing:segment-routing/ipi-segment-routing:traffic-engineering/ipi-segment-routing:policies/ipi-segment-routing:policy/ipi-segment-routing:candidate-paths/ipi-segment-routing:candidate-path/ipi-segment-routing:dynamic/ipi-segment-routing:config/ipi-segment-routing:isis  or /ipi-segment-routing:segment-routing/ipi-segment-routing:traffic-engineering/ipi-segment-routing:policies/ipi-segment-routing:policy/ipi-segment-routing:candidate-paths/ipi-segment-routing:candidate-path/ipi-segment-routing:dynamic/ipi-segment-routing:config/ipi-segment-routing:ospf  or /ipi-segment-routing:segment-routing/ipi-segment-routing:traffic-engineering/ipi-segment-routing:policies/ipi-segment-routing:policy/ipi-segment-routing:candidate-paths/ipi-segment-routing:candidate-path/ipi-segment-routing:dynamic/ipi-segment-routing:config/ipi-segment-routing:pcep ";
                 // when " ipi-segment-routing:segment-routing/traffic-engineering/policies/policy/candidate-paths/candidate-path/dynamic/constraints/config/enable ";
                 description
                     "constraints for candidate path which needs to be satisfied by
@@ -979,7 +1148,7 @@ module ipi-segment-routing {
         description
             "Ip addresses to be        included as constraints for the dynamic path";
         leaf address  {
-            type  inet:ipv4-address;
+            type  inet:ip-address;
             description "Hop address which needs toincluded in the LSP";
         } // END of address definition.
 
@@ -1002,7 +1171,7 @@ module ipi-segment-routing {
             when " ../metric-type ";
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Maximum allowed metric value";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Path is invalid if its metric exceeds this value,
@@ -1047,7 +1216,7 @@ module ipi-segment-routing {
         description
             "Dynamic path properties of the candidate path";
         leaf pcep  {
-            if-feature feature-list:HAVE_PCEP_SR;
+            if-feature feature-list:HAVE_PCEP_SR_OR_HAVE_PCEP_SRV6;
             type  empty;
             description "";
         } // END of pcep definition.
@@ -1064,7 +1233,7 @@ module ipi-segment-routing {
         leaf ospf  {
             type  int32 {
                  range "-1..65535"  {
-                    description "-1..65535:OSPF process id";
+                    description "-1..65535: Supported range -1 - 65535";
                  }
             }
             description "";
@@ -1075,6 +1244,7 @@ module ipi-segment-routing {
         description
             "Dynamic path properties of the candidate path";
         container segment-lists {
+            if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6;
             description
                 "Path segment list(s) properties";
 
@@ -1125,6 +1295,209 @@ module ipi-segment-routing {
         } // END of admin-group-name definition.
 
     } // END of admin-group-config definition.
+    grouping srv6-manager-state {
+        description
+            "SRv6 manager state attributes";
+        leaf protocol-state  {
+            type  ipi-sr-types:srv6_protocol_state_t;
+            description "SRv6 Protocol State";
+        } // END of protocol-state definition.
+
+        leaf srv6-locator-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 Locator Name";
+        } // END of srv6-locator-name definition.
+
+        leaf-list platform-capabilities-end-function  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Platform Capabilities END Function";
+        } // END of platform-capabilities-end-function definition.
+
+        leaf-list platform-capabilities-ingress-function  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "platform-capabilities ingress function";
+        } // END of platform-capabilities-ingress-function definition.
+
+        leaf-list platform-capabilities-ingress-sr-policy  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "platform capabilities sr policy";
+        } // END of platform-capabilities-ingress-sr-policy definition.
+
+    } // END of srv6-manager-state definition.
+    grouping srv6-services-state {
+        description
+            "SRv6 services state attributes";
+        leaf fec-ipv4-prefix  {
+            type  inet:ipv4-prefix;
+            description "SRv6 IPv4 FEC";
+        } // END of fec-ipv4-prefix definition.
+
+        leaf service-vrf-id  {
+            type  uint32;
+            description "SRv6 service VRF ID";
+        } // END of service-vrf-id definition.
+
+        leaf service-vrf-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 service VRF Name";
+        } // END of service-vrf-name definition.
+
+        leaf service-type  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 service Type";
+        } // END of service-type definition.
+
+        leaf flags  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 service flags. Possible values are - Installed and/or Uses
+                        service-mapped tunnel";
+        } // END of flags definition.
+
+        leaf address-family  {
+            type  uint32;
+            description "SRv6 service address-family";
+        } // END of address-family definition.
+
+        leaf sid  {
+            type  inet:ipv6-address;
+            description "SRv6 service SID";
+        } // END of sid definition.
+
+        leaf nexthop-ipv6-prefix  {
+            type  inet:ipv6-address;
+            description "SRv6 service nexthop ipv6 address";
+        } // END of nexthop-ipv6-prefix definition.
+
+        leaf service-policy-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 service Policy Name";
+        } // END of service-policy-name definition.
+
+    } // END of srv6-services-state definition.
+    grouping srv6-transport-ftn-state {
+        description
+            "SRv6 transport FTN state attributes";
+        leaf vrf-id  {
+            type  uint32;
+            description "SRv6 FTN VRF ID";
+        } // END of vrf-id definition.
+
+        leaf fec-prefix  {
+            type  inet:ipv4-prefix;
+            description "SRv6 Transport FTN Ipv4 FEC";
+        } // END of fec-prefix definition.
+
+        leaf vrf-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 FTN VRF Name";
+        } // END of vrf-name definition.
+
+        leaf ftn-nexthop  {
+            type  inet:ipv6-address;
+            description "SRv6 Transport FTN Next hop ipv6 address";
+        } // END of ftn-nexthop definition.
+
+        leaf tunnel-policy  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 Transport FTN Policy Name";
+        } // END of tunnel-policy definition.
+
+        leaf ftn-color  {
+            type  uint32;
+            description "SRv6 Transport FTN Policy color. Possible color values are
+                        (1-4294967295)";
+        } // END of ftn-color definition.
+
+    } // END of srv6-transport-ftn-state definition.
+    grouping srv6-transport-state {
+        description
+            "SRv6 transport state attributes";
+        leaf fec  {
+            type  inet:ipv6-address;
+            description "SRv6 Transport entry Ipv6 FEC";
+        } // END of fec definition.
+
+        leaf policy-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 Transport Entry Policy Name";
+        } // END of policy-name definition.
+
+        leaf policy-id  {
+            type  uint32;
+            description "SRv6 Transport Policy ID";
+        } // END of policy-id definition.
+
+        leaf transport-color  {
+            type  uint32;
+            description "SRv6 Policy color. Possible color values are (1-4294967295)";
+        } // END of transport-color definition.
+
+        leaf code  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 transport code. Possible Values are SELECTED or INSTALLED";
+        } // END of code definition.
+
+        leaf is-primary  {
+            type  boolean;
+            description "SRv6 Transport entry Flag to denote, whether the entry in Primary or
+                        Not";
+        } // END of is-primary definition.
+
+        leaf out-sid  {
+            type  inet:ipv6-address;
+            description "SRv6 transport outgoing segment identifier";
+        } // END of out-sid definition.
+
+        leaf out-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 transport outgoing interface name";
+        } // END of out-interface definition.
+
+        leaf nexthop  {
+            type  inet:ipv6-address;
+            description "SRv6 transport entry - nexthop Ipv6 address used for this FEC";
+        } // END of nexthop definition.
+
+    } // END of srv6-transport-state definition.
     grouping policy-debug-config {
         description
             "Configuration data related to debugging policy";
@@ -1138,7 +1511,7 @@ module ipi-segment-routing {
         description
             "debug related attributes for sr policy";
         container debug {
-            if-feature feature-list:HAVE_SR_POLICY;
+            if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6;
             description
                 "enable/disable debug for sr-policy";
             container config {
@@ -1200,7 +1573,7 @@ module ipi-segment-routing {
                 configuration and operation. This document does not define the IGP
                 extensions to support segment routing";
     container segment-routing {
-        if-feature feature-list:HAVE_SR_MPLS;
+        if-feature feature-list:HAVE_SRV6_OR_HAVE_SR_MPLS_OR_HAVE_SR_POLICY;
         description
             "This defines a YANG data model for segment routing MPLS and TE
                     configuration and operation. This document does not define the IGP
@@ -1220,12 +1593,12 @@ module ipi-segment-routing {
             uses sr-config;
         } // END of state-container definition.
         container interfaces {
+            if-feature feature-list:HAVE_SR_MPLS;
             description
                 "Top level container for interfaces, including configuration and state
                         data";
 
             list interface {
-            // when " !ipi-if-aggregate:member-aggregation ";
                 key "name";
                 description
                     "This list defines global SR interface configuration and state
@@ -1423,7 +1796,7 @@ module ipi-segment-routing {
         } // END of sr-mpls-container definition.
         container traffic-engineering {
             when " /ipi-segment-routing:segment-routing/ipi-segment-routing:config/ipi-segment-routing:enable ";
-            if-feature feature-list:HAVE_SR_POLICY;
+            if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6;
             description
                 "Traffic-engineering container for segment routing";
             container config {
@@ -1444,13 +1817,161 @@ module ipi-segment-routing {
             uses attributes-config;
             uses policies-config;
         } // END of traffic-engineering-container definition.
+        container srv6 {
+            when " /ipi-segment-routing:segment-routing/ipi-segment-routing:config/ipi-segment-routing:enable ";
+            if-feature feature-list:HAVE_SRV6;
+            description
+                "SRv6 container for segment routing";
+            container config {
+                presence "yes";
+                description
+                    "Segment routing SRv6 configuration and other CLIs inside srv6";
+                uses srv6-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Segment routing V6 runtime parameters";
+                uses srv6-config;
+            } // END of state-container definition.
+            container locators {
+                when " /ipi-segment-routing:segment-routing/ipi-segment-routing:srv6/ipi-segment-routing:config/ipi-segment-routing:enable ";
+                if-feature feature-list:HAVE_SRV6;
+                description
+                    "SRv6 container for segment routing";
+                container config {
+                    presence "yes";
+                    description
+                        "Segment routing SRv6 locators configuration and other CLIs inside srv6";
+                    uses srv6-locators-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Segment routing V6 runtime parameters";
+                    uses srv6-locators-config;
+                } // END of state-container definition.
+                uses locators-lists-config;
+            } // END of locators-container definition.
+            container services-entries {
+                config false;
+                description
+                    "Global SRV6 services entries";
+
+                list services-entry {
+                    key "fec-ipv4-prefix service-vrf-id";
+                    config false;
+                    description
+                        "SRv6 services entry";
+                    leaf fec-ipv4-prefix  {
+                        type  leafref {
+                            path  "../state/fec-ipv4-prefix";
+                        }
+                        description "IPv4 prefix";
+                    } // END of fec-ipv4-prefix definition.
+
+                    leaf service-vrf-id  {
+                        type  leafref {
+                            path  "../state/service-vrf-id";
+                        }
+                        description "VRF ID";
+                    } // END of service-vrf-id definition.
+
+                    container state {
+                        config false;
+                        description
+                            "State Container for SRv6 services entry";
+                        uses srv6-services-state;
+                    } // END of state-container definition.
+                } // End of services-entry-list
+            } // END of services-entries-container definition.
+            container transport-entries {
+                config false;
+                description
+                    "Global SRv6 transport entries";
+
+                list transport-entry {
+                    key "fec";
+                    config false;
+                    description
+                        "SRv6 transport entry";
+                    leaf fec  {
+                        type  leafref {
+                            path  "../state/fec";
+                        }
+                        description "IPv6 prefix";
+                    } // END of fec definition.
+
+                    container state {
+                        config false;
+                        description
+                            "State container for SRv6 transport entry";
+                        uses srv6-transport-state;
+                    } // END of state-container definition.
+                    container ftn-entries {
+                        config false;
+                        description
+                            "SRv6 transport table FTN entries";
+
+                        list ftn-entry {
+                            key "vrf-id fec-prefix";
+                            config false;
+                            description
+                                "FTN entries per SRv6 transport entry";
+                            leaf vrf-id  {
+                                type  leafref {
+                                    path  "../state/vrf-id";
+                                }
+                                description "VRF ID for FTN Entry";
+                            } // END of vrf-id definition.
+
+                            leaf fec-prefix  {
+                                type  leafref {
+                                    path  "../state/fec-prefix";
+                                }
+                                description "FEC for FTN Entry";
+                            } // END of fec-prefix definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "State Container for FTN entries";
+                                uses srv6-transport-ftn-state;
+                            } // END of state-container definition.
+                        } // End of ftn-entry-list
+                    } // END of ftn-entries-container definition.
+                } // End of transport-entry-list
+            } // END of transport-entries-container definition.
+            container manager-entries {
+                if-feature feature-list:HAVE_SRV6;
+                config false;
+                description
+                    "SRv6 Manager entries";
+                container state {
+                    config false;
+                    description
+                        "State Container for SRv6 manager entry";
+                    uses srv6-manager-state;
+                } // END of state-container definition.
+            } // END of manager-entries-container definition.
+        } // END of srv6-container definition.
         uses debug-policy-config;
     } // END of segment-routing-container definition.
     } // END of segment-routing-grouping definition.
 
     uses segment-routing-grouping;
 
+    rpc segment-routing-debug-all-on {
+        if-feature feature-list:HAVE_SR_POLICY;
+        if-feature feature-list:HAVE_SRV6;
+        if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6_OR_HAVE_SR_MPLS;
+        description "Enable all debugging functions of sr-policy";
+    }
+
     rpc debug-sr-policy {
+        if-feature feature-list:HAVE_SR_POLICY;
+        if-feature feature-list:HAVE_SRV6;
+        if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6_OR_HAVE_SR_MPLS;
         description "Enable debugging functions of sr-policy";
         input  {
             leaf enable-debug  {
@@ -1461,7 +1982,10 @@ module ipi-segment-routing {
         }
     }
 
-    rpc undebug-sr-policy {
+    rpc no-sr-policy {
+        if-feature feature-list:HAVE_SR_POLICY;
+        if-feature feature-list:HAVE_SRV6;
+        if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6_OR_HAVE_SR_MPLS;
         description "Disable debugging functions of SR Policy";
         input  {
             leaf enable-debug  {
@@ -1473,11 +1997,14 @@ module ipi-segment-routing {
     }
 
     notification sr-policy-oper-state-down {
+        if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6_OR_HAVE_SR_MPLS;
 
         description "This notification is sent when SR policy oper-state goes down.";
 
         // severity "MAJOR";
+
         // eventClass "STATE";
+
         leaf name {
             type  string;
         description
@@ -1492,11 +2019,14 @@ module ipi-segment-routing {
     }
 
     notification sr-policy-oper-state-up {
+        if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6_OR_HAVE_SR_MPLS;
 
         description "This notification is sent when SR policy oper-state goes up.";
 
         // severity "MAJOR";
+
         // eventClass "STATE";
+
         leaf name {
             type  string;
         description
@@ -1511,11 +2041,14 @@ module ipi-segment-routing {
     }
 
     notification sr-policy-cp-active {
+        if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6_OR_HAVE_SR_MPLS;
 
         description "This notification is sent when SR policy candidate-path active.";
 
         // severity "MAJOR";
+
         // eventClass "STATE";
+
         leaf discriminator {
             type  uint32;
         description
@@ -1551,11 +2084,14 @@ module ipi-segment-routing {
     }
 
     notification sr-policy-cp-inactive {
+        if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6_OR_HAVE_SR_MPLS;
 
-        description "This notification is sent when SR policy candidate-patj in-active.";
+        description "This notification is sent when SR policy candidate-path in-active.";
 
         // severity "MAJOR";
+
         // eventClass "STATE";
+
         leaf discriminator {
             type  uint32;
         description
@@ -1591,11 +2127,15 @@ module ipi-segment-routing {
     }
 
     notification sr-policy-binding-sid-unavailable-event {
+        if-feature feature-list:HAVE_SR_POLICY;
+        if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_SRV6_OR_HAVE_SR_MPLS;
 
         description "This notification is sent when same SR policy binding-sid configured for different SR-policy.";
 
         // severity "MAJOR";
+
         // eventClass "STATE";
+
         leaf name {
             type  string;
         description

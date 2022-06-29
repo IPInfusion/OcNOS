@@ -23,7 +23,7 @@ module ipi-logging {
 
     import ipi-logging-types {
         prefix ipi-logging-types;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     import cml-data-types {
@@ -33,12 +33,12 @@ module ipi-logging {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
-    include ipi-logging-remote { revision-date 2021-09-03;}
-    include ipi-logging-cli { revision-date 2021-09-03;}
-    include ipi-logging-fault-management { revision-date 2021-09-03;}
+    include ipi-logging-remote { revision-date 2022-06-01;}
+    include ipi-logging-cli { revision-date 2022-06-01;}
+    include ipi-logging-fault-management { revision-date 2022-03-29;}
     organization
         "IP Infusion Inc.";
 
@@ -52,9 +52,19 @@ module ipi-logging {
         "Syslog Configurations";
 
 
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.7.0.";
+    }
+
     revision "2022-04-06" {
         description "Add disabling support for logging monitor and logging console";
         reference " 0.5.1.";
+    }
+
+    revision "2022-03-29" {
+        description "Modified sub module fault-management";
+        reference " 0.6.0.";
     }
 
     revision "2022-01-13" {
@@ -153,7 +163,7 @@ module ipi-logging {
         leaf max-file-size  {
             type  uint32 {
                  range "4096..4194304"  {
-                    description "4096..4194304:Enter the logfile size in bytes";
+                    description "4096..4194304: Supported range 4096 - 4194304";
                  }
             }
             units "bytes";
@@ -205,8 +215,7 @@ module ipi-logging {
         leaf max-file-size  {
             type  uint32 {
                  range "4096..419430400"  {
-                    description "4096..419430400:Enter the logfile size in bytes (Default size:
-                            419430400)";
+                    description "4096..419430400: Supported range 4096 - 419430400";
                  }
             }
             units "bytes";
@@ -380,16 +389,47 @@ module ipi-logging {
     uses logging-grouping;
 
     rpc logging-terminal-debug-on {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_SYSLOG;
         description "Enables the logging host debug";
     }
 
     rpc logging-terminal-debug-off {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_SYSLOG;
         description "Disables the logging host debug";
     }
 
     rpc logging-fms-flush-db {
         if-feature feature-list:HAVE_FMS;
+        if-feature feature-list:HAVE_VLOGD;
         description "Flush the FMS database";
+    }
+
+    rpc logging-fms-shelve {
+        if-feature feature-list:HAVE_FMS;
+        if-feature feature-list:HAVE_VLOGD;
+        description "Use this RPC to shelve alarm based on type";
+        input  {
+            leaf alarm-type  {
+                type string;
+                mandatory true;
+                description "Shelve Alarm Type";
+            }
+        }
+    }
+
+    rpc logging-fms-close {
+        if-feature feature-list:HAVE_FMS;
+        if-feature feature-list:HAVE_VLOGD;
+        description "Use this RPC to close an active alarm";
+        input  {
+            leaf active-alarm-id  {
+                type string;
+                mandatory true;
+                description "Active Alarm ID";
+            }
+        }
     }
 
     rpc logging-clear-debug-logfile {

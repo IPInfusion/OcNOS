@@ -23,17 +23,17 @@ module ipi-if-aggregate {
 
     import ipi-lag-types {
         prefix ipi-lag-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -48,6 +48,16 @@ module ipi-if-aggregate {
     description
         "Interface level configurations for LAG";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.6.0.";
+    }
+
+    revision "2022-05-16" {
+        description "Added runtime attributes for static LAG group members";
+        reference " 0.5.0.";
+    }
 
     revision "2022-04-20" {
         description "Added changes for port channel weight";
@@ -75,7 +85,7 @@ module ipi-if-aggregate {
         leaf weight  {
             type  uint16 {
                  range "1..16"  {
-                    description "1..16:port channel weight";
+                    description "1..16: Supported range 1 - 16";
                  }
             }
             description "Set the port channel weight";
@@ -93,8 +103,9 @@ module ipi-if-aggregate {
 
         leaf aggregate-id  {
             type  uint16 {
-                 range "1..16383"  {
-                    description "1..16383:Specify a port-channel number";
+                 range "1..65535"  {
+                    description "1..65535:Not Feature : HAVE_MLAG  Supported range 1 - 65535Feature :
+                            HAVE_MLAG Supported range 1 - 16383";
                  }
             }
             mandatory true;
@@ -126,7 +137,7 @@ module ipi-if-aggregate {
             if-feature feature-list:HAVE_LACP;
             type  uint8 {
                  range "2..32"  {
-                    description "2..32:Minimum links number";
+                    description "2..32: Supported range 2 - 32";
                  }
             }
             description "Minimum number of active links required in this aggregator";
@@ -153,11 +164,58 @@ module ipi-if-aggregate {
         } // END of agg-min-links-state definition.
 
     } // END of aggregator-interface-state definition.
+    grouping aggregator-member-state {
+        description
+            "Operational attributes of aggregated Links";
+        leaf link-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Name of Aggregated Link";
+        } // END of link-name definition.
+
+        leaf link-state  {
+            type  ipi-lag-types:lag_member_link_status_t;
+            description "Indicates link synchronization state";
+        } // END of link-state definition.
+
+    } // END of aggregator-member-state definition.
+    grouping aggregator-members-top {
+        description
+            "Grouping for aggregator members";
+        container members {
+            config false;
+            description
+                "Links of aggregator";
+
+            list member {
+                key "link-name";
+                config false;
+                description
+                    "List of links in aggregator";
+                leaf link-name  {
+                    type  leafref {
+                        path  "../state/link-name";
+                    }
+                    description "Aggregated Link Name";
+                } // END of link-name definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational data for links in aggregator";
+                    uses aggregator-member-state;
+                } // END of state-container definition.
+            } // End of member-list
+        } // END of members-container definition.
+    } // END of aggregator-members-top definition.
 
     grouping  member-aggregation-grouping {
     description
         "NSM LACP interface related operations";
     container member-aggregation {
+        if-feature feature-list:HAVE_LACP;
         description
             "NSM LACP interface related operations";
         container config {
@@ -195,7 +253,7 @@ module ipi-if-aggregate {
     description
         "NSM LACP aggregator related operations";
     container aggregator {
-        presence "yes";
+        if-feature feature-list:HAVE_LACP;
         description
             "NSM LACP aggregator related operations";
         container config {
@@ -210,6 +268,7 @@ module ipi-if-aggregate {
             uses aggregator-interface-config;
             uses aggregator-interface-state;
         } // END of state-container definition.
+        uses aggregator-members-top;
     } // END of aggregator-container definition.
     } // END of aggregator-grouping definition.
 
@@ -228,10 +287,12 @@ module ipi-if-aggregate {
 
 
     notification agg-min-links-state-update {
+        if-feature feature-list:HAVE_LACP;
 
         description "Notify when a total Active (link-UP) LAG member count becomes less than the configured min-link count. Severity level is CRITICAL for interface going down and INFO for interface moving to UP state..";
 
         // eventClass "STATE";
+
         leaf name {
             type  string;
         description

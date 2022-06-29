@@ -28,14 +28,19 @@ module ipi-vrrp {
 
     import ipi-vrrp-types {
         prefix ipi-vrrp-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
-    include ipi-vrrp-ipv4 { revision-date 2022-04-22;}
-    include ipi-vrrp-ipv6 { revision-date 2022-04-22;}
-    include ipi-vrrp-global { revision-date 2021-09-23;}
-    include ipi-vrrp-debug { revision-date 2021-09-03;}
-    include ipi-vrrp-common { revision-date 2021-12-01;}
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
+    include ipi-vrrp-ipv4 { revision-date 2022-06-01;}
+    include ipi-vrrp-ipv6 { revision-date 2022-06-01;}
+    include ipi-vrrp-global { revision-date 2022-06-01;}
+    include ipi-vrrp-debug { revision-date 2022-06-01;}
+    include ipi-vrrp-common { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -48,6 +53,11 @@ module ipi-vrrp {
     description
         "Virtual Router Redundancy Protocol Configurations";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.0.";
+    }
 
     revision "2022-04-22" {
         description "Enable of VRRP protocol on its own container";
@@ -104,6 +114,7 @@ module ipi-vrrp {
     description
         "Virtual Router Redundancy Protocol";
     container vrrp {
+        if-feature feature-list:HAVE_VRRPD;
         description
             "Virtual Router Redundancy Protocol";
         uses vrrp-global-top;
@@ -116,22 +127,28 @@ module ipi-vrrp {
     uses vrrp-grouping;
 
     rpc vrrp-snmp-restart {
+        if-feature feature-list:HAVE_SNMP;
+        if-feature feature-list:HAVE_VRRPD;
         description "Restart SNMP in Virtual Routing Redundancy Protocol (VRRP).";
     }
 
     rpc vrrp-clear-statistics {
+        if-feature feature-list:HAVE_VRRPD;
         description "Clear vrrp statistics";
     }
 
     rpc vrrp-clear-ipv4-statistics {
+        if-feature feature-list:HAVE_VRRPD;
         description "Clear IPv4 vrrp statistics";
     }
 
     rpc vrrp-clear-ipv6-statistics {
+        if-feature feature-list:HAVE_VRRPD;
         description "Clear IPv6 vrrp statistics";
     }
 
     rpc vrrp-clear-session-ipv4-statistics {
+        if-feature feature-list:HAVE_VRRPD;
         description "Clear vrrp IPv4 statistics";
         input  {
             leaf vrrp-id  {
@@ -150,6 +167,7 @@ module ipi-vrrp {
     }
 
     rpc vrrp-clear-session-ipv6-statistics {
+        if-feature feature-list:HAVE_VRRPD;
         description "Clear vrrp IPv6 statistics";
         input  {
             leaf vrrp-id  {
@@ -168,14 +186,17 @@ module ipi-vrrp {
     }
 
     rpc vrrp-terminal-debug-all-on {
+        if-feature feature-list:HAVE_VRRPD;
         description "Enable all VRRP debugs";
     }
 
     rpc vrrp-terminal-debug-all-off {
+        if-feature feature-list:HAVE_VRRPD;
         description "Disable all VRRP debugs";
     }
 
     rpc vrrp-terminal-debug-on {
+        if-feature feature-list:HAVE_VRRPD;
         description "Enable VRRP debug";
         input  {
             leaf debug-options  {
@@ -187,6 +208,7 @@ module ipi-vrrp {
     }
 
     rpc vrrp-terminal-debug-off {
+        if-feature feature-list:HAVE_VRRPD;
         description "Disable VRRP debugs";
         input  {
             leaf debug-options  {
@@ -198,11 +220,14 @@ module ipi-vrrp {
     }
 
     notification vrrp-new-master {
+        if-feature feature-list:HAVE_VRRPD;
 
         description "Notification for VRRP new master state change.";
 
         // severity "WARNING";
+
         // eventClass "STATE";
+
         leaf operational-master-address {
             type  inet:ip-address;
         description
@@ -229,11 +254,14 @@ module ipi-vrrp {
     }
 
     notification vrrp-protocol-error {
+        if-feature feature-list:HAVE_VRRPD;
 
         description "Notification for VRRP protocol error.";
 
         // severity "CRITICAL";
+
         // eventClass "STATE";
+
         leaf operational-master-address {
             type  inet:ip-address;
         description
@@ -260,11 +288,14 @@ module ipi-vrrp {
     }
 
     notification vrrp-packet-error {
+        if-feature feature-list:HAVE_VRRPD;
 
         description "Notification for VRRP packet error.";
 
         // severity "CRITICAL";
+
         // eventClass "STATE";
+
         leaf error-reason {
             type ipi-vrrp-types:vrrp_error_reason_t;
         description

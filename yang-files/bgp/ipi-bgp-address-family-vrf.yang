@@ -21,7 +21,7 @@ submodule ipi-bgp-address-family-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ietf-inet-types {
@@ -36,11 +36,11 @@ submodule ipi-bgp-address-family-vrf {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2022-01-17;
+        revision-date 2022-06-01;
     }
 
-    include ipi-bgp-common { revision-date 2022-01-17;}
-    include ipi-bgp-address-family { revision-date 2022-01-17;}
+    include ipi-bgp-common { revision-date 2022-06-20;}
+    include ipi-bgp-address-family { revision-date 2022-06-20;}
     organization
         "IP Infusion Inc.";
 
@@ -53,6 +53,31 @@ submodule ipi-bgp-address-family-vrf {
     description
         "";
 
+
+    revision "2022-06-20" {
+        description "Added new attribute 'de-activate' for BGP Peer-group feature.";
+        reference " 0.10.3.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.10.2.";
+    }
+
+    revision "2022-04-28" {
+        description "Updated BGP clear RPCs to remove unwanted attributes";
+        reference " 0.10.1.";
+    }
+
+    revision "2022-04-19" {
+        description "Added new attribute 'peer-shutdown-description' for support of BGP Administrative Shutdown Communication feature.";
+        reference " 0.9.1.";
+    }
+
+    revision "2022-03-20" {
+        description "Added new attribute for RFC-9072";
+        reference " 0.10.0.";
+    }
 
     revision "2022-01-17" {
         description "Modified data type";
@@ -145,6 +170,7 @@ submodule ipi-bgp-address-family-vrf {
     description
         "List of VRF address family";
         list address-family-vrf {
+            if-feature feature-list:HAVE_BGPD;
             key "afi safi vrf-name";
             description
                 "List of VRF address family";
@@ -847,7 +873,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf prefix-count  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:maximum no. of prefix limit";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "This attribute specifies number of prefixes that a BGP router is
@@ -871,7 +897,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf threshold-percentage  {
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:threshold-value 1 to 100 percent";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             default "75";
@@ -896,7 +922,7 @@ submodule ipi-bgp-address-family-vrf {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:TCP port number";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "179";
@@ -904,11 +930,18 @@ submodule ipi-bgp-address-family-vrf {
         } // END of bgp-port definition.
 
         leaf activate  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as   or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  empty;
             description "Activate/Deactivate neighbor. This attribute enables or disables the
                         exchange of AF information with a neighboring router.";
         } // END of activate definition.
+
+        leaf de-activate  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            type  empty;
+            description "Deactivate neighbor. This attribute disables the exchange of AF
+                        information with a neighboring router.";
+        } // END of de-activate definition.
 
         leaf default-peer-route-map-name  {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-route-map-orig-name) ";
@@ -946,7 +979,7 @@ submodule ipi-bgp-address-family-vrf {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:Configure weight";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "0";
@@ -1035,7 +1068,7 @@ submodule ipi-bgp-address-family-vrf {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint32 {
                  range "1..10"  {
-                    description "1..10:Number of occurrences of AS number";
+                    description "1..10: Supported range 1 - 10";
                  }
             }
             default "3";
@@ -1071,7 +1104,6 @@ submodule ipi-bgp-address-family-vrf {
         } // END of capability-graceful-restart definition.
 
         leaf mapped-peer-group-tag-af  {
-            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/activate ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -1093,6 +1125,13 @@ submodule ipi-bgp-address-family-vrf {
             description "unsuppress map name. This attribute is used to selectively leak
                         more-specific routes to a particular neighbor.";
         } // END of unsuppress-route-map-name definition.
+
+        leaf enable-ext-opt-param-len  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
+            type  empty;
+            description "Use this attribute for a specific peer to encode extended optional
+                        parameter length.";
+        } // END of enable-ext-opt-param-len definition.
 
     } // END of bgp-address-family-peer-vrf-config definition.
     grouping bgp-address-family-vrf-table-map-config {
@@ -1135,7 +1174,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf peer-confederation-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Set routing domain confederation AS";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to configure the Autonomous Systems (AS) that
@@ -1413,7 +1452,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf peer-as  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:AS number";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "This attribute specifies a neighbors autonomous system number. If the
@@ -1442,7 +1481,7 @@ submodule ipi-bgp-address-family-vrf {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:AS number";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to specify an AS (autonomous system) number to use
@@ -1463,7 +1502,7 @@ submodule ipi-bgp-address-family-vrf {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:Connect timer";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "1";
@@ -1493,6 +1532,16 @@ submodule ipi-bgp-address-family-vrf {
                         could be terminated.";
         } // END of peer-shutdown definition.
 
+        leaf peer-shutdown-description  {
+            when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-shutdown ";
+            type  cml-data-types:cml_line_t {
+                length "1..255";
+            }
+            description "Use this attribute to send shutdown communication message to inform
+                        peer the reason for the shutdown of the BGP session.";
+        } // END of peer-shutdown-description definition.
+
         leaf neighbor-passive  {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
@@ -1503,7 +1552,7 @@ submodule ipi-bgp-address-family-vrf {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:maximum hop count";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "255";
@@ -1543,7 +1592,7 @@ submodule ipi-bgp-address-family-vrf {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint32 {
                  range "0..65535"  {
-                    description "0..65535:time in seconds";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "0";
@@ -1558,7 +1607,7 @@ submodule ipi-bgp-address-family-vrf {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  + not(/bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af) ";
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:time in seconds";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "1";
@@ -1612,7 +1661,7 @@ submodule ipi-bgp-address-family-vrf {
             if-feature feature-list:HAVE_VRF;
             type  uint32 {
                  range "1..3600"  {
-                    description "1..3600:BGP peer g-shut time in secs";
+                    description "1..3600: Supported range 1 - 3600";
                  }
             }
             description "This attribute sets a different restart-time other than the global
@@ -1651,7 +1700,7 @@ submodule ipi-bgp-address-family-vrf {
             when " /bgp/bgp-instance/address-family-vrf/vrf-peer/config/peer-as  or /bgp/bgp-instance/address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint32 {
                  range "10..65535"  {
-                    description "10..65535:BGP peer g-shut time in secs";
+                    description "10..65535: Supported range 10 - 65535";
                  }
             }
             description "Use this attribute to configure the value of the graceful shutdown
@@ -1711,7 +1760,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf graceful-shutdown-local-preference  {
             type  uint32 {
                  range "0..4294967295"  {
-                    description "0..4294967295:g-shut local preference value";
+                    description "0..4294967295: Supported range 0 - 4294967295";
                  }
             }
             default "0";
@@ -1726,7 +1775,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf confederation-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Set routing domain confederation AS";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "This attribute to specifies a BGP confederation identifier.";

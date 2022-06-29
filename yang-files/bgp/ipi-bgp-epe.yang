@@ -19,6 +19,11 @@ submodule ipi-bgp-epe {
 
     belongs-to  ipi-bgp { prefix ipi-bgp; }
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
     import ietf-inet-types {
         prefix inet;
         revision-date 2013-07-15;
@@ -36,6 +41,16 @@ submodule ipi-bgp-epe {
     description
         "";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.1.4.";
+    }
+
+    revision "2022-02-28" {
+        description "Modified the Backup container heirarchy";
+        reference " 0.1.3.";
+    }
 
     revision "2021-10-03" {
         description "Added BGP-LS-EPE runtime attributes";
@@ -94,21 +109,21 @@ submodule ipi-bgp-epe {
     grouping bgp-epe-backup-peer-node-config {
         description
             "Configurational       parameters for backup for peer-node SID";
-        leaf peer-node-address  {
+        leaf address  {
             when " /bgp/bgp-instance/peer/egress-engineering/config/enable-peer-node ";
             type  inet:ipv4-address;
             description "Use this attribute for the backup peer-address";
-        } // END of peer-node-address definition.
+        } // END of address definition.
 
     } // END of bgp-epe-backup-peer-node-config definition.
     grouping bgp-epe-backup-peer-adjacency-config {
         description
             "Configurational       parameters for backup of Peer-Adj SID";
-        leaf adjacent-peer-address  {
+        leaf adjacent-address  {
             type  inet:ipv4-address;
             mandatory true;
             description "Use this attribute for the backup peer-address";
-        } // END of adjacent-peer-address definition.
+        } // END of adjacent-address definition.
 
         leaf nexthop-address  {
             type  inet:ipv4-address;
@@ -117,28 +132,6 @@ submodule ipi-bgp-epe {
         } // END of nexthop-address definition.
 
     } // END of bgp-epe-backup-peer-adjacency-config definition.
-    grouping bgp-epe-backup-peer-config {
-        description
-            "Configurational parameters  for backup peers";
-        choice backup-peer-type {
-            description
-                "backup-peer-type";
-            case peer-node {
-
-                description
-                    "peer-node";
-
-                uses bgp-epe-backup-peer-node-config;
-            }
-            case peer-adj {
-
-                description
-                    "peer-adjacency";
-
-                uses bgp-epe-backup-peer-adjacency-config;
-            }
-        } // END of backup-peer-type-choice definition.
-    } // END of bgp-epe-backup-peer-config definition.
     grouping bgp-epe-peer-sid-state {
         description
             "bgpCMLSEPepeCMLSEPpeerCMLSEPsidCMLSEPstate";
@@ -191,31 +184,13 @@ submodule ipi-bgp-epe {
             "backup peer";
         uses bgp-epe-peer-out-segments-state;
     } // END of bgp-epe-backup-peer-state definition.
-    grouping bgp-epe-backup-config {
-        description
-            "Parameters for EPE backups";
-        container peer {
-            description
-                "Backup peer address";
-            container config {
-                description
-                    "";
-                uses bgp-epe-backup-peer-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "State of backup EPE for peer";
-                uses bgp-epe-backup-peer-config;
-                uses bgp-epe-backup-peer-state;
-            } // END of state-container definition.
-        } // END of peer-container definition.
-    } // END of bgp-epe-backup-config definition.
 
     grouping  peer-engineering-grouping {
     description
         "Global Egress Engineering parameter";
     container peer-engineering {
+        if-feature feature-list:HAVE_BGPD;
+        if-feature feature-list:HAVE_BGP_EPE;
         description
             "Global Egress Engineering parameter";
         container config {
@@ -237,6 +212,8 @@ submodule ipi-bgp-epe {
         "Egrees Peer Engineering";
     container egress-engineering {
         when " /bgp/bgp-instance/peer-engineering/config/enable-epe ";
+        if-feature feature-list:HAVE_BGPD;
+        if-feature feature-list:HAVE_BGP_EPE;
         description
             "Egrees Peer Engineering";
 
@@ -266,7 +243,38 @@ submodule ipi-bgp-epe {
             container backup {
                 description
                     "Backup configs for Peer-Adj SIDs";
-                uses bgp-epe-backup-config;
+                container peer-node {
+                    description
+                        "Backup peer address";
+                    container config {
+                        description
+                            "Configs for Backup for Peer-Adjacency";
+                        uses bgp-epe-backup-peer-node-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State of backup EPE for peer Adjacency";
+                        uses bgp-epe-backup-peer-node-config;
+                        uses bgp-epe-backup-peer-state;
+                    } // END of state-container definition.
+                } // END of peer-node-container definition.
+                container adjacency {
+                    description
+                        "Backup peer address for peer-adjacency";
+                    container config {
+                        description
+                            "Configs for Backup for Peer-adjacency";
+                        uses bgp-epe-backup-peer-adjacency-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State of backup EPE for peer";
+                        uses bgp-epe-backup-peer-adjacency-config;
+                        uses bgp-epe-backup-peer-state;
+                    } // END of state-container definition.
+                } // END of adjacency-container definition.
             } // END of backup-container definition.
         } // End of peer-adjacency-list
         container config {
@@ -300,7 +308,40 @@ submodule ipi-bgp-epe {
         container backup {
             description
                 "Backup configs for peer-node SIDs";
-            uses bgp-epe-backup-config;
+            container peer-node {
+                when " not(/bgp/bgp-instance/peer/egress-engineering/backup/adjacency/config/adjacent-address) + not(/bgp/bgp-instance/peer/egress-engineering/backup/adjacency/config/nexthop-address) ";
+                description
+                    "Backup peer address";
+                container config {
+                    description
+                        "Configs for backup Peer Node";
+                    uses bgp-epe-backup-peer-node-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State of backup EPE for peer Node";
+                    uses bgp-epe-backup-peer-node-config;
+                    uses bgp-epe-backup-peer-state;
+                } // END of state-container definition.
+            } // END of peer-node-container definition.
+            container adjacency {
+                when " not(/bgp/bgp-instance/peer/egress-engineering/backup/peer-node/config/address) ";
+                description
+                    "Backup peer address for peer-adjacency";
+                container config {
+                    description
+                        "Configs for Backup Peer-Node";
+                    uses bgp-epe-backup-peer-adjacency-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State of backup EPE for peer Adjacency";
+                    uses bgp-epe-backup-peer-adjacency-config;
+                    uses bgp-epe-backup-peer-state;
+                } // END of state-container definition.
+            } // END of adjacency-container definition.
         } // END of backup-container definition.
     } // END of egress-engineering-container definition.
     } // END of egress-engineering-grouping definition.

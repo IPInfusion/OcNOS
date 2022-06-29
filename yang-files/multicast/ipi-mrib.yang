@@ -23,11 +23,22 @@ module ipi-mrib {
 
     import ipi-mrib-types {
         prefix ipi-mrib-types;
-        revision-date 2021-12-02;
+        revision-date 2022-06-01;
     }
 
-    include ipi-mrib-ipv4 { revision-date 2021-12-02;}
-    include ipi-mrib-common { revision-date 2021-12-02;}
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
+    include ipi-mrib-ipv4 { revision-date 2022-06-07;}
+    include ipi-mrib-ipv6 { revision-date 2022-06-07;}
+    include ipi-mrib-common { revision-date 2022-06-07;}
     organization
         "IP Infusion Inc.";
 
@@ -40,6 +51,31 @@ module ipi-mrib {
     description
         "Datamodel for MRIB object";
 
+
+    revision "2022-06-07" {
+        description "Added 'rpa-id' attribute to ipi-mrib-common";
+        reference " 0.4.1.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-05-23" {
+        description "Added Netconf GetAPI support for IPv4 multicast routing table entries";
+        reference " 0.3.2.";
+    }
+
+    revision "2022-05-18" {
+        description "Added Netconf GetAPI support for IPv6 multicast routing table entries";
+        reference " 0.3.1.";
+    }
+
+    revision "2022-03-17" {
+        description "Added restructured MRIB IPv6 datamodel as submodule";
+        reference " 0.3.0.";
+    }
 
     revision "2021-12-02" {
         description "Restructured module as per open-config style";
@@ -56,15 +92,18 @@ module ipi-mrib {
     description
         "Top level container for all multicast RIB configuration and state data";
     container mrib {
+        if-feature feature-list:HAVE_MRIBD;
         description
             "Top level container for all multicast RIB configuration and state data";
         uses ipv4-grouping;
+        uses ipv6-grouping;
     } // END of mrib-container definition.
     } // END of mrib-grouping definition.
 
     uses mrib-grouping;
 
     rpc mrib-ipv4-terminal-debugging-on {
+        if-feature feature-list:HAVE_MRIBD;
         description "RPC to enable IPv4 MRIB terminal debug options";
         input  {
             leaf vrf-name  {
@@ -80,6 +119,7 @@ module ipi-mrib {
     }
 
     rpc mrib-ipv4-terminal-debugging-off {
+        if-feature feature-list:HAVE_MRIBD;
         description "RPC to disable IPv4 MRIB terminal debug options";
         input  {
             leaf vrf-name  {
@@ -90,6 +130,312 @@ module ipi-mrib {
                 type ipi-mrib-types:mrib_debug_t;
                 mandatory true;
                 description "Disable IP MRIB debug options";
+            }
+        }
+    }
+
+    rpc mrib-ipv4-clear-mroute-all {
+        if-feature feature-list:HAVE_MRIBD;
+        description "RPC to to delete entries from the IP multicast routing table.
+                    This RPC clears the multicast route entries in the multicast route
+                    table and removes the entries from the multicast forwarder.
+                    MRIB sends a clear message to the multicast protocols. Each multicast
+                    protocol has its own clear multicast route command.
+                    The protocol-specific clear command clears multicast routes from the
+                    protocol and clears the routes from the MRIB";
+        input  {
+            leaf vrf-name  {
+                type string;
+                description "VRF Name";
+            }
+            leaf all-routes  {
+                type empty;
+                mandatory true;
+                description "All IPv4 multicast route entries";
+            }
+        }
+    }
+
+    rpc mrib-ipv4-clear-mroute-group {
+        if-feature feature-list:HAVE_MRIBD;
+        description "Use this RPC to delete entries from the IP multicast routing table
+                    based on Group Address. This attribute clears the multicast route
+                    entries in the multicast route table and removes the entries from the
+                    multicast forwarder. MRIB sends a clear message to the multicast
+                    protocols. Each multicast protocol has its own clear multicast route
+                    command. The protocol-specific clear command clears multicast routes
+                    from the protocol and clears the routes from the MRIB.";
+        input  {
+            leaf vrf-name  {
+                type string;
+                description "VRF Name";
+            }
+            leaf group-address  {
+                type inet:ipv4-address;
+                mandatory true;
+                description "IPv4 Group Address";
+            }
+        }
+    }
+
+    rpc mrib-ipv4-clear-mroute-source-group {
+        if-feature feature-list:HAVE_MRIBD;
+        description "Use this RPC to delete entries from the IP multicast routing table
+                    based on Group Address and Source Address. This attribute clears the
+                    multicast route entries in the multicast route table and removes the
+                    entries from the multicast forwarder. MRIB sends a clear message to
+                    the multicast protocols. Each multicast protocol has its own clear
+                    multicast route command. The protocol-specific clear command clears
+                    multicast routes from the protocol and clears the routes from the MRIB";
+        input  {
+            leaf vrf-name  {
+                type string;
+                description "VRF Name";
+            }
+            leaf source-address  {
+                type inet:ipv4-address;
+                mandatory true;
+                description "IPv4 Source Address";
+            }
+            leaf group-address  {
+                type inet:ipv4-address;
+                mandatory true;
+                description "IPv4 Group Address";
+            }
+        }
+    }
+
+    rpc mrib-ipv4-clear-mroute-statistics-all {
+        if-feature feature-list:HAVE_MRIBD;
+        description "Use this RPC to delete entries from the IP multicast routing table.
+                    This attribute clears the multicast route entries in the multicast
+                    route table and removes the entries from the multicast forwarder. MRIB
+                    sends a clear message to the multicast protocols. Each multicast
+                    protocol has its own clear multicast route command. The
+                    protocol-specific clear command clears multicast routes from the
+                    protocol and clears the routes from the MRIB";
+        input  {
+            leaf vrf-name  {
+                type string;
+                description "VRF Name";
+            }
+            leaf all-routes  {
+                type empty;
+                mandatory true;
+                description "All IPv4 multicast route entries";
+            }
+        }
+    }
+
+    rpc mrib-ipv4-clear-mroute-statistics-group {
+        if-feature feature-list:HAVE_MRIBD;
+        description "Use this RPC to delete entries from the IP multicast routing table
+                    statistics based on Group Address. This attribute clears the multicast
+                    route entries in the multicast route table and removes the entries
+                    from the multicast forwarder. MRIB sends a clear message to the
+                    multicast protocols. Each multicast protocol has its own clear
+                    multicast route command. The protocol-specific clear command clears
+                    multicast routes from the protocol and clears the routes from the MRIB";
+        input  {
+            leaf vrf-name  {
+                type string;
+                description "VRF Name";
+            }
+            leaf group-address  {
+                type inet:ipv4-address;
+                mandatory true;
+                description "IPv4 Group Address";
+            }
+        }
+    }
+
+    rpc mrib-ipv4-clear-mroute-statistics-source-group {
+        if-feature feature-list:HAVE_MRIBD;
+        description "Use this RPC to delete entries from the IP multicast routing table
+                    statistics based on Group and Source Address. This attribute clears
+                    the multicast route entries in the multicast route table and removes
+                    the entries from the multicast forwarder. MRIB sends a clear message
+                    to the multicast protocols. Each multicast protocol has its own clear
+                    multicast route command. The protocol-specific clear command clears
+                    multicast routes from the protocol and clears the routes from the MRIB";
+        input  {
+            leaf vrf-name  {
+                type string;
+                description "VRF Name";
+            }
+            leaf source-address  {
+                type inet:ipv4-address;
+                mandatory true;
+                description "IPv4 Source Address";
+            }
+            leaf group-address  {
+                type inet:ipv4-address;
+                mandatory true;
+                description "IPv4 Group Address";
+            }
+        }
+    }
+
+    rpc mrib-ipv4-snmp-restart {
+        if-feature feature-list:HAVE_SNMP;
+        if-feature feature-list:HAVE_MRIBD;
+        description "Use this RPC to restart snmp MRIB";
+    }
+
+    rpc mrib-ipv6-terminal-debugging-on {
+        if-feature feature-list:HAVE_MRIBD;
+        if-feature feature-list:HAVE_MCAST_IPV6;
+        description "RPC to enable IPv6 MRIB terminal debug options";
+        input  {
+            leaf vrf-name  {
+                type string;
+                description "VRF name";
+            }
+            leaf term-debug-options  {
+                type ipi-mrib-types:mrib_debug_t;
+                mandatory true;
+                description "Enable IP MRIB debug options";
+            }
+        }
+    }
+
+    rpc mrib-ipv6-terminal-debugging-off {
+        if-feature feature-list:HAVE_MRIBD;
+        if-feature feature-list:HAVE_MCAST_IPV6;
+        description "RPC to disable IPv6 MRIB terminal debug options";
+        input  {
+            leaf vrf-name  {
+                type string;
+                description "VRF name";
+            }
+            leaf term-debug-options  {
+                type ipi-mrib-types:mrib_debug_t;
+                mandatory true;
+                description "Disable IP MRIB debug options";
+            }
+        }
+    }
+
+    rpc mrib-ipv6-clear-mroute-all {
+        if-feature feature-list:HAVE_MRIBD;
+        if-feature feature-list:HAVE_MCAST_IPV6;
+        description "RPC to clear all the multicast route entries in the multicast route
+                    table.";
+        input  {
+            leaf vrf-name  {
+                type string;
+                mandatory true;
+                description "VRF name";
+            }
+            leaf all-routes  {
+                type empty;
+                mandatory true;
+                description "All IPv6 multicast route entries";
+            }
+        }
+    }
+
+    rpc mrib-ipv6-clear-mroute-group {
+        if-feature feature-list:HAVE_MRIBD;
+        if-feature feature-list:HAVE_MCAST_IPV6;
+        description "RPC to delete entries from the IPv6 multicast routing table based on
+                    Group Address";
+        input  {
+            leaf vrf-name  {
+                type string;
+                mandatory true;
+                description "VRF name";
+            }
+            leaf group-address  {
+                type inet:ipv6-address;
+                mandatory true;
+                description "IPv6 group address";
+            }
+        }
+    }
+
+    rpc mrib-ipv6-clear-mroute-source-group {
+        if-feature feature-list:HAVE_MRIBD;
+        if-feature feature-list:HAVE_MCAST_IPV6;
+        description "RPC to delete entries from the IPv6 multicast routing table based on
+                    Group and Source Address.";
+        input  {
+            leaf vrf-name  {
+                type string;
+                mandatory true;
+                description "VRF name";
+            }
+            leaf source-address  {
+                type inet:ipv6-address;
+                mandatory true;
+                description "IPv6 source address";
+            }
+            leaf group-address  {
+                type inet:ipv6-address;
+                mandatory true;
+                description "IPv6 multicast group address";
+            }
+        }
+    }
+
+    rpc mrib-ipv6-clear-mroute-statistics-all {
+        if-feature feature-list:HAVE_MRIBD;
+        if-feature feature-list:HAVE_MCAST_IPV6;
+        description "RPC to clear all entries from the IPv6 multicast routing table
+                    statistics.";
+        input  {
+            leaf vrf-name  {
+                type string;
+                mandatory true;
+                description "VRF name";
+            }
+            leaf all-routes  {
+                type empty;
+                mandatory true;
+                description "Statistics for all IPv6 multicast route entries";
+            }
+        }
+    }
+
+    rpc mrib-ipv6-clear-mroute-statistics-group {
+        if-feature feature-list:HAVE_MRIBD;
+        if-feature feature-list:HAVE_MCAST_IPV6;
+        description "RPC to delete entries from the IPv6 multicast routing table statistics
+                    based on group address.";
+        input  {
+            leaf vrf-name  {
+                type string;
+                mandatory true;
+                description "VRF name";
+            }
+            leaf group-address  {
+                type inet:ipv6-address;
+                mandatory true;
+                description "IPv6 multicast group address";
+            }
+        }
+    }
+
+    rpc mrib-ipv6-clear-mroute-statistics-source-group {
+        if-feature feature-list:HAVE_MRIBD;
+        if-feature feature-list:HAVE_MCAST_IPV6;
+        description "RPC to delete entries from the IPv6 multicast routing table statistics
+                    based on Group and Source Address.";
+        input  {
+            leaf vrf-name  {
+                type string;
+                mandatory true;
+                description "VRF name";
+            }
+            leaf source-address  {
+                type inet:ipv6-address;
+                mandatory true;
+                description "IPv6 source address";
+            }
+            leaf group-address  {
+                type inet:ipv6-address;
+                mandatory true;
+                description "IPv6 multicast group address";
             }
         }
     }

@@ -21,12 +21,12 @@ submodule ipi-bfd-session {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ipi-bfd-types {
         prefix ipi-bfd-types;
-        revision-date 2022-01-13;
+        revision-date 2022-06-20;
     }
 
     import ietf-inet-types {
@@ -36,7 +36,7 @@ submodule ipi-bfd-session {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ietf-yang-types {
@@ -44,6 +44,7 @@ submodule ipi-bfd-session {
         revision-date 2013-07-15;
     }
 
+    include ipi-mpls-bfd-session { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -57,6 +58,16 @@ submodule ipi-bfd-session {
         "Datamodel for Bidirecional Forwarding Detection (BFD) session
                 information";
 
+
+    revision "2022-06-20" {
+        description "Added interface-name attribute to bfd-session-state-common grouping";
+        reference " 0.6.1.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.6.0.";
+    }
 
     revision "2021-11-19" {
         description "Added interface-index attribute to bfd-session-state-common grouping";
@@ -389,6 +400,14 @@ submodule ipi-bfd-session {
             description "Interface index associated with this BFD session";
         } // END of interface-index definition.
 
+        leaf interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Interface name associated with this BFD session";
+        } // END of interface-name definition.
+
         leaf remote-discriminator  {
             type  string {
                 length "1..1965";
@@ -606,6 +625,7 @@ submodule ipi-bfd-session {
     description
         "BFD sessions on this interface";
     container sessions {
+        if-feature feature-list:HAVE_BFD;
         config false;
         description
             "BFD sessions on this interface";
@@ -758,6 +778,8 @@ submodule ipi-bfd-session {
                 uses bfd-session-client-state-top;
             } // END of clients-container definition.
         } // End of session-list
+        uses mpls-lsp-grouping;
+        uses mpls-te-grouping;
     } // END of sessions-container definition.
     } // END of sessions-grouping definition.
 

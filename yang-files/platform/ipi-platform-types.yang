@@ -21,6 +21,11 @@ module ipi-platform-types {
 
     prefix "ipi-platform-types";
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
     organization
         "IP Infusion Inc.";
 
@@ -33,6 +38,21 @@ module ipi-platform-types {
     description
         "YANG version of the ipi-platform-types";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.10.5.";
+    }
+
+    revision "2022-05-02" {
+        description "Added new datatype port mode config types for UFIS9600-64X / UFIS9600-32X mode";
+        reference " 0.10.4.";
+    }
+
+    revision "2022-03-08" {
+        description "Replace 'poe' by 'vendor-specific' in CMM_COMPONENT_TYPE_T datatype";
+        reference " 0.10.3.";
+    }
 
     revision "2022-02-17" {
         description "Removed invalid options from PLATFORM_FORWARDING_PROFILE_T";
@@ -178,9 +198,9 @@ module ipi-platform-types {
                 value 19;
                 description "Optical channels act as carriers for transport traffic           directed over a line system.  They are represented as           physical components in the physical inventory model";
             }
-            enum poe {
+            enum vendor-specific {
                 value 20;
-                description "Power Over Ethernet";
+                description "Vendor Specific components";
             }
         }
         description "type definition for CMM_COMPONENT_TYPE_T";
@@ -263,6 +283,20 @@ module ipi-platform-types {
         description "type definition for CMM_VIDEOPIU_STATE";
     }
 
+    typedef  cmm_raon_aodu_state {
+        type enumeration {
+            enum disable {
+                value 0;
+                description "Disable";
+            }
+            enum enable {
+                value 1;
+                description "Enable";
+            }
+        }
+        description "type definition for CMM_RAON_AODU_STATE";
+    }
+
     typedef  cmm_gps_monitor_type_t {
         type enumeration {
             enum stop {
@@ -321,34 +355,66 @@ module ipi-platform-types {
         description "type definition for CML_CMM_POWER_RAIL_T";
     }
 
-    typedef  platform_port_config_type_t {
+    typedef  platform_ufis9510_28dc_port_mode_type_t {
         type enumeration {
             enum mode1 {
                 value 1;
-                description "2X400G + 8X10G (ORG: 100G) + 12X10G (ORG: 25G)";
+                description "2X400G + 2X100G + 24X25G (Default)";
             }
             enum mode2 {
                 value 2;
-                description "2X100G (ORG:400) + 2X100G + 24X25G";
+                description "2X100G (port-0 and port-1 as 100G) + 2X100G + 24X25G";
             }
             enum mode3 {
                 value 3;
-                description "2X400G + 2X40G (ORG: 100G) + 12X10G (ORG: 25G) = 1000G";
-            }
-            enum mode5 {
-                value 4;
-                description "16X25G (FlexE) = 400G; 2x100G + 24x25G = 800G";
-            }
-            enum mode6 {
-                value 5;
-                description "1X400G (PM50-0) = 400G; 8X10G + 8X10G + 24X10G = 400G";
-            }
-            enum mode7 {
-                value 6;
-                description "1X400G (PM50-1) = 400G; 8X10G + 8X10G + 24X10G = 400G";
+                description "1X400G (port-0 as 400G) + 1X100G (port-1 as 100G) + 2X100G + 24X25G";
             }
         }
-        description "type definition for PLATFORM_PORT_CONFIG_TYPE_T";
+        description "type definition for PLATFORM_UFIS9510_28DC_PORT_MODE_TYPE_T";
+    }
+
+    typedef  platform_ufis9600_64x_port_mode_type_t {
+        type enumeration {
+            enum mode1 {
+                value 1;
+                description "64X100G (Default)";
+            }
+            enum mode2 {
+                value 2;
+                description "4X1G  + 63X100G (ce0 breakout to 4X1G)";
+            }
+            enum mode3 {
+                value 3;
+                description "4X10G + 63X100G (ce0 breakout to 4X10G)";
+            }
+            enum mode4 {
+                value 4;
+                description "4X25G + 63X100G (ce0 breakout to 4X25G)";
+            }
+        }
+        description "type definition for PLATFORM_UFIS9600_64X_PORT_MODE_TYPE_T";
+    }
+
+    typedef  platform_ufis9600_32x_port_mode_type_t {
+        type enumeration {
+            enum mode1 {
+                value 1;
+                description "32X100G (Default)";
+            }
+            enum mode2 {
+                value 2;
+                description "4X1G  + 31X100G (ce0 breakout to 4X1G)";
+            }
+            enum mode3 {
+                value 3;
+                description "4X10G + 31X100G (ce0 breakout to 4X10G)";
+            }
+            enum mode4 {
+                value 4;
+                description "4X25G + 31X100G (ce0 breakout to 4X25G)";
+            }
+        }
+        description "type definition for PLATFORM_UFIS9600_32X_PORT_MODE_TYPE_T";
     }
 
     typedef  platform_qos_queue_profile_type_t {
@@ -441,117 +507,214 @@ module ipi-platform-types {
 
     typedef  platform_cpu_queue_name_t {
         type enumeration {
-            enum cpu.q0 {
-                value 0;
-                description "cpu.q0";
-            }
             enum cpu.q1 {
                 value 1;
+                if-feature feature-list:HAVE_DUNE;
                 description "cpu.q1";
             }
             enum cpu.q2 {
                 value 2;
+                if-feature feature-list:HAVE_DUNE;
                 description "cpu.q2";
             }
             enum cpu.q3 {
                 value 3;
+                if-feature feature-list:HAVE_DUNE;
                 description "cpu.q3";
-            }
-            enum cpu.q4 {
-                value 4;
-                description "cpu.q4";
-            }
-            enum cpu.q5 {
-                value 5;
-                description "cpu.q5";
             }
             enum cpu.q6 {
                 value 6;
+                if-feature feature-list:HAVE_DUNE;
                 description "cpu.q6";
             }
             enum cpu.q7 {
                 value 7;
+                if-feature feature-list:HAVE_DUNE;
                 description "cpu.q7";
             }
-            enum igmp {
-                value 16;
-                description "IGMP queue parameters";
+            enum vrrp {
+                value 11;
+                if-feature feature-list:HAVE_VRRPD;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "VRRP queue parameters";
             }
-            enum isis {
-                value 17;
-                description "ISIS queue parameters";
+            enum ldp-rsvp {
+                value 12;
+                if-feature feature-list:HAVE_MPLS;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "LDP-RSVP queue parameters";
             }
-            enum reserved-mc {
-                value 18;
-                description "reserved-mc queue parameters";
+            enum rip {
+                value 13;
+                if-feature feature-list:HAVE_RIPD;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "RIP queue parameters";
             }
-            enum link-local {
-                value 19;
-                description "Link-local  queue parameters";
-            }
-            enum ospf {
-                value 20;
-                description "OSPF queue parameters";
-            }
-            enum bgp {
-                value 21;
-                description "BGP queue parameters";
-            }
-            enum vrrp-rip-dhcp {
-                value 23;
-                description "VRRP/RIP/DHCP queue parameters";
-            }
-            enum pim {
-                value 24;
-                description "PIM queue parameters";
-            }
-            enum icmp {
-                value 25;
-                description "ICMP queue parameters";
-            }
-            enum arp {
-                value 26;
-                description "ARP queue parameters";
-            }
-            enum bpdu {
-                value 27;
-                description "BPDU queue parameters";
+            enum dhcp {
+                value 15;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "DHCP queue parameters";
             }
             enum oamp {
                 value 28;
+                if-feature feature-list:HAVE_DUNE;
                 description "OAMP queue parameters";
-            }
-            enum sflow {
-                value 29;
-                description "sflow queue parameters";
-            }
-            enum dsp {
-                value 30;
-                description "DSP queue parameters";
-            }
-            enum evpn {
-                value 31;
-                description "EVPN queue parameters";
             }
             enum nhop {
                 value 32;
+                if-feature feature-list:HAVE_DUNE;
                 description "nhop queue parameters";
             }
             enum mgmt-route-leak {
                 value 33;
+                if-feature feature-list:HAVE_DUNE;
                 description "nhop queue parameters";
             }
             enum icmp-redirect {
                 value 34;
+                if-feature feature-list:HAVE_DUNE;
                 description "ICMP-redirect queue parameters";
+            }
+            enum guest {
+                value 35;
+                if-feature feature-list:HAVE_DUNE;
+                if-feature feature-list:HAVE_GUEST_VM;
+                description "Guest queue parameters";
             }
             enum cfm {
                 value 36;
+                if-feature feature-list:HAVE_DUNE;
                 description "CFM Error queue parameters";
             }
+            enum cpu.q0 {
+                if-feature feature-list:HAVE_DUNE;
+                description "cpu.q0";
+            }
+            enum best-effort {
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "Best-effort queue parameters";
+            }
+            enum cpu.q4 {
+                if-feature feature-list:HAVE_DUNE;
+                description "cpu.q4";
+            }
+            enum ipmc-miss {
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "IPMC-Miss  queue parameters";
+            }
+            enum cpu.q5 {
+                if-feature feature-list:HAVE_DUNE;
+                description "cpu.q5";
+            }
+            enum l3-miss {
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "L3-Miss queue parameters";
+            }
+            enum sflow {
+                if-feature feature-list:HAVE_SFLOW;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "SFLOW queue parameters";
+            }
+            enum bgp {
+                if-feature feature-list:HAVE_BGPD;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "BGP queue parameters";
+            }
+            enum ospf {
+                if-feature feature-list:HAVE_OSPFD;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "OSPF queue parameters";
+            }
+            enum igmp {
+                if-feature feature-list:HAVE_DUNE;
+                description "IGMP queue parameters";
+            }
+            enum nd {
+                if-feature feature-list:HAVE_IPV6;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "ND queue parameters";
+            }
+            enum isis {
+                if-feature feature-list:HAVE_DUNE;
+                if-feature feature-list:HAVE_ISISD;
+                description "ISIS queue parameters";
+            }
+            enum mpls {
+                if-feature feature-list:HAVE_MPLS;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "MPLS queue parameters (For GAL label mpls oam packets)";
+            }
+            enum reserved-mc {
+                if-feature feature-list:HAVE_DUNE;
+                description "reserved-mc queue parameters";
+            }
+            enum pim {
+                if-feature feature-list:HAVE_PIMD;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "PIM queue parameters";
+            }
+            enum link-local {
+                if-feature feature-list:HAVE_DUNE;
+                description "Link-local  queue parameters";
+            }
+            enum arp {
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "ARP queue parameters";
+            }
+            enum bpdu {
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "BPDU queue parameters";
+            }
+            enum rsvp-ldp {
+                if-feature feature-list:HAVE_DUNE;
+                if-feature feature-list:HAVE_MPLS;
+                description "RSVP/LDP queue parameters";
+            }
+            enum ccm {
+                if-feature feature-list:HAVE_CFM;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "CCM queue parameters";
+            }
+            enum vrrp-rip-dhcp {
+                if-feature feature-list:HAVE_DUNE;
+                description "VRRP/RIP/DHCP queue parameters";
+            }
             enum bfd {
-                value 37;
+                if-feature feature-list:HAVE_BFD;
+                if-feature feature-list:NOT_HAVE_DUNE;
                 description "BFD queue parameters";
+            }
+            enum ptp {
+                if-feature feature-list:HAVE_PTPD;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "PTP queue parameters";
+            }
+            enum icmp {
+                if-feature feature-list:HAVE_DUNE;
+                description "ICMP queue parameters";
+            }
+            enum trill-isis {
+                if-feature feature-list:HAVE_TRILLD;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "TRILL queue parameters";
+            }
+            enum dsp {
+                if-feature feature-list:HAVE_DUNE;
+                description "DSP queue parameters";
+            }
+            enum acl {
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "ACL queue parameters (for acl logging)";
+            }
+            enum evpn {
+                if-feature feature-list:HAVE_DUNE;
+                if-feature feature-list:HAVE_BGP_EVPN;
+                description "EVPN queue parameters";
+            }
+            enum vxlan {
+                if-feature feature-list:HAVE_VXLAN;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                description "VXLAN queue parameters";
             }
         }
         description "type definition for PLATFORM_CPU_QUEUE_NAME_T";

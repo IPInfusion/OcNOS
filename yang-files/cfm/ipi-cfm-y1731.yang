@@ -19,6 +19,11 @@ submodule ipi-cfm-y1731 {
 
     belongs-to  ipi-cfm { prefix ipi-cfm; }
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
     import ietf-yang-types {
         prefix yang;
         revision-date 2013-07-15;
@@ -26,14 +31,15 @@ submodule ipi-cfm-y1731 {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-01-07;
+        revision-date 2022-04-04;
     }
 
     import ipi-cfm-data-types {
         prefix ipi-cfm-data-types;
-        revision-date 2018-12-06;
+        revision-date 2022-06-01;
     }
 
+    include ipi-cfm-common { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -47,82 +53,403 @@ submodule ipi-cfm-y1731 {
         "Data model for IPI CFM Y.1731 Configuration and Operational state";
 
 
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.3.";
+    }
+
+    revision "2022-05-31" {
+        description "Updated data type for LM/DM message interval";
+        reference " 0.4.2.";
+    }
+
+    revision "2022-05-26" {
+        description "Added support to make rmep parameter for ETH-LM to take RMEPID or RMAC as input as per MEF";
+        reference " 0.4.1.";
+    }
+
+    revision "2022-04-29" {
+        description "Restructure CFM and Y.1731 over MPLS components to OpenConfig style and enable NETCONF support";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-04-25" {
+        description "Enabled Y1731 LM DM support for non-hardware offload";
+        reference " 0.3.1.";
+    }
+
+    revision "2022-04-21" {
+        description "Made ma-name a mandatory parameter for ping, traceroute, LM and DM CLIs";
+        reference " 0.3.0.";
+    }
+
+    revision "2022-04-15" {
+        description "Addition of GetAPI for CSF module";
+        reference " 0.2.9.";
+    }
+
+    revision "2022-04-13" {
+        description "Removed bridge and vlan dependency from LB, LT, LM and DM RPCs";
+        reference " 0.2.7.";
+    }
+
+    revision "2022-04-12" {
+        description "Removed bridge and vlan dependency from TST,Clear and Abort RPCs for LM and DM";
+        reference " 0.2.8.";
+    }
+
+    revision "2022-04-10" {
+        description "Removed ETH-BN hold-off-timer attribute";
+        reference " 0.2.6.";
+    }
+
+    revision "2022-04-09" {
+        description "elapsed-time state attribute for ethernet-test-signal container is changed from uint8 to uint32";
+        reference " 0.2.5.";
+    }
+
+    revision "2022-04-08" {
+        description "Addition of new ETH-BN CLIs and NETCONF support";
+        reference " 0.2.4.";
+    }
+
+    revision "2022-04-07" {
+        description "Added support for ETH-BN peer port ID";
+        reference " 0.2.3.";
+    }
+
+    revision "2022-04-05" {
+        description "Added support for Client Signal Fail (CSF) feature";
+        reference " 0.2.2.";
+    }
+
+    revision "2022-03-22" {
+        description "Addition of new ETH-BN bw-margin and min-transmit-threshold CLIs";
+        reference " 0.2.1.";
+    }
+
+    revision "2022-03-10" {
+        description "Restructure LB, LT and CFM Y.1731 L2 bridge dependent CLIs to OpenConfig style";
+        reference " 0.2.0.";
+    }
+
     revision "2021-12-09" {
         description "Initial version";
         reference " 0.1.0.";
     }
 
+    grouping bn-bw-margin-config {
+        description
+            "Grouping for BN bw-margin configuration";
+        leaf rate  {
+            when " /cfm/maintenance-domains/maintenance-domain/maintenance-associations/maintenance-association/maintenance-end-points/maintenance-end-point/ethernet-bandwidth-notification/bw-margin/config/rate-unit ";
+            type  uint32 {
+                 range "1..1000000000"  {
+                    description "1..1000000000: Supported range 1 - 1000000000";
+                 }
+            }
+            mandatory true;
+            description "Bandwidth margin";
+        } // END of rate definition.
+
+        leaf rate-unit  {
+            when " /cfm/maintenance-domains/maintenance-domain/maintenance-associations/maintenance-association/maintenance-end-points/maintenance-end-point/ethernet-bandwidth-notification/bw-margin/config/rate ";
+            type  ipi-cfm-data-types:cfm_ebn_rate_unit_extended_t;
+            mandatory true;
+            description "Use this attribute to set bandwidth margin rate unit";
+        } // END of rate-unit definition.
+
+    } // END of bn-bw-margin-config definition.
+    grouping bn-min-transmit-threshold-config {
+        description
+            "Grouping for BN minimum-transmit-threshold configuration";
+        leaf rate  {
+            when " /cfm/maintenance-domains/maintenance-domain/maintenance-associations/maintenance-association/maintenance-end-points/maintenance-end-point/ethernet-bandwidth-notification/min-transmit-threshold/config/rate-unit ";
+            type  uint32 {
+                 range "1..1000000000"  {
+                    description "1..1000000000: Supported range 1 - 1000000000";
+                 }
+            }
+            mandatory true;
+            description "Minimum transmit threshold";
+        } // END of rate definition.
+
+        leaf rate-unit  {
+            when " /cfm/maintenance-domains/maintenance-domain/maintenance-associations/maintenance-association/maintenance-end-points/maintenance-end-point/ethernet-bandwidth-notification/min-transmit-threshold/config/rate ";
+            type  ipi-cfm-data-types:cfm_ebn_rate_unit_t;
+            mandatory true;
+            description "Minimum transmit threshold rate-unit";
+        } // END of rate-unit definition.
+
+    } // END of bn-min-transmit-threshold-config definition.
+    grouping bn-bw-margin-top {
+        description
+            "Grouping for BN bw-margin";
+        container bw-margin {
+            if-feature feature-list:HAVE_LINK_BONDING;
+            description
+                "Configuration data for BN bw-margin";
+            container config {
+                presence "bn-bw-margin";
+                description
+                    "Configuration data for bw-margin";
+                uses bn-bw-margin-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Configuration data for bw-margin";
+                uses bn-bw-margin-config;
+            } // END of state-container definition.
+        } // END of bw-margin-container definition.
+    } // END of bn-bw-margin-top definition.
+    grouping bn-min-transmit-threshold-top {
+        description
+            "Grouping for BN min-transmit-threshold";
+        container min-transmit-threshold {
+            if-feature feature-list:HAVE_LINK_BONDING;
+            description
+                "Configuration data for BN min-transmit-threshold";
+            container config {
+                presence "bn-min-transmit-threshold";
+                description
+                    "Configuration data for min-transmit-threshold";
+                uses bn-min-transmit-threshold-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Configuration data for min-transmit-threshold";
+                uses bn-min-transmit-threshold-config;
+            } // END of state-container definition.
+        } // END of min-transmit-threshold-container definition.
+    } // END of bn-min-transmit-threshold-top definition.
     grouping bandwidth-notification-parameters-config {
         description
             "Configuration data definitions related to Ethernet Bandwidth
                         Notification";
-        leaf status  {
-            type  cml-data-types:cml_enable_disable_t;
+        leaf enable-receive  {
+            type  empty;
             mandatory true;
             description "This attribute is used to enable or disable Ethernet Bandwidth
                         Notification (ETH-BN)";
-        } // END of status definition.
-
-        leaf minimum-bandwidth  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "This attribute sets the minimum bandwidth of the physical interface";
-        } // END of minimum-bandwidth definition.
-
-        leaf hold-off-timer  {
-            type  uint16 {
-                 range "0..600"  {
-                    description "0..600:Enter the hold-off timer in seconds";
-                 }
-            }
-            units "seconds";
-            description "This attribute sets the wait time before bandwidth degradation";
-        } // END of hold-off-timer definition.
+        } // END of enable-receive definition.
 
         leaf wait-to-restore-timer  {
             type  uint32 {
                  range "0..86400"  {
-                    description "0..86400:Enter the wait-to-restore timer in seconds";
+                    description "0..86400: Supported range 0 - 86400";
                  }
             }
             units "seconds";
+            default "10";
             description "This attribute sets the time to wait before nominal bandwidth is set";
         } // END of wait-to-restore-timer definition.
 
+        leaf peer-port-id  {
+            type  uint32 {
+                 range "1..4294967295"  {
+                    description "1..4294967295: Supported range 1 - 4294967295";
+                 }
+            }
+            description "This attribute sets the peer port id used to map the received ETH-BN
+                        frame";
+        } // END of peer-port-id definition.
+
     } // END of bandwidth-notification-parameters-config definition.
+    grouping bandwidth-notification-state {
+        description
+            "Grouping for ethernet bandwidth notification state parameters";
+        leaf nominal-bandwidth  {
+            type  string {
+                length "1..1965";
+            }
+            units "Mbps";
+            description "This attribute specifies the nominal bandwidth received in the ETH-BN
+                        packet";
+        } // END of nominal-bandwidth definition.
+
+        leaf current-bandwidth  {
+            type  string {
+                length "1..1965";
+            }
+            units "Mbps";
+            description "This attribute specifies the current bandwidth received in the ETH-BN
+                        packet";
+        } // END of current-bandwidth definition.
+
+        leaf signal-state  {
+            type  ipi-cfm-data-types:cfm_bn_csf_signal_state_t;
+            description "This attribute specifies whether the signal is normal, pending or
+                        degraded";
+        } // END of signal-state definition.
+
+        leaf messages-received  {
+            type  yang:zero-based-counter32;
+            description "This attribute contains the count of the total number of ETH-BN
+                        messages received";
+        } // END of messages-received definition.
+
+        leaf messages-dropped  {
+            type  yang:zero-based-counter32;
+            description "This attribute contains the count of the total number of ETH-BN
+                        messages dropped";
+        } // END of messages-dropped definition.
+
+        leaf last-message-received-time  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specifies the last ETH-BN message received";
+        } // END of last-message-received-time definition.
+
+        leaf message-rx-interval  {
+            type  uint8;
+            units "seconds";
+            description "This attribute specifies the message interval received in ETH-BN
+                        packet";
+        } // END of message-rx-interval definition.
+
+        leaf peer-mac-address  {
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
+            description "This object specifies MAC address of the peer MEP from where ETH-BN
+                        frames are received";
+        } // END of peer-mac-address definition.
+
+        leaf mep-interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specifies on which interface ETH-BN packets are
+                        received";
+        } // END of mep-interface-name definition.
+
+        leaf wait-to-restore-time-remaining  {
+            type  uint32;
+            units "seconds";
+            description "This attribute specifies the wait-to-restore-time remaining";
+        } // END of wait-to-restore-time-remaining definition.
+
+        leaf peer-port-identifier  {
+            type  uint32;
+            description "This attribute specifies a unique identifier for the port that is
+                        needed in multipoint MEGs if frames with ETH-BN information about
+                        different ports would otherwise be identical";
+        } // END of peer-port-identifier definition.
+
+        leaf curr-state-elapsed-time  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specifies the elapsed time in this current signal state";
+        } // END of curr-state-elapsed-time definition.
+
+    } // END of bandwidth-notification-state definition.
+    grouping client-signal-fail-parameters-config {
+        description
+            "Configuration data definitions related to Ethernet Client Signal Fail";
+        leaf enable-receive  {
+            type  empty;
+            mandatory true;
+            description "This attribute is used to enable or disable Client Signal Fail (CSF)";
+        } // END of enable-receive definition.
+
+        leaf wait-to-restore-timer  {
+            type  uint32 {
+                 range "0..86400"  {
+                    description "0..86400: Supported range 0 - 86400";
+                 }
+            }
+            units "seconds";
+            default "10";
+            description "This attribute sets the time to wait before nominal bandwidth is set";
+        } // END of wait-to-restore-timer definition.
+
+    } // END of client-signal-fail-parameters-config definition.
+    grouping client-signal-fail-state {
+        description
+            "Grouping for ethernet client signal fail state parameters";
+        leaf signal-state  {
+            type  ipi-cfm-data-types:cfm_bn_csf_signal_state_t;
+            description "This attribute specifies whether the signal is normal, pending or
+                        degraded";
+        } // END of signal-state definition.
+
+        leaf messages-received  {
+            type  yang:zero-based-counter32;
+            description "This attribute contains the count of the total number of CSF messages
+                        received";
+        } // END of messages-received definition.
+
+        leaf last-message-received-time  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specifies the last CSF message received";
+        } // END of last-message-received-time definition.
+
+        leaf message-rx-interval  {
+            type  uint8;
+            units "seconds";
+            description "This attribute specifies the received message interval";
+        } // END of message-rx-interval definition.
+
+        leaf peer-mac-address  {
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
+            description "This object specifies MAC address of the peer MEP from where CSF
+                        frames are received";
+        } // END of peer-mac-address definition.
+
+        leaf mep-interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specifies on which interface CSF packets are received";
+        } // END of mep-interface-name definition.
+
+    } // END of client-signal-fail-state definition.
     grouping locked-signal-parameters-config {
         description
             "Configuration data definitions related to the administrative locking
                         state of the MEP";
         leaf lock-state  {
             type  ipi-cfm-data-types:cfm_mep_lck_t;
-            default "unlock";
+            mandatory true;
             description "This attribute specifies the locking state";
         } // END of lock-state definition.
 
         leaf client-md-level  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Enter the client MD level for ETH-LCK transmission";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
+            default "0";
             description "The Maintenance Domain Level of the Client LCK PDU (transmitted level)";
         } // END of client-md-level definition.
 
         leaf interval  {
             type  ipi-cfm-data-types:cfm_y1731_tx_interval_t;
-            default "one-second";
+            default "1s";
             description "This attribute specifies the ETH-LCK transmission period";
         } // END of interval definition.
 
         leaf priority  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Enter the priority for ETH-LCK transmission PDU";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
+            default "3";
             description "This attribute specifies the priority of frames with ETH-LCK
                         information";
         } // END of priority definition.
@@ -159,45 +486,653 @@ submodule ipi-cfm-y1731 {
             "Configuration data definitions augmenting the CFM MEP with parameters
                         related to ETH-AIS";
         leaf enable-status  {
-            type  cml-data-types:cml_enable_disable_t;
-            default "disable";
+            type  empty;
+            mandatory true;
             description "This attribute specifies whether ETH-AIS transmission is enabled";
         } // END of enable-status definition.
 
         leaf client-md-level  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Enter the client MD level for ETH-AIS transmission";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
+            mandatory true;
             description "The Maintenance Domain Level of the Client ETH-AIS PDU (transmitted
                         level)";
         } // END of client-md-level definition.
 
         leaf interval  {
             type  ipi-cfm-data-types:cfm_y1731_tx_interval_t;
-            default "one-second";
+            default "1s";
             description "This attribute specifies the ETH-AIS transmission period";
         } // END of interval definition.
 
     } // END of alarm-indication-signal-parameters-config definition.
-    grouping mep-y1731-responder-parameters-config {
+    grouping alarm-indication-signal-state {
         description
-            "Configuration data definitions for making a CFM MEP as PM responder";
-        leaf lm-responder-enabled  {
-            type  ipi-cfm-data-types:cfm_lm_measurement_type_reply_t;
-            default "slm";
-            description "Enable the MEP to respond for each Loss Measurement Message(LMM)";
-        } // END of lm-responder-enabled definition.
-
-        leaf dm-responder-enabled  {
+            "Grouping for ethernet alarm indication signal state parameters";
+        leaf is-ais-frame-received  {
             type  boolean;
-            default false;
-            description "Enable the MEP to respond with Delay Measurement Reply(DMR) for each
-                        Delay Measurement Message(DMM) of the peer";
-        } // END of dm-responder-enabled definition.
+            description "This attribute specifies whether ETH-AIS is enabled on MEP";
+        } // END of is-ais-frame-received definition.
 
-    } // END of mep-y1731-responder-parameters-config definition.
+    } // END of alarm-indication-signal-state definition.
+    grouping test-signal-parameters-config {
+        description
+            "This grouping includes data definitions related to generating and
+                        receiving test signals (ETH-Test) frames";
+        leaf profile-name  {
+            type  string {
+                length "1..64";
+                pattern "[a-zA-Z0-9_-]*";
+            }
+            description "This attribute contains the profile name for the ETH-TST Session";
+        } // END of profile-name definition.
+
+        leaf mode  {
+            type  ipi-cfm-data-types:cfm_test_mode_t;
+            default "receiver";
+            description "This attribute indicates the MEP is acting in the role of a generator
+                        or receiver or both";
+        } // END of mode definition.
+
+        leaf test-type  {
+            when " /cfm/ethernet-test-signal-profiles/ethernet-test-signal-profile/config/mode != 2 ";
+            type  ipi-cfm-data-types:cfm_test_type_t;
+            default "in-service";
+            description "This attribute specifies whether it is service interrupting or not";
+        } // END of test-type definition.
+
+        leaf frame-size  {
+            when " /cfm/ethernet-test-signal-profiles/ethernet-test-signal-profile/config/mode != 2 ";
+            type  uint32 {
+                 range "68..9600"  {
+                    description "68..9600: Supported range 68 - 9600";
+                 }
+            }
+            units "bytes";
+            default "68";
+            description "This attribute specifies the ETH-Test Ethernet frame size between 68
+                        bytes and the maximum transmission unit of the EVC";
+        } // END of frame-size definition.
+
+        leaf pattern-type  {
+            type  ipi-cfm-data-types:cfm_test_pattern_type_t;
+            default "null-sig";
+            description "This attribute specifies an arbitrary element to include in the Data
+                        TLV";
+        } // END of pattern-type definition.
+
+    } // END of test-signal-parameters-config definition.
+    grouping test-signal-session-state {
+        description
+            "This grouping includes data definitions related to ETH-TST session";
+        leaf rmep-id  {
+            type  uint16;
+            description "This object specifies MEP ID of the peer MEP for which ETH-Test is
+                        intended";
+        } // END of rmep-id definition.
+
+        leaf peer-mac-address  {
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
+            description "This object specifies MAC address of the peer MEP for which ETH-Test
+                        is intended";
+        } // END of peer-mac-address definition.
+
+        leaf session-status  {
+            type  ipi-cfm-data-types:cfm_tst_session_status_t;
+            description "This object specifies the status of session whether it's in-progress
+                        or completed";
+        } // END of session-status definition.
+
+        leaf start-time  {
+            type  yang:date-and-time {
+                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                }
+                description "This object specifies the start time of ETH-Test session";
+            } // END of start-time definition.
+
+            leaf end-time  {
+                type  yang:date-and-time {
+                    pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                    }
+                    description "This object specifies the end time of ETH-Test session";
+                } // END of end-time definition.
+
+                leaf elapsed-time  {
+                    type  uint32;
+                    units "seconds";
+                    description "This object specifies the length of time that the session ran for, in
+                                seconds";
+                } // END of elapsed-time definition.
+
+    } // END of test-signal-session-state definition.
+    grouping test-signal-counters-state {
+        description
+            "This grouping includes data definitions related to TST frames sent and
+                        received";
+        leaf in-test-frames  {
+            type  yang:zero-based-counter64;
+            description "This object contains the count of the total number of TST frames
+                        received. The count is incremented when a message is received with or
+                        without errors.";
+        } // END of in-test-frames definition.
+
+        leaf in-out-of-order-frames  {
+            type  yang:zero-based-counter64;
+            description "This object contains the count of the total number of valid,
+                        out-of-order TST frameTST frames received. The count is incremented
+                        when the sequence number in the TST frame received does not match the
+                        expected sequence number.";
+        } // END of in-out-of-order-frames definition.
+
+        leaf in-ber-error-frames  {
+            type  yang:zero-based-counter64;
+            description "This object contains the count of the total number of TST frames
+                        received with BER or data errors. The count is incremented when the
+                        bit pattern in the received TST frame does not match the expected bit
+                        pattern";
+        } // END of in-ber-error-frames definition.
+
+        leaf last-packet-sequence-number  {
+            type  uint64;
+            description "This object specifies the sequence number for the last TST packet
+                        received";
+        } // END of last-packet-sequence-number definition.
+
+        leaf out-test-frames  {
+            type  yang:zero-based-counter64;
+            description "This object contains the count of the total number of TST frames
+                        transmitted.";
+        } // END of out-test-frames definition.
+
+    } // END of test-signal-counters-state definition.
+    grouping ethernet-test-signal-profiles-top {
+        description
+            "Top level grouping for ethernet test signal profile";
+
+        list ethernet-test-signal-profile {
+            key "profile-name";
+            description
+                "Test signal profile config information";
+            leaf profile-name  {
+                type  leafref {
+                    path  "../config/profile-name";
+                }
+                description "This attribute contains the profile name for the ETH-TST Session";
+            } // END of profile-name definition.
+
+            container config {
+                description
+                    "Configuration data for ethernet test signal profile";
+                uses test-signal-parameters-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for ethernet test signal profile";
+                uses test-signal-parameters-config;
+            } // END of state-container definition.
+        } // End of ethernet-test-signal-profile-list
+    } // END of ethernet-test-signal-profiles-top definition.
+    grouping cfm-loss-measurement-profile-config {
+        description
+            "Configuration data definitions related to Loss Measurement Profile";
+        leaf profile-name  {
+            type  string {
+                length "1..64";
+                pattern "[a-zA-Z0-9_-]*";
+            }
+            description "This attribute specifies the profile name for the SOAM LM Session";
+        } // END of profile-name definition.
+
+        leaf measurement-type  {
+            type  ipi-cfm-data-types:cfm_lm_measurement_type_t;
+            default "slm";
+            description "This attribute specifies the measurement type for the SOAM LM Session";
+        } // END of measurement-type definition.
+
+        leaf measurement-interval  {
+            type  uint32 {
+                 range "1..525600"  {
+                    description "1..525600: Supported range 1 - 525600";
+                 }
+            }
+            units "minutes";
+            default "15";
+            description "This attribute specifies the measurement interval for the SOAM LM
+                        Session";
+        } // END of measurement-interval definition.
+
+        leaf message-period  {
+            type  ipi-cfm-data-types:cfm_msg_interval_t;
+            default "1s";
+            description "This attribute specifies the message period for the SOAM LM Session";
+        } // END of message-period definition.
+
+        leaf intervals-stored  {
+            type  uint16 {
+                 range "2..1000"  {
+                    description "2..1000: Supported range 2 - 1000";
+                 }
+            }
+            default "32";
+            description "This attribute specifies the stored interval for the SOAM LM Session";
+        } // END of intervals-stored definition.
+
+    } // END of cfm-loss-measurement-profile-config definition.
+    grouping cfm-delay-measurement-profile-config {
+        description
+            "Configuration data definitions related to Delay Measurement Profile";
+        leaf profile-name  {
+            type  string {
+                length "1..64";
+                pattern "[a-zA-Z0-9_-]*";
+            }
+            description "This attribute specifies the profile name for the SOAM DM Session";
+        } // END of profile-name definition.
+
+        leaf measurement-interval  {
+            type  uint16 {
+                 range "1..1440"  {
+                    description "1..1440: Supported range 1 - 1440";
+                 }
+            }
+            units "minutes";
+            default "15";
+            description "This attribute specifies the measurement interval for the SOAM DM
+                        Session";
+        } // END of measurement-interval definition.
+
+        leaf message-period  {
+            type  ipi-cfm-data-types:cfm_msg_interval_t;
+            default "1s";
+            description "This attribute specifies the message period for the SOAM DM Session";
+        } // END of message-period definition.
+
+        leaf intervals-stored  {
+            type  uint16 {
+                 range "2..1000"  {
+                    description "2..1000: Supported range 2 - 1000";
+                 }
+            }
+            default "32";
+            description "This attribute specifies the intervals stored for the SOAM DM Session";
+        } // END of intervals-stored definition.
+
+        leaf bins-per-fd-interval  {
+            type  uint8 {
+                 range "2..10"  {
+                    description "2..10: Supported range 2 - 10";
+                 }
+            }
+            default "3";
+            description "This attribute specifies the bins per fd interval for the SOAM DM
+                        Session";
+        } // END of bins-per-fd-interval definition.
+
+        leaf bins-per-ifdv-interval  {
+            type  uint8 {
+                 range "2..10"  {
+                    description "2..10: Supported range 2 - 10";
+                 }
+            }
+            default "2";
+            description "This attribute specifies the bins per ifdv interval for the SOAM DM
+                        Session";
+        } // END of bins-per-ifdv-interval definition.
+
+    } // END of cfm-delay-measurement-profile-config definition.
+    grouping cfm-delay-measurement-profile-bin-config {
+        description
+            "Configuration data definitions related to Delay Measurement Bin
+                        Thresholds";
+        leaf type  {
+            type  ipi-cfm-data-types:cfm_dm_measurement_bin_type_t;
+            description "This object specifies whether the bin number is for Frame Delay,
+                        Inter-Frame Delay Variation or Frame Delay Range";
+        } // END of type definition.
+
+        leaf bin-number  {
+            type  uint8 {
+                 range "2..10"  {
+                    description "2..10: Supported range 2 - 10";
+                 }
+            }
+            description "This object specifies the bin number for the configured boundary";
+        } // END of bin-number definition.
+
+        leaf threshold  {
+            type  uint32 {
+                 range "1..4294967294"  {
+                    description "1..4294967294: Supported range 1 - 4294967294";
+                 }
+            }
+            units "microseconds";
+            mandatory true;
+            description "This object specifies the lower boundary for a measurement bin. The
+                        measurementboundary for each measurement bin is to be larger than the
+                        measurement boundary of the preceding measurement bin";
+        } // END of threshold definition.
+
+    } // END of cfm-delay-measurement-profile-bin-config definition.
+    grouping cfm-delay-measurement-profile-bin-top {
+        description
+            "Top level configuration data definitions related to Delay Measurement
+                        Bin Thresholds";
+        container bin-thresholds {
+            description
+                "Enclosing container for the list of Delay Measurement Bin Thresholds";
+
+            list bin-threshold {
+                key "type bin-number";
+                description
+                    "List of Delay Measurement Bin Thresholds";
+                leaf type  {
+                    type  leafref {
+                        path  "../config/type";
+                    }
+                    description "This object specifies whether the bin number is for Frame Delay,
+                                Inter-Frame Delay Variation or Frame Delay Range";
+                } // END of type definition.
+
+                leaf bin-number  {
+                    type  leafref {
+                        path  "../config/bin-number";
+                    }
+                    description "This object specifies the bin number for the configured boundary";
+                } // END of bin-number definition.
+
+                container config {
+                    description
+                        "Configuration data for Delay Measurement Bin Thresholds";
+                    uses cfm-delay-measurement-profile-bin-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational data for CFM Y.1731 Ethernet Delay Measurement Bin
+                                Thresholds";
+                    uses cfm-delay-measurement-profile-bin-config;
+                } // END of state-container definition.
+            } // End of bin-threshold-list
+        } // END of bin-thresholds-container definition.
+    } // END of cfm-delay-measurement-profile-bin-top definition.
+
+    grouping  ethernet-bandwidth-notification-grouping {
+    description
+        "Augments to support the ETH-BN functionality";
+    container ethernet-bandwidth-notification {
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "Augments to support the ETH-BN functionality";
+        container config {
+            presence "Enable Ethernet Bandwidth Notification";
+            description
+                "Configuration data for CFM Y.1731 Ethernet Bandwidth Notification";
+            uses bandwidth-notification-parameters-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Operational data for CFM Y.1731 Ethernet Bandwidth Notification";
+            uses bandwidth-notification-parameters-config;
+            uses bandwidth-notification-state;
+        } // END of state-container definition.
+        uses bn-bw-margin-top;
+        uses bn-min-transmit-threshold-top;
+    } // END of ethernet-bandwidth-notification-container definition.
+    } // END of ethernet-bandwidth-notification-grouping definition.
+
+    grouping  ethernet-client-signal-fail-grouping {
+    description
+        "Augments to support the CSF functionality";
+    container ethernet-client-signal-fail {
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "Augments to support the CSF functionality";
+        container config {
+            presence "Enable Client Signal Fail";
+            description
+                "Configuration data for CSF";
+            uses client-signal-fail-parameters-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "State data for CSF";
+            uses client-signal-fail-parameters-config;
+            uses client-signal-fail-state;
+        } // END of state-container definition.
+    } // END of ethernet-client-signal-fail-container definition.
+    } // END of ethernet-client-signal-fail-grouping definition.
+
+    grouping  ethernet-locked-signal-grouping {
+    description
+        "Augments to support the Locked Signal functionality";
+    container ethernet-locked-signal {
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "Augments to support the Locked Signal functionality";
+        container config {
+            presence "Enable Ethernet Locked Signal";
+            description
+                "Configuration data for CFM Y.1731 Ethernet Locked Signal";
+            uses locked-signal-parameters-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Operational data for CFM Y.1731 Ethernet Locked Signal";
+            uses locked-signal-parameters-config;
+            uses locked-signal-state;
+        } // END of state-container definition.
+    } // END of ethernet-locked-signal-container definition.
+    } // END of ethernet-locked-signal-grouping definition.
+
+    grouping  ethernet-alarm-indication-signal-grouping {
+    description
+        "Augments to support the ETH-AIS functionality";
+    container ethernet-alarm-indication-signal {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "Augments to support the ETH-AIS functionality";
+        container config {
+            presence "Enable Ethernet Alarm Indication Signal";
+            description
+                "Configuration data for CFM Y.1731 Ethernet Alarm Indicaction Signal";
+            uses alarm-indication-signal-parameters-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Operational data for CFM Y.1731 Ethernet Alarm Indicaction Signal";
+            uses alarm-indication-signal-parameters-config;
+            uses alarm-indication-signal-state;
+        } // END of state-container definition.
+    } // END of ethernet-alarm-indication-signal-container definition.
+    } // END of ethernet-alarm-indication-signal-grouping definition.
+
+    grouping  y1731-responders-grouping {
+    description
+        "Augments to support a node as PM responder";
+    container y1731-responders {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "Augments to support a node as PM responder";
+        container config {
+            description
+                "Configuration data for CFM Y.1731 Ethernet PM responders";
+            uses y1731-responder-parameters-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Operational data for CFM Y.1731 Ethernet PM responders";
+            uses y1731-responder-parameters-config;
+        } // END of state-container definition.
+    } // END of y1731-responders-container definition.
+    } // END of y1731-responders-grouping definition.
+
+    grouping  ethernet-test-signal-grouping {
+    description
+        "This container contains definitions of ETH-Test Signal state counters";
+    container ethernet-test-signal {
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "This container contains definitions of ETH-Test Signal state counters";
+        container state {
+            config false;
+            description
+                "Operational state data for ethernet test signal counters and
+                        statistics";
+            uses test-signal-session-state;
+            uses test-signal-counters-state;
+        } // END of state-container definition.
+    } // END of ethernet-test-signal-container definition.
+    } // END of ethernet-test-signal-grouping definition.
+
+    grouping  ethernet-test-signal-profiles-grouping {
+    description
+        "This container contains definitions related to the on-demand OAM Fault
+                Management Test function (ETH-Test)";
+    container ethernet-test-signal-profiles {
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "This container contains definitions related to the on-demand OAM Fault
+                    Management Test function (ETH-Test)";
+        uses ethernet-test-signal-profiles-top;
+    } // END of ethernet-test-signal-profiles-container definition.
+    } // END of ethernet-test-signal-profiles-grouping definition.
+
+    grouping  ethernet-loss-measurements-grouping {
+    description
+        "Enclosing container for the list of Loss Measurements";
+    container ethernet-loss-measurements {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_ONMD;
+        config false;
+        description
+            "Enclosing container for the list of Loss Measurements";
+        uses cfm-current-loss-measurement-top;
+        uses cfm-historic-loss-measurements-top;
+    } // END of ethernet-loss-measurements-container definition.
+    } // END of ethernet-loss-measurements-grouping definition.
+
+    grouping  ethernet-loss-measurement-profiles-grouping {
+    description
+        "Enclosing container for the list of Loss Measurement Profiles";
+    container ethernet-loss-measurement-profiles {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "Enclosing container for the list of Loss Measurement Profiles";
+
+        list ethernet-loss-measurement-profile {
+            key "profile-name";
+            description
+                "List of Loss Measurement Profiles";
+            leaf profile-name  {
+                type  leafref {
+                    path  "../config/profile-name";
+                }
+                description "This attribute specifies the profile name for the SOAM LM Session";
+            } // END of profile-name definition.
+
+            container config {
+                description
+                    "Configuration data for Loss Measurement Profiles";
+                uses cfm-loss-measurement-profile-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational data for CFM Y.1731 Ethernet Loss Measurement Profiles";
+                uses cfm-loss-measurement-profile-config;
+            } // END of state-container definition.
+        } // End of ethernet-loss-measurement-profile-list
+    } // END of ethernet-loss-measurement-profiles-container definition.
+    } // END of ethernet-loss-measurement-profiles-grouping definition.
+
+    grouping  ethernet-delay-measurements-grouping {
+    description
+        "Enclosing container for the list of Delay Measurements";
+    container ethernet-delay-measurements {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_ONMD;
+        config false;
+        description
+            "Enclosing container for the list of Delay Measurements";
+        uses cfm-current-delay-measurement-top;
+        uses cfm-historic-delay-measurements-top;
+    } // END of ethernet-delay-measurements-container definition.
+    } // END of ethernet-delay-measurements-grouping definition.
+
+    grouping  ethernet-delay-measurement-profiles-grouping {
+    description
+        "Enclosing container for the list of Delay Measurement Profiles";
+    container ethernet-delay-measurement-profiles {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "Enclosing container for the list of Delay Measurement Profiles";
+
+        list ethernet-delay-measurement-profile {
+            key "profile-name";
+            description
+                "List of Delay Measurement Profiles";
+            leaf profile-name  {
+                type  leafref {
+                    path  "../config/profile-name";
+                }
+                description "This attribute contains the profile name for the SOAM DM Session";
+            } // END of profile-name definition.
+
+            container config {
+                description
+                    "Configuration data for Delay Measurement Profiles";
+                uses cfm-delay-measurement-profile-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational data for CFM Y.1731 Ethernet Delay Measurement Profiles";
+                uses cfm-delay-measurement-profile-config;
+            } // END of state-container definition.
+            uses cfm-delay-measurement-profile-bin-top;
+        } // End of ethernet-delay-measurement-profile-list
+    } // END of ethernet-delay-measurement-profiles-container definition.
+    } // END of ethernet-delay-measurement-profiles-grouping definition.
 
 
 }

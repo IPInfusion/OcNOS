@@ -31,44 +31,34 @@ module ipi-ethernet-vpn {
         revision-date 2013-07-15;
     }
 
-    import ipi-vxlan {
-        prefix ipi-vxlan;
-        revision-date 2022-02-16;
-    }
-
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
-    import ipi-if-aggregate {
-        prefix ipi-if-aggregate;
-        revision-date 2022-04-20;
+    import ipi-evpn-mpls {
+        prefix ipi-evpn-mpls;
+        revision-date 2022-06-23;
     }
 
     import ipi-if-extended {
         prefix ipi-if-extended;
-        revision-date 2022-03-22;
-    }
-
-    import ipi-evpn-mpls-types {
-        prefix ipi-evpn-mpls-types;
-        revision-date 2021-12-27;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -83,6 +73,21 @@ module ipi-ethernet-vpn {
     description
         "Datamodel for EVPN protocol";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.5.0.";
+    }
+
+    revision "2022-04-28" {
+        description "Addition of EVPN-MPLS IRB CLI";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-03-08" {
+        description "Addition of VXLAN dependencies for EVPN access-interfaces";
+        reference " 0.3.2.";
+    }
 
     revision "2022-01-14" {
         description "Addition of when tag for EVPN access-interfaces";
@@ -131,6 +136,7 @@ module ipi-ethernet-vpn {
         } // END of enable-vxlan-multihoming definition.
 
         leaf enable-evpn-mpls-multihoming  {
+            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
             if-feature feature-list:HAVE_MPLS;
             if-feature feature-list:HAVE_BGP_EVPN;
             if-feature feature-list:HAVE_NVO;
@@ -140,13 +146,23 @@ module ipi-ethernet-vpn {
         } // END of enable-evpn-mpls-multihoming definition.
 
         leaf enable-irb  {
-            when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config + /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' ";
             if-feature feature-list:HAVE_TUNNEL;
             if-feature feature-list:HAVE_NVO;
             type  empty;
             description "Use this attribute to enable integrated routing and bridging module.
                         Without this attribute IRB functionality can not be achieved";
         } // END of enable-irb definition.
+
+        leaf enable-mpls-irb  {
+            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
+            if-feature feature-list:HAVE_TUNNEL;
+            if-feature feature-list:HAVE_MPLS;
+            if-feature feature-list:HAVE_BGP_EVPN;
+            if-feature feature-list:HAVE_NVO;
+            type  empty;
+            description "Use this attribute to enable integrated routing and bridging module.
+                        Without this attribute IRB functionality can not be achieved";
+        } // END of enable-mpls-irb definition.
 
     } // END of evpn-global-config definition.
     grouping evpn-multihoming-config {
@@ -156,7 +172,7 @@ module ipi-ethernet-vpn {
             if-feature feature-list:HAVE_BGP_EVPN;
             type  uint32 {
                  range "10..300"  {
-                    description "10..300:Hold time in seconds";
+                    description "10..300: Supported range 10 - 300";
                  }
             }
             units "seconds";
@@ -181,7 +197,6 @@ module ipi-ethernet-vpn {
         description
             "MH interface configuration for esi";
         leaf evpn-segment-id  {
-            when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-vxlan-multihoming ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -191,7 +206,6 @@ module ipi-ethernet-vpn {
         } // END of evpn-segment-id definition.
 
         leaf system-mac  {
-            when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-vxlan-multihoming ";
             type  cml-data-types:cml_mac_addr_t {
                 length "1..1965";
             }
@@ -237,21 +251,21 @@ module ipi-ethernet-vpn {
         } // END of gateway-mac definition.
 
     } // END of irb-interface-anycast-config definition.
-    grouping evpn-mpls-access-interface-config {
+    grouping evpn-access-interface-config {
         description
-            "Grouping for EVPN-MPLS access interface configuration";
+            "Grouping for EVPN access interface configuration";
         leaf access-if  {
-            type  ipi-evpn-mpls-types:evpn_mpls_acc_if_t;
-            description "evpn-mpls access port";
+            type  cml-data-types:evpn_acc_if_t;
+            description "evpn access port";
         } // END of access-if definition.
 
         leaf evpn-identifier  {
-            if-feature feature-list:HAVE_MPLS;
             if-feature feature-list:HAVE_BGP_EVPN;
             if-feature feature-list:HAVE_NVO;
+            if-feature feature-list:HAVE_MPLS_OR_HAVE_VXLAN_OR_HAVE_SRV6;
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:VPNID";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             description "Map already created tenant id";
@@ -282,7 +296,7 @@ module ipi-ethernet-vpn {
         leaf mac-hold-time  {
             type  int16 {
                  range "-1..300"  {
-                    description "-1..300:Mac Hold time range 1 to 300 in seconds. -1(never expire)";
+                    description "-1..300: Supported range -1 - 300";
                  }
             }
             units "seconds";
@@ -299,7 +313,7 @@ module ipi-ethernet-vpn {
                         Circuit";
         } // END of mac-address definition.
 
-    } // END of evpn-mpls-access-interface-config definition.
+    } // END of evpn-access-interface-config definition.
     grouping evpn-mpls-access-mac-ipv4-config {
         description
             "Grouping for access interface configuration";
@@ -365,7 +379,7 @@ module ipi-ethernet-vpn {
                     uses evpn-interface-config;
                     uses mh-interface-config;
                 } // END of state-container definition.
-                uses evpn-mpls-access-interface-top;
+                uses evpn-access-interface-top;
             } // End of interface-list
         } // END of interfaces-container definition.
     } // END of evpn-interface-top definition.
@@ -374,7 +388,6 @@ module ipi-ethernet-vpn {
             "Top-Level Grouping for IRB interface";
 
         list irb-interface {
-        when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) ";
             key "name";
             description
                 "IRB interface related configurations";
@@ -436,7 +449,7 @@ module ipi-ethernet-vpn {
         } // END of service-type definition.
 
     } // END of evpn-vlan-service-config definition.
-    grouping evpn-mpls-access-interface-top {
+    grouping evpn-access-interface-top {
         description
             "Top level grouping for interface config";
         container access-interfaces {
@@ -444,7 +457,7 @@ module ipi-ethernet-vpn {
                 "Top level container for interface level configuration";
 
             list access-interface {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:single-tag-vlan-matches/ipi-if-extended:single-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:double-tag-vlan-matches/ipi-if-extended:double-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-default  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-untagged + not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:single-tag-vlan-matches/ipi-if-extended:single-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:double-tag-vlan-matches/ipi-if-extended:double-tag-vlan-match/ipi-if-extended:config/ipi-if-extended:encapsulation-type  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-default  or /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:subinterface-encapsulation/ipi-if-extended:config/ipi-if-extended:encap-untagged + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
                 if-feature feature-list:HAVE_SUBINTERFACE;
                 if-feature feature-list:HAVE_NVO;
                 key "access-if";
@@ -460,19 +473,19 @@ module ipi-ethernet-vpn {
                 container config {
                     description
                         "Configuration data";
-                    uses evpn-mpls-access-interface-config;
+                    uses evpn-access-interface-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
                         "Operational state data";
-                    uses evpn-mpls-access-interface-config;
+                    uses evpn-access-interface-config;
                 } // END of state-container definition.
                 uses evpn-mpls-access-interface-mac-ipv4-list-top;
                 uses evpn-mpls-access-interface-mac-ipv6-list-top;
             } // End of access-interface-list
         } // END of access-interfaces-container definition.
-    } // END of evpn-mpls-access-interface-top definition.
+    } // END of evpn-access-interface-top definition.
     grouping evpn-mpls-access-interface-mac-ipv4-list-top {
         description
             "Grouping for mac-ipv4 configuration for access port";
@@ -563,6 +576,7 @@ module ipi-ethernet-vpn {
     description
         "EVPN global level container";
     container evpn {
+        if-feature feature-list:HAVE_BGP_EVPN;
         description
             "EVPN global level container";
         container multi-homing {
@@ -596,7 +610,6 @@ module ipi-ethernet-vpn {
             } // END of state-container definition.
         } // END of global-container definition.
         container irb-forwarding {
-            when " /ipi-ethernet-vpn:evpn/ipi-ethernet-vpn:global/ipi-ethernet-vpn:config/ipi-ethernet-vpn:enable-irb = '1' ";
             description
                 "Configuration data for integrated routing and bridging feature";
             container config {

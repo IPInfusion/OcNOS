@@ -21,7 +21,7 @@ submodule ipi-bgp-peer {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import cml-data-types {
@@ -31,11 +31,12 @@ submodule ipi-bgp-peer {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2022-01-17;
+        revision-date 2022-06-01;
     }
 
-    include ipi-bgp-common { revision-date 2022-01-17;}
-    include ipi-bgp-address-family { revision-date 2022-01-17;}
+    include ipi-bgp-common { revision-date 2022-06-20;}
+    include ipi-bgp-address-family { revision-date 2022-06-20;}
+    include ipi-bgp-epe { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -48,6 +49,36 @@ submodule ipi-bgp-peer {
     description
         "";
 
+
+    revision "2022-06-21" {
+        description "Updated when tag constraints for peer's mapped peer-group tag attribute";
+        reference " 0.11.2.";
+    }
+
+    revision "2022-06-20" {
+        description "Added new attribute 'de-activate' for BGP Peer-group feature.";
+        reference " 0.11.1.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.11.0.";
+    }
+
+    revision "2022-04-04" {
+        description "Added support for BGP AIGP feature";
+        reference " 0.9.1.";
+    }
+
+    revision "2022-03-29" {
+        description "Added new attribute 'peer-shutdown-description' for support of BGP Administrative Shutdown Communication feature.";
+        reference " 0.9.2.";
+    }
+
+    revision "2022-03-20" {
+        description "Added new attribute for RFC-9072";
+        reference " 0.10.0.";
+    }
 
     revision "2022-01-17" {
         description "Modified data type";
@@ -137,6 +168,7 @@ submodule ipi-bgp-peer {
                     identified by peer IPv[46] address";
         list peer {
         when " /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
+            if-feature feature-list:HAVE_BGPD;
             key "peer-address";
             description
                 "List of BGP neighbors configured on the local system, uniquely
@@ -455,6 +487,7 @@ submodule ipi-bgp-peer {
                         uses bgp-peer-run-time-attribute-index-state;
                     } // END of state-container definition.
                 } // END of peer-index-container definition.
+                uses bgp-peer-address-family-aigp-config-top;
             } // End of address-family-list
             container config {
                 description
@@ -485,6 +518,7 @@ submodule ipi-bgp-peer {
                     uses bgp-peer-timers-config;
                 } // END of state-container definition.
             } // END of timers-container definition.
+            uses egress-engineering-grouping;
         } // End of peer-list
     } // END of peer-grouping definition.
     grouping bgp-peer-common-config {
@@ -535,7 +569,7 @@ submodule ipi-bgp-peer {
             when " /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
             type  uint32 {
                  range "10..65535"  {
-                    description "10..65535:BGP peer g-shut time in secs";
+                    description "10..65535: Supported range 10 - 65535";
                  }
             }
             description "Configure the value of the graceful shutdown timer. After the timer
@@ -547,7 +581,7 @@ submodule ipi-bgp-peer {
             if-feature feature-list:HAVE_RESTART;
             type  uint32 {
                  range "1..3600"  {
-                    description "1..3600:BGP peer g-shut time in secs";
+                    description "1..3600: Supported range 1 - 3600";
                  }
             }
             description "Sets a different restart-time other than the global restart-time. This
@@ -561,7 +595,7 @@ submodule ipi-bgp-peer {
             when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:AS number";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Specifies an AS (autonomous system) number to use with BGP neighbor.";
@@ -589,7 +623,7 @@ submodule ipi-bgp-peer {
             when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/enable-ebgp-multihop) ";
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:maximum hop count";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "255";
@@ -601,7 +635,7 @@ submodule ipi-bgp-peer {
             when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:Connect timer";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "1";
@@ -618,7 +652,7 @@ submodule ipi-bgp-peer {
             when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:time in seconds";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "1";
@@ -630,7 +664,7 @@ submodule ipi-bgp-peer {
             when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  uint32 {
                  range "0..65535"  {
-                    description "0..65535:time in seconds";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "0";
@@ -722,11 +756,21 @@ submodule ipi-bgp-peer {
                         number of peering sessions could be terminated.";
         } // END of peer-shutdown definition.
 
+        leaf peer-shutdown-description  {
+            when " /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
+            // when " ipi-bgp-peer:peer/config/peer-shutdown ";
+            type  cml-data-types:cml_line_t {
+                length "1..255";
+            }
+            description "Use this attribute to send shutdown communication message to inform
+                        peer the reason for the shutdown of the BGP session.";
+        } // END of peer-shutdown-description definition.
+
         leaf peer-port  {
             when " /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:TCP port number";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             default "179";
@@ -766,11 +810,97 @@ submodule ipi-bgp-peer {
                         attributes. Any changes made to the peer group affect all members.";
         } // END of mapped-peer-group-tag definition.
 
+        leaf enable-ext-opt-param-len  {
+            when " /bgp/bgp-instance/peer/config/peer-as ";
+            type  empty;
+            description "Use this attribute for a specific peer to encode extended optional
+                        parameter length.";
+        } // END of enable-ext-opt-param-len definition.
+
     } // END of bgp-peer-common-config definition.
     grouping bgp-peer-common-state {
         description
             "Runtime parameters common for BGP peers";
     } // END of bgp-peer-common-state definition.
+    grouping bgp-peer-address-family-aigp-config {
+        description
+            "Config parameters of peer's aigp cost-community for BGP address family";
+        leaf admin-status  {
+            if-feature feature-list:HAVE_BGP_AIGP;
+            type  cml-data-types:cml_enable_disable_t;
+            description "Enable or disable AIGP";
+        } // END of admin-status definition.
+
+        leaf aigp-send-med  {
+            type  empty;
+            description "Enable AIGP send multi exit discriminator.";
+        } // END of aigp-send-med definition.
+
+    } // END of bgp-peer-address-family-aigp-config definition.
+    grouping bgp-peer-address-family-aigp-cost-community-config {
+        description
+            "Config parameters of peer's aigp cost-community for BGP address family";
+        leaf send-cost-community-id  {
+            if-feature feature-list:HAVE_BGP_AIGP;
+            type  uint8 {
+                 range "0..255"  {
+                    description "0..255: Supported range 0 - 255";
+                 }
+            }
+            mandatory true;
+            description "Send AIGP value in Cost community. And get the Community ID.";
+        } // END of send-cost-community-id definition.
+
+        leaf point-of-insertion  {
+            if-feature feature-list:HAVE_BGP_AIGP;
+            type  ipi-bgp-types:bgp_aigp_metric_cost_community_poi_t;
+            mandatory true;
+            description "Send AIGP value in Cost community. And get point of insertion.";
+        } // END of point-of-insertion definition.
+
+        leaf enable-transitive  {
+            if-feature feature-list:HAVE_BGP_AIGP;
+            type  empty;
+            description "Send AIGP value in Cost community and Enable Transitive Cost Community";
+        } // END of enable-transitive definition.
+
+    } // END of bgp-peer-address-family-aigp-cost-community-config definition.
+    grouping bgp-peer-address-family-aigp-config-top {
+        description
+            "Config parameters of peer's AIGP for BGP address family";
+        container aigp {
+            if-feature feature-list:HAVE_BGP_AIGP;
+            description
+                "configuration parameters relating to AIGP";
+            container config {
+                description
+                    "Configuration parameters relating to the BGP peer's AIGP";
+                uses bgp-peer-address-family-aigp-config;
+            } // END of config-container definition.
+            container state {
+                description
+                    "State parameters relating to the BGP peer's AIGP";
+                uses bgp-peer-address-family-aigp-config;
+            } // END of state-container definition.
+            container cost-community {
+                if-feature feature-list:HAVE_BGP_AIGP;
+                description
+                    "configuration parameters relating to AIGP cost-community";
+                container config {
+                    presence "To configure cost-community";
+                    description
+                        "Configuration parameters relating to the BGP peer's AIGP
+                                cost-community";
+                    uses bgp-peer-address-family-aigp-cost-community-config;
+                } // END of config-container definition.
+                container state {
+                    description
+                        "State parameters relating to the BGP peer's aigp cost-community";
+                    uses bgp-peer-address-family-aigp-cost-community-config;
+                } // END of state-container definition.
+            } // END of cost-community-container definition.
+        } // END of aigp-container definition.
+    } // END of bgp-peer-address-family-aigp-config-top definition.
     grouping bgp-peer-address-family-common-config {
         description
             "Configuration parameters common for BGP address family";
@@ -803,7 +933,7 @@ submodule ipi-bgp-peer {
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  uint8 {
                  range "2..3"  {
-                    description "2..3:Number of best paths in additional paths to be selected";
+                    description "2..3: Supported range 2 - 3";
                  }
             }
             description "Attribute to select best advertise additional path";

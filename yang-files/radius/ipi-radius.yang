@@ -28,17 +28,17 @@ module ipi-radius {
 
     import ipi-radius-types {
         prefix ipi-radius-types;
-        revision-date 2021-10-26;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ietf-yang-types {
@@ -48,7 +48,7 @@ module ipi-radius {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -63,6 +63,16 @@ module ipi-radius {
     description
         "Layer-3 radius configurations";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-04-27" {
+        description "Updated per-server counters attr names and data types to align with OpenConfig";
+        reference " 0.3.0.";
+    }
 
     revision "2021-10-26" {
         description "Restructured module as per open-config style";
@@ -101,7 +111,7 @@ module ipi-radius {
         leaf timeout  {
             type  uint8 {
                  range "1..60"  {
-                    description "1..60:RADIUS server global timeout period in seconds";
+                    description "1..60: Supported range 1 - 60";
                  }
             }
             units "seconds";
@@ -123,7 +133,7 @@ module ipi-radius {
         leaf sequence-number  {
             type  uint8 {
                  range "1..8"  {
-                    description "1..8:sequence number for servers";
+                    description "1..8: Supported range 1 - 8";
                  }
             }
             mandatory true;
@@ -148,7 +158,7 @@ module ipi-radius {
         leaf accounting-port  {
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:RADIUS accounting port";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             description "Use this attribute to configure a RADIUS server and specify a UDP port
@@ -159,7 +169,7 @@ module ipi-radius {
         leaf authentication-port  {
             type  uint16 {
                  range "0..65535"  {
-                    description "0..65535:RADIUS authentication port";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             description "Use this attribute to configure a RADIUS server and specify a UDP port
@@ -170,7 +180,7 @@ module ipi-radius {
         leaf timeout  {
             type  uint8 {
                  range "1..60"  {
-                    description "1..60:RADIUS server timeout period in seconds";
+                    description "1..60: Supported range 1 - 60";
                  }
             }
             units "seconds";
@@ -179,30 +189,6 @@ module ipi-radius {
         } // END of timeout definition.
 
     } // END of radius-server-config definition.
-    grouping radius-counters-state {
-        description
-            "Grouping for RADIUS server counters";
-        container counters {
-            config false;
-            description
-                "RADIUS Server connection counters";
-            leaf failed-authentications  {
-                type  yang:counter32;
-                description "RADIUS Server count for authentication failures";
-            } // END of failed-authentications definition.
-
-            leaf success-authentications  {
-                type  yang:counter32;
-                description "RADIUS Server count for successful authentications";
-            } // END of success-authentications definition.
-
-            leaf failed-connections  {
-                type  yang:counter32;
-                description "RADIUS Server count for connection failures";
-            } // END of failed-connections definition.
-
-        } // END of counters-container definition.
-    } // END of radius-counters-state definition.
     grouping radius-debug-config {
         description
             "Configuration data related to debugging";
@@ -223,20 +209,42 @@ module ipi-radius {
     } // END of radius-debug-state definition.
     grouping radius-server-state {
         description
-            "State data related to RADIUS Server status";
+            "Operational data for each RADIUS server";
         leaf last-successful-authentication-time  {
             type  yang:date-and-time {
                 pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
                 }
-                description "RADIUS Server last successfull connection time";
+                description "Timestamp for the last successful authentication to this RADIUS Server";
             } // END of last-successful-authentication-time definition.
 
+        container counters {
+            config false;
+            description
+                "RADIUS Server counters";
+            leaf successful-authentications  {
+                type  yang:counter64;
+                description "Number of successful authentications to the RADIUS Server";
+            } // END of successful-authentications definition.
+
+            leaf authentication-failures  {
+                type  yang:counter64;
+                description "Number of authentication failures to the RADIUS Server";
+            } // END of authentication-failures definition.
+
+            leaf connection-failures  {
+                type  yang:counter64;
+                description "Number of connection failures to the RADIUS Server";
+            } // END of connection-failures definition.
+
+        } // END of counters-container definition.
     } // END of radius-server-state definition.
 
     grouping  radius-grouping {
     description
         "Top level container for RADIUS configuration and operational data";
     container radius {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_RADIUS_CLIENT;
         description
             "Top level container for RADIUS configuration and operational data";
         container vrfs {
@@ -293,7 +301,6 @@ module ipi-radius {
                             description
                                 "This container defines TACACS Server state intormation.";
                             uses radius-server-config;
-                            uses radius-counters-state;
                             uses radius-server-state;
                         } // END of state-container definition.
                     } // End of server-list
@@ -322,6 +329,8 @@ module ipi-radius {
     uses radius-grouping;
 
     rpc radius-clear-all-server-counters {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_RADIUS_CLIENT;
         description "Use this RPC to clear counters for all RADIUS servers";
         input  {
             leaf vrf-name  {
@@ -333,6 +342,8 @@ module ipi-radius {
     }
 
     rpc radius-clear-server-counters {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_RADIUS_CLIENT;
         description "Use this RPC to clear counters for a RADIUS server by hostname or IP
                     address";
         input  {
@@ -350,10 +361,14 @@ module ipi-radius {
     }
 
     rpc radius-terminal-debug-on {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_RADIUS_CLIENT;
         description "Use this RPC to turn on RADIUS terminal debug logs";
     }
 
     rpc radius-terminal-debug-off {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_RADIUS_CLIENT;
         description "Use this RPC to turn off RADIUS terminal debug logs";
     }
 

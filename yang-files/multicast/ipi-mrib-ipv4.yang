@@ -21,20 +21,20 @@ submodule ipi-mrib-ipv4 {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ipi-mrib-types {
         prefix ipi-mrib-types;
-        revision-date 2021-12-02;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
-    include ipi-mrib-common { revision-date 2021-12-02;}
+    include ipi-mrib-common { revision-date 2022-06-07;}
     organization
         "IP Infusion Inc.";
 
@@ -47,6 +47,21 @@ submodule ipi-mrib-ipv4 {
     description
         "Datamodel for MRIB IPv4 configuration";
 
+
+    revision "2022-06-07" {
+        description "Added 'rpa-id' attribute to mrib-ip-vrf-common-mcast-route-state";
+        reference " 0.5.0.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-05-23" {
+        description "Added Netconf GetAPI support for MRIB IPv4 datamodel";
+        reference " 0.3.0.";
+    }
 
     revision "2021-12-02" {
         description "Restructured module as per open-config style";
@@ -90,7 +105,7 @@ submodule ipi-mrib-ipv4 {
         leaf ttl-threshold  {
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:TTL threshold";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             description "Use this attribute to configure the time-to-live (TTL) threshold of
@@ -170,11 +185,19 @@ submodule ipi-mrib-ipv4 {
                     config false;
                     description
                         "MRIB IPV4 vrf state information";
+                    container counters {
+                        config false;
+                        description
+                            "MRIB IPv4 VRF state counters";
+                        uses mrib-ip-vrf-common-counters-state;
+                    } // END of counters-container definition.
                     uses mrib-ip-vrf-common-config;
                     uses mrib-ipv4-vrf-config;
+                    uses mrib-ip-vrf-common-state;
                 } // END of state-container definition.
                 uses mrib-ipv4-vrf-route-limit-top;
                 uses mrib-ipv4-vrf-debug-top;
+                uses mrib-ip-vrf-common-mcast-route-top;
             } // End of vrf-list
         } // END of vrfs-container definition.
     } // END of mrib-ipv4-vrfs-top definition.
@@ -206,6 +229,7 @@ submodule ipi-mrib-ipv4 {
                     description
                         "MRIB IPV4 interface state information";
                     uses mrib-ipv4-interface-config;
+                    uses mrib-ip-common-interface-state;
                 } // END of state-container definition.
             } // End of interface-list
         } // END of interfaces-container definition.
@@ -216,6 +240,7 @@ submodule ipi-mrib-ipv4 {
         "Top level container for all IPV4 multicast RIB configuration and state
                 data";
     container ipv4 {
+        if-feature feature-list:HAVE_MRIBD;
         description
             "Top level container for all IPV4 multicast RIB configuration and state
                     data";

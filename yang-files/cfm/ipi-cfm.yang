@@ -21,18 +21,25 @@ module ipi-cfm {
 
     prefix "ipi-cfm";
 
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
+    }
+
     import ipi-cfm-data-types {
         prefix ipi-cfm-data-types;
-        revision-date 2018-12-06;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
-    include ipi-cfm-common { revision-date 2021-12-20;}
-    include ipi-cfm-y1731 { revision-date 2021-12-09;}
+    include ipi-cfm-common { revision-date 2022-06-01;}
+    include ipi-cfm-y1731 { revision-date 2022-06-01;}
+    include ipi-cfm-mpls { revision-date 2022-06-01;}
+    include ipi-cfm-mpls-y1731 { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -45,6 +52,121 @@ module ipi-cfm {
     description
         "Data model for IPI CFM Configuration and Operational state";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.5.6.";
+    }
+
+    revision "2022-05-31" {
+        description "Added support for CFM msg intrvals of 1-min and 10-mins";
+        reference " 0.5.6.";
+    }
+
+    revision "2022-05-26" {
+        description "Added support to make rmep parameter for ETH-LM to take RMEPID or RMAC as input as per MEF";
+        reference " 0.5.5.";
+    }
+
+    revision "2022-05-21" {
+        description "Corrected grouping name for cfm-mep-common-state and cfm-mep-common-config";
+        reference " 0.5.4.";
+    }
+
+    revision "2022-05-18" {
+        description "Added bitmap check flag for inner-vlan-id";
+        reference " 0.5.3.";
+    }
+
+    revision "2022-05-11" {
+        description "Added optional attribute inner-vlan-id to MA";
+        reference " 0.5.2.";
+    }
+
+    revision "2022-05-09" {
+        description "Updation of MPLS flags for CFM and debug CFM CLI";
+        reference " 0.5.1.";
+    }
+
+    revision "2022-04-29" {
+        description "Restructure CFM and Y.1731 over MPLS components to OpenConfig style and enable NETCONF support";
+        reference " 0.5.0.";
+    }
+
+    revision "2022-04-25" {
+        description "Enabled Y1731 LM DM support for non-hardware offload";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-04-21" {
+        description "Made ma-name a mandatory parameter for ping, traceroute, LM and DM CLIs";
+        reference " 0.4.9.";
+    }
+
+    revision "2022-04-15" {
+        description "Addition of GetAPI for CSF module";
+        reference " 0.4.8.";
+    }
+
+    revision "2022-04-14" {
+        description "Removed 're-routing' CLI from MEP mode and added in interface mode";
+        reference " 0.4.7.";
+    }
+
+    revision "2022-04-13" {
+        description "Removed bridge and vlan dependency from LB, LT, LM and DM RPCs";
+        reference " 0.4.5.";
+    }
+
+    revision "2022-04-12" {
+        description "Removed bridge and vlan dependency from TST,Clear and Abort RPCs for LM and DM";
+        reference " 0.4.6.";
+    }
+
+    revision "2022-04-10" {
+        description "Removed ETH-BN hold-off-timer attribute";
+        reference " 0.4.4.";
+    }
+
+    revision "2022-04-09" {
+        description "elapsed-time state attribute for ethernet-test-signal container is changed from uint8 to uint32";
+        reference " 0.4.3.";
+    }
+
+    revision "2022-04-08" {
+        description "Addition of new ETH-BN CLIs and NETCONF support";
+        reference " 0.4.2.";
+    }
+
+    revision "2022-04-07" {
+        description "Added support for ETH-BN peer port ID";
+        reference " 0.4.1.";
+    }
+
+    revision "2022-04-05" {
+        description "Added support for Client Signal Fail (CSF) feature";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-04-04" {
+        description "Added if-feature in mo_ipi-cfm-common.xml";
+        reference " 0.3.0.";
+    }
+
+    revision "2022-03-22" {
+        description "Addition of new ETH-BN bw-margin and min-transmit-threshold CLIs";
+        reference " 0.2.2.";
+    }
+
+    revision "2022-03-17" {
+        description "Added transaction-id support to linktrace RPC";
+        reference " 0.2.1.";
+    }
+
+    revision "2022-03-10" {
+        description "Restructure LB, LT and CFM Y.1731 L2 bridge dependent CLIs to OpenConfig style";
+        reference " 0.2.0.";
+    }
 
     revision "2021-12-20" {
         description "Made bridge-id attribute optional for MD object to remove bridge dependency for L2/VLAN CFM";
@@ -124,16 +246,30 @@ module ipi-cfm {
                 container config {
                     description
                         "Configuration data for Maintenence End Point";
-                    uses cfm-mep-config;
+                    uses cfm-mep-common-config;
+                    uses cfm-mep-bandwidth-shaping-config;
+                    uses cfm-mep-l2-bridge-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
                         "Operational data for Maintenence End Point";
-                    uses cfm-mep-config;
-                    uses cfm-mep-state;
+                    uses cfm-mep-common-config;
+                    uses cfm-mep-l2-bridge-config;
+                    uses cfm-mep-common-state;
+                    uses cfm-mep-bandwidth-shaping-config;
                 } // END of state-container definition.
                 uses cfm-mep-ccm-top;
+                uses cfm-loopback-last-result-top;
+                uses cfm-linktrace-database-state;
+                uses ethernet-bandwidth-notification-grouping;
+                uses ethernet-client-signal-fail-grouping;
+                uses ethernet-locked-signal-grouping;
+                uses ethernet-alarm-indication-signal-grouping;
+                uses y1731-responders-grouping;
+                uses ethernet-test-signal-grouping;
+                uses ethernet-loss-measurements-grouping;
+                uses ethernet-delay-measurements-grouping;
             } // End of maintenance-end-point-list
         } // END of maintenance-end-points-container definition.
     } // END of cfm-meps-top definition.
@@ -159,13 +295,15 @@ module ipi-cfm {
                 container config {
                     description
                         "Configuration data for Maintenence association";
-                    uses cfm-ma-config;
+                    uses cfm-ma-common-config;
+                    uses cfm-ma-l2-bridge-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
-                        "Operational data for Maintenence association";
-                    uses cfm-ma-config;
+                        "Operational data for Maintenence Association";
+                    uses cfm-ma-common-config;
+                    uses cfm-ma-l2-bridge-config;
                 } // END of state-container definition.
                 uses cfm-meps-top;
                 uses cfm-ma-default-mips-top;
@@ -193,13 +331,15 @@ module ipi-cfm {
                 container config {
                     description
                         "Configuration data for Maintenence Domain";
-                    uses cfm-md-config;
+                    uses cfm-md-common-config;
+                    uses cfm-md-l2-bridge-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
                         "Operational data for Maintenence Domain";
-                    uses cfm-md-config;
+                    uses cfm-md-common-config;
+                    uses cfm-md-l2-bridge-config;
                 } // END of state-container definition.
                 uses cfm-mas-top;
             } // End of maintenance-domain-list
@@ -219,34 +359,3794 @@ module ipi-cfm {
             container state {
                 config false;
                 description
-                    "CFM Global Operational data";
+                    "Operational data for CFM Global Operational data";
                 uses cfm-global-config;
                 uses cfm-terminal-debug-state;
             } // END of state-container definition.
+            uses cfm-loopback-top;
+            uses cfm-linktrace-top;
         } // END of global-container definition.
     } // END of cfm-global-top definition.
 
     grouping  cfm-grouping {
     description
-        "Top level container for Ethernet Connectivity Fault Management";
+        "Top level container for Ethernet Connectivity Fault Management
+                Protocol (CFM)";
     container cfm {
         if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
         description
-            "Top level container for Ethernet Connectivity Fault Management";
+            "Top level container for Ethernet Connectivity Fault Management
+                    Protocol (CFM)";
         uses cfm-global-top;
         uses cfm-mds-top;
+        uses mpls-grouping;
+        uses ethernet-test-signal-profiles-grouping;
+        uses ethernet-loss-measurement-profiles-grouping;
+        uses ethernet-delay-measurement-profiles-grouping;
     } // END of cfm-container definition.
     } // END of cfm-grouping definition.
 
     uses cfm-grouping;
 
-    rpc cfm-clear-ethernet-remote-meps-per-domain-per-bridge {
-        description "Use this RPC to clear ethernet CFM remote MEPs of specified domain and
-                    bridge";
+    rpc cfm-mpls-vpws-test-loopback {
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_MPLS;
+        description "Use this RPC ping a remote MEP using a MPLS L2VPN service";
         input  {
-            leaf bridge-id  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16;
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf mac-address  {
+                type ipi-cfm-data-types:cfm_lb_mac_addr_t;
+                mandatory true;
+                description "The remote MEP identified by MAC address";
+            }
+        }
+    }
+
+    rpc cfm-mpls-evpn-test-loopback {
+        if-feature feature-list:HAVE_BGP_EVPN;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_MPLS;
+        description "Use this RPC ping a remote MEP using an MPLS L2VPN service";
+        input  {
+            leaf evpn-id  {
+                type uint32;
+                mandatory true;
+                description "The EVPN id for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16;
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf mac-address  {
+                type ipi-cfm-data-types:cfm_lb_mac_addr_t;
+                mandatory true;
+                description "The remote MEP identified by MAC address";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-test-linktrace {
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_MPLS;
+        description "Use this RPC to start a linktrace test using a MPLS L2VPN service";
+        input  {
+            leaf vc-name  {
                 type string;
                 mandatory true;
+                description "The VC name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16;
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf mac-address  {
+                type ipi-cfm-data-types:cfm_lb_mac_addr_t;
+                mandatory true;
+                description "The remote MEP identified by MAC address";
+            }
+        }
+        output  {
+            leaf transaction-id  {
+                type uint32;
+                mandatory true;
+                description "This attribute specifies the transaction-id of a particular linktrace
+                            test";
+            }
+        }
+    }
+
+    rpc cfm-mpls-evpn-test-linktrace {
+        if-feature feature-list:HAVE_BGP_EVPN;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_MPLS;
+        description "Use this RPC to start a linktrace test using an MPLS L2VPN service";
+        input  {
+            leaf evpn-id  {
+                type uint32;
+                mandatory true;
+                description "The EVPN id for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16;
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf mac-address  {
+                type ipi-cfm-data-types:cfm_lb_mac_addr_t;
+                mandatory true;
+                description "The remote MEP identified by MAC address";
+            }
+        }
+        output  {
+            leaf transaction-id  {
+                type uint32;
+                mandatory true;
+                description "This attribute specifies the transaction-id of a particular linktrace
+                            test";
+            }
+        }
+    }
+
+    rpc cfm-mpls-clear-linktrace-cache {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "Use this RPC to clear the linktrace cache of an MPLS L2VPN service";
+        input  {
+            leaf service-type  {
+                type ipi-cfm-data-types:cfm_mpls_svc_type_t;
+                mandatory true;
+                description "MPLS service type whether it's Virtual Private Wire Service(VPWS) or
+                            Ethernet VPN(EVPN)";
+            }
+        }
+    }
+
+    rpc cfm-mpls-clear-ethernet-remote-meps {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "Use this RPC to clear ethernet CFM remote MEPs of specified domain an
+                    MPLS L2VPN service";
+        input  {
+            leaf service-type  {
+                type ipi-cfm-data-types:cfm_mpls_svc_type_t;
+                mandatory true;
+                description "MPLS service type whether it's Virtual Private Wire Service(VPWS) or
+                            Ethernet VPN(EVPN)";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+        }
+    }
+
+    rpc cfm-l2-abort-eth-test-signal {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to abort an ongoing ETH-Test Signal session";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf domain-name  {
+                type string;
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-test-on-demand-start-relative-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start on-demand ETH-TST session with start time as relative and
+                    stop time as relative";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf test-target  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "Unicast MAC address or MEP ID of the peer MEP for which ETH-Test is
+                            intended";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf profile-name  {
+                type string {
+                    length "1..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for ETH-TST session";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "This attribute defines the session start time";
+            }
+            leaf start-time  {
+                type uint32 {
+                    range "0..4294967295";
+                }
+                mandatory true;
+                description "The time when the session is supposed to be started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf stop-time  {
+                type uint32 {
+                    range "0..4294967295";
+                }
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-test-on-demand-start-absolute-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start on-demand ETH-TST session with start time as absolute and
+                    stop time as relative";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf test-target  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "Unicast MAC address or MEP ID of the peer MEP for which ETH-Test is
+                            intended";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf profile-name  {
+                type string {
+                    length "1..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for ETH-TST session";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session start time";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf stop-time  {
+                type uint32 {
+                    range "0..4294967295";
+                }
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-test-on-demand-start-relative-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start on-demand ETH-TST session with start time as relative and
+                    stop time as absolute";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf test-target  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "Unicast MAC address or MEP ID of the peer MEP for which ETH-Test is
+                            intended";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf profile-name  {
+                type string {
+                    length "1..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for ETH-TST session";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Session start time can be relative or absolute";
+            }
+            leaf start-time  {
+                type uint32 {
+                    range "0..4294967295";
+                }
+                mandatory true;
+                description "The time when the session is supposed to be started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-test-on-demand-start-absolute-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start on-demand ETH-TST session with start time as absolute and
+                    stop time as absolute";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf test-target  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "Unicast MAC address or MEP ID of the peer MEP for which ETH-Test is
+                            intended";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf profile-name  {
+                type string {
+                    length "1..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute specifies the profile name for ETH-TST session";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "The time that the session is supposed to be started";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "The time that the session is supposed to be stopped";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-start-proactive {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start a proactive Loss Measurement session for an L2 bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-on-demand-start-immediate-stop-none {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an L2 bridge
+                    with start time as immediate and stop time as none";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-on-demand-start-immediate-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an L2 bridge
+                    with start time as immediate and stop time as relative";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-on-demand-start-immediate-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an L2 bridge
+                    with start time as immediate and stop time as absolute";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-on-demand-start-relative-stop-none {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an L2 bridge
+                    with start time as relative and stop time as none";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-on-demand-start-relative-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an L2 bridge
+                    with start time as relative and stop time as relative";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-on-demand-start-relative-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an L2 bridge
+                    with start time as relative and stop time as absolute";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-on-demand-start-absolute-stop-none {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an L2 bridge
+                    with start time as absolute and stop time as none";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session start time";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-on-demand-start-absolute-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an L2 bridge
+                    with start time as absolute and stop time as relative";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session start time";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-lm-on-demand-start-absolute-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an L2 bridge
+                    with start time as absolute and stop time as absolute";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session start time";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session start time";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-abort-eth-lm-test {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to abort an on-going Loss Measurement session for an L2 bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+        }
+    }
+
+    rpc cfm-l2-clear-eth-lm-history-stats {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to clear the Loss Measurement history for an L2 bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-start-proactive {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start a proactive Delay Measurement session for an L2 bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-on-demand-start-immediate-stop-none {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start an on-demand Delay Measurement session for an L2 bridge
+                    with start time as immediate and stop time as none";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-on-demand-start-immediate-stop-relative {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start an on-demand Delay Measurement session for an L2 bridge
+                    with start time as immediate and stop time as relative";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-on-demand-start-immediate-stop-absolute {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start an on-demand Delay Measurement session for an L2 bridge
+                    with start time as immediate and stop time as absolute";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-on-demand-start-relative-stop-none {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start an on-demand Delay Measurement session for an L2 bridge
+                    with start time as relative and stop time as none";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-on-demand-start-relative-stop-relative {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start an on-demand Delay Measurement session for an L2 bridge
+                    with start time as relative and stop time as relative";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-on-demand-start-relative-stop-absolute {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start an on-demand Delay Measurement session for an L2 bridge
+                    with start time as relative and stop time as absolute";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session start time";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-on-demand-start-absolute-stop-none {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start an on-demand Delay Measurement session for an L2 bridge
+                    with start time as absolute and stop time as none";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-on-demand-start-absolute-stop-relative {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start an on-demand Delay Measurement session for an L2 bridge
+                    with start time as absolute and stop time as relative";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session start time";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in
+                            relativve format i.e. HH:MM:SS";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-eth-dm-on-demand-start-absolute-stop-absolute {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to start an on-demand Delay Measurement session for an L2 bridge
+                    with start time as absolute and stop time as absolute";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+
+                    pattern "[a-zA-Z0-9_-]*";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session start time";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-l2-abort-eth-dm-test {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to abort an on-going Delay Measurement session for an L2 bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+        }
+    }
+
+    rpc cfm-l2-clear-eth-dm-history-stats {
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to clear the Delay Measurement history for an L2 bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+        }
+    }
+
+    rpc cfm-l2-clear-eth-csf-stats {
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "Use this RPC to clear ethernet CSF statistics for the specified MEP";
+        input  {
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+        }
+    }
+
+    rpc cfm-l2-clear-eth-bn-stats {
+        if-feature feature-list:HAVE_DUNE;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "RPC to clear the ethernent bandwidth notification statistics for
+                    specified domain and MEP ID";
+        input  {
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-start-proactive {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start a proactive Loss Measurement session for an MPLS L2VPN
+                    service";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-on-demand-start-immediate-stop-none {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an MPLS L2VPN
+                    service with start time as immediate and stop time as none";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-on-demand-start-immediate-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an MPLS L2VPN
+                    service with start time as immediate and stop time as relative";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in relative
+                            format i.e. HH:MM:SS";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-on-demand-start-immediate-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an MPLS L2VPN
+                    service with start time as immediate and stop time as absolute";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-on-demand-start-relative-stop-none {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an MPLS L2VPN
+                    service with start time as relative and stop time as none";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-on-demand-start-relative-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an MPLS L2VPN
+                    service with start time as relative and stop time as relative";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in relative
+                            format i.e. HH:MM:SS";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-on-demand-start-relative-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an MPLS L2VPN
+                    service with start time as relative and stop time as absolute";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-on-demand-start-absolute-stop-none {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an MPLS L2VPN
+                    service with start time as absolute and stop time as none";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-on-demand-start-absolute-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an MPLS L2VPN
+                    service with start time as absolute and stop time as relative";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in relative
+                            format i.e. HH:MM:SS";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-lm-on-demand-start-absolute-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Loss Measurement session for an MPLS L2VPN
+                    service with start time as absolute and stop time as absolute";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM LM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-abort-eth-lm-test {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to abort an on-going Loss Measurement session for an MPLS L2VPN
+                    service";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-clear-eth-lm-history-stats {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to clear the Loss Measurement history for an MPLS L2VPN service";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-start-proactive {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start a proactive Delay Measurement session for an MPLS L2VPN
+                    service";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-on-demand-start-immediate-stop-none {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Delay Measurement session for an MPLS L2VPN
+                    service with start time as immediate and stop time as none";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "This attribute defines the session stop time";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-on-demand-start-immediate-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Delay Measurement session for an MPLS L2VPN
+                    service with start time as immediate and stop time as relative";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in relative
+                            format i.e. HH:MM:SS";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-on-demand-start-immediate-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Delay Measurement session for an MPLS L2VPN
+                    service with start time as immediate and stop time as absolute";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_start_time_immediate_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-on-demand-start-relative-stop-none {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Delay Measurement session for an MPLS L2VPN
+                    service with start time as relative and stop time as none";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-on-demand-start-relative-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Delay Measurement session for an MPLS L2VPN
+                    service with start time as relative and stop time as relative";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in relative
+                            format i.e. HH:MM:SS";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-on-demand-start-relative-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Delay Measurement session for an MPLS L2VPN
+                    service with start time as relative and stop time as absolute";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "The time that the current Measurement Interval started";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-on-demand-start-absolute-stop-none {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Delay Measurement session for an MPLS L2VPN
+                    service with start time as absolute and stop time as none";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_stop_time_none_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-on-demand-start-absolute-stop-relative {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Delay Measurement session for an MPLS L2VPN
+                    service with start time as absolute and stop time as relative";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_relative_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in relative
+                            format i.e. HH:MM:SS";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-eth-dm-on-demand-start-absolute-stop-absolute {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to start an on-demand Delay Measurement session for an MPLS L2VPN
+                    service with start time as absolute and stop time as absolute";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf profile-name  {
+                type string {
+                    length "0..64";
+                }
+                mandatory true;
+                description "This attribute contains the profile name for the SOAM DM Session";
+            }
+            leaf rmep-id  {
+                type ipi-cfm-data-types:cfm_rmep_type_t;
+                mandatory true;
+                description "The remote MEP can be identified by either a MAC address or a MEP ID";
+            }
+            leaf start-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session start time can be immediate, relative or absolute";
+            }
+            leaf start-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session start time should be in
+                            absolute format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf stop-time-type  {
+                type ipi-cfm-data-types:cfm_absolute_time_t;
+                mandatory true;
+                description "Measurement session stop time can be none, relative or absolute";
+            }
+            leaf stop-time  {
+                type string;
+                mandatory true;
+                description "This attribute states that the session stop time should be in absolute
+                            format i.e. HH:MM:SS-DD-Mon-YYYY";
+            }
+            leaf repetition-period  {
+                type yang:timeticks {
+                    range "6000..4294967295";
+                }
+                mandatory true;
+                description "This object specifies a configurable repetition time between
+                            Measurement Intervals in a Measurement session in hundredths of a
+                            second";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-abort-eth-dm-test {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to abort an on-going Delay Measurement session for an MPLS L2VPN
+                    service";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+        }
+    }
+
+    rpc cfm-mpls-vpws-clear-eth-dm-history-stats {
+        if-feature feature-list:Y1731_HW_OFFLOAD;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        if-feature feature-list:HAVE_CFM_Y1731;
+        description "RPC to clear the Delay Measurement history for an MPLS L2VPN service";
+        input  {
+            leaf vc-name  {
+                type string {
+                    length "1..30";
+                }
+                mandatory true;
+                description "This attribute uniquely identifies a VPWS circuit";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+        }
+    }
+
+    rpc cfm-l2-clear-ethernet-remote-meps {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "Use this RPC to clear ethernet CFM remote MEPs of specified domain and
+                    L2 bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
                 description "This parameter indicates which bridge this maintenance domain will be
                             augumented to.";
             }
@@ -259,15 +4159,23 @@ module ipi-cfm {
     }
 
     rpc cfm-clear-all-mep-stats {
+        if-feature feature-list:CCM_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
         description "Clear CFM statistics of all MEPs";
     }
 
-    rpc cfm-clear-mep-stats-per-domain-per-vlan-per-bridge {
-        description "Clear CFM statistics of specified MEP";
+    rpc cfm-l2-clear-mep-stats {
+        if-feature feature-list:CCM_HW_OFFLOAD;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "Clear CFM statistics of specified MEP for specific domain, VLAN and L2
+                    bridge";
         input  {
             leaf bridge-id  {
-                type string;
-                mandatory true;
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
                 description "This parameter indicates which bridge this maintenance domain will be
                             augumented to.";
             }
@@ -277,26 +4185,33 @@ module ipi-cfm {
                 description "A unique identifier of a Maintenance Domain";
             }
             leaf mep-id  {
-                type uint16;
+                type uint16 {
+                    range "1..8191";
+                }
                 mandatory true;
                 description "Integer that is unique among all the MEPs in the same MA. Other
                             definition is: a small integer, unique over a given Maintenance
                             Association, identifying a specific Maintenance association End Point";
             }
-            leaf vlan-id  {
-                type uint16;
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
                 mandatory true;
-                description "The Primary VID of the MEP. This is the MA's vlan-id which is used
-                            for frame tramsnit";
+                description "A unique identifier of a Maintenance Association";
             }
         }
     }
 
     rpc cfm-snmp-restart {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
         description "CFM SNMP restart";
     }
 
     rpc cfm-terminal-debug-enable {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
         description "Use this RPC to set CFM debug options in EXEC mode";
         input  {
             leaf debug-options  {
@@ -308,6 +4223,8 @@ module ipi-cfm {
     }
 
     rpc cfm-terminal-debug-disable {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
         description "Use this RPC to unset CFM debug options in EXEC mode";
         input  {
             leaf debug-options  {
@@ -318,12 +4235,118 @@ module ipi-cfm {
         }
     }
 
-    notification cfm-mep-ccm-highest-fault-info {
+    rpc cfm-l2-test-loopback {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "Use this RPC ping a remote MEP for L2 bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf mac-address  {
+                type ipi-cfm-data-types:cfm_lb_mac_addr_t;
+                mandatory true;
+                description "The remote MEP identified by MAC address";
+            }
+        }
+    }
+
+    rpc cfm-l2-test-linktrace {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "Use this RPC to start a linktrace test for a L2 bridge";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge group name for which the MEP was associated";
+            }
+            leaf md-name  {
+                type string {
+                    length "1..43";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Domain";
+            }
+            leaf ma-name  {
+                type string {
+                    length "1..6";
+                }
+                mandatory true;
+                description "A unique identifier of a Maintenance Association";
+            }
+            leaf mep-id  {
+                type uint16 {
+                    range "1..8191";
+                }
+                mandatory true;
+                description "The MEP ID of the source MEP";
+            }
+            leaf mac-address  {
+                type ipi-cfm-data-types:cfm_lb_mac_addr_t;
+                mandatory true;
+                description "The remote MEP identified by MAC address";
+            }
+        }
+        output  {
+            leaf transaction-id  {
+                type uint32;
+                mandatory true;
+                description "This attribute specifies the transaction-id of a particular linktrace
+                            test";
+            }
+        }
+    }
+
+    rpc cfm-l2-clear-linktrace-cache {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+        description "Use this RPC to clear the linktrace cache for L2 bridge CFM";
+        input  {
+            leaf bridge-id  {
+                type string {
+                    pattern "([1-9]|[12][0-9]|3[0-2])";
+                }
+                description "The bridge for which linktrace cache to be cleared";
+            }
+        }
+    }
+
+    notification cfm-l2-mep-ccm-highest-fault-info {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
 
         description "Notify the highest CCM fault received to all notification clients like CLI, NETCONF and SNMP.";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf mep-id {
             type  uint16;
         description
@@ -351,6 +4374,234 @@ module ipi-cfm {
                     since the MEP Fault Notification Generator state machine was last in
                     the FNG_RESET state. The non-existence of this leaf represents that no
                     defect has been present since the last FNG_RESET state.";
+        }
+    }
+
+    notification cfm-l2-ethernet-loopback-test-completed {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+
+        description "Notify that the last loopback test is complete.";
+
+        // severity "INFO";
+
+        // eventClass "STATE";
+
+        leaf mep-id {
+            type  uint16;
+        description
+            "Integer that is unique among all the MEPs in the same MA. Other
+                    definition is: a small integer, unique over a given Maintenance
+                    Association, identifying a specific Maintenance association End Point";
+        }
+
+        leaf ma-name {
+            type  string;
+        description
+            "The value union for the Maintenance Association Name.";
+        }
+
+        leaf md-name {
+            type  string;
+        description
+            "A unique identifier of a Maintenance Domain";
+        }
+
+        leaf target-mac-address {
+            type ipi-cfm-data-types:cfm_rmep_mac_addr_t;
+        description
+            "This attribute specifies the target MAC address of last loopback test";
+        }
+    }
+
+    notification cfm-l2-ethernet-linktrace-test-completed {
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+
+        description "Notify that the last linktrace test is complete.";
+
+        // severity "INFO";
+
+        // eventClass "STATE";
+
+        leaf transaction-id {
+            type  uint32;
+        description
+            "This attribute specifies the transaction-id of a particular linktrace
+                    test";
+        }
+
+        leaf mep-id {
+            type  uint16;
+        description
+            "Integer that is unique among all the MEPs in the same MA. Other
+                    definition is: a small integer, unique over a given Maintenance
+                    Association, identifying a specific Maintenance association End Point";
+        }
+
+        leaf ma-name {
+            type  string;
+        description
+            "The value union for the Maintenance Association Name.";
+        }
+
+        leaf md-name {
+            type  string;
+        description
+            "A unique identifier of a Maintenance Domain";
+        }
+
+        leaf target-mac-address {
+            type ipi-cfm-data-types:cfm_rmep_mac_addr_t;
+        description
+            "This attribute specifies the target MAC address of a particular
+                    linktrace test";
+        }
+    }
+
+    notification cfm-mpls-mep-ccm-highest-fault-info {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+
+        description "Notify the highest CCM fault received for a MEP for CFM over MPLS L2VPN service.";
+
+        // severity "MINOR";
+
+        // eventClass "STATE";
+
+        leaf mep-id {
+            type  uint16;
+        description
+            "Integer that is unique among all the MEPs in the same MA. Other
+                    definition is: a small integer, unique over a given Maintenance
+                    Association, identifying a specific Maintenance association End Point";
+        }
+
+        leaf ma-name {
+            type  string;
+        description
+            "The value union for the Maintenance Association Name.";
+        }
+
+        leaf md-name {
+            type  string;
+        description
+            "A unique identifier of a Maintenance Domain";
+        }
+
+        leaf service-type {
+            type ipi-cfm-data-types:cfm_mpls_svc_type_t;
+        description
+            "MPLS service type whether it's Virtual Private Wire Service(VPWS) or
+                    Ethernet VPN(EVPN)";
+        }
+
+        leaf highest-priority-defect-found {
+            type ipi-cfm-data-types:cfm_mep_highest_fault_defect_t;
+        description
+            "Value indicating the highest-priority defect that has been present
+                    since the MEP Fault Notification Generator state machine was last in
+                    the FNG_RESET state. The non-existence of this leaf represents that no
+                    defect has been present since the last FNG_RESET state.";
+        }
+    }
+
+    notification cfm-mpls-ethernet-loopback-test-completed {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+
+        description "Notify that the last loopback test is complete for CFM over MPLS L2VPN service.";
+
+        // severity "INFO";
+
+        // eventClass "STATE";
+
+        leaf mep-id {
+            type  uint16;
+        description
+            "Integer that is unique among all the MEPs in the same MA. Other
+                    definition is: a small integer, unique over a given Maintenance
+                    Association, identifying a specific Maintenance association End Point";
+        }
+
+        leaf ma-name {
+            type  string;
+        description
+            "The value union for the Maintenance Association Name.";
+        }
+
+        leaf md-name {
+            type  string;
+        description
+            "A unique identifier of a Maintenance Domain";
+        }
+
+        leaf service-type {
+            type ipi-cfm-data-types:cfm_mpls_svc_type_t;
+        description
+            "MPLS service type whether it's Virtual Private Wire Service(VPWS) or
+                    Ethernet VPN(EVPN)";
+        }
+
+        leaf target-mac-address {
+            type ipi-cfm-data-types:cfm_rmep_mac_addr_t;
+        description
+            "This attribute specifies the target MAC address of last loopback test";
+        }
+    }
+
+    notification cfm-mpls-ethernet-linktrace-test-completed {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_ONMD;
+
+        description "Notify that the last linktrace test is complete for CFM over MPLS L2VPN service.";
+
+        // severity "INFO";
+
+        // eventClass "STATE";
+
+        leaf transaction-id {
+            type  uint32;
+        description
+            "This attribute specifies the transaction-id of a particular linktrace
+                    test";
+        }
+
+        leaf mep-id {
+            type  uint16;
+        description
+            "Integer that is unique among all the MEPs in the same MA. Other
+                    definition is: a small integer, unique over a given Maintenance
+                    Association, identifying a specific Maintenance association End Point";
+        }
+
+        leaf ma-name {
+            type  string;
+        description
+            "The value union for the Maintenance Association Name.";
+        }
+
+        leaf md-name {
+            type  string;
+        description
+            "A unique identifier of a Maintenance Domain";
+        }
+
+        leaf service-type {
+            type ipi-cfm-data-types:cfm_mpls_svc_type_t;
+        description
+            "MPLS service type whether it's Virtual Private Wire Service(VPWS) or
+                    Ethernet VPN(EVPN)";
+        }
+
+        leaf target-mac-address {
+            type ipi-cfm-data-types:cfm_rmep_mac_addr_t;
+        description
+            "This attribute specifies the target MAC address of a particular
+                    linktrace test";
         }
     }
 

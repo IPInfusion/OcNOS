@@ -23,22 +23,17 @@ module ipi-sflow-interface {
 
     import ipi-sflow {
         prefix ipi-sflow;
-        revision-date 2021-09-11;
+        revision-date 2022-06-01;
     }
 
     import ipi-sflow-types {
         prefix ipi-sflow-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
-    }
-
-    import ipi-if-aggregate {
-        prefix ipi-if-aggregate;
-        revision-date 2022-04-20;
+        revision-date 2022-06-01;
     }
 
     import ietf-yang-types {
@@ -48,7 +43,7 @@ module ipi-sflow-interface {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -64,6 +59,11 @@ module ipi-sflow-interface {
         "This module provides user with the possibility to configure sflow
                 interface parameters";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.2.0.";
+    }
 
     revision "2021-07-30" {
         description "sFlow restructured";
@@ -90,7 +90,7 @@ module ipi-sflow-interface {
         leaf sampling-rate  {
             type  uint32 {
                  range "1024..16777215"  {
-                    description "1024..16777215:Range of Sampling rate";
+                    description "1024..16777215: Supported range 1024 - 16777215";
                  }
             }
             mandatory true;
@@ -117,7 +117,7 @@ module ipi-sflow-interface {
         leaf sample-size  {
             type  uint16 {
                  range "16..256"  {
-                    description "16..256:range of header size in bytes";
+                    description "16..256: Supported range 16 - 256";
                  }
             }
             mandatory true;
@@ -170,7 +170,7 @@ module ipi-sflow-interface {
         leaf sampling-rate  {
             type  uint32 {
                  range "1024..16777215"  {
-                    description "1024..16777215:Range of Sampling rate";
+                    description "1024..16777215: Supported range 1024 - 16777215";
                  }
             }
             mandatory true;
@@ -197,7 +197,7 @@ module ipi-sflow-interface {
         leaf sample-size  {
             type  uint16 {
                  range "16..256"  {
-                    description "16..256:range of header size in bytes";
+                    description "16..256: Supported range 16 - 256";
                  }
             }
             mandatory true;
@@ -280,7 +280,7 @@ module ipi-sflow-interface {
         leaf polling-interval  {
             type  uint8 {
                  range "5..60"  {
-                    description "5..60:Polling interval in seconds";
+                    description "5..60: Supported range 5 - 60";
                  }
             }
             description "The maximum number of seconds between successive samples of the
@@ -307,11 +307,11 @@ module ipi-sflow-interface {
     description
         "Configuration data for interface sFlow";
     container interfaces {
+        if-feature feature-list:HAVE_SFLOW;
         description
             "Configuration data for interface sFlow";
 
         list interface {
-        when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) ";
             key "name";
             description
                 "Configuration data list for interface sFlow";
@@ -342,6 +342,7 @@ module ipi-sflow-interface {
 
     augment /ipi-sflow:sampling/ipi-sflow:sflow {
     when " /ipi-sflow:sampling/ipi-sflow:sflow/ipi-sflow:config/ipi-sflow:enabled ";
+        if-feature feature-list:HAVE_SFLOW;
         description
             "Configuration data for interface sFlow";
         uses interfaces-grouping;
@@ -349,6 +350,7 @@ module ipi-sflow-interface {
 
 
     rpc sflow-clear-statistics {
+        if-feature feature-list:HAVE_SFLOW;
         description "Use to clear all sFlow statistics from a specific interface";
         input  {
             leaf interface  {

@@ -28,27 +28,22 @@ module ipi-qos-if {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     import ipi-qos-types {
         prefix ipi-qos-types;
-        revision-date 2021-06-30;
-    }
-
-    import ipi-if-aggregate {
-        prefix ipi-if-aggregate;
-        revision-date 2022-04-20;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -63,6 +58,21 @@ module ipi-qos-if {
     description
         "Quality of Service (QoS) interface information";
 
+
+    revision "2022-06-15" {
+        description "Changed the interface name key to be a leafref to the attribute name on config container";
+        reference "Initial Version";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference "Initial Version";
+    }
+
+    revision "2022-04-28" {
+        description "Renamed EVPN IRB related attributes";
+        reference "Initial Version";
+    }
 
     revision "2021-09-01" {
         description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
@@ -117,11 +127,18 @@ module ipi-qos-if {
     grouping qos-interface-config {
         description
             "Grouping for interface QoS configuration";
+        leaf name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Interface name for which QoS is being configured";
+        } // END of name definition.
+
         leaf untagged-priority  {
             when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Untagged priority values";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             description "Use this attribute to set internal priority for untagged traffic on L2
@@ -143,8 +160,8 @@ module ipi-qos-if {
             when " ../rate-unit ";
             type  uint64 {
                  range "1..1000000000"  {
-                    description "1..1000000000:Specify egress traffic rate limit from 52 Kbps to 1000
-                            Gbps";
+                    description "1..1000000000:Not Feature : HAVE_CUSTOM2_QOS  Supported range 1 -
+                            1000000000Feature : HAVE_CUSTOM2_QOS Supported range 1 - 1000000000";
                  }
             }
             mandatory true;
@@ -164,8 +181,7 @@ module ipi-qos-if {
             if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
             type  uint64 {
                  range "1..1000000"  {
-                    description "1..1000000:Specify egress traffic rate burst size from 1 Kbits to
-                            1000000 kbits (1 Gbits)";
+                    description "1..1000000: Supported range 1 - 1000000";
                  }
             }
             mandatory true;
@@ -272,7 +288,6 @@ module ipi-qos-if {
         } // END of precedence-to-precedence definition.
 
         leaf dscp-to-queue  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -281,7 +296,6 @@ module ipi-qos-if {
         } // END of dscp-to-queue definition.
 
         leaf precedence-to-queue  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -291,6 +305,7 @@ module ipi-qos-if {
         } // END of precedence-to-queue definition.
 
         leaf exp-encapsulation  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
             if-feature feature-list:HAVE_DIFFSERV;
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             if-feature feature-list:NOT_HAVE_CUSTOM3_QOS;
@@ -342,6 +357,17 @@ module ipi-qos-if {
             description "Use this attibute to attach a queue color to Precedence profile to the
                         interface";
         } // END of queue-to-precedence definition.
+
+        leaf queue-to-exp  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            if-feature feature-list:HAVE_DIFFSERV;
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM3_QOS;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attibute to attach a queue to exp profile to the interface";
+        } // END of queue-to-exp definition.
 
     } // END of qos-map-profile-ref-config definition.
     grouping qos-map-profile-ref-top {
@@ -741,6 +767,16 @@ module ipi-qos-if {
     grouping qos-service-policy-egress-config {
         description
             "Grouping for QoS service policy egress configuration";
+        leaf type-qos-policy-map-name  {
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM3_QOS;
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to attach a service-policy of type qos to the
+                        interface";
+        } // END of type-qos-policy-map-name definition.
+
         leaf type-queuing-policy-map-name  {
             type  string {
                 length "1..32";
@@ -806,17 +842,18 @@ module ipi-qos-if {
     description
         "Configuration data for interface QoS";
     container interfaces {
+        if-feature feature-list:HAVE_QOS;
         description
             "Configuration data for interface QoS";
 
         list interface {
-        when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos + not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) ";
+        when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
             key "name";
             description
                 "Configuration data list for interface QoS";
             leaf name  {
                 type  leafref {
-                    path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+                    path  "../config/name";
                 }
                 description "Interface name for which QoS is being configured";
             } // END of name definition.
@@ -841,6 +878,7 @@ module ipi-qos-if {
     } // END of interfaces-grouping definition.
 
     augment /ipi-qos:qos {
+        if-feature feature-list:HAVE_QOS;
         description
             "Configuration data for interface QoS";
         uses interfaces-grouping;
@@ -848,11 +886,14 @@ module ipi-qos-if {
 
 
     notification qos-subinterface-default-policy-add-notification {
+        if-feature feature-list:HAVE_QOS;
 
         description "Add default policy on subif in DB.";
 
         // severity "INFO";
+
         // eventClass "MESSAGE";
+
         leaf message {
             type string;
             description " alarm message notification";
@@ -860,11 +901,14 @@ module ipi-qos-if {
     }
 
     notification qos-subinterface-default-policy-delete-notification {
+        if-feature feature-list:HAVE_QOS;
 
         description "Delete default policy on subif in DB.";
 
         // severity "INFO";
+
         // eventClass "MESSAGE";
+
         leaf message {
             type string;
             description " alarm message notification";
@@ -872,11 +916,14 @@ module ipi-qos-if {
     }
 
     notification qos-subinterface-traffic-shape-add-notification {
+        if-feature feature-list:HAVE_QOS;
 
         description "Add port shaper from subif in DB.";
 
         // severity "INFO";
+
         // eventClass "MESSAGE";
+
         leaf message {
             type string;
             description " alarm message notification";
@@ -884,11 +931,14 @@ module ipi-qos-if {
     }
 
     notification qos-subinterface-traffic-shape-delete-notification {
+        if-feature feature-list:HAVE_QOS;
 
         description "Delete port shaper from subif in DB.";
 
         // severity "INFO";
+
         // eventClass "MESSAGE";
+
         leaf message {
             type string;
             description " alarm message notification";

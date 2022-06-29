@@ -23,12 +23,12 @@ module ipi-bfd {
 
     import ipi-bfd-types {
         prefix ipi-bfd-types;
-        revision-date 2022-01-13;
+        revision-date 2022-06-20;
     }
 
     import ipi-bfd-common {
         prefix ipi-bfd-common;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ietf-yang-types {
@@ -43,11 +43,12 @@ module ipi-bfd {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
-    include ipi-bfd-interface { revision-date 2021-09-01;}
-    include ipi-bfd-session { revision-date 2021-11-19;}
+    include ipi-bfd-interface { revision-date 2022-06-01;}
+    include ipi-bfd-session { revision-date 2022-06-20;}
+    include ipi-mpls-bfd-session { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -60,6 +61,16 @@ module ipi-bfd {
     description
         "Datamodel for Bidirecional Forwarding Detection (BFD)";
 
+
+    revision "2022-06-20" {
+        description "Added interface-name attribute to bfd-session-state-common grouping";
+        reference " 0.7.1.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.7.0.";
+    }
 
     revision "2022-01-13" {
         description "Modified sub module";
@@ -114,7 +125,7 @@ module ipi-bfd {
         leaf ttl  {
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:Allowed range for TTL";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "255";
@@ -145,7 +156,7 @@ module ipi-bfd {
             if-feature feature-list:HAVE_BFD_MONO;
             type  uint32 {
                  range "1000..30000"  {
-                    description "1000..30000:milliseconds";
+                    description "1000..30000: Supported range 1000 - 30000";
                  }
             }
             units "milliseconds";
@@ -247,6 +258,7 @@ module ipi-bfd {
     description
         "Structural container for Bidirectional Forwarding Detection (BFD).";
     container bfd {
+        if-feature feature-list:HAVE_BFD;
         description
             "Structural container for Bidirectional Forwarding Detection (BFD).";
         container global {
@@ -452,10 +464,13 @@ module ipi-bfd {
     uses bfd-grouping;
 
     rpc bfd-snmp-restart {
+        if-feature feature-list:HAVE_SNMP;
+        if-feature feature-list:HAVE_BFD;
         description "Restart SNMP in Bidirectional Forwarding Detection (BFD)";
     }
 
     rpc bfd-terminal-debug-on {
+        if-feature feature-list:HAVE_BFD;
         description "Enable BFD debug categories";
         input  {
             leaf bfd-debug-options  {
@@ -467,6 +482,7 @@ module ipi-bfd {
     }
 
     rpc bfd-terminal-debug-off {
+        if-feature feature-list:HAVE_BFD;
         description "Disable BFD debug categories";
         input  {
             leaf bfd-debug-options  {
@@ -478,11 +494,14 @@ module ipi-bfd {
     }
 
     notification bfd-session-state-change {
+        if-feature feature-list:HAVE_BFD;
 
         description "This notification is sent when the BFD Session state changes..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf local-discriminator {
             type  string;
         description

@@ -26,6 +26,11 @@ module ipi-ldp-types {
         revision-date 2013-07-15;
     }
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
     organization
         "IP Infusion Inc.";
 
@@ -38,6 +43,16 @@ module ipi-ldp-types {
     description
         "YANG version of the ipi-ldp-types";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.3.";
+    }
+
+    revision "2022-04-15" {
+        description "Defined New Data Type";
+        reference " 0.4.2.";
+    }
 
     revision "2022-01-24" {
         description "Modified the defined data-type values";
@@ -227,26 +242,37 @@ module ipi-ldp-types {
             }
             bit cspf {
                 position 9;
+                if-feature feature-list:HAVE_CSPF;
                 description "CSPF messages";
             }
             bit vc-usm {
                 position 10;
+                if-feature feature-list:HAVE_MPLS_VC;
                 description "LDP VC Info,LDP VC USM";
             }
             bit vc-dsm {
                 position 11;
+                if-feature feature-list:HAVE_MPLS_VC;
                 description "LDP VC Info,LDP VC DSM";
             }
             bit graceful-restart {
                 position 12;
+                if-feature feature-list:HAVE_RESTART;
                 description "LDP Graceful Restart Debugging";
             }
             bit rib {
                 position 13;
+                if-feature feature-list:HAVE_RIBD;
                 description "RIB messages";
+            }
+            bit ha {
+                position 14;
+                if-feature feature-list:HAVE_HA;
+                description "HA messages";
             }
             bit inter-area {
                 position 15;
+                if-feature feature-list:HAVE_LDP_INTER_AREA;
                 description "LDP Inter-Area Information";
             }
             bit packet-notification {
@@ -445,6 +471,51 @@ module ipi-ldp-types {
             }
         }
         description "type definition for LDP_SESS_PROT_STATUS_T";
+    }
+
+    typedef  ldp_sess_prot_duration_default_t {
+        type enumeration {
+            enum infinite {
+                value 0;
+                description "LDP Session protection duration infinite";
+            }
+        }
+        description "type definition for LDP_SESS_PROT_DURATION_DEFAULT_T";
+    }
+
+    typedef  ldp_sess_prot_pfx_lst_default_t {
+        type enumeration {
+            enum none {
+                value 0;
+                description "LDP Session protection prefix list none";
+            }
+        }
+        description "type definition for LDP_SESS_PROT_PFX_LST_DEFAULT_T";
+    }
+
+    typedef  ldp_sess_prot_duration_t {
+        type union {
+            type ldp_sess_prot_duration_default_t {
+
+            }
+            type uint32 {
+                range "5..86400";
+
+            }
+        }
+        description "type definition for LDP_SESS_PROT_DURATION_T";
+    }
+
+    typedef  ldp_sess_prot_pfx_lst_t {
+        type union {
+            type ldp_sess_prot_pfx_lst_default_t {
+
+            }
+            type string {
+
+            }
+        }
+        description "type definition for LDP_SESS_PROT_PFX_LST_T";
     }
 
 }

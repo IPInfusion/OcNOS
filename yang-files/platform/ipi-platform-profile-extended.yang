@@ -21,17 +21,17 @@ submodule ipi-platform-profile-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ipi-platform-types {
         prefix ipi-platform-types;
-        revision-date 2022-02-17;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     organization
@@ -46,6 +46,11 @@ submodule ipi-platform-profile-extended {
     description
         "Datamodel for Platform profile extended object";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.1.7.";
+    }
 
     revision "2022-01-21" {
         description "Added when tag to all load-balance child containers";
@@ -100,7 +105,7 @@ submodule ipi-platform-profile-extended {
         leaf l2-banks  {
             type  uint8 {
                  range "1..24"  {
-                    description "1..24:Range 1-24 Each bank size is 1k entries (Each entry 420 bits)";
+                    description "1..24: Supported range 1 - 24";
                  }
             }
             description "Use this attribute to set Sets memory allocation profile - Use `show
@@ -110,7 +115,7 @@ submodule ipi-platform-profile-extended {
         leaf l3-banks  {
             type  uint8 {
                  range "1..23"  {
-                    description "1..23:Range 1-23 Each bank size is 1k entries (Each entry 420 bits)";
+                    description "1..23: Supported range 1 - 23";
                  }
             }
             description "Use this attribute to set Sets memory allocation profile - Use `show
@@ -128,7 +133,7 @@ submodule ipi-platform-profile-extended {
             when " /hardware/platform/config/soc = 'helix4' ";
             type  uint8 {
                  range "1..23"  {
-                    description "1..23:Range 1-23 Each bank size is 1k entries (Each entry 420 bits)";
+                    description "1..23: Supported range 1 - 23";
                  }
             }
             description "Use this attribute to set Sets memory allocation profile - Use `show
@@ -139,7 +144,7 @@ submodule ipi-platform-profile-extended {
             when " /hardware/platform/config/soc = 'helix4' ";
             type  uint8 {
                  range "1..23"  {
-                    description "1..23:Range 1-23 Each bank size is 1k entries (Each entry 420 bits)";
+                    description "1..23: Supported range 1 - 23";
                  }
             }
             description "Use this attribute to set Sets memory allocation profile - Use `show
@@ -147,10 +152,11 @@ submodule ipi-platform-profile-extended {
         } // END of ep-vlan-xlate-banks definition.
 
         leaf mpls-banks  {
+            when " /hardware/platform/config/soc = 'helix4' ";
             if-feature feature-list:HAVE_MPLS;
             type  uint8 {
                  range "1..23"  {
-                    description "1..23:Range 1-23 Each bank size is 1k entries (Each entry 420 bits)";
+                    description "1..23: Supported range 1 - 23";
                  }
             }
             description "Use this attribute to set Sets memory allocation profile - Use `show
@@ -279,6 +285,7 @@ submodule ipi-platform-profile-extended {
         } // END of src-dest-ipv4-address-based definition.
 
         leaf non-symmetric  {
+            when " /hardware/load-balance/ipv4/inner-ipv4/config/src-dest-ipv4-address-based ";
             if-feature feature-list:HAVE_DNX;
             type  empty;
             description "Destination IPV4 based load balancing";
@@ -580,6 +587,8 @@ submodule ipi-platform-profile-extended {
     description
         "MAC ageing container";
     container mac-ageing {
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         description
             "MAC ageing container";
         container config {
@@ -600,6 +609,8 @@ submodule ipi-platform-profile-extended {
     description
         "Describes the platform";
     container platform {
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         description
             "Describes the platform";
         container config {
@@ -616,6 +627,8 @@ submodule ipi-platform-profile-extended {
     container mdb {
         if-feature feature-list:HAVE_DNX;
         if-feature feature-list:HAVE_BCM_UFT;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         description
             "Container for MDB profile";
         container config {
@@ -639,6 +652,8 @@ submodule ipi-platform-profile-extended {
     container custom-profile {
         when " /profiles/forwarding-profiles/config/profile = 'custom-profile' ";
         if-feature feature-list:HAVE_BCM_UFT;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         if-feature feature-list:NOT_HAVE_DUNE;
         description
             "Container for custom profile";
@@ -661,6 +676,8 @@ submodule ipi-platform-profile-extended {
         "Operational state data for table-limit";
     container state {
         if-feature feature-list:HAVE_BCM_UFT;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         config false;
         description
             "Operational state data for table-limit";
@@ -672,6 +689,8 @@ submodule ipi-platform-profile-extended {
     description
         "Container for table-sizes";
     container table-sizes {
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         if-feature feature-list:NOT_HAVE_DUNE;
         config false;
         description
@@ -703,8 +722,11 @@ submodule ipi-platform-profile-extended {
     description
         "Container for inner-l2";
     container inner-l2 {
+        when " /hardware/load-balance/config/enable ";
         if-feature feature-list:HAVE_L2;
         if-feature feature-list:HAVE_DNX;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         description
             "Container for inner-l2";
         container config {
@@ -725,8 +747,11 @@ submodule ipi-platform-profile-extended {
     description
         "Container for inner-ipv4";
     container inner-ipv4 {
+        when " /hardware/load-balance/config/enable ";
         if-feature feature-list:HAVE_L3;
         if-feature feature-list:HAVE_DNX;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         description
             "Container for inner-ipv4";
         container config {
@@ -749,6 +774,8 @@ submodule ipi-platform-profile-extended {
     container tunnel {
         when " /hardware/load-balance/config/enable ";
         if-feature feature-list:HAVE_L3;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         if-feature feature-list:NOT_HAVE_DUNE;
         description
             "Container for l3 tunnel";
@@ -772,6 +799,8 @@ submodule ipi-platform-profile-extended {
     container vxlan {
         when " /hardware/load-balance/config/enable ";
         if-feature feature-list:HAVE_VXLAN;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         if-feature feature-list:NOT_HAVE_DUNE;
         description
             "Container for vxlan";
@@ -812,7 +841,10 @@ submodule ipi-platform-profile-extended {
     description
         "Container for mpls-ler";
     container mpls-ler {
+        when " /hardware/load-balance/config/enable ";
         if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         if-feature feature-list:NOT_HAVE_DUNE;
         description
             "Container for mpls-ler";
@@ -855,7 +887,10 @@ submodule ipi-platform-profile-extended {
     description
         "Container for l4 port load-balance";
     container l4-port {
+        when " /hardware/load-balance/config/enable ";
         if-feature feature-list:HAVE_DNX;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         description
             "Container for l4 port load-balance";
         container config {
@@ -877,6 +912,8 @@ submodule ipi-platform-profile-extended {
         "Container for cpu-control";
     container cpu-control {
         if-feature feature-list:HAVE_VXLAN;
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         if-feature feature-list:NOT_HAVE_DUNE;
         description
             "Container for cpu-control";
@@ -902,6 +939,8 @@ submodule ipi-platform-profile-extended {
     description
         "Configuration data for Platform profile port-channel";
     container port-channel {
+        if-feature feature-list:HAVE_BROADCOM;
+        if-feature feature-list:HAVE_CMMD;
         description
             "Configuration data for Platform profile port-channel";
         container interfaces {

@@ -23,17 +23,17 @@ module ipi-rib {
 
     import ipi-rib-types {
         prefix ipi-rib-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ipi-rib-common {
         prefix ipi-rib-common;
-        revision-date 2021-12-08;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -43,7 +43,7 @@ module ipi-rib {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -59,9 +59,19 @@ module ipi-rib {
         "Datamodel for RIB object";
 
 
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.9.0.";
+    }
+
     revision "2022-03-31" {
         description "Added IPV6 feature flag in needed areas";
         reference " 0.8.0.";
+    }
+
+    revision "2022-02-14" {
+        description "SRv6 GET API";
+        reference " 0.7.0.";
     }
 
     revision "2021-12-08" {
@@ -115,7 +125,7 @@ module ipi-rib {
             if-feature feature-list:HAVE_MULTIPATH;
             type  uint8 {
                  range "1..64"  {
-                    description "1..64:supported multipath numbers";
+                    description "1..64: Supported range 1 - 64";
                  }
             }
             default "8";
@@ -127,7 +137,7 @@ module ipi-rib {
         leaf max-static-routes  {
             type  uint32 {
                  range "1..4294967294"  {
-                    description "1..4294967294:Allowed number of static routes";
+                    description "1..4294967294: Supported range 1 - 4294967294";
                  }
             }
             default "4294967294";
@@ -137,8 +147,7 @@ module ipi-rib {
         leaf max-fib-routes  {
             type  uint32 {
                  range "1..16384"  {
-                    description "1..16384:Allowed number of fib routes including Kernel, Connect and
-                            Static";
+                    description "1..16384: Supported range 1 - 16384";
                  }
             }
             description "Use this attribute to set the maximum number of FIB (Forwarding
@@ -235,15 +244,60 @@ module ipi-rib {
         } // END of gateway-address definition.
 
         leaf interface-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
             }
             description "Use this attribute to create an IPv4 static route where nexthop is
                         interface name.";
         } // END of interface-name definition.
 
     } // END of rib-ipv4-gateway-interface-config definition.
+    grouping srv6-sid-state {
+        description
+            "SRv6 services state attributes";
+        leaf sid  {
+            type  inet:ipv6-address;
+            description "SRv6 Segment Identifier";
+        } // END of sid definition.
+
+        leaf action  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 Action to be carried out for this entry.";
+        } // END of action definition.
+
+        leaf ipv6-nexthop  {
+            type  inet:ipv6-address;
+            description "IPv6 Nexthop address";
+        } // END of ipv6-nexthop definition.
+
+        leaf originator  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 route originator protocol name";
+        } // END of originator definition.
+
+        leaf type  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SRv6 route type";
+        } // END of type definition.
+
+        leaf uptime  {
+            type  string {
+                length "1..1965";
+                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
+            }
+            description "SRv6 Route Up time";
+        } // END of uptime definition.
+
+    } // END of srv6-sid-state definition.
     grouping rib-ipv6-gateway-config {
         description
             "Configuration attributes for ipv6 static routes";
@@ -260,7 +314,7 @@ module ipi-rib {
         leaf distance  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Distance value for this prefix";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "1";
@@ -271,7 +325,7 @@ module ipi-rib {
             if-feature feature-list:HAVE_OBJ_TRACKING;
             type  uint16 {
                  range "1..500"  {
-                    description "1..500:Object Tracking id";
+                    description "1..500: Supported range 1 - 500";
                  }
             }
             description "Use this attribute to track a object.";
@@ -298,7 +352,7 @@ module ipi-rib {
         leaf distance  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Distance value for this prefix";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "1";
@@ -309,7 +363,7 @@ module ipi-rib {
             if-feature feature-list:HAVE_OBJ_TRACKING;
             type  uint16 {
                  range "1..500"  {
-                    description "1..500:Object Tracking id";
+                    description "1..500: Supported range 1 - 500";
                  }
             }
             description "Use this attribute to track a object.";
@@ -330,18 +384,10 @@ module ipi-rib {
             description "IPv6 gateway address";
         } // END of gateway-address definition.
 
-        leaf interface-name  {
-            type  leafref {
-                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-            }
-            description "Use this attribute to create an IPv6 static route where nexthop is
-                        interface name and ipv6 prefix.";
-        } // END of interface-name definition.
-
         leaf distance  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Distance value for this prefix";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "1";
@@ -353,7 +399,7 @@ module ipi-rib {
             if-feature feature-list:HAVE_OBJ_TRACKING;
             type  uint16 {
                  range "1..500"  {
-                    description "1..500:Object Tracking id";
+                    description "1..500: Supported range 1 - 500";
                  }
             }
             description "Use this attribute to track a object.";
@@ -394,6 +440,7 @@ module ipi-rib {
     description
         "RIB Master for system wide configurations";
     container routing {
+        if-feature feature-list:HAVE_RIBD;
         description
             "RIB Master for system wide configurations";
         container global {
@@ -461,7 +508,7 @@ module ipi-rib {
 
                     leaf interface-name  {
                         type  leafref {
-                            path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+                            path  "../config/interface-name";
                         }
                         description "Use this attribute to create an IPv4 static route where nexthop is
                                     interface name.";
@@ -670,7 +717,7 @@ module ipi-rib {
 
                     leaf interface-name  {
                         type  leafref {
-                            path  "../config/interface-name";
+                            path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
                         }
                         description "Use this attribute to create an IPv6 static route where nexthop is
                                     interface name and ipv6 prefix.";
@@ -739,12 +786,37 @@ module ipi-rib {
                 } // End of multicast-route-list
             } // END of ipv6-container definition.
         } // END of static-routes-container definition.
+        container srv6-sid-entries {
+            if-feature feature-list:HAVE_SRV6;
+            config false;
+            description
+                "Global SRV6 SID table";
+
+            list srv6-sid-entry {
+                key "sid";
+                config false;
+                description
+                    "Global SRv6 SID entries";
+                leaf sid  {
+                    type  leafref {
+                        path  "../state/sid";
+                    }
+                    description "SRv6 Segment Identifier";
+                } // END of sid definition.
+
+                container state {
+                    config false;
+                    description
+                        "State Container for SRv6 SID entry";
+                    uses srv6-sid-state;
+                } // END of state-container definition.
+            } // End of srv6-sid-entry-list
+        } // END of srv6-sid-entries-container definition.
         container interfaces {
             description
                 "RIB BFD interface related operations";
 
             list interface {
-            when " /ipi-rib:routing/ipi-rib:interfaces/ipi-rib:interface/ipi-rib:bfd/ipi-rib:config/ipi-rib:ipv4-enable-bfd  or /ipi-rib:routing/ipi-rib:interfaces/ipi-rib:interface/ipi-rib:bfd/ipi-rib:config/ipi-rib:ipv6-enable-bfd ";
                 if-feature feature-list:HAVE_BFD;
                 key "name";
                 description
@@ -780,24 +852,31 @@ module ipi-rib {
     uses routing-grouping;
 
     rpc rib-snmp-restart {
+        if-feature feature-list:HAVE_SNMP;
+        if-feature feature-list:HAVE_RIBD;
         description "Use rib-snmp-restart to restart SNMP in Routing Information Base (RIB)";
     }
 
     rpc clear-ip-stale-kernel-routes {
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ip-stale-kernel-routes to clear stale IPv4 routes from the
                     RIB (Routing Information Base) and FIB (Forwarding Information Base).";
     }
 
     rpc clear-ipv6-stale-kernel-routes {
+        if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ipv6-stale-kernel-routes to clear stale IPv6 routes from the
                     RIB (Routing Information Base) and FIB (Forwarding Information Base).";
     }
 
     rpc clear-ip-route-all {
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ip-route-all to clear all IPv4 routes";
     }
 
     rpc clear-ip-route {
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ip-route to clear any specific IPv4 prefix route";
         input  {
             leaf prefix-address  {
@@ -809,10 +888,14 @@ module ipi-rib {
     }
 
     rpc clear-ipv6-route-all {
+        if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ipv6-route-all to clear all IPv6 routes";
     }
 
     rpc clear-ipv6-route {
+        if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ipv6-route to clear any specific IPv6 prefix route";
         input  {
             leaf prefix-ipv6-address  {
@@ -824,6 +907,7 @@ module ipi-rib {
     }
 
     rpc rib-debug-on {
+        if-feature feature-list:HAVE_RIBD;
         description "Use rib-debug-on to enable rib debugging";
         input  {
             leaf debug-options  {
@@ -835,6 +919,7 @@ module ipi-rib {
     }
 
     rpc rib-debug-off {
+        if-feature feature-list:HAVE_RIBD;
         description "Use rib-debug-off to disable rib debugging";
         input  {
             leaf debug-options  {
@@ -846,6 +931,7 @@ module ipi-rib {
     }
 
     rpc rib-ip-routing-debug-on {
+        if-feature feature-list:HAVE_RIBD;
         description "Use rib-ip-routing-debug-on to enable rib debugging for ipv4 route
                     add/delete/modify events";
         input  {
@@ -858,6 +944,7 @@ module ipi-rib {
     }
 
     rpc rib-ip-routing-debug-off {
+        if-feature feature-list:HAVE_RIBD;
         description "Use rib-ip-routing-debug-off to disable rib debugging for ipv4 route
                     add/delete/modify events";
         input  {
@@ -870,6 +957,8 @@ module ipi-rib {
     }
 
     rpc rib-ipv6-routing-debug-on {
+        if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_RIBD;
         description "Use rib-ipv6-routing-debug-on to enable rib debugging for ipv6 route
                     add/delete/modify events";
         input  {
@@ -882,6 +971,8 @@ module ipi-rib {
     }
 
     rpc rib-ipv6-routing-debug-off {
+        if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_RIBD;
         description "Use rib-ipv6-routing-debug-off to disable rib debugging for ipv6 route
                     add/delete/modify events";
         input  {

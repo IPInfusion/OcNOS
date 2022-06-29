@@ -28,27 +28,27 @@ module ipi-snmp-server-extended {
 
     import ipi-snmp {
         prefix ipi-snmp;
-        revision-date 2021-07-28;
+        revision-date 2022-06-01;
     }
 
     import ipi-snmp-server {
         prefix ipi-snmp-server;
-        revision-date 2021-12-15;
+        revision-date 2022-06-01;
     }
 
     import ipi-snmp-server-extended-types {
         prefix ipi-snmp-server-extended-types;
-        revision-date 2022-03-20;
+        revision-date 2022-06-01;
     }
 
     import ipi-acl {
         prefix ipi-acl;
-        revision-date 2022-01-20;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -64,6 +64,11 @@ module ipi-snmp-server-extended {
         "This module provides Simple Network Management Protocol server
                 configuration";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.2.6.";
+    }
 
     revision "2022-04-11" {
         description "Remove acl leaf from choice structure in SNMP community";
@@ -251,7 +256,7 @@ module ipi-snmp-server-extended {
             when " ../community or ../snmpv3-auth-type or ../host-user ";
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:The notification hosts UDP port number";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             description "Use this attribute to specify the port to be used when SNMP sends
@@ -566,6 +571,7 @@ module ipi-snmp-server-extended {
             description "Use this attribute to create an SNMP community string and user-acl.";
         } // END of acl-name definition.
 
+        uses snmp-server-community-view-config;
         choice community-option {
             description
                 "community-option";
@@ -592,28 +598,23 @@ module ipi-snmp-server-extended {
                 } // END of access-privileges definition.
 
             }
-            case use-view {
-
-                description
-                    "Configure community pointing to a snmp view";
-
-                uses snmp-server-community-view-config;
-            }
         } // END of community-option-choice definition.
     } // END of snmp-server-community-config definition.
     grouping snmp-server-community-context {
         description
             "SNMP server community context mapping configuration";
         leaf community-context  {
-            type  leafref {
-                path  "/ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server/contexts/context/config/context-name";
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
             }
             description "Use this attribute to map a community with an SNMP server context";
         } // END of community-context definition.
 
         leaf community-user  {
-            type  leafref {
-                path  "/ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server/users/user/config/user-name";
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
             }
             description "Use this attribute to point to a pre-configured SNMPv3 user. This can
                         be configured when SNMP version is 3.";
@@ -715,6 +716,7 @@ module ipi-snmp-server-extended {
     description
         "Container for SNMP servers debug configuration";
     container debug {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "Container for SNMP servers debug configuration";
         container config {
@@ -736,6 +738,7 @@ module ipi-snmp-server-extended {
     description
         "Container for SNMP servers views configuration";
     container snmp-views {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "Container for SNMP servers views configuration";
         uses snmp-server-view-top;
@@ -746,6 +749,7 @@ module ipi-snmp-server-extended {
     description
         "Container for SNMP servers hosts configuration";
     container hosts {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "Container for SNMP servers hosts configuration";
         uses snmp-server-host-top;
@@ -756,6 +760,7 @@ module ipi-snmp-server-extended {
     description
         "Container for SNMP servers users configuration";
     container users {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "Container for SNMP servers users configuration";
         uses snmp-server-user-top;
@@ -766,6 +771,7 @@ module ipi-snmp-server-extended {
     description
         "Container for SNMP servers contexts configuration";
     container contexts {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "Container for SNMP servers contexts configuration";
         uses snmp-server-context-top;
@@ -776,6 +782,7 @@ module ipi-snmp-server-extended {
     description
         "Container for SNMP servers communities configuration";
     container communities {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "Container for SNMP servers communities configuration";
         uses snmp-server-community-top;
@@ -786,6 +793,7 @@ module ipi-snmp-server-extended {
     description
         "Container for SNMP servers groups configuration";
     container server-groups {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "Container for SNMP servers groups configuration";
         uses snmp-server-group-top;
@@ -796,6 +804,7 @@ module ipi-snmp-server-extended {
     description
         "Container for SNMP statistics";
     container statistics {
+        if-feature feature-list:HAVE_HOSTPD;
         config false;
         description
             "Container for SNMP statistics";

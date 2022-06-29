@@ -23,7 +23,7 @@ module ipi-evpn-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-01-07;
+        revision-date 2022-04-04;
     }
 
     import ietf-inet-types {
@@ -33,22 +33,22 @@ module ipi-evpn-mpls {
 
     import ipi-evpn-mpls-types {
         prefix ipi-evpn-mpls-types;
-        revision-date 2021-12-27;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-12-15;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ietf-yang-types {
@@ -58,7 +58,7 @@ module ipi-evpn-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -73,6 +73,31 @@ module ipi-evpn-mpls {
     description
         "Datamodel for EVPN-MPLS protocol";
 
+
+    revision "2022-06-23" {
+        description "Introduced control word CLI option for EVI";
+        reference " 0.4.3.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.2.";
+    }
+
+    revision "2022-05-17" {
+        description "Addition of when tag,dependency while mapping IRB interface to L2VNID";
+        reference " 0.4.1.";
+    }
+
+    revision "2022-04-28" {
+        description "Addition of EVPN-MPLS IRB CLI";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-04-22" {
+        description "Added dependent object and when tag for global vrf configs";
+        reference " 0.3.2.";
+    }
 
     revision "2021-12-10" {
         description "EVPN MPLS Xconnect (ELINE) get-api update";
@@ -130,15 +155,17 @@ module ipi-evpn-mpls {
         } // END of enable-evpn-mpls definition.
 
         leaf vtep-ipv4  {
+            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
             type  inet:ipv4-address;
             description "Use this attribute to set source vtep global ip address.
                         This will be treated at evpn mpls tunnel source address";
         } // END of vtep-ipv4 definition.
 
         leaf arp-nd-refresh-time  {
+            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
             type  uint32 {
                  range "3..190"  {
-                    description "3..190:refresh timer value in seconds (age-out is refresh time * 3)";
+                    description "3..190: Supported range 3 - 190";
                  }
             }
             units "seconds";
@@ -147,9 +174,10 @@ module ipi-evpn-mpls {
         } // END of arp-nd-refresh-time definition.
 
         leaf mac-ageing-timer  {
+            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
             type  uint32 {
                  range "10..572"  {
-                    description "10..572:ageing time in seconds";
+                    description "10..572: Supported range 10 - 572";
                  }
             }
             units "seconds";
@@ -318,6 +346,7 @@ module ipi-evpn-mpls {
             "Top-Level Grouping for EVPN-MPLS Tunnel";
 
         list tunnel {
+        when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config ";
             key "destination-vtep-ip destination-evpn-identifier";
             config false;
             description
@@ -352,7 +381,7 @@ module ipi-evpn-mpls {
         leaf tenant-identifier  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:EVID";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             description "Tenant Identifier";
@@ -362,7 +391,7 @@ module ipi-evpn-mpls {
             if-feature feature-list:HAVE_EVPN_VPWS;
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Target-EVID";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             description "Use this attribute to create vpws tenant";
@@ -379,10 +408,15 @@ module ipi-evpn-mpls {
             description "Use this attribute to map vrf to carry EVPN routes";
         } // END of vrf-name definition.
 
+        leaf control-word  {
+            type  boolean;
+            description "Use this attribute to set control word for EVI";
+        } // END of control-word definition.
+
         leaf mac-holdtime  {
             type  int32 {
                  range "-1..300"  {
-                    description "-1..300:Mac Hold time range -1 to 300 in seconds. -1(never expire)";
+                    description "-1..300: Supported range -1 - 300";
                  }
             }
             units "seconds";
@@ -400,13 +434,21 @@ module ipi-evpn-mpls {
         } // END of tenant-description definition.
 
         leaf tunnel-policy-name  {
-            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            if-feature feature-list:HAVE_SERVICE_MAPPING;
             type  string {
                 length "1..127";
                 pattern "[^?' =,>|]+";
             }
             description "Transport Tunnel Selection Policy";
         } // END of tunnel-policy-name definition.
+
+        leaf irb-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Use this attribute to provide default gateway behavior on a VTEP for
+                        particular VNID.";
+        } // END of irb-name definition.
 
     } // END of evpn-mpls-tenant-config definition.
     grouping evpn-mpls-tenant-route-count-state {
@@ -737,10 +779,12 @@ module ipi-evpn-mpls {
     description
         "EVPN-MPLS global level container";
     container evpn-mpls {
+        if-feature feature-list:HAVE_NVO;
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_BGP_EVPN;
         description
             "EVPN-MPLS global level container";
         container global {
-            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config ";
             description
                 "Configuration data for EVPN-MPLS global capability configuration";
             container config {
@@ -764,6 +808,10 @@ module ipi-evpn-mpls {
     uses evpn-mpls-grouping;
 
     rpc clear-nvo-mpls-dynamic-mac-address-table {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_SUBINTERFACE;
+        if-feature feature-list:HAVE_NVO;
+        if-feature feature-list:HAVE_BGP_EVPN;
         description "Use this RPC to clear the dynamic entries from mac address table";
         input  {
             leaf tenant-identifier  {
@@ -776,6 +824,10 @@ module ipi-evpn-mpls {
     }
 
     rpc clear-evpn-mpls-egress-counters {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_SUBINTERFACE;
+        if-feature feature-list:HAVE_NVO;
+        if-feature feature-list:HAVE_BGP_EVPN;
         description "Use this RPC to clear the counters";
         input  {
             leaf tenant-identifier  {
@@ -797,6 +849,10 @@ module ipi-evpn-mpls {
     }
 
     rpc clear-evpn-mpls-ingress-counters {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_SUBINTERFACE;
+        if-feature feature-list:HAVE_NVO;
+        if-feature feature-list:HAVE_BGP_EVPN;
         description "Use this RPC to clear the ingress side counters";
         input  {
             leaf tenant-identifier  {

@@ -23,7 +23,7 @@ module ipi-sflow {
 
     import ipi-sflow-types {
         prefix ipi-sflow-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -33,7 +33,7 @@ module ipi-sflow {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -49,6 +49,11 @@ module ipi-sflow {
         "sFlow module provides user with the possibility to configure sFlow
                 parameters";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.5.0.";
+    }
 
     revision "2021-09-11" {
         description "Changing sflow container to presence container";
@@ -129,7 +134,7 @@ module ipi-sflow {
         leaf max-entries  {
             type  uint16 {
                  range "1000..10000"  {
-                    description "1000..10000:Maximum number of cache entries. Default is 1000 entries";
+                    description "1000..10000: Supported range 1000 - 10000";
                  }
             }
             default "1000";
@@ -141,7 +146,7 @@ module ipi-sflow {
             if-feature feature-list:HAVE_BROADCOM;
             type  uint16 {
                  range "0..1000"  {
-                    description "0..1000:Rate in packets per second. Default is 200 packets/sec";
+                    description "0..1000: Supported range 0 - 1000";
                  }
             }
             default "200";
@@ -184,7 +189,7 @@ module ipi-sflow {
             when " ../max-datagram-size + ../address + ../receiver-timeout ";
             type  inet:port-number {
                  range "1024..65535"  {
-                    description "1024..65535:sFlow Collector Port Number";
+                    description "1024..65535: Supported range 1024 - 65535";
                  }
             }
             description "The destination port for sFlow datagrams.Default port number is 6343.";
@@ -194,7 +199,7 @@ module ipi-sflow {
             when " ../max-datagram-size + ../port + ../address ";
             type  uint32 {
                  range "0..2147483647"  {
-                    description "0..2147483647:Time Out value in second";
+                    description "0..2147483647: Supported range 0 - 2147483647";
                  }
             }
             mandatory true;
@@ -213,7 +218,7 @@ module ipi-sflow {
             when " ../address + ../port + ../receiver-timeout ";
             type  uint16 {
                  range "200..9000"  {
-                    description "200..9000:Size in bytes";
+                    description "200..9000: Supported range 200 - 9000";
                  }
             }
             mandatory true;
@@ -293,7 +298,7 @@ module ipi-sflow {
             if-feature feature-list:NOT_HAVE_DUNE;
             type  uint32 {
                  range "2000..100000"  {
-                    description "2000..100000:Rate in packets per second";
+                    description "2000..100000: Supported range 2000 - 100000";
                  }
             }
             units "packets/s";
@@ -353,6 +358,7 @@ module ipi-sflow {
     description
         "Container for all data related to samplings";
     container sampling {
+        if-feature feature-list:HAVE_SFLOW;
         description
             "Container for all data related to samplings";
         uses sflow-top;
@@ -361,7 +367,14 @@ module ipi-sflow {
 
     uses sampling-grouping;
 
+    rpc sflow-clear-access-list-log-cache {
+        if-feature feature-list:HAVE_CUSTOM1_ACL;
+        if-feature feature-list:HAVE_SFLOW;
+        description "";
+    }
+
     rpc sflow-terminal-debug-on {
+        if-feature feature-list:HAVE_SFLOW;
         description "Enable sFlow debug categories";
         input  {
             leaf debug-options  {
@@ -373,6 +386,7 @@ module ipi-sflow {
     }
 
     rpc sflow-terminal-debug-off {
+        if-feature feature-list:HAVE_SFLOW;
         description "Disable sFlow debug categories";
         input  {
             leaf debug-options  {
@@ -384,11 +398,14 @@ module ipi-sflow {
     }
 
     notification sflow-receiver-timeout-alarm-message {
+        if-feature feature-list:HAVE_SFLOW;
 
         description "Notify alarm message.";
 
         // severity "MINOR";
+
         // eventClass "MESSAGE";
+
         leaf message {
             type string;
             description " alarm message notification";

@@ -23,27 +23,27 @@ module ipi-rib-vrf {
 
     import ipi-rib-types {
         prefix ipi-rib-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ipi-rib-common {
         prefix ipi-rib-common;
-        revision-date 2021-12-08;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -53,7 +53,7 @@ module ipi-rib-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -69,8 +69,23 @@ module ipi-rib-vrf {
         "Datamodel for VRF RIB object";
 
 
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.11.0.";
+    }
+
+    revision "2022-05-04" {
+        description "Added leafref from object-list key to config container leaf for interface-route-global";
+        reference " 0.10.0.";
+    }
+
     revision "2022-03-31" {
         description "Added IPV6 feature flag in needed areas";
+        reference " 0.9.0.";
+    }
+
+    revision "2022-02-14" {
+        description "Added new attribute track-id to support releated to object-tracking feature for default static route";
         reference " 0.9.0.";
     }
 
@@ -133,11 +148,29 @@ module ipi-rib-vrf {
         description
             "Configuration attributes related to vrf ipv4 static route with gateway
                         address and interface name";
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Use this attribute to create an IPv4 static route where nexthop is
+                        interface name.";
+        } // END of interface-name definition.
+
         leaf enable-global-table-lookup  {
             type  empty;
             description "Use this attribute to create an IPv4 vrf static route with gateway in
                         default vrf table.";
         } // END of enable-global-table-lookup definition.
+
+        leaf track-id  {
+            if-feature feature-list:HAVE_OBJ_TRACKING;
+            type  uint16 {
+                 range "1..500"  {
+                    description "1..500: Supported range 1 - 500";
+                 }
+            }
+            description "Use this attribute to track a object.";
+        } // END of track-id definition.
 
     } // END of rib-vrf-ipv4-vrfglobal-config definition.
     grouping rib-vrf-ipv4-interface-config {
@@ -194,7 +227,7 @@ module ipi-rib-vrf {
             if-feature feature-list:HAVE_OBJ_TRACKING;
             type  uint16 {
                  range "1..500"  {
-                    description "1..500:Object Tracking id";
+                    description "1..500: Supported range 1 - 500";
                  }
             }
             description "Use this attribute to track a object.";
@@ -222,7 +255,7 @@ module ipi-rib-vrf {
             if-feature feature-list:HAVE_OBJ_TRACKING;
             type  uint16 {
                  range "1..500"  {
-                    description "1..500:Object Tracking id";
+                    description "1..500: Supported range 1 - 500";
                  }
             }
             description "Use this attribute to track a object.";
@@ -294,6 +327,16 @@ module ipi-rib-vrf {
                         default vrf table.";
         } // END of enable-global-table-lookup definition.
 
+        leaf track-id  {
+            if-feature feature-list:HAVE_OBJ_TRACKING;
+            type  uint16 {
+                 range "1..500"  {
+                    description "1..500: Supported range 1 - 500";
+                 }
+            }
+            description "Use this attribute to track a object.";
+        } // END of track-id definition.
+
     } // END of rib-vrf-ipv4-interface-global-config definition.
     grouping rib-vrf-ipv6-interface-global-config {
         description
@@ -318,6 +361,16 @@ module ipi-rib-vrf {
             description "To create an IPv6 vrf static route with gateway in default vrf table
                         with global keyword";
         } // END of enable-ipv6-global-table-lookup definition.
+
+        leaf track-id  {
+            if-feature feature-list:HAVE_OBJ_TRACKING;
+            type  uint16 {
+                 range "1..500"  {
+                    description "1..500: Supported range 1 - 500";
+                 }
+            }
+            description "Use this attribute to track a object.";
+        } // END of track-id definition.
 
     } // END of rib-vrf-ipv6-interface-global-config definition.
     grouping rib-vrf-ipv6-prefix-gw-interface-global-config {
@@ -349,12 +402,24 @@ module ipi-rib-vrf {
                         with global keyword";
         } // END of enable-ipv6-global-table-lookup definition.
 
+        leaf track-id  {
+            if-feature feature-list:HAVE_OBJ_TRACKING;
+            type  uint16 {
+                 range "1..500"  {
+                    description "1..500: Supported range 1 - 500";
+                 }
+            }
+            description "Use this attribute to track a object.";
+        } // END of track-id definition.
+
     } // END of rib-vrf-ipv6-prefix-gw-interface-global-config definition.
 
     grouping  global-grouping {
     description
         "RIB global configurations";
     container global {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
         description
             "RIB global configurations";
         container config {
@@ -375,6 +440,8 @@ module ipi-rib-vrf {
     description
         "VRF Static Route configurations";
     container static-routes {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
         description
             "VRF Static Route configurations";
         container ipv4 {
@@ -383,7 +450,7 @@ module ipi-rib-vrf {
 
             list gateway-interface-route-global {
             when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-rib-vrf:static-routes/ipi-rib-vrf:ipv4/ipi-rib-vrf:gateway-interface-route-global/ipi-rib-vrf:interface-name ";
-                key "destination-prefix interface-name";
+                key "destination-prefix interface-name enable-global-table-lookup";
                 description
                     "IPV4 VRF static route with global gateway";
                 leaf destination-prefix  {
@@ -400,6 +467,14 @@ module ipi-rib-vrf {
                     description "Use this attribute to create an IPv4 static route where nexthop is a
                                 global interface.";
                 } // END of interface-name definition.
+
+                leaf enable-global-table-lookup  {
+                    type  leafref {
+                        path  "../config/enable-global-table-lookup";
+                    }
+                    description "Use this attribute to create an IPv4 vrf static route with gateway in
+                                default vrf table.";
+                } // END of enable-global-table-lookup definition.
 
                 container config {
                     description
@@ -463,16 +538,24 @@ module ipi-rib-vrf {
 
                 list interface-route-global {
                 when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-rib-vrf:static-routes/ipi-rib-vrf:ipv4/ipi-rib-vrf:route/ipi-rib-vrf:interface-route-global/ipi-rib-vrf:config/ipi-rib-vrf:enable-global-table-lookup ";
-                    key "interface-name";
+                    key "interface-name enable-global-table-lookup";
                     description
                         "IPV4 VRF static route with global gateway";
                     leaf interface-name  {
                         type  leafref {
-                            path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+                            path  "../config/interface-name";
                         }
                         description "Use this attribute to create an IPv4 static route where nexthop is a
                                     global interface.";
                     } // END of interface-name definition.
+
+                    leaf enable-global-table-lookup  {
+                        type  leafref {
+                            path  "../config/enable-global-table-lookup";
+                        }
+                        description "Use this attribute to create an IPv4 vrf static route with gateway in
+                                    default vrf table.";
+                    } // END of enable-global-table-lookup definition.
 
                     container config {
                         description
@@ -803,6 +886,8 @@ module ipi-rib-vrf {
     description
         "RIB run-time attributes";
     container ribs {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
         config false;
         description
             "RIB run-time attributes";
@@ -1059,18 +1144,21 @@ module ipi-rib-vrf {
     } // END of ribs-grouping definition.
 
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf {
+        if-feature feature-list:HAVE_VRF;
         description
             "RIB global configurations";
         uses global-grouping;
     }
 
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf {
+        if-feature feature-list:HAVE_VRF;
         description
             "VRF Static Route configurations";
         uses static-routes-grouping;
     }
 
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf {
+        if-feature feature-list:HAVE_VRF;
         description
             "RIB run-time attributes";
         uses ribs-grouping;
@@ -1078,6 +1166,8 @@ module ipi-rib-vrf {
 
 
     rpc clear-ip-vrf-route-all {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ip-vrf-route-all to clear all IPv4 VRF routes of any
                     particular VRF name";
         input  {
@@ -1090,6 +1180,8 @@ module ipi-rib-vrf {
     }
 
     rpc clear-ip-vrf-route {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ip-vrf-route to clear any specific prefix IPv4 VRF route of
                     any particular VRF name";
         input  {
@@ -1107,6 +1199,9 @@ module ipi-rib-vrf {
     }
 
     rpc clear-ipv6-vrf-route-all {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ipv6-vrf-route-all to clear all IPv6 VRF routes of any
                     particular VRF name";
         input  {
@@ -1119,6 +1214,9 @@ module ipi-rib-vrf {
     }
 
     rpc clear-ipv6-vrf-route {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_RIBD;
         description "Use clear-ipv6-vrf-route to clear any specific prefix IPv6 VRF route
                     of any particular VRF name";
         input  {

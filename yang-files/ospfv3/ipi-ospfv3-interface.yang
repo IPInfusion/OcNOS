@@ -21,7 +21,7 @@ submodule ipi-ospfv3-interface {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ietf-inet-types {
@@ -31,15 +31,20 @@ submodule ipi-ospfv3-interface {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ipi-ospfv3-types {
         prefix ipi-ospfv3-types;
-        revision-date 2021-11-17;
+        revision-date 2022-06-01;
     }
 
-    include ipi-ospfv3-interface-state { revision-date 2021-09-03;}
+    import ipi-ipsec {
+        prefix ipi-ipsec;
+        revision-date 2022-06-13;
+    }
+
+    include ipi-ospfv3-interface-state { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -52,6 +57,26 @@ submodule ipi-ospfv3-interface {
     description
         "Layer-3 OSPFv3 interface configurations";
 
+
+    revision "2022-06-13" {
+        description "Removed sa-lifetime attribute from ip-sec module";
+        reference " 0.1.7.";
+    }
+
+    revision "2022-06-07" {
+        description "Changed the dependent module config IPsec Transform-set ESP Configuration data container to a presence container";
+        reference " 0.1.6.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.1.5.";
+    }
+
+    revision "2022-05-04" {
+        description "Added authentication-cryptomap attribute for IPSec authentication support of OSPFv3";
+        reference " 0.1.4.";
+    }
 
     revision "2021-09-17" {
         description "Added interface-name leaf inside interface/config";
@@ -96,7 +121,7 @@ submodule ipi-ospfv3-interface {
         leaf cost  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Cost values";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "10";
@@ -107,7 +132,7 @@ submodule ipi-ospfv3-interface {
         leaf priority  {
             type  uint8 {
                  range "0..255"  {
-                    description "0..255:Priority values";
+                    description "0..255: Supported range 0 - 255";
                  }
             }
             default "0";
@@ -118,7 +143,7 @@ submodule ipi-ospfv3-interface {
         leaf poll-interval  {
             type  uint32 {
                  range "0..4294967295"  {
-                    description "0..4294967295:Dead pool interval values in seconds";
+                    description "0..4294967295: Supported range 0 - 4294967295";
                  }
             }
             units "seconds";
@@ -137,7 +162,7 @@ submodule ipi-ospfv3-interface {
                 "Configuration data for OSPFv3 static neighbors";
 
             list neighbor-static {
-            when " /ospfv3/interfaces/interface/instances/instance/config/network-type ";
+            when " /ospfv3/interfaces/interface/instances/instance/config/network-type != '1' + /ospfv3/interfaces/interface/instances/instance/config/network-type != '2' ";
                 key "address";
                 description
                     "List of OSPFv3 static neighbors";
@@ -169,7 +194,7 @@ submodule ipi-ospfv3-interface {
         leaf dead-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Dead interval values in seconds";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             units "seconds";
@@ -182,7 +207,7 @@ submodule ipi-ospfv3-interface {
         leaf hello-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Hello interval values in seconds";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             units "seconds";
@@ -192,7 +217,7 @@ submodule ipi-ospfv3-interface {
         leaf transmission-delay  {
             type  uint16 {
                  range "1..1800"  {
-                    description "1..1800:Transmission delay values in seconds";
+                    description "1..1800: Supported range 1 - 1800";
                  }
             }
             units "seconds";
@@ -204,7 +229,7 @@ submodule ipi-ospfv3-interface {
         leaf retransmission-interval  {
             type  uint16 {
                  range "1..1800"  {
-                    description "1..1800:Retransmission interval values in seconds";
+                    description "1..1800: Supported range 1 - 1800";
                  }
             }
             units "seconds";
@@ -310,8 +335,7 @@ submodule ipi-ospfv3-interface {
         leaf instance-id  {
             type  uint8 {
                  range "0..31 | 64..95"  {
-                    description "0..31:Interface instance ID for IPv6 unicast,64..95:Interface instance
-                            ID for IPv4 unicast";
+                    description "0..31: Supported range 0 - 31,64..95: Supported range 64 - 95";
                  }
             }
             description "Use this attribute to set the interface instance ID. Each Instance
@@ -328,7 +352,7 @@ submodule ipi-ospfv3-interface {
         leaf cost  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Cost values";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "10";
@@ -341,7 +365,7 @@ submodule ipi-ospfv3-interface {
         leaf priority  {
             type  uint8 {
                  range "0..255"  {
-                    description "0..255:Priority values";
+                    description "0..255: Supported range 0 - 255";
                  }
             }
             default "1";
@@ -358,7 +382,7 @@ submodule ipi-ospfv3-interface {
             if-feature feature-list:HAVE_OSPF6_TE;
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:TE metric values";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             description "Use this attribute to set the traffic engineering metric for an
@@ -371,7 +395,7 @@ submodule ipi-ospfv3-interface {
         leaf mtu  {
             type  uint16 {
                  range "1280..65535"  {
-                    description "1280..65535:MTU values";
+                    description "1280..65535: Supported range 1280 - 65535";
                  }
             }
             default "1500";
@@ -432,6 +456,15 @@ submodule ipi-ospfv3-interface {
             description "Use this attribute to prohibit the interface from being used as the
                         next hop in a repair path.";
         } // END of disable-fast-reroute definition.
+
+        leaf authentication-cryptomap  {
+            if-feature feature-list:HAVE_IPSEC;
+            if-feature feature-list:HAVE_TUNNEL;
+            type  leafref {
+                path  "/ipi-ipsec:ipsec/ipi-ipsec:crypto-maps/ipi-ipsec:crypto-map/ipi-ipsec:config/ipi-ipsec:name";
+            }
+            description "Use this attribute to set the Crypto-map used to setup IPsec SA.";
+        } // END of authentication-cryptomap definition.
 
     } // END of ospfv3-interface-instance-config definition.
     grouping ospfv3-interface-instance-top {
@@ -600,6 +633,8 @@ submodule ipi-ospfv3-interface {
     description
         "Configuration data for OSPFv3 interfaces";
     container interfaces {
+        if-feature feature-list:HAVE_OSPF6D;
+        if-feature feature-list:HAVE_IPV6;
         description
             "Configuration data for OSPFv3 interfaces";
 

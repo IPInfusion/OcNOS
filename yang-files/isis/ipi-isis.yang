@@ -23,17 +23,17 @@ module ipi-isis {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-isis-types {
         prefix ipi-isis-types;
-        revision-date 2022-02-07;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -43,18 +43,19 @@ module ipi-isis {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
-    include ipi-isis-extended { revision-date 2021-09-03;}
-    include ipi-isis-lsp { revision-date 2021-09-03;}
-    include ipi-isis-interface { revision-date 2022-04-04;}
-    include ipi-isis-cspf { revision-date 2021-09-03;}
+    include ipi-isis-extended { revision-date 2022-06-01;}
+    include ipi-isis-lsp { revision-date 2022-06-01;}
+    include ipi-isis-interface { revision-date 2022-06-01;}
+    include ipi-isis-sr { revision-date 2022-06-01;}
+    include ipi-isis-cspf { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -68,14 +69,39 @@ module ipi-isis {
         "Model for managing IS-IS Instance";
 
 
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.9.0.";
+    }
+
+    revision "2022-04-27" {
+        description "Get Api related changes in ISIS TILFA";
+        reference " 0.8.0.";
+    }
+
+    revision "2022-04-20" {
+        description "SID Label Binding TLV attribute changed as per RFC 8667";
+        reference " 0.7.1.";
+    }
+
     revision "2022-04-04" {
         description "Added if-feature whereever needed";
         reference " 0.7.0.";
     }
 
+    revision "2022-02-20" {
+        description "Datamodel changes for authentication issue, OCFEAT-276";
+        reference " 0.6.0.";
+    }
+
+    revision "2022-02-14" {
+        description "SRv6 GET API related Changes in ISIS LSP";
+        reference " 0.6.";
+    }
+
     revision "2022-02-07" {
         description "Datamodel change for isis ol-bit on-startup and net commands";
-        reference " 0.6.0.";
+        reference " 0.6.1.";
     }
 
     revision "2021-12-07" {
@@ -246,7 +272,7 @@ module ipi-isis {
         leaf distance  {
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:range";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "115";
@@ -295,7 +321,7 @@ module ipi-isis {
             if-feature feature-list:HAVE_ISIS_LFA;
             type  int32 {
                  range "100..100000"  {
-                    description "100..100000:Set Hold On interval in milliseconds";
+                    description "100..100000: Supported range 100 - 100000";
                  }
             }
             default "1000";
@@ -341,13 +367,14 @@ module ipi-isis {
             if-feature feature-list:HAVE_WIDE_METRIC;
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Tag value";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to set a high priority tag value";
         } // END of priority-tag definition.
 
         leaf enable-cspf-capability  {
+            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:enable-mpls-traffic-engg-level-1  or /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:enable-mpls-traffic-engg-level-2 ";
             if-feature feature-list:HAVE_ISIS_CSPF;
             type  empty;
             description "Use this attribute to enable the constrained shortest path first
@@ -375,7 +402,7 @@ module ipi-isis {
         leaf maximum-area-addresses  {
             type  uint8 {
                  range "3..254"  {
-                    description "3..254:Maximum area address that can be supported";
+                    description "3..254: Supported range 3 - 254";
                  }
             }
             default "3";
@@ -419,6 +446,7 @@ module ipi-isis {
         description
             "Configuration items for ISIS MPLS Traffic Engineering";
         leaf enable-mpls-traffic-engg-level-1  {
+            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style = 'wide' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:level-number != 'level-2' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:level-capability != 'level-2-only' ";
             if-feature feature-list:HAVE_ISIS_TE;
             type  empty;
             description "Use this attribute to configure MPLS Traffic Engineering feature for
@@ -426,6 +454,7 @@ module ipi-isis {
         } // END of enable-mpls-traffic-engg-level-1 definition.
 
         leaf enable-mpls-traffic-engg-level-2  {
+            when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style = 'wide' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:level-number != 'level-1' + /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:config/ipi-isis:level-capability != 'level-1' ";
             if-feature feature-list:HAVE_ISIS_TE;
             type  empty;
             description "Use this attribute to configure MPLS Traffic Engineering feature for
@@ -514,8 +543,7 @@ module ipi-isis {
         leaf minimum-delay  {
             type  uint32 {
                  range "0..2147483647"  {
-                    description "0..2147483647:Minimum Delay between receiving a change to SPF
-                            calculation in milliseconds";
+                    description "0..2147483647: Supported range 0 - 2147483647";
                  }
             }
             description "Minimum delay between receiving a change to PRC calculation in
@@ -525,8 +553,7 @@ module ipi-isis {
         leaf maximum-delay  {
             type  uint32 {
                  range "0..2147483647"  {
-                    description "0..2147483647:Maximum Delay between receiving a change to SPF
-                            calculation in milliseconds";
+                    description "0..2147483647: Supported range 0 - 2147483647";
                  }
             }
             description "Maximum delay between receiving a change to PRC calculation in
@@ -733,7 +760,7 @@ module ipi-isis {
         leaf lsp-refresh-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:LSP refresh time in seconds";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "900";
@@ -745,7 +772,7 @@ module ipi-isis {
         leaf lsp-lifetime-interval  {
             type  uint16 {
                  range "350..65535"  {
-                    description "350..65535:Maximum LSP lifetime in seconds";
+                    description "350..65535: Supported range 350 - 65535";
                  }
             }
             default "1200";
@@ -922,7 +949,7 @@ module ipi-isis {
         leaf administrative-distance  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Distance range";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "115";
@@ -1031,7 +1058,7 @@ module ipi-isis {
         leaf ipv6-metric-value  {
             type  uint32 {
                  range "0..16777215"  {
-                    description "0..16777215:IS-IS default metric";
+                    description "0..16777215: Supported range 0 - 16777215";
                  }
             }
             default "0";
@@ -1076,7 +1103,7 @@ module ipi-isis {
             when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:address-family-ipv6/ipi-isis:summary-prefix/ipi-isis:config/ipi-isis:prefix ";
             type  uint8 {
                  range "1..63"  {
-                    description "1..63:Metric Range";
+                    description "1..63: Supported range 1 - 63";
                  }
             }
             description "Metric value";
@@ -1161,7 +1188,7 @@ module ipi-isis {
         leaf value  {
             type  uint8 {
                  range "1..255"  {
-                    description "1..255:range";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             mandatory true;
@@ -1337,7 +1364,7 @@ module ipi-isis {
         leaf metric-value  {
             type  uint32 {
                  range "0..16777215"  {
-                    description "0..16777215:IS-IS default metric";
+                    description "0..16777215: Supported range 0 - 16777215";
                  }
             }
             default "0";
@@ -1380,7 +1407,7 @@ module ipi-isis {
             when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:address-family-ipv4/ipi-isis:summary-address/ipi-isis:config/ipi-isis:prefix ";
             type  uint8 {
                  range "1..63"  {
-                    description "1..63:Metric Range";
+                    description "1..63: Supported range 1 - 63";
                  }
             }
             description "Metric value";
@@ -1481,6 +1508,7 @@ module ipi-isis {
     description
         "IS-IS master for instance wide configurations";
     container isis {
+        if-feature feature-list:HAVE_ISISD;
         description
             "IS-IS master for instance wide configurations";
 
@@ -1999,6 +2027,7 @@ module ipi-isis {
                     uses isis-af-ipv6-config;
                 } // END of state-container definition.
                 container isis-srv6 {
+                    when " /ipi-isis:isis/ipi-isis:isis-instance/ipi-isis:address-family-ipv6/ipi-isis:config/ipi-isis:afi-name ";
                     if-feature feature-list:HAVE_SRV6;
                     description
                         "SRv6 container for segment routing";
@@ -2222,6 +2251,10 @@ module ipi-isis {
             uses ipv4-lfa-route-grouping;
             uses ipv6-lfa-route-grouping;
             uses fast-reroute-grouping;
+            uses segment-routing-capability-grouping;
+            uses segment-routing-mapping-server-ipv4-grouping;
+            uses segment-routing-mapping-server-ipv6-grouping;
+            uses segment-routing-grouping;
         } // End of isis-instance-list
         container debug {
             description
@@ -2262,6 +2295,7 @@ module ipi-isis {
 
     rpc isis-restart-graceful {
         if-feature feature-list:HAVE_RESTART;
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to gracefully restart the IS-IS router.";
         input  {
             leaf grace-period  {
@@ -2274,6 +2308,7 @@ module ipi-isis {
     }
 
     rpc isis-clear-interface-counters {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear interface counters. If you do not specify
                     a parameter, then counters for all interfaces are cleared.";
         input  {
@@ -2285,6 +2320,7 @@ module ipi-isis {
     }
 
     rpc isis-clear-is-neighbors {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear IS neighbor adjacencies.";
         input  {
             leaf system-id  {
@@ -2296,10 +2332,12 @@ module ipi-isis {
     }
 
     rpc isis-clear-clns-neighbors {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear CLNS neighbor adjacencies.";
     }
 
     rpc isis-clear-ip-route {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear IPv4 routes.";
         input  {
             leaf instance  {
@@ -2315,6 +2353,7 @@ module ipi-isis {
     }
 
     rpc isis-clear-ipv6-route {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear IPv6 routes.";
         input  {
             leaf instance  {
@@ -2330,6 +2369,7 @@ module ipi-isis {
     }
 
     rpc isis-process-clear {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to restart ISIS processes. If you do not specify a
                     parameter, then all ISIS processes are restarted.";
         input  {
@@ -2342,11 +2382,13 @@ module ipi-isis {
     }
 
     rpc isis-clear-counters {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear system-wide IS-IS counters
                     (IsisSystemCounterEntry in RFC 4444).";
     }
 
     rpc isis-clear-adjacency-all {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear all isis adjacency.";
         input  {
             leaf adjacency-vrf-name  {
@@ -2357,6 +2399,7 @@ module ipi-isis {
     }
 
     rpc isis-process-clear-adjacency-all {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear all isis adjacency to specified router.";
         input  {
             leaf tag-name  {
@@ -2372,6 +2415,7 @@ module ipi-isis {
     }
 
     rpc isis-process-clear-adjacency-interface {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear isis adjacency with specific interface.";
         input  {
             leaf tag-name  {
@@ -2391,6 +2435,7 @@ module ipi-isis {
     }
 
     rpc isis-clear-adjacency-interface {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear isis adjacency for specific router.";
         input  {
             leaf adjacency-if-name  {
@@ -2405,6 +2450,7 @@ module ipi-isis {
     }
 
     rpc isis-process-clear-adjacency-system-id {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear isis adjacency for specific system-id.";
         input  {
             leaf tag-name  {
@@ -2425,6 +2471,7 @@ module ipi-isis {
     }
 
     rpc isis-clear-adjacency-system-id {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to clear isis adjacency for specific system-id.";
         input  {
             leaf adjacency-system-id  {
@@ -2440,19 +2487,24 @@ module ipi-isis {
     }
 
     rpc isis-restart-snmp {
+        if-feature feature-list:HAVE_SNMP;
+        if-feature feature-list:HAVE_ISISD;
         description "Use this attribute to restart SNMP in Intermediate System to
                     Intermediate System (IS-IS)";
     }
 
     rpc isis-debug-all-on {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to       enable debug all ISIS";
     }
 
     rpc isis-debug-all-off {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to       disable debug all ISIS";
     }
 
     rpc isis-debug-on {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to enable debug on ISIS";
         input  {
             leaf debug-options  {
@@ -2464,6 +2516,7 @@ module ipi-isis {
     }
 
     rpc isis-debug-off {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to disable debug on ISIS";
         input  {
             leaf debug-options  {
@@ -2475,14 +2528,17 @@ module ipi-isis {
     }
 
     rpc isis-debug-hello-on {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to enable debug on ISIS hello messages.";
     }
 
     rpc isis-debug-hello-off {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to disable debug on ISIS hello messages.";
     }
 
     rpc isis-debug-interface-hello-on {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to enable debug on ISIS hello messages for an interface.";
         input  {
             leaf interface  {
@@ -2494,6 +2550,7 @@ module ipi-isis {
     }
 
     rpc isis-debug-interface-hello-off {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to disable debug on ISIS hello messages for an interface.";
         input  {
             leaf interface  {
@@ -2505,6 +2562,7 @@ module ipi-isis {
     }
 
     rpc isis-debug-system-id-hello-on {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to enable debug on ISIS SID hello messages.";
         input  {
             leaf system-id  {
@@ -2516,6 +2574,7 @@ module ipi-isis {
     }
 
     rpc isis-debug-system-id-hello-off {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to disable debug on ISIS SID hello messages.";
         input  {
             leaf system-id  {
@@ -2524,63 +2583,48 @@ module ipi-isis {
                 description "Use this attribute to turn off debugging for ISIS SID hello";
             }
         }
-    }
-
-    rpc isis-undebug {
-        description "Use this RPC to disable debug on ISIS.";
-        input  {
-            leaf debug-options  {
-                type ipi-isis-types:isis_debug_t;
-                mandatory true;
-                description "Use this command to turn off, ISIS debugging at various levels.";
-            }
-        }
-    }
-
-    rpc isis-undebug-all {
-        description "Use this RPC to disable debug on ISIS.";
-    }
-
-    rpc isis-all-undebug {
-        description "Use this RPC to disable debug on ISIS.";
     }
 
     rpc isis-all-debug-off {
+        if-feature feature-list:HAVE_ISISD;
         description "Use this RPC to disable debug on ISIS.";
     }
 
-    rpc isis-undebug-hello {
-        description "Use this RPC to disable debug on ISIS hello messages.";
-    }
-
-    rpc isis-undebug-interface-hello {
-        description "Use this RPC to disable debug on ISIS hello messages for an interface.";
+    rpc isis-debug-cspf-on {
+        if-feature feature-list:HAVE_ISIS_CSPF;
+        if-feature feature-list:HAVE_ISISD;
+        description "Use this RPC to enable debug on ISIS CSPF events.";
         input  {
-            leaf interface  {
-                type string;
+            leaf cspf-debug  {
+                type ipi-isis-types:isis_cspf_debug_t;
                 mandatory true;
-                description "Use this attribute to turn off debugging for ISIS Interface hello";
+                description "";
             }
         }
     }
 
-    rpc isis-undebug-hello-system-id {
-        description "Use this RPC to disable debug on ISIS SID hello messages.";
+    rpc isis-debug-cspf-off {
+        if-feature feature-list:HAVE_ISIS_CSPF;
+        if-feature feature-list:HAVE_ISISD;
+        description "Use this RPC to disable debug on ISIS CSPF events.";
         input  {
-            leaf system-id  {
-                type string;
+            leaf cspf-debug  {
+                type ipi-isis-types:isis_cspf_debug_t;
                 mandatory true;
-                description "Use this attribute to turn off debugging for ISIS SID hello";
+                description "";
             }
         }
     }
 
     notification isis-database-overload {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when an IS-IS instance overload state changes..";
 
         // severity "MAJOR";
+
         // eventClass "STATE";
+
         leaf overload {
             type ipi-isis-types:isis_overload_state_t;
         description
@@ -2589,11 +2633,14 @@ module ipi-isis {
     }
 
     notification isis-lsp-too-large {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when we attempt to propagate an LSP that is larger than the dataLinkBlockSize (ISO10589) for the circuit.The notification generation must be throttled with at least 5 seconds between successive notifications..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf lsp-identifier {
             type  string;
         description
@@ -2608,11 +2655,14 @@ module ipi-isis {
     }
 
     notification isis-corrupted-lsp-detected {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when we find that an LSP that was stored in memory has become corrupted..";
 
         // severity "MAJOR";
+
         // eventClass "STATE";
+
         leaf lsp-identifier {
             type  string;
         description
@@ -2621,11 +2671,14 @@ module ipi-isis {
     }
 
     notification isis-attempt-to-exceed-max-sequence {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system wraps the 32-bit sequence counter of an LSP..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf lsp-identifier {
             type  string;
         description
@@ -2634,11 +2687,14 @@ module ipi-isis {
     }
 
     notification isis-id-len-mismatch {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when we receive a PDU with a different value for the system-id length.The notification generation must be throttled with at least 5 seconds between successive notifications..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf pdu-field-len {
             type  uint8;
         description
@@ -2653,11 +2709,14 @@ module ipi-isis {
     }
 
     notification isis-max-area-addresses-mismatch {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when we receive a PDU with a different value for the Maximum Area Addresses.The notification generation must be throttled with at least 5 seconds between successive notifications..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf max-area-addresses {
             type  uint8;
         description
@@ -2672,11 +2731,14 @@ module ipi-isis {
     }
 
     notification isis-own-lsp-purge {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system receives a PDU with its own system-id and zero age..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf lsp-identifier {
             type  string;
         description
@@ -2685,11 +2747,14 @@ module ipi-isis {
     }
 
     notification isis-sequence-number-skipped {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system receives a PDU with its own system-id and different contents. The system has to originate the LSP with a higher sequence number..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf lsp-identifier {
             type  string;
         description
@@ -2698,11 +2763,14 @@ module ipi-isis {
     }
 
     notification isis-authentication-type-failure {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system receives a PDU with the wrong authentication type field.The notification generation must be throttled with at least 5 seconds between successive notifications..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf raw-pdu {
             type  string;
         description
@@ -2711,11 +2779,14 @@ module ipi-isis {
     }
 
     notification isis-authentication-failure {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system receives a PDU with the wrong authentication information.The notification generation must be throttled..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf raw-pdu {
             type  string;
         description
@@ -2724,11 +2795,14 @@ module ipi-isis {
     }
 
     notification isis-version-skew {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system receives a PDU with a different protocol version number.The notification generation must be throttled with at least 5 seconds between successive notifications..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf protocol-version {
             type  uint8;
         description
@@ -2743,11 +2817,14 @@ module ipi-isis {
     }
 
     notification isis-area-mismatch {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system receives a Hello PDU from an IS that does not share any area address. The notification generation must be throttled with at least 5 seconds between successive notifications..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf raw-pdu {
             type  string;
         description
@@ -2756,11 +2833,14 @@ module ipi-isis {
     }
 
     notification isis-rejected-adjacency {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system receives a Hello PDU from an IS but does not establish an adjacency for some reason. The notification generation must be throttled with at least 5 seconds between successive notifications..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf raw-pdu {
             type  string;
         description
@@ -2775,11 +2855,14 @@ module ipi-isis {
     }
 
     notification isis-protocols-supported-mismatch {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system receives a non-pseudonode LSP that has no matching protocols supported. The notification generation must be throttled with at least 5 seconds between successive notifications..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf raw-pdu {
             type  string;
         description
@@ -2794,11 +2877,14 @@ module ipi-isis {
     }
 
     notification isis-lsp-error-detected {
+        if-feature feature-list:HAVE_ISISD;
 
         description "This notification is sent when the system receives an LSP with a parse error. The notification generation must be throttled with at least 5 seconds between successive notifications..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf lsp-identifier {
             type  string;
         description
@@ -2824,6 +2910,41 @@ module ipi-isis {
         description
             "If the problem is a malformed TLV, the tlv-type is set to the type
                     value of the suspicious TLV. Otherwise, this leaf is not presen";
+        }
+    }
+
+    notification isis-segment-routing-index-out-of-range {
+        if-feature feature-list:HAVE_ISISD;
+        if-feature feature-list:HAVE_ISIS_SR;
+
+        description "SRGB range.";
+
+        // severity "MAJOR";
+
+        // eventClass "STATE";
+
+        leaf global-block-base {
+            type  int32;
+        description
+            "Start ID";
+        }
+
+        leaf global-block-range {
+            type  int32;
+        description
+            "End ID";
+        }
+
+        leaf received-index {
+            type  uint32;
+        description
+            "Index";
+        }
+
+        leaf routing-protocol {
+            type  string;
+        description
+            "Module Name";
         }
     }
 

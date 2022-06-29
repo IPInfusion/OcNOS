@@ -28,22 +28,27 @@ module ipi-tacacs {
 
     import ipi-tacacs-types {
         prefix ipi-tacacs-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
+    }
+
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -58,6 +63,21 @@ module ipi-tacacs {
     description
         "Layer-3 tacacs configurations";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.5.0.";
+    }
+
+    revision "2022-05-30" {
+        description "Added runtime attr for terminal debug status";
+        reference " 0.4.1.";
+    }
+
+    revision "2022-04-27" {
+        description "Added Netconf Get support for per-server counters";
+        reference " 0.4.0.";
+    }
 
     revision "2022-02-16" {
         description "Added changes to make feature enable attribute mandatory";
@@ -112,10 +132,38 @@ module ipi-tacacs {
         } // END of secret-key-string definition.
 
     } // END of tacacs-global-key-config definition.
-    grouping tacacs-counter-state {
+    grouping tacacs-server-state {
         description
-            "State items for TACACS notification";
-    } // END of tacacs-counter-state definition.
+            "Operational data for each TACACS server";
+        leaf last-successful-authentication-time  {
+            type  yang:date-and-time {
+                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                }
+                description "Timestamp for the last successful authentication to this TACACS+
+                            Server";
+            } // END of last-successful-authentication-time definition.
+
+        container counters {
+            config false;
+            description
+                "TACACS+ Server counters";
+            leaf successful-authentications  {
+                type  yang:counter64;
+                description "Number of successful authentications to the TACACS+ Server";
+            } // END of successful-authentications definition.
+
+            leaf authentication-failures  {
+                type  yang:counter64;
+                description "Number of authentication failures to the TACACS+ Server";
+            } // END of authentication-failures definition.
+
+            leaf connection-failures  {
+                type  yang:counter64;
+                description "Number of connection failures to the TACACS+ Server";
+            } // END of connection-failures definition.
+
+        } // END of counters-container definition.
+    } // END of tacacs-server-state definition.
     grouping tacacs-global-config {
         description
             "TACACS Global Configuration items";
@@ -135,7 +183,7 @@ module ipi-tacacs {
         leaf timeout  {
             type  uint8 {
                  range "1..60"  {
-                    description "1..60:TACACS+ server timeout period in seconds";
+                    description "1..60: Supported range 1 - 60";
                  }
             }
             description "Use this attribute to set the period to wait for a response from the
@@ -173,7 +221,7 @@ module ipi-tacacs {
         leaf sequence-number  {
             type  uint8 {
                  range "1..8"  {
-                    description "1..8:sequence number for servers";
+                    description "1..8: Supported range 1 - 8";
                  }
             }
             mandatory true;
@@ -184,7 +232,7 @@ module ipi-tacacs {
         leaf port  {
             type  uint32 {
                  range "1025..65535"  {
-                    description "1025..65535:TACACS+ server port";
+                    description "1025..65535: Supported range 1025 - 65535";
                  }
             }
             description "Port number used for TACACS+ Server Connection";
@@ -193,7 +241,7 @@ module ipi-tacacs {
         leaf timeout  {
             type  uint32 {
                  range "1..60"  {
-                    description "1..60:TACACS+ server timeout period in seconds";
+                    description "1..60: Supported range 1 - 60";
                  }
             }
             description "To represent the timeout configured by the user";
@@ -209,11 +257,22 @@ module ipi-tacacs {
         } // END of tacacs-debug definition.
 
     } // END of tacacs-debug-config definition.
+    grouping tacacs-debug-state {
+        description
+            "State data related to TACACS debugging status";
+        leaf terminal-debug-status  {
+            type  cml-data-types:cml_on_off_t;
+            description "Use this attribute to display the current terminal debugging status
+                        for TACACS module";
+        } // END of terminal-debug-status definition.
+
+    } // END of tacacs-debug-state definition.
 
     grouping  tacacs-grouping {
     description
         "TACACS related operation";
     container tacacs {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "TACACS related operation";
 
@@ -275,7 +334,7 @@ module ipi-tacacs {
                             "This container defines TACACS Server state intormation.";
                         uses tacacs-server-config;
                         uses tacacs-server-key-config;
-                        uses tacacs-counter-state;
+                        uses tacacs-server-state;
                     } // END of state-container definition.
                 } // End of server-list
             } // END of remote-servers-container definition.
@@ -293,6 +352,7 @@ module ipi-tacacs {
                 description
                     "This container defines TACACS Debug state";
                 uses tacacs-debug-config;
+                uses tacacs-debug-state;
             } // END of state-container definition.
         } // END of debug-container definition.
     } // END of tacacs-container definition.
@@ -301,6 +361,7 @@ module ipi-tacacs {
     uses tacacs-grouping;
 
     rpc clear-all-tacacs-server-counters {
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this RPC to clear all tacacs-server counters";
         input  {
             leaf vrf-name  {
@@ -312,6 +373,7 @@ module ipi-tacacs {
     }
 
     rpc clear-tacacs-server-host-counters {
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this RPC to clear counters for a TACACS server by hostname or IP
                     address";
         input  {
@@ -329,6 +391,7 @@ module ipi-tacacs {
     }
 
     rpc tacacs-terminal-debugging-on {
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this RPC to turn on TACACS terminal debug logs";
         input  {
             leaf debug-options  {
@@ -340,6 +403,7 @@ module ipi-tacacs {
     }
 
     rpc tacacs-terminal-debugging-off {
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this RPC to turn off TACACS terminal debug logs";
         input  {
             leaf debug-options  {

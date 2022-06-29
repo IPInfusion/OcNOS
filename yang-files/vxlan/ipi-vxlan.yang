@@ -33,27 +33,27 @@ module ipi-vxlan {
 
     import ipi-vxlan-types {
         prefix ipi-vxlan-types;
-        revision-date 2021-12-28;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ietf-yang-types {
@@ -63,7 +63,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -78,6 +78,21 @@ module ipi-vxlan {
     description
         "Datamodel for VxLAN protocol";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.3.13.";
+    }
+
+    revision "2022-05-04" {
+        description "Remove VTEP-IP dependency with secondary ip ";
+        reference " 0.3.12.";
+    }
+
+    revision "2022-04-22" {
+        description "Added dependent object for global vrf configs";
+        reference " 0.3.11.";
+    }
 
     revision "2022-02-16" {
         description "Added new attributes in grouping vxlan-access-port-counters-state";
@@ -173,7 +188,7 @@ module ipi-vxlan {
         leaf mac-ageing-timer  {
             type  uint32 {
                  range "10..572"  {
-                    description "10..572:ageing time in seconds";
+                    description "10..572: Supported range 10 - 572";
                  }
             }
             units "seconds";
@@ -186,7 +201,7 @@ module ipi-vxlan {
             if-feature feature-list:HAVE_BGP_EVPN;
             type  uint32 {
                  range "3..190"  {
-                    description "3..190:refresh timer value in seconds (age-out is refresh time * 3)";
+                    description "3..190: Supported range 3 - 190";
                  }
             }
             units "seconds";
@@ -199,7 +214,7 @@ module ipi-vxlan {
             if-feature feature-list:NOT_HAVE_DUNE;
             type  uint16 {
                  range "1..200"  {
-                    description "1..200:Max number of ARP/ND cache entries allowed";
+                    description "1..200: Supported range 1 - 200";
                  }
             }
             description "Use this command to configure the maximum number of ARP and ND cache
@@ -242,7 +257,7 @@ module ipi-vxlan {
         leaf vxlan-identifier  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:VNID";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             description "Use this attribute to add a tenant and the type of VPN";
@@ -257,7 +272,7 @@ module ipi-vxlan {
             if-feature feature-list:HAVE_EVPN_VPWS;
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Target-EVID";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             description "Use this attribute to create Xconnect tenant";
@@ -273,7 +288,6 @@ module ipi-vxlan {
         description
             "Grouping for vxlan-tenant configuration";
         leaf vrf-name  {
-            when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:vtep-ipv4 ";
             if-feature feature-list:HAVE_BGP_EVPN;
             type  leafref {
                 path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
@@ -294,7 +308,7 @@ module ipi-vxlan {
             if-feature feature-list:HAVE_BGP_EVPN;
             type  int32 {
                  range "-1..300"  {
-                    description "-1..300:Mac Hold time range -1 to 300 in seconds. -1(never expire)";
+                    description "-1..300: Supported range -1 - 300";
                  }
             }
             units "seconds";
@@ -314,6 +328,7 @@ module ipi-vxlan {
         } // END of tenant-description definition.
 
         leaf irb-name  {
+            if-feature feature-list:HAVE_BGP_EVPN;
             type  leafref {
                 path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
             }
@@ -701,7 +716,7 @@ module ipi-vxlan {
         leaf inner-vlan-identifier  {
             type  uint32 {
                  range "2..4094"  {
-                    description "2..4094:vlan id";
+                    description "2..4094: Supported range 2 - 4094";
                  }
             }
             description "Use this attriute to map VLAN'S on an interface to identify the tenant
@@ -770,7 +785,7 @@ module ipi-vxlan {
         leaf access-mac-hold-time  {
             type  int32 {
                  range "-1..300"  {
-                    description "-1..300:Mac Hold time range -1 to 300 in seconds. -1(never expire)";
+                    description "-1..300: Supported range -1 - 300";
                  }
             }
             description "Use this attribute to set the time a host mac entry will persist after
@@ -1093,7 +1108,7 @@ module ipi-vxlan {
             "Top level Grouping for global vxlan qos";
 
         list qos-tunnel-mapping {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' + /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' ";
             if-feature feature-list:HAVE_QOS;
             key "qos-map-mode traffic-direction";
             description
@@ -1800,6 +1815,7 @@ module ipi-vxlan {
     description
         "VxLAN global level container";
     container vxlan {
+        if-feature feature-list:HAVE_VXLAN;
         description
             "VxLAN global level container";
         container global {
@@ -1830,14 +1846,17 @@ module ipi-vxlan {
     uses vxlan-grouping;
 
     rpc clear-nvo-vxlan-dynamic-mac-address-table {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear the dynamic entries from mac address table";
     }
 
     rpc clear-nvo-vxlan-tunnels {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear all the nvo vxlan tunnels";
     }
 
     rpc clear-nvo-id-vxlan-tunnels-destip {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear the nvo vxlan tunnels dest ip";
         input  {
             leaf destination-vtep-ip  {
@@ -1849,6 +1868,7 @@ module ipi-vxlan {
     }
 
     rpc clear-nvo-vxlan-mac-stale-entries {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear the vxlan mac stale entries";
         input  {
             leaf vxlan-identifier  {
@@ -1861,6 +1881,7 @@ module ipi-vxlan {
     }
 
     rpc clear-vxlan-untagged-access-port-counters {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RP to clear the counters of untagged access port";
         input  {
             leaf interface-name  {
@@ -1872,6 +1893,7 @@ module ipi-vxlan {
     }
 
     rpc clear-vxlan-single-tagged-access-port-counters {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear the counters of single tagged port counters";
         input  {
             leaf interface-name  {
@@ -1888,6 +1910,7 @@ module ipi-vxlan {
     }
 
     rpc clear-vxlan-double-tagged-access-port-counters {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear the counters of double tagged port";
         input  {
             leaf interface-name  {
@@ -1913,10 +1936,12 @@ module ipi-vxlan {
     }
 
     rpc clear-vxlan-access-port-counters-all {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear the all the access port counters";
     }
 
     rpc clear-vxlan-network-port-counters {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear the network port counters";
         input  {
             leaf destination-vtep-ip  {
@@ -1928,14 +1953,17 @@ module ipi-vxlan {
     }
 
     rpc clear-vxlan-network-port-counters-all {
+        if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear all the network port counters";
     }
 
     notification vxlan-tunnel-status-change-notification {
+        if-feature feature-list:HAVE_VXLAN;
 
         description "The nvoTunnelStatus trap is generated when there is any status change in Tunnel Severity level is INFO for tunnel status going to Unresolved/Deleted status and MINOR for Resolved status..";
 
         // eventClass "STATE";
+
         leaf destination-vtep-ip {
             type  inet:ipv4-address;
         description

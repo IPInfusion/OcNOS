@@ -23,17 +23,17 @@ module ipi-igp-te {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-12-15;
+        revision-date 2022-06-01;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-01-07;
+        revision-date 2022-04-04;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -48,6 +48,16 @@ module ipi-igp-te {
     description
         "Datamodel for IGP-TE";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.1.6.";
+    }
+
+    revision "2022-04-07" {
+        description "Added sender-port parameter to the TWAMP configuration";
+        reference " 0.1.5.";
+    }
 
     revision "2021-10-21" {
         description "Added IGP-TE dynamic cli with TWAMP configuration";
@@ -80,7 +90,7 @@ module ipi-igp-te {
         leaf delay  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Value in microseconds";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             units "microseconds";
@@ -91,7 +101,7 @@ module ipi-igp-te {
         leaf delay-variation  {
             type  uint32 {
                  range "0..16777215"  {
-                    description "0..16777215:Value in microseconds";
+                    description "0..16777215: Supported range 0 - 16777215";
                  }
             }
             units "microseconds";
@@ -134,7 +144,7 @@ module ipi-igp-te {
         leaf reflector-port  {
             type  uint16 {
                  range "1025..65535"  {
-                    description "1025..65535:1025-65535";
+                    description "1025..65535: Supported range 1025 - 65535";
                  }
             }
             description "";
@@ -144,6 +154,15 @@ module ipi-igp-te {
             type  cml-data-types:cml_hostpname_t;
             description "";
         } // END of sender-ip definition.
+
+        leaf sender-port  {
+            type  uint16 {
+                 range "1025..65535"  {
+                    description "1025..65535: Supported range 1025 - 65535";
+                 }
+            }
+            description "";
+        } // END of sender-port definition.
 
         leaf dscp  {
             type  string {
@@ -181,7 +200,7 @@ module ipi-igp-te {
         leaf a-bit-min  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Reuse threshold value in microseconds";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             description "Unidirectional link delay a-bit minimum";
@@ -190,7 +209,7 @@ module ipi-igp-te {
         leaf a-bit-max  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Maximum threshold value in microseconds";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             units "microseconds";
@@ -204,7 +223,7 @@ module ipi-igp-te {
         leaf min-value  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Minimum Unidirectional Link Delay in microseconds";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             units "microseconds";
@@ -214,7 +233,7 @@ module ipi-igp-te {
         leaf max-value  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Maximum Unidirectional Link Delay in microseconds";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             units "microseconds";
@@ -228,7 +247,7 @@ module ipi-igp-te {
         leaf a-bit-min-range-minimum  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Reuse threshold value of Min-Delay in microseconds";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             units "microseconds";
@@ -238,7 +257,7 @@ module ipi-igp-te {
         leaf a-bit-min-range-maximum  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Reuse threshold value of Max-Delay in microseconds";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             units "microseconds";
@@ -248,7 +267,7 @@ module ipi-igp-te {
         leaf a-bit-max-range-minimum  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Maximum threshold value of Min-Delay in microseconds";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             units "microseconds";
@@ -258,7 +277,7 @@ module ipi-igp-te {
         leaf a-bit-max-range-maximum  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Maximum threshold value of Max-Delay in microseconds";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             units "microseconds";
@@ -503,6 +522,7 @@ module ipi-igp-te {
     description
         "Configuration data for igp-te";
     container igp-te {
+        if-feature feature-list:HAVE_TE;
         description
             "Configuration data for igp-te";
         container interfaces {
@@ -511,7 +531,6 @@ module ipi-igp-te {
                         data";
 
             list interface {
-            // when " !ipi-if-aggregate:member-aggregation ";
                 key "name";
                 description
                     "IGP TE interfaces";
@@ -531,6 +550,8 @@ module ipi-igp-te {
     uses igp-te-grouping;
 
     rpc twamp-clear-measurement-intf {
+        if-feature feature-list:HAVE_TWAMP;
+        if-feature feature-list:HAVE_TE;
         description "Clear and restart the twamp measurement on an interface";
         input  {
             leaf interface-name  {
@@ -544,7 +565,24 @@ module ipi-igp-te {
     }
 
     rpc twamp-clear-measurement-all {
+        if-feature feature-list:HAVE_TWAMP;
+        if-feature feature-list:HAVE_TE;
         description "Clear and restart the twamp measurement on all interfaces";
+    }
+
+    notification delay-measurement-status {
+        if-feature feature-list:HAVE_TE;
+
+        description "This event is generated when the interface delay-measurement status changes.";
+
+        // severity "CRITICAL";
+
+        // eventClass "MESSAGE";
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
     }
 
 }

@@ -21,7 +21,7 @@ submodule ipi-isis-interface {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import cml-data-types {
@@ -31,12 +31,12 @@ submodule ipi-isis-interface {
 
     import ipi-isis-types {
         prefix ipi-isis-types;
-        revision-date 2022-02-07;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -57,6 +57,11 @@ submodule ipi-isis-interface {
         "Model for managing IS-IS interfaces -- auguments the ISIS model for
                 interface configurations and state";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.5.0.";
+    }
 
     revision "2022-04-04" {
         description "Added if-feature whereever needed";
@@ -583,7 +588,7 @@ submodule ipi-isis-interface {
         leaf lsp-interval  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:LSP transmission interval (milliseconds)";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             default "33";
@@ -598,7 +603,7 @@ submodule ipi-isis-interface {
         leaf retransmit-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Interval between retransmissions of the same LSP (seconds)";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "5";
@@ -663,7 +668,7 @@ submodule ipi-isis-interface {
         leaf hello-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Hello interval value";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "10";
@@ -682,7 +687,7 @@ submodule ipi-isis-interface {
         leaf hello-multiplier  {
             type  uint8 {
                  range "2..100"  {
-                    description "2..100:Hello multiplier value";
+                    description "2..100: Supported range 2 - 100";
                  }
             }
             default "3";
@@ -697,7 +702,7 @@ submodule ipi-isis-interface {
         leaf csnp-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:CSNP interval value";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "10";
@@ -713,7 +718,7 @@ submodule ipi-isis-interface {
         leaf priority  {
             type  uint8 {
                  range "0..127"  {
-                    description "0..127:Priority value";
+                    description "0..127: Supported range 0 - 127";
                  }
             }
             default "64";
@@ -726,7 +731,7 @@ submodule ipi-isis-interface {
         leaf metric  {
             type  uint8 {
                  range "1..63"  {
-                    description "1..63:Default metric";
+                    description "1..63: Supported range 1 - 63";
                  }
             }
             default "10";
@@ -737,28 +742,8 @@ submodule ipi-isis-interface {
                         metric-style is configured as .narrow.";
         } // END of metric definition.
 
-        leaf key-chain  {
-            when " /isis/interfaces/interface/interface-parameters/level-info/config/authentication-mode ";
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to set the key chain to be used for authentication
-                        on the interface-related packets.Authentication mode must be set to
-                        md5/text to configure the key chain.Only one authentication key-chain
-                        is applied to an ISIS interface at a time. Authentication can be
-                        specified for an entire instance of ISIS, instead of at the interface
-                        level, by setting the authentication key-chain attribute at global
-                        level.";
-        } // END of key-chain definition.
-
-        leaf authentication-mode  {
-            type  ipi-isis-types:isis_auth_mode_t;
-            description "Use this attribute to set the MD5 authentication mode.";
-        } // END of authentication-mode definition.
-
         leaf password  {
-            when " not(/isis/interfaces/interface/interface-parameters/level-info/config/authentication-mode) ";
+            when " not(/isis/interfaces/interface/interface-parameters/level-info/authentication/config/mode) ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -770,7 +755,7 @@ submodule ipi-isis-interface {
         leaf tag  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Tag value";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to sets the tag for link-state packets (LSPs) sent
@@ -782,7 +767,7 @@ submodule ipi-isis-interface {
         leaf wide-metric  {
             type  uint32 {
                  range "1..16777214"  {
-                    description "1..16777214:Wide metric";
+                    description "1..16777214: Supported range 1 - 16777214";
                  }
             }
             default "10";
@@ -797,7 +782,7 @@ submodule ipi-isis-interface {
             if-feature feature-list:HAVE_ISIS_TE;
             type  uint32 {
                  range "1..16777214"  {
-                    description "1..16777214:TE Metric value";
+                    description "1..16777214: Supported range 1 - 16777214";
                  }
             }
             description "Use this attribute to set te  metric for the interface. Interface
@@ -808,7 +793,7 @@ submodule ipi-isis-interface {
         leaf restart-hello-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Restart Hello interval value (Default value is 3)";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "3";
@@ -817,6 +802,30 @@ submodule ipi-isis-interface {
         } // END of restart-hello-interval definition.
 
     } // END of isis-interface-level-params-info-config definition.
+    grouping isis-interface-authentication-config {
+        description
+            "This grouping defines ISIS authentication mode configuration";
+        leaf mode  {
+            type  ipi-isis-types:isis_auth_mode_t;
+            mandatory true;
+            description "Use this attribute to set the MD5 authentication mode.";
+        } // END of mode definition.
+
+        leaf key-chain  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set the key chain to be used for authentication
+                        on the interface-related packets.Authentication mode must be set to
+                        md5/text to configure the key chain.Only one authentication key-chain
+                        is applied to an ISIS interface at a time. Authentication can be
+                        specified for an entire instance of ISIS, instead of at the interface
+                        level, by setting the authentication key-chain attribute at global
+                        level.";
+        } // END of key-chain definition.
+
+    } // END of isis-interface-authentication-config definition.
     grouping isis-interface-ldp-sync-config {
         description
             "This grouping defines ISIS/LDP Synchronization configuration.";
@@ -831,7 +840,7 @@ submodule ipi-isis-interface {
             when " /isis/interfaces/interface/igp-ldp-sync/config/level ";
             type  uint32 {
                  range "1..2147483"  {
-                    description "1..2147483:seconds";
+                    description "1..2147483: Supported range 1 - 2147483";
                  }
             }
             mandatory true;
@@ -860,12 +869,13 @@ submodule ipi-isis-interface {
         "Top level container for interfaces, including configuration and state
                 data";
     container interfaces {
+        if-feature feature-list:HAVE_ISISD;
         description
             "Top level container for interfaces, including configuration and state
                     data";
 
         list interface {
-        // when " !ipi-if-aggregate:member-aggregation + ipi-interface:interfaces/interface/config/enable-switchport != '1' ";
+        // when " ipi-interface:interfaces/interface/config/enable-switchport != '1' ";
             key "name";
             description
                 "This list defines global ISIS interface configuration and state
@@ -1168,6 +1178,23 @@ submodule ipi-isis-interface {
                             "State parameters for ISIS interface level";
                         uses isis-interface-level-params-info-config;
                     } // END of state-container definition.
+                    container authentication {
+                        description
+                            "Configutational and state parameters for ISIS interface level
+                                    authentication";
+                        container config {
+                            presence "authentication mode is needed for keychain";
+                            description
+                                "Configutational and state parameters for ISIS authentication";
+                            uses isis-interface-authentication-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State parameters for ISIS interface level authentication";
+                            uses isis-interface-authentication-config;
+                        } // END of state-container definition.
+                    } // END of authentication-container definition.
                 } // End of level-info-list
                 container config {
                     description

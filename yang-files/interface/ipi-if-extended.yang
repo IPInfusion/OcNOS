@@ -28,32 +28,27 @@ module ipi-if-extended {
 
     import ipi-if-types {
         prefix ipi-if-types;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-04-05;
+        revision-date 2022-06-01;
     }
 
     import ipi-if-ethernet {
         prefix ipi-if-ethernet;
-        revision-date 2021-11-15;
-    }
-
-    import ipi-vxlan {
-        prefix ipi-vxlan;
-        revision-date 2022-02-16;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -68,7 +63,7 @@ module ipi-if-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -84,18 +79,18 @@ module ipi-if-extended {
         "Datamodel for IPI Interface extended module";
 
 
-    revision "2022-03-22" {
-        description "Added if-feature for interface MACsec capability show";
-        reference " 0.11.5.";
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.13.0.";
     }
 
-    revision "2022-02-17" {
-        description "Remodelled attribute subif-service-queue for sub-interface";
-        reference " 0.11.4.";
+    revision "2022-04-14" {
+        description "Removed 're-routing' CLI from MEP mode and added in interface mode";
+        reference " 0.12.0.";
     }
 
     revision "2022-02-10" {
-        description "Added interface MACsec capability show";
+        description "Remodelled attribute subif-service-queue for sub-interface";
         reference " 0.11.3.";
     }
 
@@ -240,6 +235,24 @@ module ipi-if-extended {
 
 
 
+    typedef  ipi_if_extended_rate_unit_t {
+        type enumeration {
+            enum kbps {
+                value 1;
+                description "Specifies the unit of kilobits per second";
+            }
+            enum mbps {
+                value 2;
+                description "Specifies the unit of megabits per second";
+            }
+            enum gbps {
+                value 3;
+                description "Specifies the unit of gigabits per second";
+            }
+        }
+        description "type definition for IPI_IF_EXTENDED_RATE_UNIT_T";
+    }
+
     grouping port-group-speed-map-grouping {
     description
         "Global configuration for Port-group";
@@ -311,14 +324,13 @@ module ipi-if-extended {
         leaf debounce-time  {
             type  uint16 {
                  range "250..5000"  {
-                    description "250..5000:Timer value in milliseconds.";
+                    description "250..5000: Supported range 250 - 5000";
                  }
             }
             description "Use this attribute to set the interface debounce timer value";
         } // END of debounce-time definition.
 
         leaf protected-port  {
-            // when " !ipi-mlag:mlag-aggregation/config/mlag-id ";
             type  ipi-if-types:if_protected_port_type_t;
             default "promiscuous";
             description "Attribute to change port protectedtype value";
@@ -463,15 +475,35 @@ module ipi-if-extended {
             } // END of auto-ipv6-link-local-address definition.
 
     } // END of ipi-interface-extended-state definition.
+    grouping minimum-bandwidth-config {
+        description
+            "Grouping for interface minimum-bandwidth configuration";
+        leaf rate  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:minimum-bandwidth/ipi-if-extended:config/ipi-if-extended:rate-unit ";
+            type  uint32 {
+                 range "1..1000000000"  {
+                    description "1..1000000000: Supported range 1 - 1000000000";
+                 }
+            }
+            mandatory true;
+            description "Interface minimum bandwidth";
+        } // END of rate definition.
+
+        leaf rate-unit  {
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-if-extended:extended/ipi-if-extended:minimum-bandwidth/ipi-if-extended:config/ipi-if-extended:rate ";
+            type  ipi_if_extended_rate_unit_t;
+            mandatory true;
+            description "Use this attribute to set minimum-banwidth rate unit";
+        } // END of rate-unit definition.
+
+    } // END of minimum-bandwidth-config definition.
     grouping link-debounce-time-config {
         description
             "Grouping for link-debounce-time.";
         leaf linkup-debounce-time  {
             type  uint16 {
                  range "0..5000"  {
-                    description "0..5000:Linkup debounce time is delay before linkup transition. Unit
-                            is millisceconds. 0 value is used to disable the timer. Min value is
-                            250ms";
+                    description "0..5000: Supported range 0 - 5000";
                  }
             }
             units "milliseconds";
@@ -482,9 +514,7 @@ module ipi-if-extended {
         leaf linkdown-debounce-time  {
             type  uint16 {
                  range "0..5000"  {
-                    description "0..5000:Linkdown debounce time is delay before linkdown transition.
-                            Unit is millisceconds. 0 value is used to disable the timer. Min value
-                            is 250ms";
+                    description "0..5000: Supported range 0 - 5000";
                  }
             }
             units "milliseconds";
@@ -514,7 +544,7 @@ module ipi-if-extended {
         leaf warning-threshold  {
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:warning level threshold value in percentage";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             units "%";
@@ -528,7 +558,7 @@ module ipi-if-extended {
             when " ../warning-threshold ";
             type  uint8 {
                  range "1..100"  {
-                    description "1..100:recovery level threshold value in percentage";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             units "%";
@@ -628,15 +658,6 @@ module ipi-if-extended {
             }
             description "This Object describes the Interface fec Capability";
         } // END of fec definition.
-
-        leaf macsec  {
-            if-feature feature-list:HAVE_MACSEC;
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "This Object describes the Interface macsec Capability";
-        } // END of macsec definition.
 
     } // END of capabilities-state definition.
     grouping extended-counters-state {
@@ -818,8 +839,7 @@ module ipi-if-extended {
             if-feature feature-list:HAVE_BROADCOM;
             type  uint16 {
                  range "30..300"  {
-                    description "30..300:Load period in multiples of 30 seconds (default is 300
-                            seconds).";
+                    description "30..300: Supported range 30 - 300";
                  }
             }
             default "300";
@@ -988,7 +1008,7 @@ module ipi-if-extended {
         leaf bridgedomain-id  {
             type  int32 {
                  range "1..2147483647"  {
-                    description "1..2147483647:Bridge domain Id";
+                    description "1..2147483647: Supported range 1 - 2147483647";
                  }
             }
             description "This attribute specifies the bridge domain id.";
@@ -1024,7 +1044,7 @@ module ipi-if-extended {
         leaf instance-id  {
             type  int8 {
                  range "1..63"  {
-                    description "1..63:Value of instance id.";
+                    description "1..63: Supported range 1 - 63";
                  }
             }
             mandatory true;
@@ -1038,7 +1058,7 @@ module ipi-if-extended {
         leaf group-index  {
             type  uint8 {
                  range "1..64"  {
-                    description "1..64:port group number";
+                    description "1..64: Supported range 1 - 64";
                  }
             }
             description "This attribute specifies the port group number";
@@ -1096,8 +1116,7 @@ module ipi-if-extended {
             if-feature feature-list:HAVE_L2;
             type  uint32 {
                  range "0..1000000"  {
-                    description "0..1000000:timeout interval in seconds. Set 0 to disable automatic
-                            recovery.";
+                    description "0..1000000: Supported range 0 - 1000000";
                  }
             }
             default "0";
@@ -1106,12 +1125,11 @@ module ipi-if-extended {
         } // END of timeout-interval definition.
 
         leaf link-flap-max-count  {
-            when " ../link-flap-timer-interval ";
             // when " ../reason >= '4' ";
             if-feature feature-list:HAVE_L2;
             type  uint32 {
                  range "1..100"  {
-                    description "1..100:Allowed Flap count range";
+                    description "1..100: Supported range 1 - 100";
                  }
             }
             default "5";
@@ -1120,12 +1138,11 @@ module ipi-if-extended {
         } // END of link-flap-max-count definition.
 
         leaf link-flap-timer-interval  {
-            when " ../link-flap-max-count ";
             // when " ../reason >= '4' ";
             if-feature feature-list:HAVE_L2;
             type  uint32 {
                  range "1..1800"  {
-                    description "1..1800:timeout interval in seconds";
+                    description "1..1800: Supported range 1 - 1800";
                  }
             }
             units "seconds";
@@ -1138,7 +1155,7 @@ module ipi-if-extended {
             if-feature feature-list:HAVE_L2;
             type  uint32 {
                  range "1..1000"  {
-                    description "1..1000:Allowed Mac movement in 5 seconds";
+                    description "1..1000: Supported range 1 - 1000";
                  }
             }
             units "seconds";
@@ -1392,10 +1409,7 @@ module ipi-if-extended {
 
                 leaf push-tpid  {
                     when " ../vlan-action='2' and ../push-outer-vlan-id ";
-                    type  string {
-                        length "6";
-                        pattern "0[xX][0-9a-fA-F]+";
-                    }
+                    type  ipi-if-types:cml_outer_tpid_type_t;
                     mandatory true;
                     description "This attribute is used to configure the tpid value for the interface
                                 in the format 0xhhhh. Currently supported values are 0x8100 or 0x88a8
@@ -1407,7 +1421,7 @@ module ipi-if-extended {
                     when " ../vlan-action='2' and ../push-tpid ";
                     type  uint16 {
                          range "1..4094"  {
-                            description "1..4094:Vid range";
+                            description "1..4094: Supported range 1 - 4094";
                          }
                     }
                     mandatory true;
@@ -1419,7 +1433,7 @@ module ipi-if-extended {
                 leaf push-inner-vlan-id  {
                     type  uint16 {
                          range "1..4094"  {
-                            description "1..4094:inner-vlan";
+                            description "1..4094: Supported range 1 - 4094";
                          }
                     }
                     description "This Object is used to configure the inner VLAN ID for rewrite.
@@ -1455,7 +1469,7 @@ module ipi-if-extended {
                     when " ../vlan-action='3' and ../dot1q-dot1ad-tpid ";
                     type  uint16 {
                          range "1..4094"  {
-                            description "1..4094:Outer vlan-id";
+                            description "1..4094: Supported range 1 - 4094";
                          }
                     }
                     mandatory true;
@@ -1477,7 +1491,7 @@ module ipi-if-extended {
                     when " ../vlan-action='3' and ../i-dot1q-dot1ad-tpid ";
                     type  uint16 {
                          range "1..4094"  {
-                            description "1..4094:inner vlan-id";
+                            description "1..4094: Supported range 1 - 4094";
                          }
                     }
                     mandatory true;
@@ -1519,7 +1533,7 @@ module ipi-if-extended {
             if-feature feature-list:HAVE_TDM_VC;
             type  uint16 {
                  range "1..500"  {
-                    description "1..500:Range for jitter buffer size in millisec";
+                    description "1..500: Supported range 1 - 500";
                  }
             }
             default "500";
@@ -1530,7 +1544,7 @@ module ipi-if-extended {
             if-feature feature-list:HAVE_TDM_VC;
             type  uint32 {
                  range "0..32768"  {
-                    description "0..32768:Range for setting payload bytes";
+                    description "0..32768: Supported range 0 - 32768";
                  }
             }
             default "0";
@@ -1555,7 +1569,7 @@ module ipi-if-extended {
         leaf error-period  {
             type  uint32 {
                  range "2000..10000"  {
-                    description "2000..10000:Range for setting the error-set period in millisec";
+                    description "2000..10000: Supported range 2000 - 10000";
                  }
             }
             mandatory true;
@@ -1575,7 +1589,7 @@ module ipi-if-extended {
         leaf error-clear-period  {
             type  uint32 {
                  range "2000..10000"  {
-                    description "2000..10000:Range for setting the error-clear period in millisec";
+                    description "2000..10000: Supported range 2000 - 10000";
                  }
             }
             mandatory true;
@@ -1588,7 +1602,6 @@ module ipi-if-extended {
         description
             "Grouping for tunnel interface configurations";
         leaf mode  {
-            when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' ";
             type  ipi-if-types:if_tunnel_mode_t;
             default "vxlan";
             description "This attribute is used to unset the tunnel mode";
@@ -1622,7 +1635,7 @@ module ipi-if-extended {
         leaf tos-byte  {
             type  uint16 {
                  range "0..255"  {
-                    description "0..255:type of service byte";
+                    description "0..255: Supported range 0 - 255";
                  }
             }
             description "This attribute is used to set type of service byte";
@@ -1631,7 +1644,7 @@ module ipi-if-extended {
         leaf ttl  {
             type  uint16 {
                  range "1..255"  {
-                    description "1..255:tunnel time to live";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             description "This attribute is used to set time to live";
@@ -1762,53 +1775,47 @@ module ipi-if-extended {
         } // END of in-total-pkts definition.
 
     } // END of protocol-pkt-statistics definition.
+    grouping bandwidth-operational-state {
+        description
+            "Grouping for Extended Bandwidth operational data";
+        leaf current-bandwidth  {
+            type  uint64;
+            units "kbps";
+            description "Current Bandwidth in kbps";
+        } // END of current-bandwidth definition.
+
+    } // END of bandwidth-operational-state definition.
+    grouping lbg-counters-state {
+        description
+            "Operational data representing LB counters";
+        leaf in-errors  {
+            type  yang:counter64;
+            description "The number of discard segments received per LBG";
+        } // END of in-errors definition.
+
+    } // END of lbg-counters-state definition.
     grouping lb-modem-counters-state {
         description
             "Operational data representing LB modem counters";
-        leaf lbg_in_errors  {
-            if-feature feature-list:HAVE_BROADCOM;
-            if-feature feature-list:HAVE_HAL;
-            if-feature feature-list:HAVE_LINK_BONDING;
+        leaf out-segments  {
             type  yang:counter64;
-            config false;
-            description "The number of discard segments received per LBG";
-        } // END of lbg_in_errors definition.
-
-        leaf segments_sent  {
-            if-feature feature-list:HAVE_BROADCOM;
-            if-feature feature-list:HAVE_HAL;
-            if-feature feature-list:HAVE_LINK_BONDING;
-            type  yang:counter64;
-            config false;
             description "The number of Modem segments transmitted";
-        } // END of segments_sent definition.
+        } // END of out-segments definition.
 
-        leaf segment_bytes_sent  {
-            if-feature feature-list:HAVE_BROADCOM;
-            if-feature feature-list:HAVE_HAL;
-            if-feature feature-list:HAVE_LINK_BONDING;
+        leaf out-segment-bytes  {
             type  yang:counter64;
-            config false;
             description "The number of Modem bytes transmitted";
-        } // END of segment_bytes_sent definition.
+        } // END of out-segment-bytes definition.
 
-        leaf segments_rcv  {
-            if-feature feature-list:HAVE_BROADCOM;
-            if-feature feature-list:HAVE_HAL;
-            if-feature feature-list:HAVE_LINK_BONDING;
+        leaf in-segments  {
             type  yang:counter64;
-            config false;
             description "The number of Modem Segments received";
-        } // END of segments_rcv definition.
+        } // END of in-segments definition.
 
-        leaf segment_bytes_rcv  {
-            if-feature feature-list:HAVE_BROADCOM;
-            if-feature feature-list:HAVE_HAL;
-            if-feature feature-list:HAVE_LINK_BONDING;
+        leaf in-segment-bytes  {
             type  yang:counter64;
-            config false;
             description "The number of Modem bytes received";
-        } // END of segment_bytes_rcv definition.
+        } // END of in-segment-bytes definition.
 
     } // END of lb-modem-counters-state definition.
     grouping obm-total-count-stats {
@@ -2166,7 +2173,7 @@ module ipi-if-extended {
         leaf if-arbiter  {
             type  uint32 {
                  range "1..65535"  {
-                    description "1..65535:Seconds";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "20";
@@ -2219,6 +2226,20 @@ module ipi-if-extended {
             uses ipi-interface-extended-config;
             uses ipi-interface-extended-state;
         } // END of state-container definition.
+        container bandwidth-management {
+            description
+                "Container for bandwidth management";
+            container config {
+                description
+                    "Configuration data for bandwidth-management";
+                leaf enable-re-routing  {
+                    type  empty;
+                    description "Enable re-routing when the bandwidth crosses down the minimum
+                                bandwidth";
+                } // END of enable-re-routing definition.
+
+            } // END of config-container definition.
+        } // END of bandwidth-management-container definition.
         container port-monitor {
             description
                 "Container for Port-monitoring";
@@ -2330,6 +2351,23 @@ module ipi-if-extended {
                 uses link-debounce-time-config;
             } // END of state-container definition.
         } // END of link-debounce-time-container definition.
+        container minimum-bandwidth {
+            if-feature feature-list:HAVE_TE;
+            description
+                "Configuration data for minimum-bandwidth";
+            container config {
+                presence "minimum-bandwidth config";
+                description
+                    "Configuration data for minimum-bandwidth";
+                uses minimum-bandwidth-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Configuration data for minimum-bandwidth";
+                uses minimum-bandwidth-config;
+            } // END of state-container definition.
+        } // END of minimum-bandwidth-container definition.
     } // END of extended-container definition.
     } // END of extended-grouping definition.
 
@@ -2427,6 +2465,17 @@ module ipi-if-extended {
     } // END of storm-control-container definition.
     } // END of storm-control-grouping definition.
 
+    grouping  custom-state-grouping {
+    description
+        "Custom interface operational state";
+    container custom-state {
+        config false;
+        description
+            "Custom interface operational state";
+        uses bandwidth-operational-state;
+    } // END of custom-state-container definition.
+    } // END of custom-state-grouping definition.
+
     grouping  extended-counters-grouping {
     description
         "A collection of extended interface-related statistics counters";
@@ -2434,6 +2483,15 @@ module ipi-if-extended {
         config false;
         description
             "A collection of extended interface-related statistics counters";
+        container lbg-stats {
+            if-feature feature-list:HAVE_HAL;
+            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_LINK_BONDING;
+            config false;
+            description
+                "Statistics for Link-bonding Group interface";
+            uses lbg-counters-state;
+        } // END of lbg-stats-container definition.
         container lb-modem-stats {
             if-feature feature-list:HAVE_HAL;
             if-feature feature-list:HAVE_BROADCOM;
@@ -2592,6 +2650,12 @@ module ipi-if-extended {
         uses storm-control-grouping;
     }
 
+    augment /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:state {
+        description
+            "Custom interface operational state";
+        uses custom-state-grouping;
+    }
+
     augment /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:state/ipi-interface:counters {
         description
             "A collection of extended interface-related statistics counters";
@@ -2654,6 +2718,7 @@ module ipi-if-extended {
     }
 
     rpc interface-sniff-enable {
+        if-feature feature-list:HAVE_SNIFF_INTF;
         description "use this command to enable sniff on port to capture packets on sniff
                     port";
         input  {
@@ -2683,6 +2748,7 @@ module ipi-if-extended {
     }
 
     rpc interface-sniff-disable {
+        if-feature feature-list:HAVE_SNIFF_INTF;
         description "use this command to disable sniff on port to capture packets on sniff
                     port";
         input  {
@@ -2699,6 +2765,7 @@ module ipi-if-extended {
         description "The interface-Errdis-Notif/interfaceErrdisNotif is generated when an interface is error-disabled(error-disable-reason will have non-zero value) and when it recovers from errdisabled state (error-disable-reason will have '0'). Severity level is CRITICAL for interface going down and MINOR for interface moving to UP state when it recovers from errdisabled state..";
 
         // eventClass "STATE";
+
         leaf name {
             type  string;
         description
@@ -2727,6 +2794,142 @@ module ipi-if-extended {
                     error-disabled because of stp-bpdu-guard, value of this object is 2.
                     If interface is error-disabled because of link-flap, value of this
                     object is 4.";
+        }
+    }
+
+    notification interface-bandwidth-start {
+
+        description "Interface shaper is open.";
+
+        // severity "INFO";
+
+        // eventClass "STATE";
+
+        leaf name {
+            type  string;
+        description
+            "The textual name of the interface. The value of this
+                    object should
+                    be the name of the interface as assigned by the local device and
+                    should be suitable for use in commands entered at the device's
+                    `console'. This might be a text name, such as `le0' or a simple
+                    port number, such as `1', depending on the interface naming syntax
+                    of the device. If several entries in the ifTable together represent
+                    a single interface as named by the device, then each will have the
+                    same value of name. Note that for an agent which responds to SNMP
+                    queries concerning an interface on some other (proxied) device,
+                    then the value of name for such an interface is the proxied
+                    device's local name for it. If there is no local name, or this
+                    object is otherwise not applicable, then this object contains a
+                    zero-length string.";
+        }
+
+        leaf current-bandwidth {
+            type  uint64;
+        description
+            "Current Bandwidth in kbps";
+        }
+    }
+
+    notification interface-bandwidth-upgrade {
+
+        description "Interface bandwidth is upgraded.";
+
+        // severity "INFO";
+
+        // eventClass "STATE";
+
+        leaf name {
+            type  string;
+        description
+            "The textual name of the interface. The value of this
+                    object should
+                    be the name of the interface as assigned by the local device and
+                    should be suitable for use in commands entered at the device's
+                    `console'. This might be a text name, such as `le0' or a simple
+                    port number, such as `1', depending on the interface naming syntax
+                    of the device. If several entries in the ifTable together represent
+                    a single interface as named by the device, then each will have the
+                    same value of name. Note that for an agent which responds to SNMP
+                    queries concerning an interface on some other (proxied) device,
+                    then the value of name for such an interface is the proxied
+                    device's local name for it. If there is no local name, or this
+                    object is otherwise not applicable, then this object contains a
+                    zero-length string.";
+        }
+
+        leaf current-bandwidth {
+            type  uint64;
+        description
+            "Current Bandwidth in kbps";
+        }
+    }
+
+    notification interface-bandwidth-downgrade {
+
+        description "Interface bandwidth is downgraded.";
+
+        // severity "WARNING";
+
+        // eventClass "STATE";
+
+        leaf name {
+            type  string;
+        description
+            "The textual name of the interface. The value of this
+                    object should
+                    be the name of the interface as assigned by the local device and
+                    should be suitable for use in commands entered at the device's
+                    `console'. This might be a text name, such as `le0' or a simple
+                    port number, such as `1', depending on the interface naming syntax
+                    of the device. If several entries in the ifTable together represent
+                    a single interface as named by the device, then each will have the
+                    same value of name. Note that for an agent which responds to SNMP
+                    queries concerning an interface on some other (proxied) device,
+                    then the value of name for such an interface is the proxied
+                    device's local name for it. If there is no local name, or this
+                    object is otherwise not applicable, then this object contains a
+                    zero-length string.";
+        }
+
+        leaf current-bandwidth {
+            type  uint64;
+        description
+            "Current Bandwidth in kbps";
+        }
+    }
+
+    notification interface-bandwidth-close {
+
+        description "Interface bandwidth is 0.";
+
+        // severity "WARNING";
+
+        // eventClass "STATE";
+
+        leaf name {
+            type  string;
+        description
+            "The textual name of the interface. The value of this
+                    object should
+                    be the name of the interface as assigned by the local device and
+                    should be suitable for use in commands entered at the device's
+                    `console'. This might be a text name, such as `le0' or a simple
+                    port number, such as `1', depending on the interface naming syntax
+                    of the device. If several entries in the ifTable together represent
+                    a single interface as named by the device, then each will have the
+                    same value of name. Note that for an agent which responds to SNMP
+                    queries concerning an interface on some other (proxied) device,
+                    then the value of name for such an interface is the proxied
+                    device's local name for it. If there is no local name, or this
+                    object is otherwise not applicable, then this object contains a
+                    zero-length string.";
+        }
+
+        leaf current-bandwidth {
+            type  uint64;
+        description
+            "Current Bandwidth in kbps";
         }
     }
 

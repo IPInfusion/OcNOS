@@ -23,7 +23,7 @@ module ipi-ldp {
 
     import ipi-ldp-types {
         prefix ipi-ldp-types;
-        revision-date 2022-01-24;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -33,12 +33,12 @@ module ipi-ldp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
-    include ipi-ldp-l2vpn { revision-date 2021-09-03;}
-    include ipi-ldp-interface { revision-date 2021-10-21;}
-    include ipi-ldp-peer { revision-date 2022-01-18;}
+    include ipi-ldp-l2vpn { revision-date 2022-06-01;}
+    include ipi-ldp-interface { revision-date 2022-06-01;}
+    include ipi-ldp-peer { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -51,6 +51,26 @@ module ipi-ldp {
     description
         "Datamodel for LDP protocol";
 
+
+    revision "2022-06-08" {
+        description "Fixes dependency for LDP transport-address";
+        reference " 0.6.4.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.6.3.";
+    }
+
+    revision "2022-04-21" {
+        description "Fixes dependency for LDP Session Protection";
+        reference " 0.6.2.";
+    }
+
+    revision "2022-04-15" {
+        description "Fixes attributes for LDP Session Protection";
+        reference " 0.6.1.";
+    }
 
     revision "2022-01-19" {
         description "Added configurations and state attributes for LDP Session Protection";
@@ -127,20 +147,13 @@ module ipi-ldp {
         } // END of session-protection-enable definition.
 
         leaf duration  {
-            type  uint32 {
-                 range "5..86400"  {
-                    description "5..86400:Session protection duration in seconds";
-                 }
-            }
+            type  ipi-ldp-types:ldp_sess_prot_duration_t;
             description "Set adjacency session protection duration. Protection is infinite, it
                         is not configured";
         } // END of duration definition.
 
         leaf session-protection-prefix-list-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
+            type  ipi-ldp-types:ldp_sess_prot_pfx_lst_t;
             description "This attribute is used to set adjacency prefixes for session
                         protection.";
         } // END of session-protection-prefix-list-name definition.
@@ -150,6 +163,7 @@ module ipi-ldp {
         description
             "Grouping for LDP Session protection";
         container session-protection {
+            when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
             if-feature feature-list:HAVE_LDP_SESS_PROT;
             description
                 "Session protection container";
@@ -457,7 +471,7 @@ module ipi-ldp {
         leaf request-retry-timeout  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Loop detection hop count";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             default "5";
@@ -512,7 +526,7 @@ module ipi-ldp {
         leaf path-vector-limit  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Loop detection hop count";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "255";
@@ -529,7 +543,7 @@ module ipi-ldp {
         leaf hop-count-limit  {
             type  uint32 {
                  range "1..255"  {
-                    description "1..255:Loop detection hop count";
+                    description "1..255: Supported range 1 - 255";
                  }
             }
             default "255";
@@ -548,7 +562,6 @@ module ipi-ldp {
             "Top-Level Grouping for LDP transport address per label space";
 
         list transport-address {
-        when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
             key "label-space-identifier";
             description
                 "Object list for transport addresses per label-space";
@@ -577,12 +590,14 @@ module ipi-ldp {
         description
             "Grouping for LDP Transport-Address configuration";
         leaf label-space-identifier  {
+            when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
             type  ipi-ldp-types:ldp_label_space_identifier_t;
             description "This attribute is used to configure Label space for which a transport
                         address is being configured";
         } // END of label-space-identifier definition.
 
         leaf transport-address-ipv4  {
+            when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
             type  inet:ipv4-address;
             description "Use this attribute to configure the IPv4 transport address for a label
                         space.The transport address is the address used for the TCP session
@@ -595,6 +610,7 @@ module ipi-ldp {
         } // END of transport-address-ipv4 definition.
 
         leaf transport-address-ipv6  {
+            when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
             if-feature feature-list:HAVE_IPV6;
             type  inet:ipv6-address;
             description "Use this attribute to configure an IPv6 transport address for a label
@@ -817,7 +833,7 @@ module ipi-ldp {
         leaf neighbor-liveness-time  {
             type  uint16 {
                  range "5..300"  {
-                    description "5..300:Set the neighbor-liveness timer";
+                    description "5..300: Supported range 5 - 300";
                  }
             }
             units "seconds";
@@ -832,7 +848,7 @@ module ipi-ldp {
         leaf max-recovery-time  {
             type  uint16 {
                  range "15..600"  {
-                    description "15..600:Interval until which LDP preserves routes after Peer Restart";
+                    description "15..600: Supported range 15 - 600";
                  }
             }
             units "seconds";
@@ -862,7 +878,7 @@ module ipi-ldp {
         leaf redundancy-group-identifier  {
             type  uint32 {
                  range "0..65535"  {
-                    description "0..65535:Group ID value";
+                    description "0..65535: Supported range 0 - 65535";
                  }
             }
             mandatory true;
@@ -877,7 +893,7 @@ module ipi-ldp {
         leaf iccp-startup-delay-timer  {
             type  uint32 {
                  range "0..180"  {
-                    description "0..180:timer value";
+                    description "0..180: Supported range 0 - 180";
                  }
             }
             description "This attribute is used to configure startup delay timer";
@@ -896,6 +912,7 @@ module ipi-ldp {
         "LDP global level container";
     container ldp {
         when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config/ipi-ldp:ldp-instance  or /ipi-ldp:ldp/ipi-ldp:debug ";
+        if-feature feature-list:HAVE_LDPD;
         description
             "LDP global level container";
         container global {
@@ -1047,14 +1064,17 @@ module ipi-ldp {
     uses ldp-grouping;
 
     rpc clear-ldp-statistics {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear LDP statistics";
     }
 
     rpc clear-ldp-statistics-advertise-labels {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear ts LDP advertise-labels statistics";
     }
 
     rpc clear-ldp-statistics-advertise-labels-prefix {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear LDP advertise-labels prefix statistics";
         input  {
             leaf prefix  {
@@ -1066,6 +1086,7 @@ module ipi-ldp {
     }
 
     rpc clear-ldp-statistics-advertise-labels-prefix-peer {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear LDP advertise-labels prefix-peer statistics";
         input  {
             leaf prefix  {
@@ -1082,10 +1103,12 @@ module ipi-ldp {
     }
 
     rpc clear-ldp-session-all {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear all LDP sessions";
     }
 
     rpc clear-ldp-session-ipv4 {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear the particular LDP IPV4 session";
         input  {
             leaf addr  {
@@ -1097,6 +1120,8 @@ module ipi-ldp {
     }
 
     rpc clear-ldp-session-ipv6 {
+        if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear all LDP IPV6 sessions";
         input  {
             leaf addr  {
@@ -1108,11 +1133,13 @@ module ipi-ldp {
     }
 
     rpc clear-ldp-adjacency-all {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear an adjacency with a specified peer, or to clear
                     all adjacencies for the current LSR";
     }
 
     rpc clear-ldp-adjacency-ipv4 {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear an adjacency with a specified IPV4 peer LSR";
         input  {
             leaf addr  {
@@ -1124,6 +1151,8 @@ module ipi-ldp {
     }
 
     rpc clear-ldp-adjacency-ipv6 {
+        if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear an adjacency with a specified IPV6 peer LSR";
         input  {
             leaf addr  {
@@ -1135,10 +1164,39 @@ module ipi-ldp {
     }
 
     rpc snmp-restart-ldp {
+        if-feature feature-list:HAVE_SNMP;
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to restart SNMP in LDP";
     }
 
+    rpc iccp-terminal-debug-on {
+        if-feature feature-list:HAVE_ICCP;
+        if-feature feature-list:HAVE_LDPD;
+        description "Use this RPC to enable terminal ICCP debugs";
+        input  {
+            leaf iccp-debug-options  {
+                type ipi-ldp-types:ldp_iccp_debug_t;
+                mandatory true;
+                description "debug options for the ICCP";
+            }
+        }
+    }
+
+    rpc iccp-terminal-debug-off {
+        if-feature feature-list:HAVE_ICCP;
+        if-feature feature-list:HAVE_LDPD;
+        description "Use this RPC to disable terminal ICCP debugs";
+        input  {
+            leaf iccp-debug-options  {
+                type ipi-ldp-types:ldp_iccp_debug_t;
+                mandatory true;
+                description "debug options for the ICCP";
+            }
+        }
+    }
+
     rpc ldp-terminal-debug-on {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to enable terminal LDP debugs";
         input  {
             leaf ldp-debug-options  {
@@ -1150,6 +1208,7 @@ module ipi-ldp {
     }
 
     rpc ldp-terminal-debug-off {
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to disable terminal LDP debugs";
         input  {
             leaf ldp-debug-options  {
@@ -1161,15 +1220,20 @@ module ipi-ldp {
     }
 
     rpc restart-ldp-graceful {
+        if-feature feature-list:HAVE_RESTART;
+        if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to LDP gracceful restart";
     }
 
     notification mpls-ldp-session-up {
+        if-feature feature-list:HAVE_LDPD;
 
         description "If this notification is sent when the value of MPLS LDP 'session-state' enters the operational(5) state..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf peer-address {
             type  inet:ipv4-address;
         description
@@ -1206,11 +1270,14 @@ module ipi-ldp {
     }
 
     notification mpls-ldp-session-down {
+        if-feature feature-list:HAVE_LDPD;
 
         description "If this notification is sent when the value of MPLS LDP 'session-state' leaves the operational(5) state..";
 
         // severity "CRITICAL";
+
         // eventClass "STATE";
+
         leaf peer-address {
             type  inet:ipv4-address;
         description
@@ -1247,11 +1314,14 @@ module ipi-ldp {
     }
 
     notification mpls-ldp-init-session-threshold-exceeded {
+        if-feature feature-list:HAVE_LDPD;
 
         description "This notification is generated when the value of the 'initialization-session-threshold-limit' object is not zero, and the number of Session Initialization messages exceeds the value of the 'initialization-session-threshold-limit' object..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf peer-address {
             type  inet:ipv4-address;
         description
@@ -1268,11 +1338,14 @@ module ipi-ldp {
     }
 
     notification mpls-ldp-path-vector-limit-mismatch {
+        if-feature feature-list:HAVE_LDPD;
 
         description "This notification is sent when the 'entity-path-vector-limit' does NOT match the value of the 'peer-path-vector-limit' for a specific Entity..";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf peer-address {
             type  inet:ipv4-address;
         description

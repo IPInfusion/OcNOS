@@ -23,7 +23,7 @@ module ipi-acl {
 
     import ipi-acl-types {
         prefix ipi-acl-types;
-        revision-date 2022-01-20;
+        revision-date 2022-06-01;
     }
 
     import cml-data-types {
@@ -33,7 +33,7 @@ module ipi-acl {
 
     import ipi-acl-common {
         prefix ipi-acl-common;
-        revision-date 2021-09-17;
+        revision-date 2022-06-01;
     }
 
     import ietf-yang-types {
@@ -43,13 +43,13 @@ module ipi-acl {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
-    include ipi-acl-arp { revision-date 2021-09-17;}
-    include ipi-acl-mac { revision-date 2021-09-17;}
-    include ipi-acl-ports { revision-date 2021-11-16;}
-    include ipi-acl-ipv6 { revision-date 2022-01-20;}
+    include ipi-acl-arp { revision-date 2022-06-01;}
+    include ipi-acl-mac { revision-date 2022-06-01;}
+    include ipi-acl-ports { revision-date 2022-06-01;}
+    include ipi-acl-ipv6 { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
 
@@ -62,6 +62,11 @@ module ipi-acl {
     description
         "Datamodel for Access Control List (ACL) object";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.9.2.";
+    }
 
     revision "2022-01-20" {
         description "Merged protocol-name and protocol-value into single attribute protocol-name";
@@ -142,14 +147,24 @@ module ipi-acl {
             description "Description, or comment, for the ACL set";
         } // END of description definition.
 
+        leaf ipv6-disable-default-icmpv6-rule  {
+            when " ../type='ipv6' ";
+            type  empty;
+            description "Use this attribute to inform that the default icmpv6 rule is disable
+                        for the IPv6 ACL.";
+        } // END of ipv6-disable-default-icmpv6-rule definition.
+
     } // END of acl-set-config definition.
     grouping acl-resequence-config {
         description
             "Configuration data for ACL resequencing";
         leaf starting-sequence-number  {
             type  uint32 {
-                 range "1..268435453"  {
-                    description "1..268435453:Starting sequence Number";
+                 range "1..4294967295"  {
+                    description "1..4294967295:Feature : HAVE_CUSTOM1_ACL Supported range 1 -
+                            268435453Feature : HAVE_CUSTOM2_ACL Supported range 1 - 268435453Not
+                            Feature : HAVE_CUSTOM1_ACL,HAVE_CUSTOM2_ACL  Supported range 1 -
+                            4294967295";
                  }
             }
             mandatory true;
@@ -158,8 +173,11 @@ module ipi-acl {
 
         leaf increment-steps  {
             type  uint32 {
-                 range "1..268435453"  {
-                    description "1..268435453:Sequence number increment steps";
+                 range "1..4294967295"  {
+                    description "1..4294967295:Feature : HAVE_CUSTOM1_ACL Supported range 1 -
+                            268435453Feature : HAVE_CUSTOM2_ACL Supported range 1 - 268435453Not
+                            Feature : HAVE_CUSTOM1_ACL,HAVE_CUSTOM2_ACL  Supported range 1 -
+                            4294967295";
                  }
             }
             mandatory true;
@@ -200,8 +218,11 @@ module ipi-acl {
             "sequence-id configuration for ACL entry";
         leaf sequence-id  {
             type  uint32 {
-                 range "1..268435453"  {
-                    description "1..268435453:ACL Sequence Number";
+                 range "1..4294967295"  {
+                    description "1..4294967295:Feature : HAVE_CUSTOM1_ACL Supported range 1 -
+                            268435453Feature : HAVE_CUSTOM2_ACL Supported range 1 - 268435453Not
+                            Feature : HAVE_CUSTOM1_ACL,HAVE_CUSTOM2_ACL  Supported range 1 -
+                            4294967295";
                  }
             }
             description "The sequence id determines the order in which ACL entries are applied.
@@ -238,17 +259,18 @@ module ipi-acl {
             if-feature feature-list:HAVE_CUSTOM1_ACL;
             type  uint8 {
                  range "0..255"  {
-                    description "0..255:icmp-type";
+                    description "0..255: Supported range 0 - 255";
                  }
             }
             description "Use this attribute to set ICMP type";
         } // END of icmp-type definition.
 
         leaf icmp-code  {
+            when " ../icmp-type ";
             if-feature feature-list:HAVE_CUSTOM1_ACL;
             type  uint8 {
                  range "0..255"  {
-                    description "0..255:icmp-code";
+                    description "0..255: Supported range 0 - 255";
                  }
             }
             description "Use this attribute to set ICMP sub-type";
@@ -284,7 +306,7 @@ module ipi-acl {
         leaf inner-vlan-id  {
             type  uint16 {
                  range "1..4094"  {
-                    description "1..4094:vlan  <1-4094>";
+                    description "1..4094: Supported range 1 - 4094";
                  }
             }
             description "Use this attribute to set the inner-vlan-id";
@@ -384,7 +406,6 @@ module ipi-acl {
                 } // END of sequence-id definition.
 
                 container config {
-                    // when " ipi-acl:acl/acl-sets/acl-set/acl-entries/acl-entry/ipv4/config || ipi-acl-ipv6:ipv6/config || ipi-acl-mac:mac/config || ipi-acl-arp:arp/config ";
                     description
                         "ACL sequence-id configuration";
                     uses acl-sequence-id-config;
@@ -579,6 +600,7 @@ module ipi-acl {
     description
         "Top level container for ACL config and operational state data";
     container acl {
+        if-feature feature-list:HAVE_ACL;
         description
             "Top level container for ACL config and operational state data";
         uses acl-sets-top;
@@ -591,10 +613,12 @@ module ipi-acl {
     uses acl-grouping;
 
     rpc clear-access-list-counters-all {
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear all access-list counters";
     }
 
     rpc clear-access-list-counters {
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear any specific ip access-list counter";
         input  {
             leaf name  {
@@ -606,10 +630,12 @@ module ipi-acl {
     }
 
     rpc clear-ip-access-list-counters-all {
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear all ip access-list counters";
     }
 
     rpc clear-ip-access-list-counters {
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear any specific ip access-list counter";
         input  {
             leaf name  {
@@ -622,11 +648,13 @@ module ipi-acl {
 
     rpc clear-ipv6-access-list-counters-all {
         if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear all ipv6 access-list counters";
     }
 
     rpc clear-ipv6-access-list-counters {
         if-feature feature-list:HAVE_IPV6;
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear any specific ipv6 access-list counter";
         input  {
             leaf name  {
@@ -638,10 +666,12 @@ module ipi-acl {
     }
 
     rpc clear-mac-access-list-counters-all {
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear all mac access-list counters";
     }
 
     rpc clear-mac-access-list-counters {
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear any specific mac access-list counter";
         input  {
             leaf name  {
@@ -653,10 +683,12 @@ module ipi-acl {
     }
 
     rpc clear-arp-access-list-counters-all {
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear all arp access-list counters";
     }
 
     rpc clear-arp-access-list-counters {
+        if-feature feature-list:HAVE_ACL;
         description "Use this RPC to clear any specific arp access-list counter";
         input  {
             leaf name  {

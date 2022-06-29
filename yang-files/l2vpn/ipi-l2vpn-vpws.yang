@@ -23,37 +23,37 @@ module ipi-l2vpn-vpws {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-01-07;
+        revision-date 2022-04-04;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-12-15;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance-types {
         prefix ipi-network-instance-types;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2021-12-08;
+        revision-date 2022-06-01;
     }
 
     import ipi-vpws-types {
         prefix ipi-vpws-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -68,7 +68,7 @@ module ipi-l2vpn-vpws {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -84,54 +84,64 @@ module ipi-l2vpn-vpws {
         "Datamodel for VPWS pseudowire";
 
 
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 2.0.0.";
+    }
+
+    revision "2022-03-21" {
+        description "Added flow label attributes for VPWS virtual circuit.";
+        reference " 1.0.0.";
+    }
+
     revision "2021-12-08" {
         description "Added if-not-feature flag for DC-MPLS for queue-to-cos-profile";
-        reference "Initial Version";
+        reference " 0.10.0.";
     }
 
     revision "2021-11-16" {
         description "Adding L2CP support";
-        reference "Initial Version";
+        reference " 0.9.0.";
     }
 
     revision "2021-09-06" {
         description "Removing the dependency of L2VPN VPWS configuration in subinterface with global L2VPN VPWS configurataion";
-        reference "Initial Version";
+        reference " 0.8.0.";
     }
 
     revision "2021-09-01" {
         description "Changed base interface module's switchport attribute name and the datatype from bool to empty";
-        reference "Initial Version";
+        reference " 0.7.0.";
     }
 
     revision "2021-08-24" {
         description "Updated dependency for VPWS interface on svc template name";
-        reference "Initial Version";
+        reference " 0.6.0.";
     }
 
     revision "2021-08-03" {
         description "Added L2VPN VPWS attributes for Sub-interface";
-        reference "Initial Version";
+        reference " 0.5.0.";
     }
 
     revision "2021-07-15" {
         description "Added attributes related to VCCV and additional constraints for tunnel attributes ";
-        reference "Initial Version";
+        reference " 0.4.0.";
     }
 
     revision "2021-04-27" {
         description "service-template is constrained with string length";
-        reference "Initial Version";
+        reference " 0.3.0.";
     }
 
     revision "2021-03-10" {
         description "pw-link-mode made mandatory to support Secondary pw-mode config";
-        reference "Initial Version";
+        reference " 0.2.0.";
     }
 
     revision "2020-11-25" {
         description "Initial Version";
-        reference "Initial Version";
+        reference " 0.1.0.";
     }
 
     grouping vpws-pseudowire-config {
@@ -140,7 +150,7 @@ module ipi-l2vpn-vpws {
         leaf pseudowire-identifier  {
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Identifying value used for MPLS Layer-2 Virtual Circuit";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to assign pseudowire identifier to create an
@@ -215,7 +225,7 @@ module ipi-l2vpn-vpws {
             when " ../group-name ";
             type  uint32 {
                  range "1..4294967295"  {
-                    description "1..4294967295:Identifier for the group (group-id to be used in LDP)";
+                    description "1..4294967295: Supported range 1 - 4294967295";
                  }
             }
             description "Use this attribute to create a group with specific group-identifier
@@ -229,7 +239,7 @@ module ipi-l2vpn-vpws {
         } // END of enable-control-word definition.
 
         leaf tunnel-name  {
-            when " not(../tunnel-identifier) + not(../tunnel-policy) ";
+            when " not(../tunnel-identifier) ";
             type  string {
                 length "1..32";
                 pattern "[^?' =,>|]+";
@@ -240,7 +250,7 @@ module ipi-l2vpn-vpws {
 
         leaf tunnel-policy  {
             when " not(../tunnel-identifier) + not(../tunnel-name) ";
-            if-feature feature-list:HAVE_MPLS_SERVICE_MAPPING;
+            if-feature feature-list:HAVE_SERVICE_MAPPING;
             type  string {
                 length "1..127";
                 pattern "[^?' =,>|]+";
@@ -250,10 +260,10 @@ module ipi-l2vpn-vpws {
         } // END of tunnel-policy definition.
 
         leaf tunnel-identifier  {
-            when " not(../tunnel-name) + not(../tunnel-policy) ";
+            when " not(../tunnel-name) ";
             type  uint32 {
                  range "1..5000"  {
-                    description "1..5000:Identifying value for Tunnel-id";
+                    description "1..5000: Supported range 1 - 5000";
                  }
             }
             description "Use this attribute to specificy the static tunnel-identifier to be
@@ -267,6 +277,29 @@ module ipi-l2vpn-vpws {
         } // END of allow-l2protocol-peer definition.
 
     } // END of vpws-pseudowire-common-config definition.
+    grouping vpws-pseudowire-fat-config {
+        description
+            "Grouping for attributes of FAT pseudowire";
+        leaf enable-flow-label  {
+            type  empty;
+            description "Use this attribute to enable flow label for VPWS Virtual Circuits.";
+        } // END of enable-flow-label definition.
+
+        leaf flow-label-direction  {
+            when " ../enable-flow-label ";
+            type  ipi-vpws-types:vpws_mpls_flow_label_direction_t;
+            description "Use this attribute to configure flow label direction to
+                        transmit,receive or both for VPWS Virtual Circuits.";
+        } // END of flow-label-direction definition.
+
+        leaf enable-static-flow-label  {
+            when " ../enable-flow-label ";
+            type  empty;
+            description "Use this attribute to enable static flow label for VPWS Virtual
+                        Circuits.";
+        } // END of enable-static-flow-label definition.
+
+    } // END of vpws-pseudowire-fat-config definition.
     grouping vpws-pseudowire-default-tagged-config {
         description
             "Grouping for default tagged pseudowire attributes";
@@ -436,7 +469,6 @@ module ipi-l2vpn-vpws {
                 "Top level container for interface level configuration for VPWS";
 
             list interface {
-            when " /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:service-template-mapping/ipi-l2vpn-vpws:pseudowire-name  or /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:vpws-access/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable ";
                 key "name";
                 description
                     "VPWS interface related configuration";
@@ -474,7 +506,6 @@ module ipi-l2vpn-vpws {
                     } // END of state-container definition.
                 } // End of pseudowire-mode-list
                 container config {
-                    when " /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:service-template-mapping/ipi-l2vpn-vpws:pseudowire-name  or /ipi-l2vpn-vpws:vpws/ipi-l2vpn-vpws:interfaces/ipi-l2vpn-vpws:interface/ipi-l2vpn-vpws:vpws-access/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable ";
                     description
                         "Configuration container for interface list";
                     uses vpws-interface-config;
@@ -637,8 +668,9 @@ module ipi-l2vpn-vpws {
 
         leaf incoming-label  {
             type  uint32 {
-                 range "16..15999"  {
-                    description "16..15999:in-coming Label <16-15999>";
+                 range "16..52443"  {
+                    description "16..52443:Feature : HAVE_SR_MPLS Supported range 16 - 15999Not Feature
+                            : HAVE_SR_MPLS  Supported range 16 - 52443";
                  }
             }
             mandatory true;
@@ -647,8 +679,9 @@ module ipi-l2vpn-vpws {
 
         leaf outgoing-label  {
             type  uint32 {
-                 range "16..15999"  {
-                    description "16..15999:Out-going Label <16-15999>";
+                 range "16..52443"  {
+                    description "16..52443:Feature : HAVE_SR_MPLS Supported range 16 - 15999Not Feature
+                            : HAVE_SR_MPLS  Supported range 16 - 52443";
                  }
             }
             mandatory true;
@@ -843,6 +876,8 @@ module ipi-l2vpn-vpws {
     description
         "Top level container for vpws instance";
     container vpws-instance {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_MPLS_VC;
         description
             "Top level container for vpws instance";
 
@@ -892,6 +927,7 @@ module ipi-l2vpn-vpws {
                         "Top level configuration data for Fec128 pseudowire";
                     uses vpws-pseudowire-common-config;
                     uses vpws-pseudowire-default-tagged-config;
+                    uses vpws-pseudowire-fat-config;
                     uses vpws-pseudowire-mplstp-config;
                     uses vpws-pseudowire-service-tpid-config;
                     uses vpws-pseudowire-static-config;
@@ -903,6 +939,7 @@ module ipi-l2vpn-vpws {
                         "Container for Operational attributes for pseudowire";
                     uses vpws-pseudowire-common-config;
                     uses vpws-pseudowire-default-tagged-config;
+                    uses vpws-pseudowire-fat-config;
                     uses vpws-pseudowire-mplstp-config;
                     uses vpws-pseudowire-service-tpid-config;
                     uses vpws-pseudowire-static-config;
@@ -918,6 +955,7 @@ module ipi-l2vpn-vpws {
                     description
                         "Configuration data for Tagged Fec128 pseudowire";
                     uses vpws-pseudowire-common-config;
+                    uses vpws-pseudowire-fat-config;
                     uses vpws-pseudowire-mplstp-config;
                     uses vpws-pseudowire-static-config;
                     uses vpws-pseudowire-tagged-config;
@@ -928,6 +966,7 @@ module ipi-l2vpn-vpws {
                     description
                         "Container for Operational attributes for pseudowire";
                     uses vpws-pseudowire-common-config;
+                    uses vpws-pseudowire-fat-config;
                     uses vpws-pseudowire-mplstp-config;
                     uses vpws-pseudowire-static-config;
                     uses vpws-pseudowire-tagged-config;
@@ -943,6 +982,7 @@ module ipi-l2vpn-vpws {
                     description
                         "Configuration data for Raw Fec128 pseudowire";
                     uses vpws-pseudowire-common-config;
+                    uses vpws-pseudowire-fat-config;
                     uses vpws-pseudowire-mplstp-config;
                     uses vpws-pseudowire-raw-config;
                     uses vpws-pseudowire-static-config;
@@ -953,6 +993,7 @@ module ipi-l2vpn-vpws {
                     description
                         "Container for Operational attributes for pseudowire";
                     uses vpws-pseudowire-common-config;
+                    uses vpws-pseudowire-fat-config;
                     uses vpws-pseudowire-mplstp-config;
                     uses vpws-pseudowire-raw-config;
                     uses vpws-pseudowire-static-config;
@@ -967,6 +1008,8 @@ module ipi-l2vpn-vpws {
     description
         "Top level container for vpws related configurations";
     container vpws {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_MPLS_VC;
         description
             "Top level container for vpws related configurations";
         uses vpws-interface-top;
@@ -985,6 +1028,9 @@ module ipi-l2vpn-vpws {
     uses vpws-grouping;
 
     rpc pseudowire-trap-configuration {
+        if-feature feature-list:HAVE_SNMP;
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_MPLS_VC;
         description "";
         input  {
             leaf status-notification  {
@@ -1006,6 +1052,9 @@ module ipi-l2vpn-vpws {
     }
 
     rpc clear-mpls-l2-circuit-statistics {
+        if-feature feature-list:HAVE_MPLS_STATS;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_MPLS;
         description "";
         input  {
             leaf pseudowire-name  {
@@ -1017,6 +1066,9 @@ module ipi-l2vpn-vpws {
     }
 
     rpc clear-mpls-l2-circuit-port-statistics {
+        if-feature feature-list:HAVE_MPLS_STATS;
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_MPLS;
         description "";
         input  {
             leaf port-type  {
@@ -1033,6 +1085,8 @@ module ipi-l2vpn-vpws {
     }
 
     rpc pseudowire-manual-switchover {
+        if-feature feature-list:HAVE_MPLS_VC;
+        if-feature feature-list:HAVE_MPLS;
         description "";
         input  {
             leaf primary-pseudowire  {
@@ -1049,11 +1103,15 @@ module ipi-l2vpn-vpws {
     }
 
     notification mpls-pseudowire-up {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_MPLS_VC;
 
         description "This notification is sent when pseusowire-state enters the up(4) state.";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf pseudowire-identifier {
             type  uint32;
         description
@@ -1096,11 +1154,15 @@ module ipi-l2vpn-vpws {
     }
 
     notification mpls-pseudowire-down {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_MPLS_VC;
 
         description "This notification is sent when pseusowire-state enters the down(1) state.";
 
         // severity "CRITICAL";
+
         // eventClass "STATE";
+
         leaf pseudowire-identifier {
             type  uint32;
         description
@@ -1143,11 +1205,15 @@ module ipi-l2vpn-vpws {
     }
 
     notification mpls-pseudowire-deleted {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_MPLS_VC;
 
         description "This notification is sent when pseusowire is deleted.";
 
         // severity "MINOR";
+
         // eventClass "STATE";
+
         leaf pseudowire-identifier {
             type  uint32;
         description

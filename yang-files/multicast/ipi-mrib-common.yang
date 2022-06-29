@@ -19,19 +19,39 @@ submodule ipi-mrib-common {
 
     belongs-to  ipi-mrib { prefix ipi-mrib; }
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
     import ipi-mrib-types {
         prefix ipi-mrib-types;
-        revision-date 2021-12-02;
+        revision-date 2022-06-01;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
+    }
+
+    import ipi-interface {
+        prefix ipi-interface;
+        revision-date 2022-06-01;
     }
 
     organization
@@ -46,6 +66,26 @@ submodule ipi-mrib-common {
     description
         "MRIB Datamodel common groupings";
 
+
+    revision "2022-06-07" {
+        description "Added 'rpa-id' attribute to mrib-ip-vrf-common-mcast-route-state";
+        reference " 0.3.1.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.3.0.";
+    }
+
+    revision "2022-05-23" {
+        description "Added 'uptime' attribute to mrib-ip-vrf-common-mcast-route-state";
+        reference " 0.2.1.";
+    }
+
+    revision "2022-05-18" {
+        description "Added Netconf GetAPI support for multicast routing table entries";
+        reference " 0.2.0.";
+    }
 
     revision "2021-12-02" {
         description "Initial Version";
@@ -79,7 +119,7 @@ submodule ipi-mrib-common {
         leaf maximum-routes  {
             type  uint32 {
                  range "1..2147483647"  {
-                    description "1..2147483647:Number of routes";
+                    description "1..2147483647: Supported range 1 - 2147483647";
                  }
             }
             description "Use this attribute to limit the number of multicast routes that can be
@@ -91,7 +131,7 @@ submodule ipi-mrib-common {
             // when " ../maximum-routes ";
             type  uint32 {
                  range "1..2147483647"  {
-                    description "1..2147483647:Threshold at which to generate warning message";
+                    description "1..2147483647: Supported range 1 - 2147483647";
                  }
             }
             description "Use this attribute to limit the number of multicast routes that can be
@@ -112,6 +152,328 @@ submodule ipi-mrib-common {
         } // END of options definition.
 
     } // END of mrib-ip-vrf-common-debug-config definition.
+    grouping mrib-ip-vrf-common-state {
+        description
+            "MRIB VRF Common State";
+        leaf stats-poll-expiry-time  {
+            type  string {
+                length "1..1965";
+                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
+            }
+            description "Expiry time";
+        } // END of stats-poll-expiry-time definition.
+
+    } // END of mrib-ip-vrf-common-state definition.
+    grouping mrib-ip-vrf-common-counters-state {
+        description
+            "MRIB VRF Common Counters State";
+        leaf total-multicast-routes  {
+            type  yang:counter32;
+            description "Total count of multicast routes";
+        } // END of total-multicast-routes definition.
+
+        leaf dense-mode-multicast-routes  {
+            type  yang:counter32;
+            description "Count of dense mode multicast routes";
+        } // END of dense-mode-multicast-routes definition.
+
+        leaf sparse-mode-multicast-routes  {
+            type  yang:counter32;
+            description "Count of sparse mode multicast routes";
+        } // END of sparse-mode-multicast-routes definition.
+
+        leaf no-cache-received  {
+            type  yang:counter32;
+            description "Number of no cache received";
+        } // END of no-cache-received definition.
+
+        leaf no-cache-sent  {
+            type  yang:counter32;
+            description "Count of no cache sent";
+        } // END of no-cache-sent definition.
+
+        leaf wrong-VIF-received  {
+            type  yang:counter32;
+            description "Count of wrong vif received";
+        } // END of wrong-VIF-received definition.
+
+        leaf wrong-VIF-sent  {
+            type  yang:counter32;
+            description "Count of wrong vif receive sent";
+        } // END of wrong-VIF-sent definition.
+
+        leaf whole-packet-received  {
+            type  yang:counter32;
+            description "Count of whole packet received";
+        } // END of whole-packet-received definition.
+
+        leaf whole-packet-sent  {
+            type  yang:counter32;
+            description "Count of whole packet sent";
+        } // END of whole-packet-sent definition.
+
+        leaf immediate-stat-updates-sent  {
+            type  yang:counter32;
+            description "Count of immediate stat updates sent";
+        } // END of immediate-stat-updates-sent definition.
+
+        leaf timed-stat-updates-sent  {
+            type  yang:counter32;
+            description "Count of timed stat updates sent";
+        } // END of timed-stat-updates-sent definition.
+
+        leaf register-packets-sent  {
+            type  yang:counter32;
+            description "Count of register packets sent";
+        } // END of register-packets-sent definition.
+
+        leaf register-acks-received  {
+            type  yang:counter32;
+            description "Count of register acknowledgements received";
+        } // END of register-acks-received definition.
+
+        leaf register-nacks-received  {
+            type  yang:counter32;
+            description "Count of register negative acknowledgements received";
+        } // END of register-nacks-received definition.
+
+        leaf no-cache-receive-rate  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            description "No cache receive rate specified in no-cache-events/sec";
+        } // END of no-cache-receive-rate definition.
+
+        leaf register-packet-sent-rate  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            description "Register packet sent rate specified in pkts/sec";
+        } // END of register-packet-sent-rate definition.
+
+    } // END of mrib-ip-vrf-common-counters-state definition.
+    grouping mrib-ip-vrf-common-mcast-route-state {
+        description
+            "MRIB VRF MCAST Route State attributes";
+        leaf source  {
+            type  inet:ip-address;
+            description "Source Address";
+        } // END of source definition.
+
+        leaf group  {
+            type  inet:ip-address;
+            description "Group Address";
+        } // END of group definition.
+
+        leaf incoming-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Incoming Interface Name";
+        } // END of incoming-interface definition.
+
+        leaf rpa-id  {
+            if-feature feature-list:HAVE_PIM_BIDIR;
+            type  uint32;
+            description "RPA ID";
+        } // END of rpa-id definition.
+
+        leaf rpf-address  {
+            type  inet:ip-address;
+            description "RPF Address";
+        } // END of rpf-address definition.
+
+        leaf route-type  {
+            type  ipi-mrib-types:mrib_route_type_t;
+            description "Route Type";
+        } // END of route-type definition.
+
+        leaf uptime  {
+            type  string {
+                length "1..1965";
+                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
+            }
+            description "Up Time";
+        } // END of uptime definition.
+
+        leaf stats-poll-expiry-time  {
+            type  string {
+                length "1..1965";
+                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
+            }
+            description "Expiry Time";
+        } // END of stats-poll-expiry-time definition.
+
+        leaf immediate-stats  {
+            type  empty;
+            description "Immediate Stats";
+        } // END of immediate-stats definition.
+
+        leaf timed-stats  {
+            type  empty;
+            description "Timed stats";
+        } // END of timed-stats definition.
+
+        leaf forwarder-installed  {
+            type  empty;
+            description "Forwarder Installed";
+        } // END of forwarder-installed definition.
+
+        leaf bidirectional  {
+            if-feature feature-list:HAVE_PIM_BIDIR;
+            type  empty;
+            description "Bidirectional";
+        } // END of bidirectional definition.
+
+    } // END of mrib-ip-vrf-common-mcast-route-state definition.
+    grouping mrib-ip-vrf-common-mcast-route-counters-state {
+        description
+            "MRIB VRF MCAST Route Counters State attributes";
+        leaf packets-forwarded  {
+            type  yang:counter32;
+            description "Number of packets forwarded";
+        } // END of packets-forwarded definition.
+
+        leaf bytes-forwarded  {
+            type  yang:counter32;
+            description "Number of bytes forwarded";
+        } // END of bytes-forwarded definition.
+
+        leaf wrong-VIF-sent  {
+            type  yang:counter32;
+            description "Number of wrong vif sent";
+        } // END of wrong-VIF-sent definition.
+
+        leaf wrong-VIF-received  {
+            type  yang:counter32;
+            description "Number of wrong vif received";
+        } // END of wrong-VIF-received definition.
+
+    } // END of mrib-ip-vrf-common-mcast-route-counters-state definition.
+    grouping mrib-ip-vrf-common-mcast-route-oil-state {
+        description
+            "MRIB VRF MCAST Outgoing Interface State attributes";
+        leaf name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Outgoing interface name";
+        } // END of name definition.
+
+        leaf time-to-live  {
+            type  uint8;
+            description "time-to-live counter";
+        } // END of time-to-live definition.
+
+    } // END of mrib-ip-vrf-common-mcast-route-oil-state definition.
+    grouping mrib-ip-common-interface-state {
+        description
+            "MRIB VRF Common Interface State attributes";
+        leaf local-address  {
+            if-feature feature-list:HAVE_MRIB_IPV4;
+            type  inet:ip-address;
+            description "Local Address for interface";
+        } // END of local-address definition.
+
+        leaf remote-address  {
+            if-feature feature-list:HAVE_MRIB_IPV4;
+            type  inet:ip-address;
+            description "Remote Address for interface";
+        } // END of remote-address definition.
+
+        leaf uptime  {
+            type  string {
+                length "1..1965";
+                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
+            }
+            description "Up Time";
+        } // END of uptime definition.
+
+        leaf module-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Module which installed this multicast route entry[PIM/IGMP/MLD]";
+        } // END of module-name definition.
+
+        leaf vif-index  {
+            type  uint32;
+            description "VIF Index";
+        } // END of vif-index definition.
+
+    } // END of mrib-ip-common-interface-state definition.
+    grouping mrib-ip-vrf-common-mcast-route-oil-top {
+        description
+            "MRIB VRF Common Mcast Route Outgoing Interface Top Container";
+        container outgoing-interfaces {
+            config false;
+            description
+                "MRIB VRF MCAST Routes OIF operational state container";
+
+            list outgoing-interface {
+                key "name";
+                config false;
+                description
+                    "MRIB VRF MCAST Route OIF operational state instance";
+                leaf name  {
+                    type  leafref {
+                        path  "../state/name";
+                    }
+                    description "Outgoing interface name";
+                } // END of name definition.
+
+                container state {
+                    config false;
+                    description
+                        "MRIB VRF MCAST Route OIF State Container";
+                    uses mrib-ip-vrf-common-mcast-route-oil-state;
+                } // END of state-container definition.
+            } // End of outgoing-interface-list
+        } // END of outgoing-interfaces-container definition.
+    } // END of mrib-ip-vrf-common-mcast-route-oil-top definition.
+    grouping mrib-ip-vrf-common-mcast-route-top {
+        description
+            "MRIB VRF Common Mcast Route Operational State";
+        container multicast-routes {
+            config false;
+            description
+                "MRIB VRF MCAST Routes operational state container";
+
+            list multicast-route {
+                key "source group";
+                config false;
+                description
+                    "MRIB VRF MCAST Route operational state instance";
+                leaf source  {
+                    type  leafref {
+                        path  "../state/source";
+                    }
+                    description "IP Multicast Source Address";
+                } // END of source definition.
+
+                leaf group  {
+                    type  leafref {
+                        path  "../state/group";
+                    }
+                    description "IP Multicast Group Address";
+                } // END of group definition.
+
+                container state {
+                    config false;
+                    description
+                        "MRIB VRF MCAST Route State Container";
+                    container counters {
+                        config false;
+                        description
+                            "MRIB IP MCAST Route counters";
+                        uses mrib-ip-vrf-common-mcast-route-counters-state;
+                    } // END of counters-container definition.
+                    uses mrib-ip-vrf-common-mcast-route-state;
+                    uses mrib-ip-vrf-common-mcast-route-oil-top;
+                } // END of state-container definition.
+            } // End of multicast-route-list
+        } // END of multicast-routes-container definition.
+    } // END of mrib-ip-vrf-common-mcast-route-top definition.
 
 
 }

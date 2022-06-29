@@ -21,7 +21,7 @@ submodule ipi-cfm-common {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-03-03;
+        revision-date 2022-06-27;
     }
 
     import ietf-yang-types {
@@ -31,27 +31,22 @@ submodule ipi-cfm-common {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-01-07;
+        revision-date 2022-04-04;
     }
 
     import ipi-cfm-data-types {
         prefix ipi-cfm-data-types;
-        revision-date 2018-12-06;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2021-12-15;
-    }
-
-    import ipi-bridge {
-        prefix ipi-bridge;
-        revision-date 2022-01-13;
+        revision-date 2022-06-01;
     }
 
     organization
@@ -66,6 +61,56 @@ submodule ipi-cfm-common {
     description
         "Data model for IPI CFM common Configuration and Operational state";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.5.4.";
+    }
+
+    revision "2022-05-31" {
+        description "Added support for CFM msg intervals of 1-min and 10-mins";
+        reference " 0.5.4.";
+    }
+
+    revision "2022-05-21" {
+        description "Corrected grouping name for cfm-mep-common-state and cfm-mep-common-config";
+        reference " 0.5.3.";
+    }
+
+    revision "2022-05-18" {
+        description "Added bitmap check flag for inner-vlan-id";
+        reference " 0.5.2.";
+    }
+
+    revision "2022-05-11" {
+        description "Added optional attribute inner-vlan-id to MA";
+        reference " 0.5.1.";
+    }
+
+    revision "2022-04-29" {
+        description "Restructure CFM and Y.1731 over MPLS components to OpenConfig style and enable NETCONF support";
+        reference " 0.5.0.";
+    }
+
+    revision "2022-04-14" {
+        description "Removed 're-routing' CLI from MEP mode and added in interface mode";
+        reference " 0.4.1.";
+    }
+
+    revision "2022-04-05" {
+        description "Added support for Client Signal Fail (CSF) feature";
+        reference " 0.4.0.";
+    }
+
+    revision "2022-04-04" {
+        description "Added if-feature whereever needed";
+        reference " 0.3.0.";
+    }
+
+    revision "2022-03-10" {
+        description "Restructure LB, LT and CFM Y.1731 L2 bridge dependent CLIs to OpenConfig style";
+        reference " 0.2.0.";
+    }
 
     revision "2021-12-20" {
         description "Made bridge-id attribute optional for MD object to remove bridge dependency for L2/VLAN CFM";
@@ -82,12 +127,300 @@ submodule ipi-cfm-common {
         reference " 0.1.0.";
     }
 
-    grouping cfm-md-config {
+    grouping cfm-loopback-state {
         description
-            "Configuration data definitions related to Maintenance Domain";
+            "Operational state definitions for loopback";
+        leaf messages-transmitted  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of messages (LBMs) transmitted for
+                        the loopback test";
+        } // END of messages-transmitted definition.
+
+        leaf replies-received  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of replies (LBRs) received for the
+                        loopback test";
+        } // END of replies-received definition.
+
+        leaf out-of-order-replies-received  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of out of order replies received
+                        by loopback";
+        } // END of out-of-order-replies-received definition.
+
+        leaf bad-msdu  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of bad MAC Service Data Unit(MSDU)
+                        received by loopback";
+        } // END of bad-msdu definition.
+
+    } // END of cfm-loopback-state definition.
+    grouping cfm-loopback-last-result-state {
+        description
+            "Operational state definitions for last Loopback test result";
+        leaf target-mac-address  {
+            type  ipi-cfm-data-types:cfm_rmep_mac_addr_t {
+                length "1..1965";
+            }
+            description "This attribute specifies the target MAC address of last loopback test";
+        } // END of target-mac-address definition.
+
+        leaf messages-transmitted  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of messages transmitted by last
+                        loopback test";
+        } // END of messages-transmitted definition.
+
+        leaf replies-received  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of replies received by last
+                        loopback test";
+        } // END of replies-received definition.
+
+    } // END of cfm-loopback-last-result-state definition.
+    grouping cfm-loopback-last-result-top {
+        description
+            "Top level grouping to describe last test result of loopback test";
+        container loopback {
+            config false;
+            description
+                "Top level container for Loopback operational data";
+            container last-test-result {
+                config false;
+                description
+                    "Container for last Loopback test result";
+                container state {
+                    config false;
+                    description
+                        "Operational data for last Loopback test result";
+                    uses cfm-loopback-last-result-state;
+                } // END of state-container definition.
+            } // END of last-test-result-container definition.
+        } // END of loopback-container definition.
+    } // END of cfm-loopback-last-result-top definition.
+    grouping cfm-loopback-top {
+        description
+            "Top level grouping to describe operational state of loopback";
+        container loopback {
+            config false;
+            description
+                "Top level container for Loopback operational data";
+            container state {
+                config false;
+                description
+                    "Operational data for Loopback";
+                container counters {
+                    if-feature feature-list:CCM_HW_OFFLOAD;
+                    config false;
+                    description
+                        "Operational data for Loopback counters";
+                    uses cfm-loopback-state;
+                } // END of counters-container definition.
+            } // END of state-container definition.
+        } // END of loopback-container definition.
+    } // END of cfm-loopback-top definition.
+    grouping cfm-linktrace-counters-state {
+        description
+            "Container for operational state of linktrace counters";
+        leaf messages-transmitted  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of messages (LTMs) transmitted for
+                        the linktrace test";
+        } // END of messages-transmitted definition.
+
+        leaf replies-transmitted  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of replies transmitted by
+                        linktrace";
+        } // END of replies-transmitted definition.
+
+        leaf valid-replies-received  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of valid replies (LTRs) received
+                        for the linktrace test";
+        } // END of valid-replies-received definition.
+
+        leaf unexpected-replies-received  {
+            type  yang:zero-based-counter32;
+            description "This attribute specifies the number of unexpected replies received by
+                        linktrace";
+        } // END of unexpected-replies-received definition.
+
+    } // END of cfm-linktrace-counters-state definition.
+    grouping cfm-linktrace-reply-state {
+        description
+            "Container for operational state of linktrace replies";
+        leaf index  {
+            type  uint8;
+            description "This attribute specifies the transaction-id of a particular reply";
+        } // END of index definition.
+
+        leaf hops  {
+            type  uint8;
+            description "This attribute specifies the number of hops of a particular reply";
+        } // END of hops definition.
+
+        leaf destination-mac-address  {
+            type  ipi-cfm-data-types:cfm_rmep_mac_addr_t {
+                length "1..1965";
+            }
+            description "This attribute specifies the destination MAC address of a particular
+                        reply";
+        } // END of destination-mac-address definition.
+
+        leaf relay-action  {
+            type  ipi-cfm-data-types:cfm_relay_action_t;
+            description "This attribute specifies the relay action of a particular reply";
+        } // END of relay-action definition.
+
+    } // END of cfm-linktrace-reply-state definition.
+    grouping cfm-linktrace-replies-state-top {
+        description
+            "Grouping to describe the linktrace replies";
+        container replies {
+            config false;
+            description
+                "Enclosing container for Linktrace Replies";
+
+            list reply {
+                key "index";
+                config false;
+                description
+                    "list of Linktrace Replies";
+                leaf index  {
+                    type  leafref {
+                        path  "../state/index";
+                    }
+                    description "This attribute specifies the index of the reply";
+                } // END of index definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational data for Linktrace Reply";
+                    uses cfm-linktrace-reply-state;
+                } // END of state-container definition.
+            } // End of reply-list
+        } // END of replies-container definition.
+    } // END of cfm-linktrace-replies-state-top definition.
+    grouping cfm-linktrace-state {
+        description
+            "Container to describe operational state of linktrace";
+        leaf transaction-id  {
+            type  uint32;
+            description "This attribute specifies the transaction-id of a particular linktrace
+                        test";
+        } // END of transaction-id definition.
+
+        leaf target-mac-address  {
+            type  ipi-cfm-data-types:cfm_rmep_mac_addr_t {
+                length "1..1965";
+            }
+            description "This attribute specifies the target MAC address of a particular
+                        linktrace test";
+        } // END of target-mac-address definition.
+
+    } // END of cfm-linktrace-state definition.
+    grouping cfm-linktrace-database-state {
+        description
+            "Top level grouping to describe operational state of linktrace";
+        container linktrace-database {
+            config false;
+            description
+                "Enclosing container for Linktrace Database";
+
+            list linktrace-entry {
+                key "transaction-id";
+                config false;
+                description
+                    "List of Linktrace";
+                leaf transaction-id  {
+                    type  leafref {
+                        path  "../state/transaction-id";
+                    }
+                    description "This attribute specifies the transaction-id of a particular linktrace
+                                test";
+                } // END of transaction-id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational data for Linktrace";
+                    uses cfm-linktrace-state;
+                } // END of state-container definition.
+                uses cfm-linktrace-replies-state-top;
+            } // End of linktrace-entry-list
+        } // END of linktrace-database-container definition.
+    } // END of cfm-linktrace-database-state definition.
+    grouping cfm-linktrace-config {
+        description
+            "Grouping to describe configuration data of linktrace";
+        leaf bridge-id  {
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-network-instance:instance-name";
+            }
+            mandatory true;
+            description "This attribute enables linktrace cache for the given bridge";
+        } // END of bridge-id definition.
+
+        leaf cache-size  {
+            type  uint16 {
+                 range "1..4095"  {
+                    description "1..4095: Supported range 1 - 4095";
+                 }
+            }
+            default "100";
+            description "This attribute specifies the cache size";
+        } // END of cache-size definition.
+
+    } // END of cfm-linktrace-config definition.
+    grouping cfm-linktrace-top {
+        description
+            "Top level grouping to describe configuration data of linktrace";
+        container linktrace {
+            description
+                "Top level container for Linktrace configuration";
+            container cache {
+                description
+                    "Container for Linktrace Cache configuration";
+                container l2-bridge {
+                    description
+                        "Container for Linktrace Cache configuration for L2 bridge";
+                    container config {
+                        presence "Configure linktrace cache";
+                        description
+                            "Configuration data for linktrace counters";
+                        uses cfm-linktrace-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational data for Linktrace";
+                        uses cfm-linktrace-config;
+                    } // END of state-container definition.
+                } // END of l2-bridge-container definition.
+            } // END of cache-container definition.
+            container state {
+                config false;
+                description
+                    "Operational data for Linktrace";
+                container counters {
+                    if-feature feature-list:CCM_HW_OFFLOAD;
+                    config false;
+                    description
+                        "Operational data for Linktrace counters";
+                    uses cfm-linktrace-counters-state;
+                } // END of counters-container definition.
+            } // END of state-container definition.
+        } // END of linktrace-container definition.
+    } // END of cfm-linktrace-top definition.
+    grouping cfm-md-common-config {
+        description
+            "Configuration data definitions related to Maintenance Domain common to
+                        L2 bridge and MPLS services";
         leaf md-name  {
             type  string {
-                length "5..7";
+                length "1..43";
                 pattern "[^?' =,>|]+";
             }
             description "A unique identifier of a Maintenance Domain";
@@ -102,7 +435,7 @@ submodule ipi-cfm-common {
         leaf level  {
             type  uint8 {
                  range "0..7"  {
-                    description "0..7:Enter the level ranging from 0-7";
+                    description "0..7: Supported range 0 - 7";
                  }
             }
             mandatory true;
@@ -117,6 +450,11 @@ submodule ipi-cfm-common {
                         for this MD at this level";
         } // END of mip-creation definition.
 
+    } // END of cfm-md-common-config definition.
+    grouping cfm-md-l2-bridge-config {
+        description
+            "Configuration data definitions related to Maintenance Domain which are
+                        L2 bridge dependent";
         leaf bridge-id  {
             type  leafref {
                 path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-network-instance:instance-name";
@@ -125,10 +463,55 @@ submodule ipi-cfm-common {
                         augumented to.";
         } // END of bridge-id definition.
 
-    } // END of cfm-md-config definition.
-    grouping cfm-ma-config {
+    } // END of cfm-md-l2-bridge-config definition.
+    grouping cfm-ma-l2-bridge-config {
         description
-            "Configuration data definitions related to Maintenance Association";
+            "Configuration data definitions related to Maintenance Association
+                        which are L2 bridge dependent";
+        leaf mip-creation  {
+            type  ipi-cfm-data-types:cfm_ma_mip_creation_mode_t;
+            description "This parameter indicates whether the management entity can create MIPs
+                        for this MA";
+        } // END of mip-creation definition.
+
+        leaf vlan-id  {
+            type  uint16 {
+                 range "1..4095"  {
+                    description "1..4095:Feature : HAVE_4K_VLAN Supported range 1 - 4095Not Feature :
+                            HAVE_4K_VLAN  Supported range 1 - 4094";
+                 }
+            }
+            description "The VID monitored by this MA";
+        } // END of vlan-id definition.
+
+        leaf inner-vlan-id  {
+            type  uint16 {
+                 range "1..4095"  {
+                    description "1..4095:Feature : HAVE_4K_VLAN Supported range 1 - 4095Not Feature :
+                            HAVE_4K_VLAN  Supported range 1 - 4094";
+                 }
+            }
+            description "The inner VLAN ID monitored by this MA";
+        } // END of inner-vlan-id definition.
+
+        leaf link-level-ma  {
+            type  empty;
+            description "Use this attribute to set the Service as Link Level MA";
+        } // END of link-level-ma definition.
+
+        leaf-list mip-interface-name  {
+            if-feature feature-list:HAVE_PROVIDER_BRIDGE;
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "A list of static MIPs configured on the specified interfaces";
+        } // END of mip-interface-name definition.
+
+    } // END of cfm-ma-l2-bridge-config definition.
+    grouping cfm-ma-common-config {
+        description
+            "Configuration data definitions related to Maintenance Association
+                        which are common to L2 bridge and MPLS services";
         leaf ma-name  {
             type  string {
                 length "1..6";
@@ -143,24 +526,8 @@ submodule ipi-cfm-common {
             description "Name type discriminator for the 'ma-name' leaf";
         } // END of type definition.
 
-        leaf vlan-id  {
-            type  uint16;
-            description "The VID monitored by this MA";
-        } // END of vlan-id definition.
-
-        leaf mip-creation  {
-            type  ipi-cfm-data-types:cfm_ma_mip_creation_mode_t;
-            description "This parameter indicates whether the management entity can create MIPs
-                        for this MA";
-        } // END of mip-creation definition.
-
-        leaf link-level-ma  {
-            type  empty;
-            description "Use this attribute to set the Service as Link Level MA";
-        } // END of link-level-ma definition.
-
         leaf ccm-interval  {
-            type  ipi-cfm-data-types:cfm_ccm_interval_t;
+            type  ipi-cfm-data-types:cfm_msg_interval_t;
             description "The interval between CCM transmissions to be used by all MEPs in the
                         MA";
         } // END of ccm-interval definition.
@@ -174,21 +541,13 @@ submodule ipi-cfm-common {
         leaf-list static-rmep-identifiers  {
             type  uint16 {
                  range "1..8191"  {
-                    description "1..8191:Enter the MEPID ranging from 1-8191";
+                    description "1..8191: Supported range 1 - 8191";
                  }
             }
             description "A list of static remote MEPs in a specified MA.";
         } // END of static-rmep-identifiers definition.
 
-        leaf-list mip-interface-name  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-bridge:bridge-ports/ipi-bridge:interface/ipi-bridge:config/ipi-bridge:name ";
-            type  leafref {
-                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-            }
-            description "A list of static MIPs configured on the specified interfaces";
-        } // END of mip-interface-name definition.
-
-    } // END of cfm-ma-config definition.
+    } // END of cfm-ma-common-config definition.
     grouping cfm-default-mip-state {
         description
             "Grouping for default MIPs state parameters";
@@ -251,28 +610,20 @@ submodule ipi-cfm-common {
             uses cfm-default-mip-top;
         } // END of default-mips-container definition.
     } // END of cfm-ma-default-mips-top definition.
-    grouping cfm-mep-config {
+    grouping cfm-mep-common-config {
         description
-            "Configuration data definitions related to MEP";
+            "Configuration data definitions related to MEP common to L2 bridge and
+                        MPLS services";
         leaf mep-id  {
             type  uint16 {
                  range "1..8191"  {
-                    description "1..8191:Enter the MEPID ranging from 1-8191";
+                    description "1..8191: Supported range 1 - 8191";
                  }
             }
             description "Integer that is unique among all the MEPs in the same MA. Other
                         definition is: a small integer, unique over a given Maintenance
                         Association, identifying a specific Maintenance association End Point";
         } // END of mep-id definition.
-
-        leaf interface-name  {
-            type  leafref {
-                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-            }
-            mandatory true;
-            description "An interface, either a Bridge Port or an LAG port within a Bridge
-                        Port, to which the MEP is attached";
-        } // END of interface-name definition.
 
         leaf direction  {
             type  ipi-cfm-data-types:cfm_mep_direction_t;
@@ -287,10 +638,36 @@ submodule ipi-cfm-common {
             description "The administrative state of the MEP";
         } // END of administrative-state definition.
 
-    } // END of cfm-mep-config definition.
-    grouping cfm-mep-state {
+    } // END of cfm-mep-common-config definition.
+    grouping cfm-mep-bandwidth-shaping-config {
         description
-            "Grouping for MEP's state parameters";
+            "Grouping to configure bandwith shaping";
+        leaf bw-mapped-interface  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "This attribute specifies interface where the bandwidth  shapers are to
+                        be applied";
+        } // END of bw-mapped-interface definition.
+
+    } // END of cfm-mep-bandwidth-shaping-config definition.
+    grouping cfm-mep-l2-bridge-config {
+        description
+            "Configuration data definitions related to MEP for L2 bridge";
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            mandatory true;
+            description "An interface, either a Bridge Port or an LAG port within a Bridge
+                        Port, to which the MEP is attached";
+        } // END of interface-name definition.
+
+    } // END of cfm-mep-l2-bridge-config definition.
+    grouping cfm-mep-common-state {
+        description
+            "Grouping for MEP's state parameters common to L2 bridge and MPLS
+                        services";
         leaf mac-address  {
             type  cml-data-types:cml_mac_addr_t {
                 length "1..1965";
@@ -308,10 +685,11 @@ submodule ipi-cfm-common {
             description "Status of MEP";
         } // END of mep-connectivity-status definition.
 
-    } // END of cfm-mep-state definition.
+    } // END of cfm-mep-common-state definition.
     grouping cfm-mep-ccm-config {
         description
-            "Configuration data definitions related to MEP's CC mesages";
+            "Configuration data definitions related to MEP's CC mesages common to
+                        L2 bridge and MPLS services";
         leaf enable-cc-multicast  {
             type  empty;
             description "An indicator of whether the MEP is or is not to generate CCMs";
@@ -358,7 +736,7 @@ submodule ipi-cfm-common {
             "Grouping for remote MEPs state parameters";
         leaf rmep-id  {
             type  uint16;
-            description "The MEPID of a remote MEP";
+            description "The MEP ID of a remote MEP";
         } // END of rmep-id definition.
 
         leaf mac-address  {
@@ -391,7 +769,7 @@ submodule ipi-cfm-common {
                     type  leafref {
                         path  "../state/rmep-id";
                     }
-                    description "The MEPID of a remote MEP";
+                    description "The MEP ID of a remote MEP";
                 } // END of rmep-id definition.
 
                 container state {
@@ -403,6 +781,399 @@ submodule ipi-cfm-common {
             } // End of remote-mep-list
         } // END of remote-mep-database-container definition.
     } // END of cfm-remote-meps-top definition.
+    grouping y1731-responder-parameters-config {
+        description
+            "Configuration data definitions for making a CFM MEP as PM responder";
+        leaf enable-lm-responder  {
+            type  ipi-cfm-data-types:cfm_lm_reply_type_t;
+            default "slm";
+            description "Enable the MEP to respond for each Loss Measurement Message(LMM)";
+        } // END of enable-lm-responder definition.
+
+        leaf enable-dm-responder  {
+            type  empty;
+            description "Enable the MEP to respond with Delay Measurement Reply(DMR) for each
+                        Delay Measurement Message(DMM) of the peer";
+        } // END of enable-dm-responder definition.
+
+    } // END of y1731-responder-parameters-config definition.
+    grouping cfm-common-delay-measurements-state {
+        description
+            "Common operational state definitions for Delay Measurements";
+        leaf measurement-id  {
+            type  uint16;
+            description "This attribute specifies the measurement-id of the delay measurement
+                        session";
+        } // END of measurement-id definition.
+
+        leaf suspect-status  {
+            type  boolean;
+            description "This attribute specifies the suspect status of the delay measurement
+                        session";
+        } // END of suspect-status definition.
+
+        leaf measurement-type  {
+            type  ipi-cfm-data-types:cfm_dm_measurement_type_t;
+            description "This attribute specifies the measurement type of the delay measurement
+                        session";
+        } // END of measurement-type definition.
+
+        leaf elapsed-time  {
+            type  uint32;
+            description "This attribute specifies the elapsed time of the delay measurement
+                        session";
+        } // END of elapsed-time definition.
+
+    } // END of cfm-common-delay-measurements-state definition.
+    grouping cfm-current-delay-measurements-state {
+        description
+            "Current operational state definitions for Delay Measurements";
+        leaf start-time  {
+            type  yang:date-and-time {
+                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                }
+                description "This attribute specifies the start time of the delay measurement
+                            session";
+            } // END of start-time definition.
+
+            leaf session-status  {
+                type  ipi-cfm-data-types:cfm_pm_session_status_t;
+                description "This attribute specifies the status of delay measurement session";
+            } // END of session-status definition.
+
+    } // END of cfm-current-delay-measurements-state definition.
+    grouping cfm-history-delay-measurements-state {
+        description
+            "History operational state definitions for Delay Measurements";
+        leaf end-time  {
+            type  yang:date-and-time {
+                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                }
+                description "This attribute specifies the end time of the delay measurement session";
+            } // END of end-time definition.
+
+    } // END of cfm-history-delay-measurements-state definition.
+    grouping cfm-bins-common-state {
+        description
+            "Container for common Bin Thresholds";
+        leaf bin-number  {
+            type  uint8;
+            description "This attribute specifies the bin number";
+        } // END of bin-number definition.
+
+        leaf threshold  {
+            type  uint32;
+            units "microseconds";
+            description "This attribute specifies the threshold of the particular bin";
+        } // END of threshold definition.
+
+        leaf counter  {
+            type  yang:gauge32;
+            description "This attribute specifies the number of packets received in the
+                        particular bin";
+        } // END of counter definition.
+
+    } // END of cfm-bins-common-state definition.
+    grouping cfm-ifd-bins-top {
+        description
+            "Top level operational state definitions for Inter frame Delay Bin
+                        Thresholds";
+        container inter-frame-delay-bins {
+            if-feature feature-list:Y1731_HW_OFFLOAD;
+            config false;
+            description
+                "Container for the Inter frame Delay Bin Thresholds";
+
+            list inter-frame-delay-bin {
+                key "bin-number";
+                config false;
+                description
+                    "List of Inter frame Delay Bin Thresholds";
+                leaf bin-number  {
+                    type  leafref {
+                        path  "../state/bin-number";
+                    }
+                    description "This attribute specifies the bin number";
+                } // END of bin-number definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational data for CFM Y.1731 Ethernet Inter frame Delay Bin
+                                Thresholds";
+                    uses cfm-bins-common-state;
+                } // END of state-container definition.
+            } // End of inter-frame-delay-bin-list
+        } // END of inter-frame-delay-bins-container definition.
+    } // END of cfm-ifd-bins-top definition.
+    grouping cfm-fd-bins-top {
+        description
+            "Top level operational state definitions for Frame Delay Bin Thresholds";
+        container frame-delay-bins {
+            if-feature feature-list:Y1731_HW_OFFLOAD;
+            config false;
+            description
+                "Container for the Frame Delay Bin Thresholds";
+
+            list frame-delay-bin {
+                key "bin-number";
+                config false;
+                description
+                    "List of Frame Delay Bin Thresholds";
+                leaf bin-number  {
+                    type  leafref {
+                        path  "../state/bin-number";
+                    }
+                    description "This attribute specifies the bin number";
+                } // END of bin-number definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational data for CFM Y.1731 Ethernet Frame Delay Bin Thresholds";
+                    uses cfm-bins-common-state;
+                } // END of state-container definition.
+            } // End of frame-delay-bin-list
+        } // END of frame-delay-bins-container definition.
+    } // END of cfm-fd-bins-top definition.
+    grouping cfm-common-delay-state {
+        description
+            "Common operational state definitions for Frame Delay and inter Frame
+                        Delay variations";
+        leaf min  {
+            type  yang:gauge32;
+            description "This attribute specifies the minimum delay of the specific measurement
+                        session";
+        } // END of min definition.
+
+        leaf max  {
+            type  yang:gauge32;
+            description "This attribute specifies the maximum delay of the specific measurement
+                        session";
+        } // END of max definition.
+
+        leaf avg  {
+            type  yang:gauge32;
+            description "This attribute specifies the average delay of the specific measurement
+                        session";
+        } // END of avg definition.
+
+    } // END of cfm-common-delay-state definition.
+    grouping cfm-ifd-fd-top {
+        description
+            "Operational state definitions for Frame Delay and inter Frame Delay
+                        variations";
+        container frame-delay {
+            if-feature feature-list:Y1731_HW_OFFLOAD;
+            config false;
+            description
+                "Operational data for CFM Y.1731 Ethernet Frame Delay";
+            uses cfm-common-delay-state;
+        } // END of frame-delay-container definition.
+        container inter-frame-delay-variation {
+            if-feature feature-list:Y1731_HW_OFFLOAD;
+            config false;
+            description
+                "Operational data for CFM Y.1731 Ethernet Inter Frame Delay Variation";
+            uses cfm-common-delay-state;
+        } // END of inter-frame-delay-variation-container definition.
+    } // END of cfm-ifd-fd-top definition.
+    grouping cfm-current-delay-measurement-top {
+        description
+            "Operational state definitions for Current Delay Measurement";
+        container current-measurement {
+            config false;
+            description
+                "Container for the Current Delay Measurement";
+            container state {
+                config false;
+                description
+                    "Operational data for Current Delay Measurement";
+                uses cfm-common-delay-measurements-state;
+                uses cfm-current-delay-measurements-state;
+                uses cfm-ifd-fd-top;
+            } // END of state-container definition.
+            uses cfm-fd-bins-top;
+            uses cfm-ifd-bins-top;
+        } // END of current-measurement-container definition.
+    } // END of cfm-current-delay-measurement-top definition.
+    grouping cfm-historic-delay-measurements-top {
+        description
+            "Operational state definitions for Historic Delay Measurements";
+        container historic-measurements {
+            config false;
+            description
+                "Container for the Historic Delay Measurements";
+
+            list historic-measurement {
+                key "measurement-id";
+                config false;
+                description
+                    "List of Historic Delay Measurements";
+                leaf measurement-id  {
+                    type  leafref {
+                        path  "../state/measurement-id";
+                    }
+                    description "This attribute specifies the measurement-id of the delay measurement";
+                } // END of measurement-id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational data for CFM Y.1731 Ethernet Historic Delay Measurements";
+                    uses cfm-common-delay-measurements-state;
+                    uses cfm-history-delay-measurements-state;
+                    uses cfm-ifd-fd-top;
+                } // END of state-container definition.
+                uses cfm-fd-bins-top;
+                uses cfm-ifd-bins-top;
+            } // End of historic-measurement-list
+        } // END of historic-measurements-container definition.
+    } // END of cfm-historic-delay-measurements-top definition.
+    grouping cfm-common-loss-measurements-state {
+        description
+            "Common operational state definitions for Loss Measurements";
+        leaf measurement-id  {
+            type  uint16;
+            description "This attribute specifies the measurement-id of the loss measurement
+                        session";
+        } // END of measurement-id definition.
+
+        leaf suspect-status  {
+            type  boolean;
+            description "This attribute specifies the suspect status of the loss measurement
+                        session";
+        } // END of suspect-status definition.
+
+        leaf measurement-type  {
+            type  ipi-cfm-data-types:cfm_lm_measurement_type_t;
+            description "This attribute specifies the measurement type of the loss measurement
+                        session";
+        } // END of measurement-type definition.
+
+        leaf elapsed-time  {
+            type  uint32;
+            units "seconds";
+            description "This attribute specifies the elapsed time of the loss measurement
+                        session";
+        } // END of elapsed-time definition.
+
+    } // END of cfm-common-loss-measurements-state definition.
+    grouping cfm-loss-measurements-counters-state {
+        description
+            "Operational state counters for Loss Measurements";
+        leaf near-end-loss  {
+            type  uint32;
+            description "This attribute specifies the count of near end loss of the loss
+                        measurement session";
+        } // END of near-end-loss definition.
+
+        leaf far-end-loss  {
+            type  uint32;
+            description "This attribute specifies the count of far end loss of the loss
+                        measurement session";
+        } // END of far-end-loss definition.
+
+        leaf near-end-accumulated-loss  {
+            type  uint32;
+            description "This attribute specifies the count of accumulated near end loss of the
+                        loss measurement session";
+        } // END of near-end-accumulated-loss definition.
+
+        leaf far-end-accumulated-loss  {
+            type  uint32;
+            description "This attribute specifies the count of accumulated far end loss of the
+                        loss measurement session";
+        } // END of far-end-accumulated-loss definition.
+
+    } // END of cfm-loss-measurements-counters-state definition.
+    grouping cfm-current-loss-measurements-state {
+        description
+            "Current operational state definitions for Loss Measurements";
+        leaf start-time  {
+            type  yang:date-and-time {
+                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                }
+                description "This attribute specifies the start time of the loss measurement
+                            session";
+            } // END of start-time definition.
+
+            leaf session-status  {
+                type  ipi-cfm-data-types:cfm_pm_session_status_t;
+                description "This attribute specifies the status of loss measurement session";
+            } // END of session-status definition.
+
+    } // END of cfm-current-loss-measurements-state definition.
+    grouping cfm-historic-loss-measurements-state {
+        description
+            "History operational state definitions for Loss Measurements";
+        leaf end-time  {
+            type  yang:date-and-time {
+                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
+                }
+                description "This attribute specifies the end time of the loss measurement session";
+            } // END of end-time definition.
+
+    } // END of cfm-historic-loss-measurements-state definition.
+    grouping cfm-current-loss-measurement-top {
+        description
+            "Current operational state definitions for Current Loss Measurement";
+        container current-measurement {
+            config false;
+            description
+                "Container for the Current Loss Measurement";
+            container state {
+                config false;
+                description
+                    "Operational data for CFM Y.1731 Ethernet  Loss Measurement";
+                container counters {
+                    config false;
+                    description
+                        "Operational data for Current Loss Measurement counters";
+                    uses cfm-loss-measurements-counters-state;
+                } // END of counters-container definition.
+                uses cfm-common-loss-measurements-state;
+                uses cfm-current-loss-measurements-state;
+            } // END of state-container definition.
+        } // END of current-measurement-container definition.
+    } // END of cfm-current-loss-measurement-top definition.
+    grouping cfm-historic-loss-measurements-top {
+        description
+            "Operational state definitions for Historic Loss Measurements";
+        container historic-measurements {
+            config false;
+            description
+                "Container for the History Loss Measurements";
+
+            list historic-measurement {
+                key "measurement-id";
+                config false;
+                description
+                    "List of historic loss measurement sessions";
+                leaf measurement-id  {
+                    type  leafref {
+                        path  "../state/measurement-id";
+                    }
+                    description "This attribute specifies the measurement-id of the loss measurement
+                                session";
+                } // END of measurement-id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state definitions for Historic Loss Measurements";
+                    container counters {
+                        config false;
+                        description
+                            "Operational data for Historic Loss Measurement counters";
+                        uses cfm-loss-measurements-counters-state;
+                    } // END of counters-container definition.
+                    uses cfm-common-loss-measurements-state;
+                    uses cfm-historic-loss-measurements-state;
+                } // END of state-container definition.
+            } // End of historic-measurement-list
+        } // END of historic-measurements-container definition.
+    } // END of cfm-historic-loss-measurements-top definition.
 
 
 }

@@ -28,10 +28,15 @@ module ipi-user-session-management {
 
     import ipi-user-session-management-types {
         prefix ipi-user-session-management-types;
-        revision-date 2021-11-16;
+        revision-date 2022-06-01;
     }
 
-    include ipi-user-session { revision-date 2022-01-11;}
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
+    include ipi-user-session { revision-date 2022-06-18;}
     organization
         "IP Infusion Inc.";
 
@@ -44,6 +49,16 @@ module ipi-user-session-management {
     description
         "This module provides user session management configuration";
 
+
+    revision "2022-06-18" {
+        description "Added Remote-IP leaf for Netconf clients /user-sessions hierarchy";
+        reference " 0.3.3.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.3.2.";
+    }
 
     revision "2022-02-02" {
         description "Grouping names changed for line vty timeout.";
@@ -71,7 +86,7 @@ module ipi-user-session-management {
         leaf minutes  {
             type  uint32 {
                  range "0..35791"  {
-                    description "0..35791:Timeout in minutes";
+                    description "0..35791: Supported range 0 - 35791";
                  }
             }
             units "minutes";
@@ -83,7 +98,7 @@ module ipi-user-session-management {
         leaf seconds  {
             type  uint32 {
                  range "0..2147483"  {
-                    description "0..2147483:Timeout in seconds";
+                    description "0..2147483: Supported range 0 - 2147483";
                  }
             }
             units "seconds";
@@ -135,8 +150,8 @@ module ipi-user-session-management {
         leaf privilege-level  {
             type  uint8 {
                  range "1..16"  {
-                    description "1..16:1 to 15 : Default privilege level for line; 16 : Max privilege
-                            level for line";
+                    description "1..16:Not Feature : HAVE_VR  Supported range 1 - 15Feature : HAVE_VR
+                            Supported range 1 - 16";
                  }
             }
             description "Attribute used to set line privilege level.";
@@ -145,7 +160,7 @@ module ipi-user-session-management {
         leaf command-history-max-limit  {
             type  uint32 {
                  range "0..2147483647"  {
-                    description "0..2147483647:Number of commands";
+                    description "0..2147483647: Supported range 0 - 2147483647";
                  }
             }
             description "Attribute used to set line maximum limit to history commands.";
@@ -247,6 +262,7 @@ module ipi-user-session-management {
     description
         "Container for all user-sessions configuration";
     container user-session {
+        if-feature feature-list:HAVE_IMI;
         description
             "Container for all user-sessions configuration";
         uses line-console-top;
@@ -258,6 +274,7 @@ module ipi-user-session-management {
     uses user-session-grouping;
 
     rpc clear-line {
+        if-feature feature-list:HAVE_IMI;
         description "";
         input  {
             leaf line-name  {

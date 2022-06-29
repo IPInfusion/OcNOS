@@ -23,7 +23,7 @@ module ipi-vrf {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -38,7 +38,7 @@ module ipi-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -53,6 +53,16 @@ module ipi-vrf {
     description
         "IPI VRF";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.6.0.";
+    }
+
+    revision "2022-04-28" {
+        description "Support for EVPN-MPLS IRB";
+        reference " 0.5.0.";
+    }
 
     revision "2021-09-03" {
         description "Update descriptions of attribute";
@@ -91,21 +101,30 @@ module ipi-vrf {
             description "VRF-specific description";
         } // END of description definition.
 
+        leaf tunnel-select-policy  {
+            if-feature feature-list:HAVE_SERVICE_MAPPING_OR_HAVE_SRV6;
+            type  string {
+                length "1..127";
+                pattern "[^?' =,>|]+";
+            }
+            description "tunnel policy to be configured";
+        } // END of tunnel-select-policy definition.
+
         leaf router-id  {
             type  inet:ipv4-address;
             description "VRF Router ID";
         } // END of router-id definition.
 
-        leaf vxlan-layer3-network-id  {
+        leaf evpn-layer3-network-id  {
             if-feature feature-list:HAVE_BGP_EVPN;
             if-feature feature-list:HAVE_NVO;
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:L3 VNID. Cannot be same as L2 VNID";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
-            description "L3 VXLAN Identifier";
-        } // END of vxlan-layer3-network-id definition.
+            description "L3 EVPN Identifier";
+        } // END of evpn-layer3-network-id definition.
 
         leaf mvpn-spmsi-ipv4-prefix  {
             if-feature feature-list:HAVE_BGP_MVPN;
@@ -134,6 +153,7 @@ module ipi-vrf {
     description
         "Top level container for VRF";
     container vrf {
+        if-feature feature-list:HAVE_VRF;
         description
             "Top level container for VRF";
         container config {
@@ -160,11 +180,14 @@ module ipi-vrf {
 
 
     rpc clear-default-router-id {
+        if-feature feature-list:HAVE_L3;
+        if-feature feature-list:HAVE_VRF;
         description "Use this RPC to update default VRF router ID for all routing processes
                     in the System";
     }
 
     rpc clear-vrf-router-id {
+        if-feature feature-list:HAVE_VRF;
         description "Use this RPC to reset the VRF Router-id";
         input  {
             leaf vrfName  {

@@ -21,7 +21,7 @@ submodule ipi-isis-lsp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import cml-data-types {
@@ -31,7 +31,7 @@ submodule ipi-isis-lsp {
 
     import ipi-isis-types {
         prefix ipi-isis-types;
-        revision-date 2022-02-07;
+        revision-date 2022-06-01;
     }
 
     import ietf-inet-types {
@@ -51,6 +51,21 @@ submodule ipi-isis-lsp {
     description
         "Model for managing IS-IS LSP";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.7.0.";
+    }
+
+    revision "2022-04-20" {
+        description "SID Label Binding TLV attribute changed as per RFC 8667";
+        reference " 0.6.0.";
+    }
+
+    revision "2022-02-14" {
+        description "SRv6 GET API related Changes in ISIS LSP";
+        reference " 0.5.0.";
+    }
 
     revision "2021-09-03" {
         description "Update descriptions of attribute";
@@ -79,6 +94,7 @@ submodule ipi-isis-lsp {
         "This objectlist defines the ISIS Level SPF Parameters";
         list spf-level {
         when " /isis/isis-instance/spf-level/spf-delay/spf-min-delay ";
+            if-feature feature-list:HAVE_ISISD;
             key "level";
             description
                 "This objectlist defines the ISIS Level SPF Parameters";
@@ -141,6 +157,7 @@ submodule ipi-isis-lsp {
     description
         "This objectlist defines the ISIS Level Parameters";
         list level {
+            if-feature feature-list:HAVE_ISISD;
             key "type";
             description
                 "This objectlist defines the ISIS Level Parameters";
@@ -162,6 +179,23 @@ submodule ipi-isis-lsp {
                     "This container defines the ISIS Level State";
                 uses isis-level-config;
             } // END of state-container definition.
+            container authentication {
+                description
+                    "Configutational and state parameters for ISIS instance level
+                            authentication";
+                container config {
+                    presence "authentication mode is needed for keychain";
+                    description
+                        "Configutational parameters for ISIS authentication";
+                    uses isis-authentication-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State parameters for ISIS interface level authentication";
+                    uses isis-authentication-config;
+                } // END of state-container definition.
+            } // END of authentication-container definition.
         } // End of level-list
     } // END of level-grouping definition.
 
@@ -170,6 +204,7 @@ submodule ipi-isis-lsp {
     description
         "Run time Level information";
         list level-runtime {
+            if-feature feature-list:HAVE_ISISD;
             key "type";
             config false;
             description
@@ -648,6 +683,32 @@ submodule ipi-isis-lsp {
                                     uses isis-level-lspdb-mismatch-state;
                                 } // END of state-container definition.
                             } // END of link-switch-capability-container definition.
+                            container endx-sid {
+                                if-feature feature-list:HAVE_SRV6;
+                                config false;
+                                description
+                                    "This container defines the ISIS Level LSP DB Stlv EndX SID";
+                                container state {
+                                    config false;
+                                    description
+                                        "This container defines the ISIS Level LSP DB Stlv EndX SID";
+                                    uses isis-level-lspdb-endx-sid-state;
+                                    uses isis-level-lspdb-mismatch-state;
+                                } // END of state-container definition.
+                            } // END of endx-sid-container definition.
+                            container lan-endx-sid {
+                                if-feature feature-list:HAVE_SRV6;
+                                config false;
+                                description
+                                    "This container defines the ISIS Level LSP DB Stlv LAN EndX SID";
+                                container state {
+                                    config false;
+                                    description
+                                        "This container defines the ISIS Level LSP DB Stlv LAN EndX SID";
+                                    uses isis-level-lspdb-lan-endx-sid-state;
+                                    uses isis-level-lspdb-mismatch-state;
+                                } // END of state-container definition.
+                            } // END of lan-endx-sid-container definition.
                         } // End of subtlv-list
                         container state {
                             config false;
@@ -1438,7 +1499,7 @@ submodule ipi-isis-lsp {
                         } // END of state-container definition.
                     } // END of ipv6-interface-address-container definition.
                     container router-capability {
-                        if-feature feature-list:HAVE_ISIS_SR;
+                        if-feature feature-list:HAVE_ISIS_SR_OR_HAVE_SRV6;
                         config false;
                         description
                             "This container defines the ISIS Level LSP DB Router Capability TLV";
@@ -1507,6 +1568,36 @@ submodule ipi-isis-lsp {
                                     uses isis-level-lspdb-mismatch-state;
                                 } // END of state-container definition.
                             } // END of segment-routing-mapping-server-preference-container definition.
+                            container segment-routing-v6 {
+                                if-feature feature-list:HAVE_SRV6;
+                                config false;
+                                description
+                                    "This container defines the ISIS Level LSP DB Router Capability STLV
+                                            SRv6 Capability";
+                                container state {
+                                    config false;
+                                    description
+                                        "This container defines the ISIS Level LSP DB Router Capability STLV
+                                                SRv6 Capability State";
+                                    uses isis-level-lspdb-tlv-router-cap-stlv-srv6-cap-state;
+                                    uses isis-level-lspdb-mismatch-state;
+                                } // END of state-container definition.
+                            } // END of segment-routing-v6-container definition.
+                            container max-sid-depth {
+                                if-feature feature-list:HAVE_SRV6;
+                                config false;
+                                description
+                                    "This container defines the ISIS Level LSP DB Router Capability STLV
+                                            MAX SID Depth";
+                                container state {
+                                    config false;
+                                    description
+                                        "This container defines the ISIS Level LSP DB Router Capability STLV
+                                                MAX SID Depth";
+                                    uses isis-level-lspdb-tlv-router-cap-stlv-max-sid-depth;
+                                    uses isis-level-lspdb-mismatch-state;
+                                } // END of state-container definition.
+                            } // END of max-sid-depth-container definition.
                         } // End of subtlv-list
                         container state {
                             config false;
@@ -1516,6 +1607,60 @@ submodule ipi-isis-lsp {
                             uses isis-level-lspdb-tlv-router-cap-state;
                         } // END of state-container definition.
                     } // END of router-capability-container definition.
+                    container srv6-locator {
+                        if-feature feature-list:HAVE_SRV6;
+                        config false;
+                        description
+                            "This container defines the ISIS Level LSP DB SRv6 Locator TLV";
+
+                        list subtlv {
+                            key "stlv-index stlv-endpoint-function";
+                            config false;
+                            description
+                                "This objectlist defines the ISIS Level LSP DB Router Capability STLVs";
+                            leaf stlv-index  {
+                                type  leafref {
+                                    path  "../state/stlv-index";
+                                }
+                                description "Index";
+                            } // END of stlv-index definition.
+
+                            leaf stlv-endpoint-function  {
+                                type  leafref {
+                                    path  "../state/stlv-endpoint-function";
+                                }
+                                description "End-Point Function";
+                            } // END of stlv-endpoint-function definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "This container defines the ISIS Level LSP DB SRv6 Locator STLV State";
+                                uses isis-level-lspdb-tlv-srv6-locator-stlv-state;
+                            } // END of state-container definition.
+                            container srv6-end-sid {
+                                if-feature feature-list:HAVE_SRV6;
+                                config false;
+                                description
+                                    "This container defines the ISIS Level LSP DB SRv6 Locator STLV SRv6
+                                            END-SID";
+                                container state {
+                                    config false;
+                                    description
+                                        "This container defines the ISIS Level LSP DB SRv6 Locator STLV SRv6
+                                                END-SID State";
+                                    uses isis-level-lspdb-tlv-srv6-locator-sid-entries;
+                                    uses isis-level-lspdb-mismatch-state;
+                                } // END of state-container definition.
+                            } // END of srv6-end-sid-container definition.
+                        } // End of subtlv-list
+                        container state {
+                            config false;
+                            description
+                                "This container defines the ISIS Level LSP DB SRV6 Locator TLV State";
+                            uses isis-level-lspdb-tlv-srv6-locator-state;
+                        } // END of state-container definition.
+                    } // END of srv6-locator-container definition.
                 } // End of tlvs-list
                 container state {
                     config false;
@@ -1619,7 +1764,7 @@ submodule ipi-isis-lsp {
         leaf wait-timer  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Waiting Time";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             description "Number of seconds to delay in waiting state before on state";
@@ -1628,7 +1773,7 @@ submodule ipi-isis-lsp {
         leaf restart-timer  {
             type  uint16 {
                  range "5..65535"  {
-                    description "5..65535:Seconds (Default value is 60)";
+                    description "5..65535: Supported range 5 - 65535";
                  }
             }
             description "Use this attribute to restart the ISIS timer";
@@ -1637,7 +1782,7 @@ submodule ipi-isis-lsp {
         leaf lsp-max-wait-interval  {
             type  uint32 {
                  range "1..120"  {
-                    description "1..120:Minimum interval in seconds";
+                    description "1..120: Supported range 1 - 120";
                  }
             }
             default "30";
@@ -1649,7 +1794,7 @@ submodule ipi-isis-lsp {
         leaf lsp-mtu-size  {
             type  uint16 {
                  range "512..1492"  {
-                    description "512..1492:MTU size";
+                    description "512..1492: Supported range 512 - 1492";
                  }
             }
             default "1492";
@@ -1657,8 +1802,11 @@ submodule ipi-isis-lsp {
                         same LSP";
         } // END of lsp-mtu-size definition.
 
+    } // END of isis-level-config definition.
+    grouping isis-authentication-config {
+        description
+            "This grouping defines ISIS authentication mode configuration";
         leaf key-chain  {
-            when " /isis/isis-instance/level/config/authentication-mode ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -1668,21 +1816,21 @@ submodule ipi-isis-lsp {
                         configure the key chain.";
         } // END of key-chain definition.
 
-        leaf authentication-mode  {
+        leaf mode  {
             type  ipi-isis-types:isis_auth_mode_t;
+            mandatory true;
             description "Use this attribute to set the authentication mode at the instance
                         level.";
-        } // END of authentication-mode definition.
+        } // END of mode definition.
 
-    } // END of isis-level-config definition.
+    } // END of isis-authentication-config definition.
     grouping isis-spf-config {
         description
             "Config items for ISIS SPF";
         leaf spf-min-delay  {
             type  uint32 {
                  range "0..2147483647"  {
-                    description "0..2147483647:Minimum Delay between receiving a change to SPF
-                            calculation in milliseconds";
+                    description "0..2147483647: Supported range 0 - 2147483647";
                  }
             }
             description "Minimum delay between receiving a change to SPF calculation in
@@ -1692,8 +1840,7 @@ submodule ipi-isis-lsp {
         leaf spf-max-delay  {
             type  uint32 {
                  range "0..2147483647"  {
-                    description "0..2147483647:Maximum Delay between receiving a change to SPF
-                            calculation in milliseconds";
+                    description "0..2147483647: Supported range 0 - 2147483647";
                  }
             }
             description "Maximum delay between receiving a change to SPF calculation in
@@ -2027,11 +2174,6 @@ submodule ipi-isis-lsp {
             description "Algorithm";
         } // END of algorithm definition.
 
-        leaf weight  {
-            type  uint32;
-            description "Weight";
-        } // END of weight definition.
-
         leaf range  {
             type  uint32;
             description "Range";
@@ -2079,7 +2221,7 @@ submodule ipi-isis-lsp {
         leaf metric  {
             type  uint32 {
                  range "0..16777215"  {
-                    description "0..16777215:Metric value";
+                    description "0..16777215: Supported range 0 - 16777215";
                  }
             }
             description "Metric Value";
@@ -2351,6 +2493,85 @@ submodule ipi-isis-lsp {
         } // END of type definition.
 
     } // END of isis-level-lspdb-link-protection-type-state definition.
+    grouping isis-level-lspdb-endx-sid-state {
+        description
+            "State items for ISIS Level LSPDB SRv6 END X SID";
+        leaf endx-sid  {
+            type  inet:ipv6-address;
+            description "SRv6 End-X Segment Identifier";
+        } // END of endx-sid definition.
+
+        leaf endx-algo  {
+            type  uint32;
+            description "Algorithm - As defined in IGP Algorithm Types registry RFC-8665";
+        } // END of endx-algo definition.
+
+        leaf endx-flags  {
+            type  uint32;
+            description "End X Flags containing info about B,S and P bit and reserved info";
+        } // END of endx-flags definition.
+
+        leaf endx-behavior  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "End X Behavior for the corresponding SID";
+        } // END of endx-behavior definition.
+
+        leaf endx-flavor  {
+            type  uint32;
+            description "End X Flavor for the corresponding SID";
+        } // END of endx-flavor definition.
+
+        leaf endx-weight  {
+            type  uint32;
+            description "The value represents the weight of the SID for the purpose of load
+                        balancing.";
+        } // END of endx-weight definition.
+
+    } // END of isis-level-lspdb-endx-sid-state definition.
+    grouping isis-level-lspdb-lan-endx-sid-state {
+        description
+            "State items for ISIS Level LSPDB SRv6 END X SID";
+        leaf lan-endx-sid  {
+            type  inet:ipv6-address;
+            description "SRv6 LAN End-X Segment Identifier";
+        } // END of lan-endx-sid definition.
+
+        leaf lan-endx-behavior  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "LAN End X Behavior for the corresponding SID";
+        } // END of lan-endx-behavior definition.
+
+        leaf lan-endx-flavor  {
+            type  uint32;
+            description "LAN End X Flavor for the corresponding SID";
+        } // END of lan-endx-flavor definition.
+
+        leaf lan-endx-sysid  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "System ID of the neighbor on the LAN";
+        } // END of lan-endx-sysid definition.
+
+        leaf lan-endx-algo  {
+            type  uint32;
+            description "Algorithm - As defined in IGP Algorithm Types registry RFC-8665";
+        } // END of lan-endx-algo definition.
+
+        leaf lan-endx-weight  {
+            type  uint32;
+            description "The value represents the weight of the SID for the purpose of load
+                        balancing.";
+        } // END of lan-endx-weight definition.
+
+    } // END of isis-level-lspdb-lan-endx-sid-state definition.
     grouping isis-level-lspdb-link-switch-capability-state {
         description
             "State items for ISIS Level LSPDB Link Switch Capability";
@@ -2417,7 +2638,7 @@ submodule ipi-isis-lsp {
         leaf metric  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Metric value";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             description "Metric Value";
@@ -2573,7 +2794,7 @@ submodule ipi-isis-lsp {
         leaf metric  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Metric value";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             description "Metric Value";
@@ -2618,7 +2839,7 @@ submodule ipi-isis-lsp {
         leaf metric  {
             type  uint32 {
                  range "1..16777215"  {
-                    description "1..16777215:Metric value";
+                    description "1..16777215: Supported range 1 - 16777215";
                  }
             }
             description "Metric Value";
@@ -2663,6 +2884,115 @@ submodule ipi-isis-lsp {
         } // END of sid definition.
 
     } // END of isis-level-lspdb-tlv-router-cap-stlv-sr-cap-state definition.
+    grouping isis-level-lspdb-tlv-router-cap-stlv-srv6-cap-state {
+        description
+            "State items for ISIS Level LSPDB TLV Router Capability STLV SRv6
+                        Capability";
+        leaf srv6-flags  {
+            type  uint32;
+            description "srv6 flags to denote SRv6 capability of the node";
+        } // END of srv6-flags definition.
+
+    } // END of isis-level-lspdb-tlv-router-cap-stlv-srv6-cap-state definition.
+    grouping isis-level-lspdb-tlv-router-cap-stlv-max-sid-depth {
+        description
+            "State items for ISIS Level LSPDB TLV Router Capability STLV Max SID
+                        Depth";
+        leaf segments-left  {
+            type  uint32;
+            description "The Maximum Segments Left MSD Type specifies the maximum value of the
+                        SL field [I-D.ietf-6man-segment-routing-header] in the SRH of a
+                        received packet before applying the Endpoint behavior associated with
+                        a SID";
+        } // END of segments-left definition.
+
+        leaf end-pop  {
+            type  uint32;
+            description "The Maximum End Pop MSD Type specifies the maximum number of SIDs in
+                        the SRH to which the router can apply PSP or USP behavior, as defined
+                        in flavors.";
+        } // END of end-pop definition.
+
+        leaf h-encaps  {
+            type  uint32;
+            description "The Maximum H.Encaps MSD Type specifies the maximum number of SIDs
+                        that can be included as part of the H.Encaps behavior as defined in
+                        SRH Max H.encaps Type: 44";
+        } // END of h-encaps definition.
+
+        leaf decap-sids  {
+            type  uint32;
+            description "The Maximum End D MSD Type specifies the maximum number of SIDs in an
+                        SRH when performing decapsulation associated with End.Dx behaviors
+                        (End.DX6 and End.DT6) as defined in SRH Max End D Type: 45";
+        } // END of decap-sids definition.
+
+    } // END of isis-level-lspdb-tlv-router-cap-stlv-max-sid-depth definition.
+    grouping isis-level-lspdb-tlv-srv6-locator-state {
+        description
+            "State items for SRv6 Locator State";
+        leaf locator-algorithm  {
+            type  uint32;
+            description "Associated algorithm. Algorithm values are defined in the IGP
+                        Algorithm Type registry.";
+        } // END of locator-algorithm definition.
+
+        leaf locator-flag  {
+            type  uint32;
+            description "SRv6 Locator Flag which contains the info about 'D' flag and other
+                        reserved info. Route-leaking decision to be taken based on 'D' flag.
+                        This is to prevent looping";
+        } // END of locator-flag definition.
+
+        leaf locator-metric  {
+            type  uint32;
+            description "Metric value of SRv6 Locator";
+        } // END of locator-metric definition.
+
+        leaf locator-prefix  {
+            type  inet:ipv6-prefix;
+            description "SRv6 Locator Prefix";
+        } // END of locator-prefix definition.
+
+    } // END of isis-level-lspdb-tlv-srv6-locator-state definition.
+    grouping isis-level-lspdb-tlv-srv6-locator-stlv-state {
+        description
+            "State items for ISIS Level LSPDB TLV SRv6 Locator STLV";
+        leaf stlv-index  {
+            type  uint16;
+            description "Sub TLV Index";
+        } // END of stlv-index definition.
+
+        leaf stlv-endpoint-function  {
+            type  uint16;
+            description "SRv6 EndPoint Function";
+        } // END of stlv-endpoint-function definition.
+
+    } // END of isis-level-lspdb-tlv-srv6-locator-stlv-state definition.
+    grouping isis-level-lspdb-tlv-srv6-locator-sid-entries {
+        description
+            "State items for SRv6 Locator SID Entries";
+        leaf end-sid  {
+            type  inet:ipv6-address;
+            description "end Segment Identier Ipv6 address";
+        } // END of end-sid definition.
+
+        leaf sid-flags  {
+            type  uint32;
+            description "No flags are currently defined.  All bits are reserved for future use.
+                        They MUST be set to zero on transmission and MUST be ignored on
+                        receipt.";
+        } // END of sid-flags definition.
+
+        leaf end-point-behavior  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "end-point-behavior associated with a SID instance";
+        } // END of end-point-behavior definition.
+
+    } // END of isis-level-lspdb-tlv-srv6-locator-sid-entries definition.
     grouping isis-level-lspdb-tlv-router-cap-stlv-sr-algo-state {
         description
             "State items for ISIS Level LSPDB TLV Router Capability STLV SR

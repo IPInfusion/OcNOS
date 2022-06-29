@@ -28,27 +28,27 @@ module ipi-ssh {
 
     import ipi-ssh-types {
         prefix ipi-ssh-types;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2021-11-10;
+        revision-date 2022-06-01;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2021-09-03;
+        revision-date 2022-06-01;
     }
 
     import ipi-user-management {
         prefix ipi-user-management;
-        revision-date 2022-01-14;
+        revision-date 2022-06-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     organization
@@ -63,6 +63,11 @@ module ipi-ssh {
     description
         "Data model for SSH Module";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.4.0.";
+    }
 
     revision "2021-09-03" {
         description "Update descriptions of attribute";
@@ -100,7 +105,7 @@ module ipi-ssh {
             if-feature feature-list:HAVE_SSH_SERVER;
             type  uint32 {
                  range "1024..65535"  {
-                    description "1024..65535:ssh server port";
+                    description "1024..65535: Supported range 1024 - 65535";
                  }
             }
             description "Use this attribute to set the port number on which the SSH server
@@ -112,7 +117,7 @@ module ipi-ssh {
             if-feature feature-list:HAVE_SSH_SERVER;
             type  uint8 {
                  range "1..40"  {
-                    description "1..40:ssh server sessions";
+                    description "1..40: Supported range 1 - 40";
                  }
             }
             description "Use this attribute to set the maximum number of simultaneous sessions
@@ -123,7 +128,7 @@ module ipi-ssh {
             if-feature feature-list:HAVE_SSH_SERVER;
             type  uint8 {
                  range "1..3"  {
-                    description "1..3:Retries attempts, default is 3 attempts";
+                    description "1..3: Supported range 1 - 3";
                  }
             }
             default "3";
@@ -286,6 +291,7 @@ module ipi-ssh {
     description
         "ssh-server configurations";
     container ssh-server {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "ssh-server configurations";
         container debug {
@@ -312,6 +318,7 @@ module ipi-ssh {
     description
         "ssh-keys configurations";
     container ssh-keys {
+        if-feature feature-list:HAVE_HOSTPD;
         description
             "ssh-keys configurations";
         container config {
@@ -331,6 +338,8 @@ module ipi-ssh {
 
     uses ssh-server-grouping;
     augment /ipi-user-management:user-management/ipi-user-management:users/ipi-user-management:user {
+        if-feature feature-list:HAVE_HOSTPD;
+        if-feature feature-list:HAVE_USER_MGMT;
         description
             "ssh-keys configurations";
         uses ssh-keys-grouping;
@@ -338,18 +347,23 @@ module ipi-ssh {
 
 
     rpc ssh-terminal-debugging-on {
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this RPC to enable debugging for ssh server";
     }
 
     rpc ssh-terminal-debugging-off {
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this RPC to disable debugging for ssh server";
     }
 
     rpc ssh-clear-hosts {
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this RPC to clear all ssh hosts";
     }
 
     rpc ssh-generate-server-dsa-key {
+        if-feature feature-list:HAVE_SSH_SERVER;
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this attribute to generate ssh host key using DSA Algorithm";
         input  {
             leaf vrf-name  {
@@ -366,6 +380,8 @@ module ipi-ssh {
     }
 
     rpc ssh-generate-server-rsa-key {
+        if-feature feature-list:HAVE_SSH_SERVER;
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this attribute to generate ssh host key using RSA Algorithm";
         input  {
             leaf length  {
@@ -389,6 +405,8 @@ module ipi-ssh {
     }
 
     rpc ssh-generate-server-ecdsa-key {
+        if-feature feature-list:HAVE_SSH_SERVER;
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this attribute to generate ssh host key using ECDSA Algorithm";
         input  {
             leaf length  {
@@ -410,6 +428,8 @@ module ipi-ssh {
     }
 
     rpc ssh-generate-server-ed25519-key {
+        if-feature feature-list:HAVE_SSH_SERVER;
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this attribute to generate ssh host key using ED25519 Algorithm";
         input  {
             leaf vrf-name  {
@@ -426,6 +446,8 @@ module ipi-ssh {
     }
 
     rpc ssh-clear-server-keys {
+        if-feature feature-list:HAVE_SSH_SERVER;
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this attribute to delete ssh host keys";
         input  {
             leaf type  {
@@ -442,6 +464,8 @@ module ipi-ssh {
     }
 
     rpc ssh-generate-user-rsa-key {
+        if-feature feature-list:HAVE_SSH_SERVER;
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this attribute to generate RSA key for a user account";
         input  {
             leaf user-name  {
@@ -465,6 +489,8 @@ module ipi-ssh {
     }
 
     rpc ssh-generate-user-dsa-key {
+        if-feature feature-list:HAVE_SSH_SERVER;
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this attribute to generate DSA key for a user account";
         input  {
             leaf user-name  {
@@ -481,6 +507,8 @@ module ipi-ssh {
     }
 
     rpc ssh-clear-user-keys {
+        if-feature feature-list:HAVE_SSH_SERVER;
+        if-feature feature-list:HAVE_HOSTPD;
         description "Use this attribute to clear a user account's keys";
         input  {
             leaf user-name  {

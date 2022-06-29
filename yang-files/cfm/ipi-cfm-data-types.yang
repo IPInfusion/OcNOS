@@ -21,6 +21,11 @@ module ipi-cfm-data-types {
 
     prefix "ipi-cfm-data-types";
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
     organization
         "IP Infusion Inc.";
 
@@ -34,6 +39,36 @@ module ipi-cfm-data-types {
         "This module defines data types related to the CFM model";
 
 
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.3.2.";
+    }
+
+    revision "2022-05-31" {
+        description "Added support for CFM msg intervals of 1-min and 10-mins";
+        reference " 0.3.2.";
+    }
+
+    revision "2022-05-09" {
+        description "Updation of MPLS flags for CFM and debug CFM CLI";
+        reference " 0.3.1.";
+    }
+
+    revision "2022-04-29" {
+        description "Restructure CFM and Y.1731 over MPLS components to OpenConfig style and enable NETCONF support";
+        reference " 0.3.0.";
+    }
+
+    revision "2022-04-05" {
+        description "Added support for Client Signal Fail (CSF) feature";
+        reference " 0.2.1.";
+    }
+
+    revision "2022-03-10" {
+        description "Restructure LB, LT and CFM Y.1731 L2 bridge dependent CLIs to OpenConfig style";
+        reference " 0.2.0.";
+    }
+
     revision "2018-12-06" {
         description "Initial version drafted by referring MEF 38 and IEEE standards";
         reference " 0.1.0.";
@@ -41,7 +76,7 @@ module ipi-cfm-data-types {
 
 
 
-    typedef  cfm_bridge_type_t {
+    typedef  cfm_mpls_svc_type_t {
         type enumeration {
             enum vpws {
                 value 1;
@@ -52,17 +87,14 @@ module ipi-cfm-data-types {
                 description "Identifying string for EVPN instance";
             }
         }
-        description "type definition for CFM_BRIDGE_TYPE_T";
+        description "type definition for CFM_MPLS_SVC_TYPE_T";
     }
 
     typedef  cfm_rmep_mac_addr_t {
-        type string;
+        type string {
+            pattern "[0-9a-fA-F]{4}.[0-9a-fA-F]{4}.[0-9a-fA-F]{4}";
+        }
         description "type definition for CFM_RMEP_MAC_ADDR_T";
-    }
-
-    typedef  cfm_rmep_id_string_t {
-        type string;
-        description "type definition for CFM_RMEP_ID_STRING_T";
     }
 
     typedef  cfm_rmep_type_t {
@@ -70,7 +102,8 @@ module ipi-cfm-data-types {
             type cfm_rmep_mac_addr_t {
 
             }
-            type cfm_rmep_id_string_t {
+            type uint16 {
+                range "1..8191";
 
             }
         }
@@ -93,32 +126,6 @@ module ipi-cfm-data-types {
             }
         }
         description "type definition for CFM_MIP_CREATION_MODE_T";
-    }
-
-    typedef  cfm_id_permission_t {
-        type enumeration {
-            enum none {
-                value 1;
-                description "The Sender ID TLV is not to be sent";
-            }
-            enum chassis {
-                value 2;
-                description "The Chassis ID Length, Chassis ID Subtype, and Chassis ID fields of the Sender ID TLV are to be sent, but not the Management Address Length or Management Address fields";
-            }
-            enum manage {
-                value 3;
-                description "The Management Address Length and Management Address of the Sender ID TLV are to be sent, but the Chassis ID Length is to be transmitted with a 0 value, and the Chassis ID Subtype and Chassis ID fields not sent";
-            }
-            enum chassis-manage {
-                value 4;
-                description "The Chassis ID Length, Chassis ID Subtype, Chassis ID, Management Address Length, and Management Address fields are all to be sent";
-            }
-            enum defer {
-                value 5;
-                description "The contents of the Sender ID TLV are determined by the Maintenance Domain managed object";
-            }
-        }
-        description "type definition for CFM_ID_PERMISSION_T";
     }
 
     typedef  cfm_md_type_t {
@@ -247,20 +254,11 @@ module ipi-cfm-data-types {
         description "type definition for CFM_MEP_CONNECTIVITY_STATUS_T";
     }
 
-    typedef  cfm_mep_uni_t {
-        type enumeration {
-            enum uni-mep {
-                value 1;
-                description "UNI-MEG MEP to intimate the UNI type";
-            }
-        }
-        description "type definition for CFM_MEP_UNI_T";
-    }
-
-    typedef  cfm_ccm_interval_t {
+    typedef  cfm_msg_interval_t {
         type enumeration {
             enum 3ms {
                 value 1;
+                if-feature feature-list:CCM_HW_OFFLOAD;
                 description "CC Interval 3 millisecond";
             }
             enum 10ms {
@@ -279,19 +277,27 @@ module ipi-cfm-data-types {
                 value 5;
                 description "CC Interval 10 second";
             }
+            enum 1min {
+                value 6;
+                description "CC Interval 1 minute";
+            }
+            enum 10min {
+                value 7;
+                description "CC Interval 10 minute";
+            }
         }
-        description "type definition for CFM_CCM_INTERVAL_T";
+        description "type definition for CFM_MSG_INTERVAL_T";
     }
 
     typedef  cfm_mep_lck_t {
         type enumeration {
             enum unlock {
                 value 0;
-                description "Disable adminstrative locking state";
+                description "Disable administrative locking state(default)";
             }
             enum lock {
                 value 1;
-                description "Enable adminstrative locking state";
+                description "Enable administrative locking state";
             }
         }
         description "type definition for CFM_MEP_LCK_T";
@@ -305,7 +311,7 @@ module ipi-cfm-data-types {
             }
             enum defMACstatus {
                 value 2;
-                description "DefMACstatus";
+                description "DefMACstatus(default)";
             }
             enum defRemoteCCM {
                 value 3;
@@ -355,78 +361,52 @@ module ipi-cfm-data-types {
 
     typedef  cfm_received_ccm_defect_t {
         type bits {
-            bit none {
-                position 0;
-                description "No defects in last CCM PDU";
-            }
             bit defRDICCM {
-                position 1;
+                position 0;
                 description "A remote MEP is reported the RDI bit set in its last CCM";
             }
             bit defMACstatus {
-                position 2;
+                position 1;
                 description "One or more of the remote MEPs is reporting a failure in its Port Status TLV or Interface Status TLV";
             }
             bit defRemoteCCM {
-                position 3;
+                position 2;
                 description "Atleast one of the MEP is not receiving valid CCMs from one of the its remote MEP";
             }
             bit defErrorCCM {
-                position 4;
+                position 3;
                 description "The MEP has received at least one invalid CCM whose CCM Interval has not yet timed out";
             }
             bit defXconCCM {
-                position 5;
+                position 4;
                 description "The MEP has received at least one CCM from either another MAID or a lower MD Level whose CCM Interval has not yet timed out";
+            }
+            bit none {
+                position 5;
+                description "No defects in last CCM PDU";
             }
         }
         description "type definition for CFM_RECEIVED_CCM_DEFECT_T";
     }
 
-    typedef  cfm_mep_defects_bit_t {
-        type bits {
-            bit defRDICCM {
-                position 0;
-                description "A remote MEP is reported the RDI bit set in its last CCM";
-            }
-            bit defMACstatus {
-                position 1;
-                description "One or more of the remote MEPs is reporting a failure in its Port Status TLV or Interface Status TLV";
-            }
-            bit defRemoteCCM {
-                position 2;
-                description "Atleast one of the MEP is not receiving valid CCMs from one of the its remote MEP";
-            }
-            bit defErrorCCM {
-                position 3;
-                description "The MEP has received at least one invalid CCM whose CCM Interval has not yet timed out";
-            }
-            bit defXconCCM {
-                position 4;
-                description "The MEP has received at least one CCM from either another MAID or a lower MD Level whose CCM Interval has not yet timed out";
-            }
-        }
-        description "type definition for CFM_MEP_DEFECTS_BIT_T";
-    }
-
-    typedef  cfm_start_time_t {
+    typedef  cfm_start_time_immediate_t {
         type enumeration {
             enum immediate {
                 value 1;
                 description "Start the measurement session immediately";
             }
         }
-        description "type definition for CFM_START_TIME_T";
+        description "type definition for CFM_START_TIME_IMMEDIATE_T";
     }
 
-    typedef  cfm_stop_time_t {
+    typedef  cfm_stop_time_none_t {
         type enumeration {
             enum none {
                 value 0;
                 description "Never end the measurement session";
             }
         }
-        description "type definition for CFM_STOP_TIME_T";
+        description "type definition for CFM_STOP_TIME_NONE_T";
     }
 
     typedef  cfm_absolute_time_t {
@@ -467,7 +447,17 @@ module ipi-cfm-data-types {
         description "type definition for CFM_LM_MEASUREMENT_TYPE_T";
     }
 
-    typedef  cfm_lm_measurement_type_reply_t {
+    typedef  cfm_dm_measurement_type_t {
+        type enumeration {
+            enum dmm {
+                value 1;
+                description "DMM SOAM PDU generated. DMR responses received";
+            }
+        }
+        description "type definition for CFM_DM_MEASUREMENT_TYPE_T";
+    }
+
+    typedef  cfm_lm_reply_type_t {
         type enumeration {
             enum lmm {
                 value 1;
@@ -478,293 +468,83 @@ module ipi-cfm-data-types {
                 description "SLM SOAM PDU generated and received SLR responses tracked(default)";
             }
         }
-        description "type definition for CFM_LM_MEASUREMENT_TYPE_REPLY_T";
-    }
-
-    typedef  cfm_session_status_t {
-        type enumeration {
-            enum active {
-                value 1;
-                description "Indicates the measurement instance is active";
-            }
-            enum not-active {
-                value 2;
-                description "Indicates the measurement instance is not active";
-            }
-        }
-        description "type definition for CFM_SESSION_STATUS_T";
+        description "type definition for CFM_LM_REPLY_TYPE_T";
     }
 
     typedef  cfm_y1731_tx_interval_t {
         type enumeration {
-            enum one-second {
+            enum 1s {
                 value 1;
-                description "Transmit interval one second";
+                description "PDU transmit interval is one second(default)";
             }
-            enum one-minute {
+            enum 1min {
                 value 60;
-                description "Transmit interval one minute";
+                description "PDU transmit interval is one minute";
             }
         }
         description "type definition for CFM_Y1731_TX_INTERVAL_T";
     }
 
-    typedef  cfm_mep_fng_state_t {
+    typedef  cfm_ebn_rate_unit_t {
         type enumeration {
-            enum reset {
-                value 0;
-                description "No defect has been present since the fng-reset-time timer expired or since the state machine was last reset";
-            }
-            enum defect {
-                value 1;
-                description "A defect is present but not for a long enough time to be reported (fng-alarm-time)";
-            }
-            enum report-defect {
+            enum kbps {
                 value 2;
-                description "A momentary state during which the defect is reported by sending a fault-alarm notificationif that action is enabled";
+                description "Specifies the unit of kilobits per second";
             }
-            enum defect-reported {
+            enum mbps {
                 value 3;
-                description "A defect is present and some defect has been reported";
+                description "Specifies the unit of megabits per second";
             }
-            enum defect-clearing {
+            enum gbps {
                 value 4;
-                description "No defect is present but the fng-reset-time timer has not yet expired";
+                description "Specifies the unit of gigabits per second";
             }
         }
-        description "type definition for CFM_MEP_FNG_STATE_T";
+        description "type definition for CFM_EBN_RATE_UNIT_T";
+    }
+
+    typedef  cfm_ebn_rate_unit_extended_t {
+        type enumeration {
+            enum kbps {
+                value 2;
+                description "Specifies the unit of kilobits per second";
+            }
+            enum mbps {
+                value 3;
+                description "Specifies the unit of megabits per second";
+            }
+            enum gbps {
+                value 4;
+                description "Specifies the unit of gigabits per second";
+            }
+            enum percent {
+                value 6;
+                description "Specifies the unit in percentage";
+            }
+        }
+        description "type definition for CFM_EBN_RATE_UNIT_EXTENDED_T";
     }
 
     typedef  cfm_relay_action_t {
         type enumeration {
-            enum hit {
+            enum unknown {
                 value 0;
+                description "Unknown Relay action";
+            }
+            enum hit {
+                value 1;
                 description "Indicates the LTM reached an MP whose MAC address matches the target MAC address";
             }
             enum filtering-database {
-                value 1;
+                value 2;
                 description "Indicates the Egress Port was determined by consulting the Filtering Database";
             }
             enum mip-ccm-database {
-                value 2;
+                value 3;
                 description "Indicates the Egress Port was determined by consulting the MIP CCM Database";
             }
         }
         description "type definition for CFM_RELAY_ACTION_T";
-    }
-
-    typedef  cfm_ingress_action_t {
-        type enumeration {
-            enum ok {
-                value 0;
-                description "Indicates the target data frame would be passed through to the MAC Relay Entity";
-            }
-            enum down {
-                value 1;
-                description "Indicates the Bridge Ports MAC Operational parameter is false";
-            }
-            enum blocked {
-                value 2;
-                description "Indicates the target data frame would not be forwarded if received on this Port due to active topology enforcement";
-            }
-            enum vid {
-                value 3;
-                description "Indicates the ingress port is not in the member set of the LTMs VID, and ingress filtering is enabled, so the target data frame would be filtered by ingress filtering";
-            }
-        }
-        description "type definition for CFM_INGRESS_ACTION_T";
-    }
-
-    typedef  cfm_port_status_tlv_t {
-        type enumeration {
-            enum no-status-tlv {
-                value 0;
-                description "Indicates either that no CCM has been received or that no port status TLV was present in the last CCM received";
-            }
-            enum blocked {
-                value 1;
-                description "Ordinary data cannot pass freely through the port on which the remote MEP resides. Value of enableRmepDefect is false";
-            }
-            enum up {
-                value 2;
-                description "Ordinary data can pass freely through the port on which the remote MEP resides. Value of enableRmepDefect is true";
-            }
-        }
-        description "type definition for CFM_PORT_STATUS_TLV_T";
-    }
-
-    typedef  cfm_interface_status_tlv_t {
-        type enumeration {
-            enum no-status-tlv {
-                value 0;
-                description "Indicates either that no CCM has been received or that no interface status TLV was present in the last CCM received";
-            }
-            enum up {
-                value 1;
-                description "The interface is ready to pass packets";
-            }
-            enum down {
-                value 2;
-                description "The interface cannot pass packets";
-            }
-            enum testing {
-                value 3;
-                description "The interface is in some test mode";
-            }
-            enum unknown {
-                value 4;
-                description "The interface status cannot be determined for some reason";
-            }
-            enum dormant {
-                value 5;
-                description "The interface is not in a state to pass packets but is in a pending state, waiting for some external event";
-            }
-            enum not-present {
-                value 6;
-                description "Some component of the interface is missing";
-            }
-            enum lower-layer-down {
-                value 7;
-                description "The interface is down due to state of the lower layer interfaces";
-            }
-        }
-        description "type definition for CFM_INTERFACE_STATUS_TLV_T";
-    }
-
-    typedef  cfm_egress_action_t {
-        type enumeration {
-            enum ok {
-                value 0;
-                description "Indicates the targeted data frame would be forwarded";
-            }
-            enum down {
-                value 1;
-                description "Indicates the Egress Port can be identified but that Bridge Ports MAC Operational parameter is false";
-            }
-            enum blocked {
-                value 2;
-                description "Indicates the Egress Port can be identified but the data frame would not pass through the the Egress Port due to active topology management i.e the Bridge Port is not in the Forwarding state";
-            }
-            enum vid {
-                value 3;
-                description "Indicates the Egress Port can be identified but the Bridge Port is not in the LTMs VIDs member set, so would be filtered by egress filtering";
-            }
-        }
-        description "type definition for CFM_EGRESS_ACTION_T";
-    }
-
-    typedef  cfm_portid_subtype_t {
-        type enumeration {
-            enum interface-alias {
-                value 1;
-                description "The ifAlias field from the Interfaces Group MIB";
-            }
-            enum port-component {
-                value 2;
-                description "EntPhysicalAlias when entPhysClass has a value of port(10) or backplane(4)";
-            }
-            enum mac-address {
-                value 3;
-                description "A MAC address";
-            }
-            enum network-address {
-                value 4;
-                description "network-address is an octet string that identifies a particular network address family and an associated network address that are encoded in network octet order";
-            }
-            enum interface-name {
-                value 5;
-                description "The name field from the Interfaces Group MIB";
-            }
-            enum agent-circuit-id {
-                value 6;
-                description "Agent circuit ID";
-            }
-            enum local {
-                value 7;
-                description "A locally defined identifier";
-            }
-        }
-        description "type definition for CFM_PORTID_SUBTYPE_T";
-    }
-
-    typedef  cfm_chassis_id_subtype_t {
-        type enumeration {
-            enum chassis-component {
-                value 1;
-                description "This leaf contains the content of EntPhysicalAlias when entPhysClass has a value of chassis(3)";
-            }
-            enum interface-alias {
-                value 2;
-                description "The IfAlias field from the Interfaces Group MIB";
-            }
-            enum port-component {
-                value 3;
-                description "The EntPhysicalAlias from the Interfaces Group MIB when entPhysClass has a value of port(10) or backplane(4)";
-            }
-            enum mac-address-type {
-                value 4;
-                description "An IEEE 802-2001 Ethernet MAC Address";
-            }
-            enum network-address {
-                value 5;
-                description "It's an octet string that identifies a particular network address family and an associated network address that are encoded in network octet order";
-            }
-            enum interface-name {
-                value 6;
-                description "name";
-            }
-            enum local {
-                value 7;
-                description "A locally assigned alpha-numeric string";
-            }
-        }
-        description "type definition for CFM_CHASSIS_ID_SUBTYPE_T";
-    }
-
-    typedef  cfm_dm_measurement_type_t {
-        type enumeration {
-            enum dmm {
-                value 1;
-                description "DMM SOAM PDU generated. DMR responses received";
-            }
-            enum dm1-transmitted {
-                value 2;
-                description "1DM SOAM PDU generated";
-            }
-            enum dm1-received {
-                value 3;
-                description "1DM SOAM PDU received and tracked";
-            }
-        }
-        description "type definition for CFM_DM_MEASUREMENT_TYPE_T";
-    }
-
-    typedef  cfm_dm_interval_t {
-        type enumeration {
-            enum 1s {
-                value 4;
-                description "DM PDU Interval 1 second";
-            }
-            enum 10s {
-                value 5;
-                description "DM PDU Interval 10 second";
-            }
-        }
-        description "type definition for CFM_DM_INTERVAL_T";
-    }
-
-    typedef  cfm_dm_data_pattern_t {
-        type enumeration {
-            enum zeroes {
-                value 1;
-                description "Indicates the Data TLV contains all zeros";
-            }
-            enum ones {
-                value 2;
-                description "Indicates the Data TLV contains all ones";
-            }
-        }
-        description "type definition for CFM_DM_DATA_PATTERN_T";
     }
 
     typedef  cfm_dm_measurement_bin_type_t {
@@ -811,11 +591,11 @@ module ipi-cfm-data-types {
         type enumeration {
             enum in-service {
                 value 0;
-                description "This indicates the ETH-Test is in-service and normal client service traffic is not interrupted.";
+                description "This indicates the ETH-Test is in-service and normal client service traffic is not interrupted(default)";
             }
             enum out-of-service {
                 value 1;
-                description "This indicates the ETH-Test is out-of-service and normal client service traffic is disrupted.";
+                description "This indicates the ETH-Test is out-of-service and normal client service traffic is disrupted";
             }
         }
         description "type definition for CFM_TEST_TYPE_T";
@@ -825,7 +605,7 @@ module ipi-cfm-data-types {
         type enumeration {
             enum null-sig {
                 value 1;
-                description "This test pattern is a Null signal without CRC-32";
+                description "This test pattern is a Null signal without CRC-32(default)";
             }
             enum null-sig-crc32 {
                 value 2;
@@ -833,17 +613,17 @@ module ipi-cfm-data-types {
             }
             enum prbs {
                 value 3;
-                description "This test pattern is a PRBS 2^31-1 without CRC-32.";
+                description "This test pattern is a PRBS 2^31-1 without CRC-32";
             }
             enum prbs-crc32 {
                 value 4;
-                description "This test pattern is a PRBS 2^31-1 with CRC-32.";
+                description "This test pattern is a PRBS 2^31-1 with CRC-32";
             }
         }
         description "type definition for CFM_TEST_PATTERN_TYPE_T";
     }
 
-    typedef  cfm_test_node_type_t {
+    typedef  cfm_test_mode_t {
         type enumeration {
             enum generator {
                 value 1;
@@ -851,14 +631,67 @@ module ipi-cfm-data-types {
             }
             enum receiver {
                 value 2;
-                description "The node will act as a ETH-TST Frame Receiver";
+                description "The node will act as a ETH-TST Frame Receiver(default)";
             }
             enum both {
                 value 3;
                 description "The node will act as both ETH-TST Frame Generator and Receiver";
             }
         }
-        description "type definition for CFM_TEST_NODE_TYPE_T";
+        description "type definition for CFM_TEST_MODE_T";
+    }
+
+    typedef  cfm_bn_csf_signal_state_t {
+        type bits {
+            bit SIGNAL_DEGRADED {
+                position 0;
+                description "Signal is degraded";
+            }
+            bit SIGNAL_NORMAL {
+                position 1;
+                description "Signal is normal";
+            }
+            bit SIGNAL_PENDING {
+                position 2;
+                description "Signal is pending";
+            }
+        }
+        description "type definition for CFM_BN_CSF_SIGNAL_STATE_T";
+    }
+
+    typedef  cfm_tst_session_status_t {
+        type enumeration {
+            enum In-progress {
+                value 1;
+                description "The session is on-going";
+            }
+            enum Completed {
+                value 2;
+                description "The session is completed";
+            }
+        }
+        description "type definition for CFM_TST_SESSION_STATUS_T";
+    }
+
+    typedef  cfm_lb_mac_addr_t {
+        type string {
+            pattern "[0-9a-fA-F]{4}.[0-9a-fA-F]{4}.[0-9a-fA-F]{4}";
+        }
+        description "type definition for CFM_LB_MAC_ADDR_T";
+    }
+
+    typedef  cfm_pm_session_status_t {
+        type enumeration {
+            enum not-active {
+                value 0;
+                description "Indicates the measurement instance is not active";
+            }
+            enum active {
+                value 1;
+                description "Indicates the measurement instance is active";
+            }
+        }
+        description "type definition for CFM_PM_SESSION_STATUS_T";
     }
 
 }

@@ -19,9 +19,14 @@ submodule ipi-platform-storage {
 
     belongs-to  ipi-platform { prefix ipi-platform; }
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2022-06-27;
+    }
+
     import ipi-platform-types {
         prefix ipi-platform-types;
-        revision-date 2022-02-17;
+        revision-date 2022-06-01;
     }
 
     organization
@@ -37,6 +42,16 @@ submodule ipi-platform-storage {
         "This module defines a schema for storage components in platform
                 datamodel";
 
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.5.4.";
+    }
+
+    revision "2022-01-26" {
+        description "Moved disk activity monitoring state attributes to a separate container. Also changed some attribute names";
+        reference " 0.5.3.";
+    }
 
     revision "2021-09-03" {
         description "Update descriptions of attribute";
@@ -265,48 +280,6 @@ submodule ipi-platform-storage {
             description "Hard disk's Uncorrectable Sectors Count.";
         } // END of uncorrectable-sector-count definition.
 
-        leaf harddisk-monitoring-interval  {
-            type  int32;
-            units "seconds";
-            description "Hard disk's activity monitoring interval in seconds.";
-        } // END of harddisk-monitoring-interval definition.
-
-        leaf harddisk-monitoring-read  {
-            type  int32;
-            units "KBps";
-            description "Hard disk's average read activity in KBps.";
-        } // END of harddisk-monitoring-read definition.
-
-        leaf harddisk-monitoring-write  {
-            type  int32;
-            units "KBps";
-            description "Hard disk's average write activity in KBps.";
-        } // END of harddisk-monitoring-write definition.
-
-        leaf harddisk-monitoring-read-current  {
-            type  int32;
-            units "KBps";
-            description "Hard disk's current read activity in KBps.";
-        } // END of harddisk-monitoring-read-current definition.
-
-        leaf harddisk-monitoring-write-current  {
-            type  int32;
-            units "KBps";
-            description "Hard disk's current write activity in KBps.";
-        } // END of harddisk-monitoring-write-current definition.
-
-        leaf harddisk-monitoring-read-threshold  {
-            type  int32;
-            units "KBps";
-            description "Hard disk's read activity threshold in KBps.";
-        } // END of harddisk-monitoring-read-threshold definition.
-
-        leaf harddisk-monitoring-write-threshold  {
-            type  int32;
-            units "KBps";
-            description "Hard disk's write activity threshold in KBps.";
-        } // END of harddisk-monitoring-write-threshold definition.
-
         leaf manufacturer-id  {
             type  string {
                 length "1..1965";
@@ -339,11 +312,58 @@ submodule ipi-platform-storage {
         } // END of storage-status definition.
 
     } // END of storage-state definition.
+    grouping harddisk-monitoring-state-attributes {
+        description
+            "Operational state attributes for hard disk monitoring";
+        leaf interval  {
+            type  int32;
+            units "seconds";
+            description "Hard disk's activity monitoring interval in seconds.";
+        } // END of interval definition.
+
+        leaf read-average  {
+            type  int32;
+            units "KBps";
+            description "Hard disk's average read activity in KBps.";
+        } // END of read-average definition.
+
+        leaf write-average  {
+            type  int32;
+            units "KBps";
+            description "Hard disk's average write activity in KBps.";
+        } // END of write-average definition.
+
+        leaf read-current  {
+            type  int32;
+            units "KBps";
+            description "Hard disk's current read activity in KBps.";
+        } // END of read-current definition.
+
+        leaf write-current  {
+            type  int32;
+            units "KBps";
+            description "Hard disk's current write activity in KBps.";
+        } // END of write-current definition.
+
+        leaf read-threshold  {
+            type  int32;
+            units "KBps";
+            description "Hard disk's read activity threshold in KBps.";
+        } // END of read-threshold definition.
+
+        leaf write-threshold  {
+            type  int32;
+            units "KBps";
+            description "Hard disk's write activity threshold in KBps.";
+        } // END of write-threshold definition.
+
+    } // END of harddisk-monitoring-state-attributes definition.
 
     grouping  storage-grouping {
     description
         "Container for storage component";
     container storage {
+        if-feature feature-list:HAVE_CMMD;
         config false;
         description
             "Container for storage component";
@@ -353,6 +373,17 @@ submodule ipi-platform-storage {
                 "Operational state data for storage component";
             uses storage-state;
         } // END of state-container definition.
+        container harddisk-monitoring {
+            config false;
+            description
+                "Container for hard disk monitoring state information";
+            container state {
+                config false;
+                description
+                    "Operational state data for hard disk monitoring";
+                uses harddisk-monitoring-state-attributes;
+            } // END of state-container definition.
+        } // END of harddisk-monitoring-container definition.
         container mounted-filesystems {
             config false;
             description

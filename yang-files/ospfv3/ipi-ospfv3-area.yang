@@ -21,7 +21,7 @@ submodule ipi-ospfv3-area {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-04-28;
+        revision-date 2022-06-27;
     }
 
     import ietf-yang-types {
@@ -36,7 +36,12 @@ submodule ipi-ospfv3-area {
 
     import ipi-ospfv3-types {
         prefix ipi-ospfv3-types;
-        revision-date 2021-11-17;
+        revision-date 2022-06-01;
+    }
+
+    import ipi-ipsec {
+        prefix ipi-ipsec;
+        revision-date 2022-06-13;
     }
 
     organization
@@ -51,6 +56,26 @@ submodule ipi-ospfv3-area {
     description
         "Layer-3 OSPFv3 configurations";
 
+
+    revision "2022-06-13" {
+        description "Removed sa-lifetime attribute from ip-sec module";
+        reference " 0.1.8.";
+    }
+
+    revision "2022-06-07" {
+        description "Changed the dependent module config IPsec Transform-set ESP Configuration data container to a presence container";
+        reference " 0.1.7.";
+    }
+
+    revision "2022-06-01" {
+        description "Updated the yang file with feature";
+        reference " 0.1.6.";
+    }
+
+    revision "2022-05-04" {
+        description "Added authentication-cryptomap attribute for IPSec authentication support of OSPFv3";
+        reference " 0.1.5.";
+    }
 
     revision "2021-10-27" {
         description "Stub and nsssa config container presence, and enable leaf mandatory";
@@ -83,7 +108,7 @@ submodule ipi-ospfv3-area {
         leaf dead-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Interval in seconds. Default is 40 seconds";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             units "seconds";
@@ -96,7 +121,7 @@ submodule ipi-ospfv3-area {
         leaf hello-interval  {
             type  uint16 {
                  range "1..65535"  {
-                    description "1..65535:Interval in seconds. Default is 10 seconds";
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
             units "seconds";
@@ -108,7 +133,7 @@ submodule ipi-ospfv3-area {
         leaf transmission-delay  {
             type  uint16 {
                  range "1..1800"  {
-                    description "1..1800:Interval in seconds. Default is 1 second";
+                    description "1..1800: Supported range 1 - 1800";
                  }
             }
             units "seconds";
@@ -120,7 +145,7 @@ submodule ipi-ospfv3-area {
         leaf retransmission-interval  {
             type  uint16 {
                  range "1..1800"  {
-                    description "1..1800:Interval in seconds. Default is 5 seconds";
+                    description "1..1800: Supported range 1 - 1800";
                  }
             }
             units "seconds";
@@ -245,12 +270,21 @@ submodule ipi-ospfv3-area {
         leaf instance-id  {
             type  uint8 {
                  range "0..31 | 64..95"  {
-                    description "0..31:Instance ID for IPv6 unicast,64..95:Instance ID for IPv4 unicast";
+                    description "0..31: Supported range 0 - 31,64..95: Supported range 64 - 95";
                  }
             }
             default "0";
             description "The OSPFv3 instance.";
         } // END of instance-id definition.
+
+        leaf authentication-cryptomap  {
+            if-feature feature-list:HAVE_IPSEC;
+            if-feature feature-list:HAVE_TUNNEL;
+            type  leafref {
+                path  "/ipi-ipsec:ipsec/ipi-ipsec:crypto-maps/ipi-ipsec:crypto-map/ipi-ipsec:config/ipi-ipsec:name";
+            }
+            description "Use this attribute to set the Crypto-map used to setup IPsec SA.";
+        } // END of authentication-cryptomap definition.
 
     } // END of ospfv3-area-virtual-link-config definition.
     grouping ospfv3-area-virtual-link-top {
@@ -357,7 +391,7 @@ submodule ipi-ospfv3-area {
             when " /ospfv3/processes/process/areas/area/nssa/config/enable ";
             type  uint32 {
                  range "0..2147483647"  {
-                    description "0..2147483647:Stability interval values in seconds";
+                    description "0..2147483647: Supported range 0 - 2147483647";
                  }
             }
             units "seconds";
@@ -388,7 +422,7 @@ submodule ipi-ospfv3-area {
             when " /ospfv3/processes/process/areas/area/nssa/config/default-information-originate ";
             type  uint32 {
                  range "0..16777214"  {
-                    description "0..16777214:OSPFv3 metric values";
+                    description "0..16777214: Supported range 0 - 16777214";
                  }
             }
             default "0";
@@ -483,7 +517,7 @@ submodule ipi-ospfv3-area {
             when " /ospfv3/processes/process/areas/area/stub/config/enable  or /ospfv3/processes/process/areas/area/nssa/config/enable ";
             type  uint32 {
                  range "0..16777215"  {
-                    description "0..16777215:Default cost values";
+                    description "0..16777215: Supported range 0 - 16777215";
                  }
             }
             default "1";
