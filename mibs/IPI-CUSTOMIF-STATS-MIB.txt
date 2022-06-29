@@ -22,6 +22,7 @@ customIfMib MODULE-IDENTITY
 customIfTable     OBJECT IDENTIFIER ::={ customIfMib 1}
 cpuStatsObjects   OBJECT IDENTIFIER ::={ customIfMib 2}
 customIfAlarmObjects   OBJECT IDENTIFIER ::={ customIfMib 3}
+customIfGlobalObjects   OBJECT IDENTIFIER ::={ customIfMib 4}
 
 ifDropStatsTable     OBJECT-TYPE
     SYNTAX      SEQUENCE OF IFDropStatsEntry
@@ -1400,30 +1401,29 @@ ifStormCtrlTotalDiscards  OBJECT-TYPE
            "Storm control DLF Discard packets count."
     ::= { ifStormCtrlEntry 19 }
 
-ifLbStatsTable     OBJECT-TYPE
-    SYNTAX      SEQUENCE OF IFLbStatsEntry
+
+--- ##Link Bonding Table####
+
+ifLbgTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF IfLbgEntry
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
-            "A Table object containing Link Bonding and Modem Statistics"
+            "A Table object containing Link Bonding details"
     ::= { customIfTable 8 }
 
-ifLbStatsEntry    OBJECT-TYPE
-    SYNTAX      IFLbStatsEntry
+ifLbgEntry    OBJECT-TYPE
+    SYNTAX      IfLbgEntry
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
-            "An entry containing Link Bonding and Modem Statistics"
+            "An entry containing Link Bonding details"
     INDEX   { ifIndex }
-    ::= { ifLbStatsTable 1 }
+    ::= { ifLbgTable 1 }
 
-IFLbStatsEntry ::=
+IfLbgEntry ::=
     SEQUENCE {
-              ifLbgInErrors                     Counter64,
-              ifModemOutSegments                Counter64,
-              ifModemOutSegmentBytes            Counter64,
-              ifModemInSegments                 Counter64,
-              ifModemInSegmentBytes             Counter64
+              ifLbgInErrors                     Counter64
              }
 
 ifLbgInErrors  OBJECT-TYPE
@@ -1432,7 +1432,35 @@ ifLbgInErrors  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "LBG dropped segment count."
-    ::= { ifLbStatsEntry 1 }
+    ::= { ifLbgEntry 1 }
+
+
+--- ##Link Bonding Modem Table####
+
+ifLbModemTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF IfLbModemEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A Table object containing Link bonding Modem details"
+    ::= { customIfTable 9 }
+
+ifLbModemEntry    OBJECT-TYPE
+    SYNTAX      IfLbModemEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry containing Link Bonding and Modem Statistics"
+    INDEX   { ifIndex }
+    ::= { ifLbModemTable 1 }
+
+IfLbModemEntry ::=
+    SEQUENCE {
+              ifModemOutSegments                Counter64,
+              ifModemOutSegmentBytes            Counter64,
+              ifModemInSegments                 Counter64,
+              ifModemInSegmentBytes             Counter64
+             }
 
 ifModemOutSegments  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1440,7 +1468,7 @@ ifModemOutSegments  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "Modem transmitted segment count"
-    ::= { ifLbStatsEntry 2 }
+    ::= { ifLbModemEntry 1 }
 
 ifModemOutSegmentBytes  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1448,7 +1476,7 @@ ifModemOutSegmentBytes  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "Modem transmitted Segment byte count."
-    ::= { ifLbStatsEntry 3 }
+    ::= { ifLbModemEntry 2 }
 
 ifModemInSegments  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1456,7 +1484,7 @@ ifModemInSegments  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "Modem received segment count."
-    ::= { ifLbStatsEntry 4 }
+    ::= { ifLbModemEntry 3 }
 
 ifModemInSegmentBytes  OBJECT-TYPE
     SYNTAX      Counter64
@@ -1464,7 +1492,41 @@ ifModemInSegmentBytes  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
            "Modem received segment byte count."
-    ::= { ifLbStatsEntry 5 }
+    ::= { ifLbModemEntry 4 }
+
+
+--- ## Custom State Table####
+
+ifCustomStateTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF IfCustomStateEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A Table object containing custom interface state information"
+    ::= { customIfTable 10 }
+
+ifCustomStateEntry    OBJECT-TYPE
+    SYNTAX      IfCustomStateEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry containing custom interface state"
+    INDEX   { ifIndex }
+    ::= { ifCustomStateTable 1 }
+
+IfCustomStateEntry ::=
+    SEQUENCE {
+              ifCurBandwidth                 Integer32
+             }
+
+ifCurBandwidth OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Interface current bandwidth."
+    ::= { ifCustomStateEntry 1 }
+
 
 --- ###CPU STATISTICS GROUP ####
 
@@ -2218,6 +2280,7 @@ cpuQueueMonitor    OBJECT-TYPE
     cpuQueueNotifications     OBJECT IDENTIFIER ::= { customIfAlarmObjects 2 }
     customIfSpeedUtilTraps    OBJECT IDENTIFIER ::= { customIfAlarmObjects 3 }
     customIfStormNotification OBJECT IDENTIFIER ::= { customIfAlarmObjects 4 }
+    customIfStateNotification OBJECT IDENTIFIER ::= { customIfAlarmObjects 5 }
 
     --
     -- INTERFACE RELATED TRAPS
@@ -2468,5 +2531,123 @@ cpuQueueMonitor    OBJECT-TYPE
             "Trap to send Storm control rate-limit discards stop notification 
              on interface."
         ::= { customIfStormNotification 2 }
+
+    ifBandwidthStartNotification   NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      ifCurBandwidth
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when interface shaper is open"
+        ::= { customIfStateNotification 1 }
+
+    ifBandwidthUpgradeNotification   NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      ifCurBandwidth
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when interface bandwidth is upgraded"
+        ::= { customIfStateNotification 2 }
+
+    ifBandwidthDowngradeNofitication   NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      ifCurBandwidth
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when interface bandwidth is downgraded"
+        ::= { customIfStateNotification 3 }
+
+    ifBandwidthCloseAlarm   NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      ifCurBandwidth
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send when interface bandwidth is 0"
+        ::= { customIfStateNotification 4 }
+
+--- ##Link Bonding Global Table####
+
+ifLbGlobalTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF IfLbGlobalEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A Table object containing Link bonding Global details"
+    ::= { customIfGlobalObjects 1 }
+
+ifLbGlobalEntry    OBJECT-TYPE
+    SYNTAX      IfLbGlobalEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry containing Link Bonding Global details"
+    ::= { ifLbGlobalTable 1 }
+
+IfLbGlobalEntry ::=
+    SEQUENCE {
+              ifGlobalInSegmentsDrop            Counter64,
+              ifGlobalInPackets                 Counter64,
+              ifGlobalInBypassPackets           Counter64,
+              ifGlobalOutErrorPackets           Counter64,
+              ifGlobalOutControlPackets         Counter64,
+              ifGlobalOutControlBytes           Counter64
+             }
+
+ifGlobalInSegmentsDrop      OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Global counter for LBG RX segment Drops"
+    ::= { ifLbGlobalEntry 1 }
+
+ifGlobalInPackets           OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Global counter for LBG RX Packets"
+    ::= { ifLbGlobalEntry 2 }
+
+ifGlobalInBypassPackets     OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Global counter for LBG RX which are not LBG packets "
+    ::= { ifLbGlobalEntry 3 }
+
+
+ifGlobalOutErrorPackets     OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Global counter for LBG TX error packets"
+    ::= { ifLbGlobalEntry 4 }
+
+
+ifGlobalOutControlPackets   OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Global counter for TX Control packets"
+    ::= { ifLbGlobalEntry 5 }
+
+ifGlobalOutControlBytes     OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "Global counter for TX Control Bytes"
+    ::= { ifLbGlobalEntry 6 }
 
 END
