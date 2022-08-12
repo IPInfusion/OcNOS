@@ -21,7 +21,7 @@ submodule ipi-bgp-peer {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     import cml-data-types {
@@ -34,8 +34,8 @@ submodule ipi-bgp-peer {
         revision-date 2022-06-01;
     }
 
-    include ipi-bgp-common { revision-date 2022-06-20;}
-    include ipi-bgp-address-family { revision-date 2022-06-20;}
+    include ipi-bgp-common { revision-date 2022-07-06;}
+    include ipi-bgp-address-family { revision-date 2022-07-16;}
     include ipi-bgp-epe { revision-date 2022-06-01;}
     organization
         "IP Infusion Inc.";
@@ -49,6 +49,16 @@ submodule ipi-bgp-peer {
     description
         "";
 
+
+    revision "2022-07-06" {
+        description "Skipped dependency validation for a composite constraint of peer-as and peer-group-tag for BGP peer";
+        reference " 0.11.4.";
+    }
+
+    revision "2022-06-27" {
+        description "Added support for 'allow-as-number' in 'address-family ipv4 labeled-unicast' mode.";
+        reference " 0.11.3.";
+    }
 
     revision "2022-06-21" {
         description "Updated when tag constraints for peer's mapped peer-group tag attribute";
@@ -167,7 +177,6 @@ submodule ipi-bgp-peer {
         "List of BGP neighbors configured on the local system, uniquely
                     identified by peer IPv[46] address";
         list peer {
-        when " /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
             if-feature feature-list:HAVE_BGPD;
             key "peer-address";
             description
@@ -183,7 +192,7 @@ submodule ipi-bgp-peer {
 
 
             list bgp-password {
-            when " /bgp/bgp-instance/peer/bgp-password/config/auth-key-encrypt + /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
+            when " /bgp/bgp-instance/peer/bgp-password/config/auth-key-encrypt and /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
                 key "password";
                 max-elements 1;
                 description
@@ -209,7 +218,7 @@ submodule ipi-bgp-peer {
             } // End of bgp-password-list
 
             list address-family {
-            when " /bgp/bgp-instance/address-family/afi + /bgp/bgp-instance/address-family/safi ";
+            when " /bgp/bgp-instance/address-family/afi and /bgp/bgp-instance/address-family/safi ";
                 key "afi safi";
                 description
                     "Container for address-family for BGP Peer";
@@ -502,7 +511,7 @@ submodule ipi-bgp-peer {
                 uses bgp-peer-common-state;
             } // END of state-container definition.
             container timers {
-                when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
+                when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
                 description
                     "container for bgp timers";
                 container config {
@@ -551,7 +560,7 @@ submodule ipi-bgp-peer {
         } // END of graceful-shut definition.
 
         leaf enable-peer-bfd  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer";
@@ -592,7 +601,7 @@ submodule ipi-bgp-peer {
         } // END of peer-restart-time definition.
 
         leaf peer-local-as  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  uint32 {
                  range "1..4294967295"  {
                     description "1..4294967295: Supported range 1 - 4294967295";
@@ -612,7 +621,7 @@ submodule ipi-bgp-peer {
         } // END of peer-description definition.
 
         leaf enable-ebgp-multihop  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/ebgp-maximum-hop-count) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/ebgp-maximum-hop-count) ";
             type  empty;
             description "Accept and attempt BGP connections to external peers on indirectly
                         connected networks. Multihop is not established if the only route to
@@ -620,7 +629,7 @@ submodule ipi-bgp-peer {
         } // END of enable-ebgp-multihop definition.
 
         leaf ebgp-maximum-hop-count  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/enable-ebgp-multihop) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/enable-ebgp-multihop) ";
             type  uint8 {
                  range "1..255"  {
                     description "1..255: Supported range 1 - 255";
@@ -632,7 +641,7 @@ submodule ipi-bgp-peer {
         } // END of ebgp-maximum-hop-count definition.
 
         leaf peer-connect-interval  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535: Supported range 1 - 65535";
@@ -649,7 +658,7 @@ submodule ipi-bgp-peer {
         } // END of peer-connect-interval definition.
 
         leaf peer-as-origin-interval  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535: Supported range 1 - 65535";
@@ -661,7 +670,7 @@ submodule ipi-bgp-peer {
         } // END of peer-as-origin-interval definition.
 
         leaf min-route-advertisement-interval  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  uint32 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -690,7 +699,6 @@ submodule ipi-bgp-peer {
         } // END of collide-established definition.
 
         leaf source-identifier  {
-            when " /bgp/bgp-instance/peer/config/peer-as  or /bgp/bgp-instance/peer/config/mapped-peer-group-tag ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -726,7 +734,7 @@ submodule ipi-bgp-peer {
         } // END of neighbor-strict-capability-match definition.
 
         leaf disallow-infinite-hold-time  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  empty;
             description "Disallow configuration of infinite hold-time. A hold-time of 0 seconds
                         from the peer (during exchange of open messages) or the user (during
@@ -734,7 +742,7 @@ submodule ipi-bgp-peer {
         } // END of disallow-infinite-hold-time definition.
 
         leaf disable-capability-negotiation  {
-            when " /bgp/bgp-instance/peer/config/peer-as  + not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
+            when " /bgp/bgp-instance/peer/config/peer-as  and not(/bgp/bgp-instance/peer/config/mapped-peer-group-tag) ";
             type  empty;
             description "Disable the capability negotiation. It allows compatibility with older
                         BGP versions that have no capability parameters used in open messages

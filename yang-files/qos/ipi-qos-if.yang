@@ -28,7 +28,7 @@ module ipi-qos-if {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2022-06-01;
+        revision-date 2022-07-28;
     }
 
     import ipi-qos-types {
@@ -38,12 +38,12 @@ module ipi-qos-if {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -58,6 +58,31 @@ module ipi-qos-if {
     description
         "Quality of Service (QoS) interface information";
 
+
+    revision "2022-07-28" {
+        description "Added dependentObject for policy-map configs in interface";
+        reference " 0.1.4.";
+    }
+
+    revision "2022-07-19" {
+        description "Removed autoPopulate from interfaces container";
+        reference " 0.1.3.";
+    }
+
+    revision "2022-07-16" {
+        description "Global yang model name is changed as Global TE yang model";
+        reference " 0.1.2.";
+    }
+
+    revision "2022-07-12" {
+        description "Added pattern check for bandwidth related commands in MPLS yang model";
+        reference " 0.1.1.";
+    }
+
+    revision "2022-06-21" {
+        description "Changes in the MPLS yang model w.r.t to admin-groups";
+        reference " 0.1.0.";
+    }
 
     revision "2022-06-15" {
         description "Changed the interface name key to be a leafref to the attribute name on config container";
@@ -135,7 +160,7 @@ module ipi-qos-if {
         } // END of name definition.
 
         leaf untagged-priority  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  uint8 {
                  range "0..7"  {
                     description "0..7: Supported range 0 - 7";
@@ -233,7 +258,7 @@ module ipi-qos-if {
         description
             "Grouping for QoS remark configuration";
         leaf cos  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  ipi-qos-types:cml_remark_state_t;
             description "Use this command to enable/disable remarking of CoS set by the egress
                         map";
@@ -258,7 +283,7 @@ module ipi-qos-if {
         description
             "Grouping for QoS map profile reference configuration";
         leaf cos-to-queue  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -267,7 +292,7 @@ module ipi-qos-if {
         } // END of cos-to-queue definition.
 
         leaf dscp-to-dscp  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
                 length "1..1965";
@@ -277,7 +302,7 @@ module ipi-qos-if {
         } // END of dscp-to-dscp definition.
 
         leaf precedence-to-precedence  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
                 length "1..1965";
@@ -305,7 +330,7 @@ module ipi-qos-if {
         } // END of precedence-to-queue definition.
 
         leaf exp-encapsulation  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             if-feature feature-list:HAVE_DIFFSERV;
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             if-feature feature-list:NOT_HAVE_CUSTOM3_QOS;
@@ -318,7 +343,7 @@ module ipi-qos-if {
         } // END of exp-encapsulation definition.
 
         leaf dscp-encapsulation  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
                 length "1..1965";
@@ -329,7 +354,7 @@ module ipi-qos-if {
         } // END of dscp-encapsulation definition.
 
         leaf queue-color-to-cos  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -359,7 +384,7 @@ module ipi-qos-if {
         } // END of queue-to-precedence definition.
 
         leaf queue-to-exp  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             if-feature feature-list:HAVE_DIFFSERV;
             if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM3_QOS;
             type  string {

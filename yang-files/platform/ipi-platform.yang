@@ -23,7 +23,7 @@ module ipi-platform {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-platform-types {
@@ -48,7 +48,7 @@ module ipi-platform {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     include ipi-platform-temperature { revision-date 2022-06-01;}
@@ -57,14 +57,14 @@ module ipi-platform {
     include ipi-platform-ram { revision-date 2022-06-01;}
     include ipi-platform-transceiver { revision-date 2022-06-01;}
     include ipi-platform-power-supply { revision-date 2022-06-01;}
-    include ipi-platform-fan { revision-date 2021-09-03;}
+    include ipi-platform-fan { revision-date 2022-07-12;}
     include ipi-platform-fan-tray { revision-date 2022-06-01;}
     include ipi-platform-chassis { revision-date 2022-06-01;}
     include ipi-platform-linecard { revision-date 2022-06-01;}
     include ipi-platform-power-rail { revision-date 2022-06-01;}
     include ipi-platform-ceragon { revision-date 2022-06-01;}
-    include ipi-platform-profile { revision-date 2022-06-01;}
-    include ipi-platform-profile-extended { revision-date 2022-06-01;}
+    include ipi-platform-profile { revision-date 2022-07-22;}
+    include ipi-platform-profile-extended { revision-date 2022-07-22;}
     organization
         "IP Infusion Inc.";
 
@@ -81,6 +81,31 @@ module ipi-platform {
                 relationship supported by the model is containment, e.g.,
                 components containing subcomponents.";
 
+
+    revision "2022-07-22" {
+        description "Enabling RTAG7 MPLS option";
+        reference " 0.12.19.";
+    }
+
+    revision "2022-07-20" {
+        description "Updated submodules platform-profile and platform-profile-extended";
+        reference " 0.12.18.";
+    }
+
+    revision "2022-07-12" {
+        description "New notifications added for FAN rpm changes";
+        reference " 0.12.17.";
+    }
+
+    revision "2022-07-05" {
+        description "Updated ipi-platform-profile submodule";
+        reference " 0.12.16.";
+    }
+
+    revision "2022-06-27" {
+        description "Added new attribute for hardware-profile seamless-bfd (enable|disable)";
+        reference " 0.12.16.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -929,21 +954,21 @@ module ipi-platform {
                     "Use this attribute to choose fixed mode.";
 
                 leaf gps-fixed-latitude  {
-                    when " ../gps-fixed-longitude + ../gps-fixed-altitude ";
+                    when " ../gps-fixed-longitude and ../gps-fixed-altitude ";
                     type  decimal64 {
                          fraction-digits 6;                    }
                     description "gps fixed latitude in decimal degree format";
                 } // END of gps-fixed-latitude definition.
 
                 leaf gps-fixed-longitude  {
-                    when " ../gps-fixed-latitude + ../gps-fixed-altitude ";
+                    when " ../gps-fixed-latitude and ../gps-fixed-altitude ";
                     type  decimal64 {
                          fraction-digits 6;                    }
                     description "GPS fixed longitude in decimal degree format";
                 } // END of gps-fixed-longitude definition.
 
                 leaf gps-fixed-altitude  {
-                    when " ../gps-fixed-latitude + ../gps-fixed-longitude ";
+                    when " ../gps-fixed-latitude and ../gps-fixed-longitude ";
                     type  decimal64 {
                          fraction-digits 6;                    }
                     description "GPS fixed altitude in meters";
@@ -1197,12 +1222,14 @@ module ipi-platform {
     uses hardware-grouping;
 
     rpc ddm-clear-transceiver-alarm-all {
+        if-feature feature-list:NOT_HAVE_TIBIT;
         if-feature feature-list:HAVE_CMMD;
         description "Use ddm-clear-transceiver-alarm-all to clear alarms from all
                     transceivers";
     }
 
     rpc ddm-clear-transceiver-alarm {
+        if-feature feature-list:NOT_HAVE_TIBIT;
         if-feature feature-list:HAVE_CMMD;
         description "Use ddm-clear-transceiver-alarm-all to clear alarm from transceiver";
         input  {
@@ -1215,11 +1242,13 @@ module ipi-platform {
     }
 
     rpc debug-ddm-on {
+        if-feature feature-list:NOT_HAVE_TIBIT;
         if-feature feature-list:HAVE_CMMD;
         description "Use debug-ddm-on to enable debug for digital diagnostic monitoring";
     }
 
     rpc debug-ddm-off {
+        if-feature feature-list:NOT_HAVE_TIBIT;
         if-feature feature-list:HAVE_CMMD;
         description "Use debug-ddm-off to disable debug for digital diagnostic monitoring";
     }
@@ -6078,12 +6107,12 @@ module ipi-platform {
         }
     }
 
-    notification fan-rpm-min-alert {
+    notification fan-rpm-min-notify {
         if-feature feature-list:HAVE_CMMD;
 
         description "This notification is sent when fan RPM set to its minimum value..";
 
-        // severity "CRITICAL";
+        // severity "INFO";
 
         // eventClass "STATE";
 
@@ -6119,6 +6148,50 @@ module ipi-platform {
             type  uint32;
         description
             "Value represents the maximum supported RPM of fan";
+        }
+    }
+
+    notification fan-rpm-decreased-notify {
+        if-feature feature-list:HAVE_CMMD;
+
+        description "This notification is sent when fan RPM decreased from previous RPM..";
+
+        // severity "INFO";
+
+        // eventClass "STATE";
+
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf rpm {
+            type  uint32;
+        description
+            "Fan speed expressed in Rotations Per Minute";
+        }
+    }
+
+    notification fan-rpm-increased-notify {
+        if-feature feature-list:HAVE_CMMD;
+
+        description "This notification is sent when fan RPM increased from previous RPM..";
+
+        // severity "INFO";
+
+        // eventClass "STATE";
+
+        leaf name {
+            type  string;
+        description
+            "References the component name";
+        }
+
+        leaf rpm {
+            type  uint32;
+        description
+            "Fan speed expressed in Rotations Per Minute";
         }
     }
 
