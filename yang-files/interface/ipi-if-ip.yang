@@ -33,12 +33,12 @@ module ipi-if-ip {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2022-06-01;
+        revision-date 2022-07-13;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ietf-inet-types {
@@ -48,7 +48,7 @@ module ipi-if-ip {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -63,6 +63,21 @@ module ipi-if-ip {
     description
         "Datamodel for IP interface module";
 
+
+    revision "2022-07-21" {
+        description "Added dependent ibject for ipv6 address list";
+        reference " 0.14.0.";
+    }
+
+    revision "2022-07-08" {
+        description "Added new attributes to support Get api for auto-ipv6-address learn from peer";
+        reference " 0.13.0.";
+    }
+
+    revision "2022-06-29" {
+        description "Added base interface config as dependent object for ipv4 and ipv6 address config containers";
+        reference " 0.12.0.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -135,7 +150,7 @@ module ipi-if-ip {
         } // END of primary-ip-addr definition.
 
         leaf enable-dhcp-ip-address  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             if-feature feature-list:HAVE_DHCP_CLIENT;
             type  empty;
             description "Use this attribute to  specify that a DHCP client will be used to
@@ -301,6 +316,34 @@ module ipi-if-ip {
         } // END of forwarding-status definition.
 
     } // END of ipv6-interface-state definition.
+    grouping auto-ipv6-addr-state {
+        description
+            "Learnt IPV6 address operational data for the interface";
+        leaf ipv6-address  {
+            type  inet:ipv6-prefix;
+            description "Use this attribute to get the Auto IPv6 address of an interface";
+        } // END of ipv6-address definition.
+
+        leaf anycast  {
+            type  empty;
+            description "Use this attribute to get the anycast flag for the Auto IPv6
+                        address of an interface.";
+        } // END of anycast definition.
+
+        leaf virtual  {
+            type  empty;
+            description "Use this attribute to get the virtual flag for the Auto IPv6
+                        address of an interface.";
+        } // END of virtual definition.
+
+        leaf vrrp  {
+            if-feature feature-list:HAVE_VRRP_V3;
+            type  empty;
+            description "Use this attribute to get the vrrp flag for the Auto IPv6
+                        address of an interface.";
+        } // END of vrrp definition.
+
+    } // END of auto-ipv6-addr-state definition.
     grouping ip-global-config {
         description
             "Global IP related configuration data for the router";
@@ -415,7 +458,7 @@ module ipi-if-ip {
             "Parameters for the IPv6 address family";
 
         list addresses {
-        when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+        when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             if-feature feature-list:HAVE_IPV6;
             key "ipv6-address";
             description
@@ -451,6 +494,32 @@ module ipi-if-ip {
             uses ipv6-interface-config;
             uses ipv6-interface-state;
         } // END of state-container definition.
+        container auto-addresses {
+            if-feature feature-list:HAVE_IPV6;
+            config false;
+            description
+                "Parameters for the Learnt IPv6 address from Peer";
+
+            list auto-address {
+                key "ipv6-address";
+                config false;
+                description
+                    "List of Learnt IPv6 address from Peer";
+                leaf ipv6-address  {
+                    type  leafref {
+                        path  "../state/ipv6-address";
+                    }
+                    description "Use this attribute to get the Auto IPv6 address of an interface";
+                } // END of ipv6-address definition.
+
+                container state {
+                    config false;
+                    description
+                        "Learnt IPv6 address list operational data for the interface";
+                    uses auto-ipv6-addr-state;
+                } // END of state-container definition.
+            } // End of auto-address-list
+        } // END of auto-addresses-container definition.
     } // END of ipv6-container definition.
     } // END of ipv6-grouping definition.
 

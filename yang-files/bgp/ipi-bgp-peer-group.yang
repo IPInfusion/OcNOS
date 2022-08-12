@@ -21,7 +21,7 @@ submodule ipi-bgp-peer-group {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     import cml-data-types {
@@ -34,8 +34,8 @@ submodule ipi-bgp-peer-group {
         revision-date 2022-06-01;
     }
 
-    include ipi-bgp-common { revision-date 2022-06-20;}
-    include ipi-bgp-address-family { revision-date 2022-06-20;}
+    include ipi-bgp-common { revision-date 2022-07-06;}
+    include ipi-bgp-address-family { revision-date 2022-07-16;}
     organization
         "IP Infusion Inc.";
 
@@ -48,6 +48,11 @@ submodule ipi-bgp-peer-group {
     description
         "";
 
+
+    revision "2022-07-06" {
+        description "Skipped dependency validation for a composite constraint of peer-as and peer-group-tag for BGP peer";
+        reference " 0.7.2.";
+    }
 
     revision "2022-06-20" {
         description "Added new attribute 'de-activate' for BGP Peer-group feature.";
@@ -152,7 +157,7 @@ submodule ipi-bgp-peer-group {
 
 
             list bgp-password {
-            when " /bgp/bgp-instance/peer-group/bgp-password/config/auth-key-encrypt + /bgp/bgp-instance/peer-group/config/peer-as ";
+            when " /bgp/bgp-instance/peer-group/bgp-password/config/auth-key-encrypt and /bgp/bgp-instance/peer-group/config/peer-as ";
                 key "password";
                 max-elements 1;
                 description
@@ -241,7 +246,7 @@ submodule ipi-bgp-peer-group {
                     "Container for list of address-families for BGP Peer";
 
                 list address-family {
-                when " /bgp/bgp-instance/address-family/afi + /bgp/bgp-instance/address-family/safi ";
+                when " /bgp/bgp-instance/address-family/afi and /bgp/bgp-instance/address-family/safi ";
                     key "afi safi";
                     description
                         "List for address-family for BGP Peer";
@@ -392,7 +397,7 @@ submodule ipi-bgp-peer-group {
                             "Container for Route map Filters";
 
                         list route-map-filter {
-                        when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate + /bgp/bgp-instance/peer-group/address-families/address-family/route-map-filters/route-map-filter/config/route-map-name ";
+                        when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate and /bgp/bgp-instance/peer-group/address-families/address-family/route-map-filters/route-map-filter/config/route-map-name ";
                             key "route-map-direction";
                             description
                                 "List of Route map Filter";
@@ -473,7 +478,7 @@ submodule ipi-bgp-peer-group {
         } // END of activate definition.
 
         leaf default-peer-route-map-name  {
-            when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate  + not(/bgp/bgp-instance/peer-group/address-families/address-family/config/peer-route-map-orig-name) ";
+            when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate  and not(/bgp/bgp-instance/peer-group/address-families/address-family/config/peer-route-map-orig-name) ";
             type  empty;
             description "This attribute allows a BGP local router to send the default route
                         0.0.0.0 to a neighbor for use as a default route for specified
@@ -481,7 +486,7 @@ submodule ipi-bgp-peer-group {
         } // END of default-peer-route-map-name definition.
 
         leaf peer-route-map-orig-name  {
-            when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate  + not(/bgp/bgp-instance/peer-group/address-families/address-family/config/default-peer-route-map-name) ";
+            when " /bgp/bgp-instance/peer-group/address-families/address-family/config/activate  and not(/bgp/bgp-instance/peer-group/address-families/address-family/config/default-peer-route-map-name) ";
             type  string {
                 length "1..63";
                 pattern "[^?' =,>|]+";
@@ -731,7 +736,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-description definition.
 
         leaf enable-ebgp-multihop  {
-            when " not(/bgp/bgp-instance/peer-group/config/ebgp-maximum-hop-count) + /bgp/bgp-instance/peer-group/config/peer-as ";
+            when " not(/bgp/bgp-instance/peer-group/config/ebgp-maximum-hop-count) and /bgp/bgp-instance/peer-group/config/peer-as ";
             type  empty;
             description "Accept and attempt BGP connections to external peer-groups on
                         indirectly connected networks. Multihop is not established if the only
@@ -740,7 +745,7 @@ submodule ipi-bgp-peer-group {
         } // END of enable-ebgp-multihop definition.
 
         leaf ebgp-maximum-hop-count  {
-            when " not(/bgp/bgp-instance/peer-group/config/enable-ebgp-multihop) + /bgp/bgp-instance/peer-group/config/peer-as ";
+            when " not(/bgp/bgp-instance/peer-group/config/enable-ebgp-multihop) and /bgp/bgp-instance/peer-group/config/peer-as ";
             type  uint8 {
                  range "1..255"  {
                     description "1..255: Supported range 1 - 255";

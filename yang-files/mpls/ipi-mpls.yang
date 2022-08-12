@@ -33,7 +33,12 @@ module ipi-mpls {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
+    }
+
+    import ipi-global-te {
+        prefix ipi-global-te;
+        revision-date 2022-07-11;
     }
 
     import ietf-yang-types {
@@ -43,7 +48,7 @@ module ipi-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -58,6 +63,26 @@ module ipi-mpls {
     description
         "Data model for MPLS";
 
+
+    revision "2022-07-16" {
+        description "Global yang model name is changed as Global TE yang model";
+        reference " 0.6.4.";
+    }
+
+    revision "2022-07-12" {
+        description "Added pattern check for bandwidth related commands";
+        reference " 0.6.3.";
+    }
+
+    revision "2022-07-07" {
+        description "Fix for MPLS debug deletion";
+        reference " 0.6.1.";
+    }
+
+    revision "2022-06-21" {
+        description "Changes in the yang model WRT to admin-groups";
+        reference " 0.6.1.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -249,35 +274,13 @@ module ipi-mpls {
         } // END of label-space definition.
 
     } // END of mpls-interface-label-switching-config definition.
-    grouping mpls-admin-group-config {
-        description
-            "MPLS Administrative Group Configurations";
-        leaf name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to create a name-to-value binding for an
-                        administrative group";
-        } // END of name definition.
-
-        leaf id  {
-            type  uint8 {
-                 range "0..31"  {
-                    description "0..31: Supported range 0 - 31";
-                 }
-            }
-            description "identifier value for the administrative group";
-        } // END of id definition.
-
-    } // END of mpls-admin-group-config definition.
     grouping mpls-interface-bandwidth-config {
         description
             "MPLS Interface Bandwidth Configurations";
         leaf-list admin-group-name  {
             if-feature feature-list:HAVE_TE;
             type  leafref {
-                path  "/mpls/admin-group/name";
+                path  "/ipi-global-te:admin-groups/ipi-global-te:admin-group/ipi-global-te:name";
             }
             description "Use this attribute to create an administrative group to be used for
                         links. Each link can be a member of one or more, or no administrative
@@ -291,24 +294,24 @@ module ipi-mpls {
             if-feature feature-list:NOT_IF_BANDWIDTH_INFO;
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
             }
-            default "0";
             description "Use this attribute to specify a discrete, maximum bandwidth value for
-                        the interface. The bandwidth attribute takes input in kbps, mbps and
-                        gbps.";
+                        the interface. The bandwidth attribute takes input ranges from 1 to
+                        999 kbps, 1 to 999 mbps and 1 to 100 gbps.";
         } // END of bandwidth definition.
 
         leaf reservable-bandwidth  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+            when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
             if-feature feature-list:HAVE_TE;
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
             }
             description "Use this attribute to specify the maximum reservable bandwidth per
                         interface. This value can be equal or smaller value than
-                        max-bandwidth.";
+                        max-bandwidth. Attribute takes input from 1 to 999 kbps, 1 to 999 mbps
+                        and 1 to 100 gbps";
         } // END of reservable-bandwidth definition.
 
         leaf-list shared-risk-link-group  {
@@ -326,11 +329,11 @@ module ipi-mpls {
             if-feature feature-list:NOT_IF_BANDWIDTH_INFO;
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "(([0-9]{1,3}[m|M|k|K]{1})|([0-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([0-9]{1,2}[g|G]{1})|(100[g|G]{1}))+";
             }
             description "Use this attribute to specify a unidirectional, available bandwidth
-                        value for the interface. The bandwidth attribute takes input in kbps,
-                        mbps and gbps.";
+                        value for the interface. The bandwidth attribute takes input in 0-999
+                        kbps, 0-999 mbps and 0-100 gbps.";
         } // END of uni-available-bandwidth definition.
 
         leaf uni-residual-bandwidth  {
@@ -338,11 +341,11 @@ module ipi-mpls {
             if-feature feature-list:NOT_IF_BANDWIDTH_INFO;
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "(([0-9]{1,3}[m|M|k|K]{1})|([0-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([0-9]{1,2}[g|G]{1})|(100[g|G]{1}))+";
             }
-            description "Use this attribute to specify a unidirectional, residual bandwidth
-                        value for the interface. The bandwidth attribute takes input in kbps,
-                        mbps and gbps.";
+            description "Use this attribute to specify a unidirectional, residual  bandwidth
+                        value for the interface. The bandwidth attribute takes input in 0-999
+                        kbps, 0-999 mbps and 0-100 gbps.";
         } // END of uni-residual-bandwidth definition.
 
         leaf uni-utilized-bandwidth  {
@@ -350,11 +353,11 @@ module ipi-mpls {
             if-feature feature-list:NOT_IF_BANDWIDTH_INFO;
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "(([0-9]{1,3}[m|M|k|K]{1})|([0-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([0-9]{1,2}[g|G]{1})|(100[g|G]{1}))+";
             }
             description "Use this attribute to specify a unidirectional, utilised bandwidth
-                        value for the interface. The bandwidth attribute takes input in kbps,
-                        mbps and gbps.";
+                        value for the interface. The bandwidth attribute takes input in 0 to
+                        999 kbps, 0 to 999 mbps and 1 to 100gbps.";
         } // END of uni-utilized-bandwidth definition.
 
     } // END of mpls-interface-bandwidth-config definition.
@@ -604,7 +607,7 @@ module ipi-mpls {
         } // END of name definition.
 
         leaf match-all  {
-            when " not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-single-tag-outer-vlan-range) + not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-untagged) + not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:double-tag/ipi-mpls:match-outer-vlan-id) ";
+            when " not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-single-tag-outer-vlan-range) and not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:config/ipi-mpls:match-untagged) and not(/ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:double-tag/ipi-mpls:match-outer-vlan-id) ";
             type  empty;
             description "Use this attribute to specify match criteria as match all";
         } // END of match-all definition.
@@ -713,7 +716,7 @@ module ipi-mpls {
         } // END of vlan-action-type definition.
 
         leaf outer-vlan-identifier  {
-            when " /ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:action-type/ipi-mpls:config/ipi-mpls:vlan-action-type != '1' ";
+            when " /ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:action-type/ipi-mpls:config/ipi-mpls:vlan-action-type != 'pop' ";
             type  uint16 {
                  range "1..4094"  {
                     description "1..4094: Supported range 1 - 4094";
@@ -723,7 +726,7 @@ module ipi-mpls {
         } // END of outer-vlan-identifier definition.
 
         leaf tag-protocol-identifier  {
-            when " /ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:action-type/ipi-mpls:config/ipi-mpls:vlan-action-type != '2' ";
+            when " /ipi-mpls:mpls/ipi-mpls:l2vpn/ipi-mpls:customer-service-template/ipi-mpls:action-type/ipi-mpls:config/ipi-mpls:vlan-action-type != 'push' ";
             type  ipi-mpls-types:mpls_svc_tpid_t;
             default "dot1.q";
             description "Specify tag protocol identofier for action types pop and translate";
@@ -835,39 +838,6 @@ module ipi-mpls {
             } // END of global-label-range-container definition.
         } // End of label-space-list
 
-        list admin-group {
-            if-feature feature-list:HAVE_TE;
-            key "name id";
-            description
-                "MPLS Administrative Group Configurations";
-            leaf name  {
-                type  leafref {
-                    path  "../config/name";
-                }
-                description "Use this attribute to create a name-to-value binding for an
-                            administrative group";
-            } // END of name definition.
-
-            leaf id  {
-                type  leafref {
-                    path  "../config/id";
-                }
-                description "identifier value for the administrative group";
-            } // END of id definition.
-
-            container config {
-                description
-                    "Config Container for MPLS Administrative Groups";
-                uses mpls-admin-group-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "State Contatiner for MPLS Administrative Groups";
-                uses mpls-admin-group-config;
-            } // END of state-container definition.
-        } // End of admin-group-list
-
         list bandwidth-class {
             if-feature feature-list:HAVE_TE;
             key "name";
@@ -974,7 +944,7 @@ module ipi-mpls {
                 } // END of name definition.
 
                 container label-switching {
-                    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport != '1' ";
+                    when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
                     description
                         "Label switching configuration";
                     container config {

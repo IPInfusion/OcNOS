@@ -21,6 +21,11 @@ module ipi-sys-update {
 
     prefix "ipi-sys-update";
 
+    import cml-data-types {
+        prefix cml-data-types;
+        revision-date 2022-04-04;
+    }
+
     import ipi-sys-update-types {
         prefix ipi-sys-update-types;
         revision-date 2022-06-01;
@@ -28,7 +33,7 @@ module ipi-sys-update {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -44,6 +49,11 @@ module ipi-sys-update {
         "sys-update provides the possibility for users to upgrade/downgrade
                 OcNOS image in a router";
 
+
+    revision "2022-06-29" {
+        description "Adding support for sys-update details runtime attrs";
+        reference " 0.3.1.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -101,6 +111,53 @@ module ipi-sys-update {
             } // End of installer-list
         } // END of installers-container definition.
     } // END of system-update-top definition.
+    grouping system-update-installer-details {
+        description
+            "systemCMLSEPupdateCMLSEPinstallerCMLSEPdetails";
+        leaf previous-version  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Previously installed OcNOS image";
+        } // END of previous-version definition.
+
+        leaf current-version  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Presently installed/commited OcNOS image";
+        } // END of current-version definition.
+
+        leaf last-upgraded-time  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Time at when image was last upgraded";
+        } // END of last-upgraded-time definition.
+
+        leaf auto-rollback-end-time  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Time at which auto rollback happened";
+        } // END of auto-rollback-end-time definition.
+
+    } // END of system-update-installer-details definition.
+    grouping system-update-details-top {
+        description
+            "systemCMLSEPupdateCMLSEPdetailsCMLSEPtop";
+        container system-update-details {
+            config false;
+            description
+                "Container system update installer details";
+            container state {
+                config false;
+                description
+                    "Container operational data";
+                uses system-update-installer-details;
+            } // END of state-container definition.
+        } // END of system-update-details-container definition.
+    } // END of system-update-details-top definition.
     grouping system-docker-images {
         description
             "systemCMLSEPdockerCMLSEPimages";
@@ -213,6 +270,7 @@ module ipi-sys-update {
             uses system-docker-download-status;
         } // END of docker-container definition.
         uses system-update-top;
+        uses system-update-details-top;
     } // END of system-update-container definition.
     } // END of system-update-grouping definition.
 
