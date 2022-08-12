@@ -38,17 +38,17 @@ module ipi-vxlan {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2022-06-01;
+        revision-date 2022-07-13;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2022-06-01;
+        revision-date 2022-07-28;
     }
 
     import ipi-network-instance {
@@ -63,7 +63,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -78,6 +78,11 @@ module ipi-vxlan {
     description
         "Datamodel for VxLAN protocol";
 
+
+    revision "2022-06-09" {
+        description "Blocking nvo vxlan access-if cli for Jericho2";
+        reference " 0.3.14.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -1108,7 +1113,7 @@ module ipi-vxlan {
             "Top level Grouping for global vxlan qos";
 
         list qos-tunnel-mapping {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan ";
             if-feature feature-list:HAVE_QOS;
             key "qos-map-mode traffic-direction";
             description
@@ -1408,7 +1413,8 @@ module ipi-vxlan {
             "Top-Level Grouping for VxLAN access interfaces";
 
         list untagged-access-interface {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config and /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
+            if-feature feature-list:NOT_HAVE_DNX;
             key "interface-name";
             description
                 "untagged access port related configurations";
@@ -1441,7 +1447,8 @@ module ipi-vxlan {
         } // End of untagged-access-interface-list
 
         list tagged-access-interface {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config and /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
+            if-feature feature-list:NOT_HAVE_DNX;
             key "interface-name vlan-identifier";
             description
                 "single tagged vxlan access-port related configurations";
@@ -1483,7 +1490,8 @@ module ipi-vxlan {
         } // End of tagged-access-interface-list
 
         list double-tagged-access-interface {
-        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+        when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config and /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
+            if-feature feature-list:NOT_HAVE_DNX;
             key "interface-name vlan-identifier inner-vlan-identifier";
             description
                 "double tagged access port related configurations";
@@ -1536,6 +1544,7 @@ module ipi-vxlan {
             "Grouping for mac-ipv4 configuration for untagged access port";
 
         list host-mac-ipv4 {
+            if-feature feature-list:NOT_HAVE_DNX;
             key "mac-address ipv4-address";
             description
                 "untagged access side host related configurations";
@@ -1639,6 +1648,7 @@ module ipi-vxlan {
             "Grouping for mac-ipv4 configuration for double tagged access port";
 
         list host-mac-ipv4 {
+            if-feature feature-list:NOT_HAVE_DNX;
             key "mac-address ipv4-address";
             description
                 "double tagged access side host related configurations";
@@ -1676,6 +1686,7 @@ module ipi-vxlan {
 
         list host-mac-ipv6 {
             if-feature feature-list:HAVE_IPV6;
+            if-feature feature-list:NOT_HAVE_DNX;
             key "mac-address ipv6-address";
             description
                 "untagged access side host related configurations";
@@ -1819,7 +1830,7 @@ module ipi-vxlan {
         description
             "VxLAN global level container";
         container global {
-            when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan = '1' ";
+            when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan ";
             description
                 "Configuration data for VxLAN global capability configuration";
             container config {

@@ -38,12 +38,12 @@ module ipi-evpn-mpls {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2022-06-01;
+        revision-date 2022-07-13;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-network-instance {
@@ -58,7 +58,7 @@ module ipi-evpn-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -73,6 +73,11 @@ module ipi-evpn-mpls {
     description
         "Datamodel for EVPN-MPLS protocol";
 
+
+    revision "2022-07-07" {
+        description "Added dependency for ARP-ND refresh/MAC-ageing timer";
+        reference " 0.5.0.";
+    }
 
     revision "2022-06-23" {
         description "Introduced control word CLI option for EVI";
@@ -160,18 +165,6 @@ module ipi-evpn-mpls {
             description "Use this attribute to set source vtep global ip address.
                         This will be treated at evpn mpls tunnel source address";
         } // END of vtep-ipv4 definition.
-
-        leaf arp-nd-refresh-time  {
-            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
-            type  uint32 {
-                 range "3..190"  {
-                    description "3..190: Supported range 3 - 190";
-                 }
-            }
-            units "seconds";
-            description "Use this attribute to configure aging out the arp-cache and
-                        nd-cache entries for given time multiplied by 3 in secs.";
-        } // END of arp-nd-refresh-time definition.
 
         leaf mac-ageing-timer  {
             when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
@@ -774,6 +767,22 @@ module ipi-evpn-mpls {
 
         } // END of counters-container definition.
     } // END of evpn-mpls-tunnel-counters-state definition.
+    grouping arp-nd-global-grouping {
+        description
+            "Grouping for configuring global ARP-ND configs";
+        leaf arp-nd-refresh-time  {
+            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
+            type  uint32 {
+                 range "3..190"  {
+                    description "3..190: Supported range 3 - 190";
+                 }
+            }
+            units "seconds";
+            description "Use this attribute to configure aging out the arp-cache and
+                        nd-cache entries";
+        } // END of arp-nd-refresh-time definition.
+
+    } // END of arp-nd-global-grouping definition.
 
     grouping  evpn-mpls-grouping {
     description
@@ -800,6 +809,21 @@ module ipi-evpn-mpls {
                 uses evpn-mpls-global-config;
             } // END of state-container definition.
         } // END of global-container definition.
+        container arp-nd-global {
+            description
+                "ARP-ND global data";
+            container config {
+                description
+                    "ARP-ND global configuration data";
+                uses arp-nd-global-grouping;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses arp-nd-global-grouping;
+            } // END of state-container definition.
+        } // END of arp-nd-global-container definition.
         uses evpn-mpls-tenant-top;
         uses evpn-mpls-tunnel-top;
     } // END of evpn-mpls-container definition.

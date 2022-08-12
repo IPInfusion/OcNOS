@@ -38,27 +38,27 @@ module ipi-xstp {
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2022-06-01;
+        revision-date 2022-07-19;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-vlan {
         prefix ipi-vlan;
-        revision-date 2022-06-01;
+        revision-date 2022-07-11;
     }
 
     import ipi-port-vlan {
         prefix ipi-port-vlan;
-        revision-date 2022-06-01;
+        revision-date 2022-07-29;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -73,6 +73,11 @@ module ipi-xstp {
     description
         "IPI MSTP";
 
+
+    revision "2022-07-04" {
+        description "Added authentication dependency for bridge configuration in interface";
+        reference " 0.5.1.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -341,7 +346,7 @@ module ipi-xstp {
         } // END of instance-id definition.
 
         leaf bridge-priority  {
-            when " ../../instance-id!='4092' + ../../instance-id!='4093' ";
+            when " ../../instance-id!='instance-spbm' and ../../instance-id!='instance-spbv' ";
             type  uint32 {
                  range "0..61440"  {
                     description "0..61440: Supported range 0 - 61440";
@@ -352,7 +357,7 @@ module ipi-xstp {
         } // END of bridge-priority definition.
 
         leaf-list vlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
             type  uint16 {
                  range "2..4094"  {
                     description "2..4094: Supported range 2 - 4094";
@@ -371,7 +376,7 @@ module ipi-xstp {
             "Grouping for Traffic Engineering Multiple Spanning Tree (TE-MST)
                         instance configuration";
         leaf-list vlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
             type  uint16 {
                  range "2..4094"  {
                     description "2..4094: Supported range 2 - 4094";
@@ -449,7 +454,7 @@ module ipi-xstp {
         description
             "Grouping for common mstp interface configuration";
         leaf path-cost  {
-            when " ../../../../instance-id!='4092' + ../../../../instance-id!='4093' ";
+            when " ../../../../instance-id!='instance-spbm' and ../../../../instance-id!='instance-spbv' ";
             type  uint32 {
                  range "1..200000000"  {
                     description "1..200000000: Supported range 1 - 200000000";
@@ -463,7 +468,7 @@ module ipi-xstp {
         } // END of path-cost definition.
 
         leaf port-priority  {
-            when " ../../../../instance-id!='4092' + ../../../../instance-id!='4093' ";
+            when " ../../../../instance-id!='instance-spbm' and ../../../../instance-id!='instance-spbv' ";
             type  int16 {
                  range "0..240"  {
                     description "0..240: Supported range 0 - 240";
@@ -1697,7 +1702,7 @@ module ipi-xstp {
                     } // END of vlans-container definition.
                 } // END of rapid-pvst-container definition.
                 container customer-spanning-tree {
-                    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '41'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '42'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '43' ";
+                    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = 'customer-edge-access' or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = 'customer-edge-hybrid' or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = 'customer-edge-trunk' ";
                     if-feature feature-list:HAVE_PROVIDER_BRIDGE;
                     description
                         "Top level container for Customer Spanning Tree Protocols";
