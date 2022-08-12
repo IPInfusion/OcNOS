@@ -28,7 +28,7 @@ module ipi-l2vpn-vpws {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-network-instance-types {
@@ -43,7 +43,7 @@ module ipi-l2vpn-vpws {
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2022-06-01;
+        revision-date 2022-07-16;
     }
 
     import ipi-vpws-types {
@@ -53,7 +53,7 @@ module ipi-l2vpn-vpws {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2022-06-01;
+        revision-date 2022-07-28;
     }
 
     import ietf-inet-types {
@@ -68,7 +68,7 @@ module ipi-l2vpn-vpws {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -83,6 +83,41 @@ module ipi-l2vpn-vpws {
     description
         "Datamodel for VPWS pseudowire";
 
+
+    revision "2022-07-16" {
+        description "Global yang model name is changed as Global TE yang model";
+        reference " 2.0.7.";
+    }
+
+    revision "2022-07-13" {
+        description "Added pattern check for bandwidth related commands in MPLS yang model";
+        reference " 2.0.6.";
+    }
+
+    revision "2022-07-12" {
+        description "Fix dependency between pseudowire-mode and service-template-mapping";
+        reference " 2.0.5.";
+    }
+
+    revision "2022-07-11" {
+        description "Updated the subinterface encapsulation dependencies correctly";
+        reference " 2.0.4.";
+    }
+
+    revision "2022-07-07" {
+        description "Fix for MPLS debug deletion";
+        reference " 2.0.3.";
+    }
+
+    revision "2022-06-22" {
+        description "Added attributes for access and network interface counter";
+        reference " 2.0.2.";
+    }
+
+    revision "2022-06-21" {
+        description "Changes in the MPLS yang model w.r.t to admin-groups";
+        reference " 2.0.1.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -168,7 +203,7 @@ module ipi-l2vpn-vpws {
         description
             "Grouping for Service TPID pseudowire";
         leaf service-tpid  {
-            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-tagged-mode) ";
+            when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) and not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-tagged-mode) ";
             type  ipi-vpws-types:vpws_svc_tpid_t;
             description "Use this attribute to specify tunneling ethertype to be used for an
                         instance of an MPLS layer 2 virtual circuit";
@@ -249,7 +284,7 @@ module ipi-l2vpn-vpws {
         } // END of tunnel-name definition.
 
         leaf tunnel-policy  {
-            when " not(../tunnel-identifier) + not(../tunnel-name) ";
+            when " not(../tunnel-identifier) and not(../tunnel-name) ";
             if-feature feature-list:HAVE_SERVICE_MAPPING;
             type  string {
                 length "1..127";
@@ -482,7 +517,6 @@ module ipi-l2vpn-vpws {
 
 
                 list pseudowire-mode {
-                when " ../service-template-mapping ";
                     key "service-template";
                     description
                         "VPWS interface mode related configuration";
@@ -714,6 +748,143 @@ module ipi-l2vpn-vpws {
         } // END of access-interface-name definition.
 
     } // END of vpws-forwarding-information-base-config definition.
+    grouping vpws-access-interface-counters-state {
+        description
+            "Top level grouping for access-interface-counters";
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Attribute to acquire access interface name";
+        } // END of interface-name definition.
+
+        leaf pseudowire-identifier  {
+            type  uint32;
+            description "Attribute to acquire pw-id for a VPWS instance";
+        } // END of pseudowire-identifier definition.
+
+        leaf service-template-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Attribute to acquire Service Template name mapped to this vpws AC
+                        interface";
+        } // END of service-template-name definition.
+
+        leaf in-packets  {
+            type  uint64;
+            description "Attribute to acquire number of received(Rx) packets on this AC
+                        interface";
+        } // END of in-packets definition.
+
+        leaf in-bytes  {
+            type  uint64;
+            description "Attribute to acquire number of received(Rx) bytes on this AC interface";
+        } // END of in-bytes definition.
+
+        leaf out-packets  {
+            type  uint64;
+            description "Attribute to acquire number of sent(Tx) packets on this AC interface";
+        } // END of out-packets definition.
+
+        leaf out-bytes  {
+            type  uint64;
+            description "Attribute to acquire number of sent(Tx) bytes on this AC interface";
+        } // END of out-bytes definition.
+
+    } // END of vpws-access-interface-counters-state definition.
+    grouping vpws-network-interface-counters-state {
+        description
+            "Top level grouping for network-interface-counters";
+        leaf peer-address  {
+            type  inet:ipv4-address;
+            description "Attribute to acquire peer-address for VPWS instance";
+        } // END of peer-address definition.
+
+        leaf pseudowire-identifier  {
+            type  uint32;
+            description "Attribute to acquire vpls-id for a VPWS instance";
+        } // END of pseudowire-identifier definition.
+
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Attribute to acquire network interface name";
+        } // END of interface-name definition.
+
+        leaf in-packets  {
+            type  uint64;
+            description "Attribute to acquire number of received(Rx) packets on this network
+                        interface";
+        } // END of in-packets definition.
+
+        leaf in-bytes  {
+            type  uint64;
+            description "Attribute to acquire number of received(Rx) bytes on this network
+                        interface";
+        } // END of in-bytes definition.
+
+        leaf out-packets  {
+            type  uint64;
+            description "Attribute to acquire number of sent(Tx) packets on this network
+                        interface";
+        } // END of out-packets definition.
+
+        leaf out-bytes  {
+            type  uint64;
+            description "Attribute to acquire number of sent(Tx) bytes on this network
+                        interface";
+        } // END of out-bytes definition.
+
+    } // END of vpws-network-interface-counters-state definition.
+    grouping vpws-counters-top {
+        description
+            "Top level grouping for Counters";
+
+        list access-interface-counters {
+            if-feature feature-list:HAVE_MPLS_STATS;
+            key "interface-name";
+            config false;
+            description
+                "";
+            leaf interface-name  {
+                type  leafref {
+                    path  "../state/interface-name";
+                }
+                description "";
+            } // END of interface-name definition.
+
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses vpws-access-interface-counters-state;
+            } // END of state-container definition.
+        } // End of access-interface-counters-list
+
+        list network-interface-counters {
+            if-feature feature-list:HAVE_MPLS_STATS;
+            key "peer-address";
+            config false;
+            description
+                "";
+            leaf peer-address  {
+                type  leafref {
+                    path  "../state/peer-address";
+                }
+                description "";
+            } // END of peer-address definition.
+
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses vpws-network-interface-counters-state;
+            } // END of state-container definition.
+        } // End of network-interface-counters-list
+    } // END of vpws-counters-top definition.
     grouping vpws-state-global-counters {
         description
             "Grouping for runtime counters attributes";
@@ -918,7 +1089,7 @@ module ipi-l2vpn-vpws {
                 uses vpws-pseudowire-state;
             } // END of state-container definition.
             container default-tagged {
-                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-tagged-mode) ";
+                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) and not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-tagged-mode) ";
                 description
                     "Default Tagged container for Fec128 pseudowire";
                 container config {
@@ -947,7 +1118,7 @@ module ipi-l2vpn-vpws {
                 } // END of state-container definition.
             } // END of default-tagged-container definition.
             container tagged {
-                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:default-tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-default-tagged-mode) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) ";
+                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:default-tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-default-tagged-mode) and not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-raw-mode) ";
                 description
                     "Container for Tagged Fec128 pseudowire";
                 container config {
@@ -974,7 +1145,7 @@ module ipi-l2vpn-vpws {
                 } // END of state-container definition.
             } // END of tagged-container definition.
             container raw {
-                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:default-tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-default-tagged-mode) + not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-tagged-mode) ";
+                when " not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:default-tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-default-tagged-mode) and not(/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-tagged-mode) ";
                 description
                     "Container for Raw Fec128 pseudowire";
                 container config {
@@ -1001,6 +1172,7 @@ module ipi-l2vpn-vpws {
                 } // END of state-container definition.
             } // END of raw-container definition.
         } // End of pseudowire-list
+        uses vpws-counters-top;
     } // END of vpws-instance-container definition.
     } // END of vpws-instance-grouping definition.
 

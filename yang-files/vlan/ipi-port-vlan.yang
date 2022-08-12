@@ -28,7 +28,7 @@ module ipi-port-vlan {
 
     import ipi-port-vlan-types {
         prefix ipi-port-vlan-types;
-        revision-date 2022-06-01;
+        revision-date 2022-07-13;
     }
 
     import ipi-network-instance {
@@ -38,12 +38,12 @@ module ipi-port-vlan {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-vlan {
         prefix ipi-vlan;
-        revision-date 2022-06-01;
+        revision-date 2022-07-11;
     }
 
     import ipi-if-aggregate {
@@ -53,12 +53,12 @@ module ipi-port-vlan {
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2022-06-01;
+        revision-date 2022-07-19;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -73,6 +73,36 @@ module ipi-port-vlan {
     description
         "Port VLAN configuration";
 
+
+    revision "2022-07-29" {
+        description "Removed customer-network option from include enum flag to avoid duplicate installation ";
+        reference " 0.13.6.";
+    }
+
+    revision "2022-07-13" {
+        description "Enabling provider-bridging functionality for customer-network";
+        reference " 0.13.5.";
+    }
+
+    revision "2022-07-12" {
+        description "Added dependency validation flag for vlan and svlan ";
+        reference " 0.13.4.";
+    }
+
+    revision "2022-07-11" {
+        description "Updated dependency module ipi-vlan";
+        reference " 0.13.3.";
+    }
+
+    revision "2022-07-04" {
+        description "Added authentication dependency for bridge configuration in interface";
+        reference " 0.13.2.";
+    }
+
+    revision "2022-06-27" {
+        description "Updated when expressions in yang file";
+        reference " 0.13.1.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -248,13 +278,13 @@ module ipi-port-vlan {
         } // END of vlan-id definition.
 
         leaf associate-vlan-id  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:private-vlan/ipi-port-vlan:config/ipi-port-vlan:mode = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:private-vlan/ipi-port-vlan:config/ipi-port-vlan:mode = 'host' ";
             type  uint16;
             description "Private VLAN Association";
         } // END of associate-vlan-id definition.
 
         leaf mapping-vlan-id  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:private-vlan/ipi-port-vlan:config/ipi-port-vlan:mode = '2' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:private-vlan/ipi-port-vlan:config/ipi-port-vlan:mode = 'promiscuous' ";
             type  cml-data-types:cml_range_t;
             description "private-vlan Mapping";
         } // END of mapping-vlan-id definition.
@@ -313,7 +343,7 @@ module ipi-port-vlan {
         description
             "Top level grouping for private vlan";
         container private-vlan {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '1'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '3' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = 'access' or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = 'trunk' ";
             if-feature feature-list:HAVE_PVLAN;
             description
                 "Container for private vlan configuration and state data";
@@ -356,14 +386,14 @@ module ipi-port-vlan {
         } // END of mac-address definition.
 
         leaf-list cvlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
             type  uint16;
             description "Use this attribute to configure the port-security with static
                         forwarding entry and CVLAN ID";
         } // END of cvlan-id definition.
 
         leaf-list svlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
             type  uint16;
             description "Use this attribute to configure the port-security with static
                         forwarding entry and SVLAN ID";
@@ -382,14 +412,14 @@ module ipi-port-vlan {
         } // END of mac-address definition.
 
         leaf cvlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
             type  uint16;
             description "Use this attribute to configure the port-security with static
                         forwarding entry and CVLAN ID";
         } // END of cvlan-id definition.
 
         leaf svlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
             type  uint16;
             description "Use this attribute to configure the port-security with static
                         forwarding entry and SVLAN ID";
@@ -547,7 +577,7 @@ module ipi-port-vlan {
         description
             "Top level grouping for port security";
         container port-security {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' + /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode != '3' + /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode != '43' + /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:port-security/ipi-port-vlan:config/ipi-port-vlan:mode + not(/ipi-vlan:layer2-global/ipi-vlan:config/ipi-vlan:disable-port-security) ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport and /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode != 'trunk' and /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode != 'customer-edge-trunk' and /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:port-security/ipi-port-vlan:config/ipi-port-vlan:mode and not(/ipi-vlan:layer2-global/ipi-vlan:config/ipi-vlan:disable-port-security) ";
             description
                 "Configuration and state data for port security";
             container config {
@@ -575,7 +605,7 @@ module ipi-port-vlan {
         } // END of allowed-vlan-id definition.
 
         leaf egress-tagging-disabled-vlans  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '2'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '42' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = 'hybrid' or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = 'customer-edge-hybrid' ";
             type  cml-data-types:cml_range_t;
             description "Egress tagging per VLAN";
         } // END of egress-tagging-disabled-vlans definition.
@@ -585,7 +615,7 @@ module ipi-port-vlan {
         description
             "Top level grouping for port allowed VLANs";
         container allowed-vlan {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             description
                 "Configuration and state data for allowed VLANs";
             container config {
@@ -683,7 +713,7 @@ module ipi-port-vlan {
         } // END of translated-cvlan-id definition.
 
         leaf translated-svlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
             type  uint16 {
                  range "1..4095"  {
                     description "1..4095:Feature : HAVE_4K_VLAN Supported range 1 - 4095Not Feature :
@@ -800,13 +830,13 @@ module ipi-port-vlan {
         description
             "Grouping for customer edge VLAN translation configuration";
         leaf original-vlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
             type  uint16;
             description "Specifies the customer VLAN to be translated";
         } // END of original-vlan-id definition.
 
         leaf translated-vlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:customer-vlan ";
             type  uint16;
             mandatory true;
             description "Specifies the new customer VLAN for translate";
@@ -826,7 +856,7 @@ module ipi-port-vlan {
         description
             "Grouping for port switched VLAN configuration data";
         leaf vlan-id  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '1'   or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '2'   or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '41'  or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '42' + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = 'access' or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = 'hybrid' or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = 'customer-edge-access' or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = 'customer-network' or /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = 'customer-edge-hybrid' ";
             // when " ipi-vlan:vlans/vlan/customer-vlan ";
             type  uint16 {
                  range "2..4094"  {
@@ -837,7 +867,7 @@ module ipi-port-vlan {
         } // END of vlan-id definition.
 
         leaf native-vlan-id  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = '3' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:interface-mode = 'trunk' ";
             // when " !ipi-port-vlan:port-vlan/switched-vlan/config/disable-native-vlan ";
             type  uint16 {
                  range "2..4094"  {
@@ -918,7 +948,7 @@ module ipi-port-vlan {
             "Top-level grouping for VLAN data associated with an interface";
 
         list switched-vlan {
-        when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+        when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             key "interface-mode";
             description
                 "VLAN related configuration that is part of interface";
@@ -1018,13 +1048,13 @@ module ipi-port-vlan {
         description
             "Grouping for UNI service data";
         leaf service  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  ipi-port-vlan-types:port_vlan_uni_service_t;
             description "Use this attribute to set UNI service";
         } // END of service definition.
 
         leaf evc-maximum-number  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  uint32 {
                  range "1..4094"  {
                     description "1..4094: Supported range 1 - 4094";
@@ -1038,7 +1068,7 @@ module ipi-port-vlan {
         description
             "Grouping for bridge UNI data";
         leaf type-mode  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             if-feature feature-list:HAVE_SWFWDR;
             type  ipi-port-vlan-types:port_vlan_uni_enable_disable_t;
             mandatory true;
@@ -1112,7 +1142,7 @@ module ipi-port-vlan {
         description
             "Grouping for port vlan global configuration";
         leaf isolated-vlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type + /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = '6' ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type and /ipi-interface:interfaces/ipi-interface:interface/ipi-port-vlan:port-vlan/ipi-port-vlan:switched-vlan/ipi-port-vlan:config/ipi-port-vlan:interface-mode = 'provider-network' ";
             if-feature feature-list:NOT_HAVE_SWFWDR;
             type  cml-data-types:cml_range_t;
             description "Isolated VLAN identifier";
@@ -1185,7 +1215,7 @@ module ipi-port-vlan {
         } // END of vlan-id definition.
 
         leaf svlan-id  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id + /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:service-vlan/ipi-vlan:config/ipi-vlan:type ";
             if-feature feature-list:HAVE_PB_STATIC_FDB_CUSTOM_CONFIG;
             type  uint16 {
                  range "2..4094"  {
@@ -1201,7 +1231,6 @@ module ipi-port-vlan {
             "Top level grouping for VLAN static MAC table information";
 
         list entry {
-        when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:config/ipi-vlan:vlan-id ";
             key "mac-address vlan-id";
             description
                 "List of VLAN static FDB MAC table configuration and state data";
@@ -1264,7 +1293,7 @@ module ipi-port-vlan {
     } // END of vlan-static-fdb-grouping definition.
 
     augment /ipi-interface:interfaces/ipi-interface:interface {
-    when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) + /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+    when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-if-aggregate:member-aggregation) and /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
         description
             "Top level container for port level VLAN configuration and state data";
         uses port-vlan-grouping;

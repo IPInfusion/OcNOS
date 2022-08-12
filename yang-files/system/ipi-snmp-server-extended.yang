@@ -28,12 +28,12 @@ module ipi-snmp-server-extended {
 
     import ipi-snmp {
         prefix ipi-snmp;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-snmp-server {
         prefix ipi-snmp-server;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-snmp-server-extended-types {
@@ -43,12 +43,12 @@ module ipi-snmp-server-extended {
 
     import ipi-acl {
         prefix ipi-acl;
-        revision-date 2022-06-01;
+        revision-date 2022-07-08;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -64,6 +64,21 @@ module ipi-snmp-server-extended {
         "This module provides Simple Network Management Protocol server
                 configuration";
 
+
+    revision "2022-07-21" {
+        description "Removed the extra cli-sequence";
+        reference " 0.2.9.";
+    }
+
+    revision "2022-07-08" {
+        description "Updated imported module ipi-acl";
+        reference " 0.2.8.";
+    }
+
+    revision "2022-06-27" {
+        description "Updated when expressions in yang file";
+        reference " 0.2.7.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -273,7 +288,7 @@ module ipi-snmp-server-extended {
                     "Configure community";
 
                 leaf community  {
-                    when " ../snmp-version='1' or ../snmp-version='2' ";
+                    when " ../snmp-version='1' or ../snmp-version='2c' ";
                     type  leafref {
                         path  "/ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server/communities/community/community-name";
                     }
@@ -288,14 +303,14 @@ module ipi-snmp-server-extended {
                     "Configure SNMPv3 user and authentication";
 
                 leaf snmpv3-auth-type  {
-                    when " ../snmp-version='3' + ../snmpv3-user ";
+                    when " ../snmp-version='3' and ../snmpv3-user ";
                     type  ipi-snmp-server-extended-types:snmp_server_version3_auth_type_t;
                     description "Use this attribute to configure the snmpv3 authentication type.
                                 This can be configured only with SNMP version 3.";
                 } // END of snmpv3-auth-type definition.
 
                 leaf snmpv3-user  {
-                    when " ../snmp-version='3' + ../snmpv3-auth-type ";
+                    when " ../snmp-version='3' and ../snmpv3-auth-type ";
                     type  leafref {
                         path  "/ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server/users/user/config/user-name";
                     }
@@ -400,7 +415,7 @@ module ipi-snmp-server-extended {
         } // END of authentication-type definition.
 
         leaf authentication-password  {
-            when " ../encryption-type + ../authentication-type ";
+            when " ../encryption-type and ../authentication-type ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -417,7 +432,7 @@ module ipi-snmp-server-extended {
         } // END of privilege-type definition.
 
         leaf privilege-password  {
-            when " ../encryption-type + ../privilege-type ";
+            when " ../encryption-type and ../privilege-type ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -564,7 +579,7 @@ module ipi-snmp-server-extended {
         } // END of community-name definition.
 
         leaf acl-name  {
-            when " /ipi-acl:acl/ipi-acl:standard-acl-sets/ipi-acl:standard-acl-set/ipi-acl:type = '6' ";
+            when " /ipi-acl:acl/ipi-acl:standard-acl-sets/ipi-acl:standard-acl-set/ipi-acl:type = 'standard_ip' ";
             type  leafref {
                 path  "/ipi-acl:acl/ipi-acl:standard-acl-sets/ipi-acl:standard-acl-set/ipi-acl:name";
             }

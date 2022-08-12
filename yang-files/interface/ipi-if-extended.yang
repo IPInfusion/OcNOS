@@ -33,7 +33,7 @@ module ipi-if-extended {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-if-ethernet {
@@ -48,7 +48,7 @@ module ipi-if-extended {
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2022-06-01;
+        revision-date 2022-07-19;
     }
 
     import ietf-inet-types {
@@ -63,7 +63,7 @@ module ipi-if-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -78,6 +78,21 @@ module ipi-if-extended {
     description
         "Datamodel for IPI Interface extended module";
 
+
+    revision "2022-07-20" {
+        description "Added trigger to delete switchport-allowed-ether-types when interface configured as aggregator-member";
+        reference " 0.15.0.";
+    }
+
+    revision "2022-07-07" {
+        description "Updated the subinterface encapsulation dependencies correctly";
+        reference " 0.14.0.";
+    }
+
+    revision "2022-07-04" {
+        description "Updated DB Triggers for snmp trap link-status";
+        reference " 0.13.1.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -1225,14 +1240,12 @@ module ipi-if-extended {
         description
             "Grouping for single tagged encapsulation data";
         leaf encapsulation-type  {
-            // when " ../outer-vlan-id ";
             type  ipi-if-types:if_subif_encap_type_t;
             description "This attribute is used to configure the encapsulation type
                         (dot1q/dot1ad).";
         } // END of encapsulation-type definition.
 
         leaf-list outer-vlan-id  {
-            // when " ../encapsulation-type ";
             type  string {
                 length "1..4094";
                 pattern "[^?' =,>]+";
@@ -1245,14 +1258,12 @@ module ipi-if-extended {
         description
             "Grouping for double tagged encapsulation data";
         leaf encapsulation-type  {
-            // when " ../outer-vlan-id ";
             type  ipi-if-types:if_subif_encap_type_t;
             description "This attribute is used to configure the encapsulation type
                         (dot1q/dot1ad).";
         } // END of encapsulation-type definition.
 
         leaf outer-vlan-id  {
-            // when " ../encapsulation-type ";
             type  string {
                 length "1..4094";
                 pattern "[^?' =>]+";
@@ -1262,7 +1273,6 @@ module ipi-if-extended {
         } // END of outer-vlan-id definition.
 
         leaf-list inner-vlan-id  {
-            // when " ../encapsulation-type && ../outer-vlan-id ";
             type  string {
                 length "1..4094";
                 pattern "[^?' =,>]+";
@@ -1280,7 +1290,7 @@ module ipi-if-extended {
                 "Container for VLAN service matches for single tagged";
 
             list single-tag-vlan-match {
-            // when " ../config/outer-vlan-id ";
+            // when " ../single-tag-vlan-match/config/outer-vlan-id ";
                 key "encapsulation-type";
                 description
                     "Single tagged VLAN service match configuration";
@@ -1323,7 +1333,7 @@ module ipi-if-extended {
                 "Container for VLAN service matches for double tagged";
 
             list double-tag-vlan-match {
-            // when " ../outer-vlan-id + ../encapsulation-type ";
+            // when " ../double-tag-vlan-match/config/inner-vlan-id ";
                 key "encapsulation-type outer-vlan-id";
                 description
                     "Double tagged VLAN service match configuration";
@@ -1393,7 +1403,7 @@ module ipi-if-extended {
                     "Pop the outer and inner vid";
 
                 leaf enable-pop  {
-                    when " ../vlan-action='1' ";
+                    when " ../vlan-action='pop' ";
                     type  ipi-if-types:if_subif_rewrite_pop_type_t;
                     mandatory true;
                     description "This attribute is used to configure pop outer and inner tag.
@@ -1408,7 +1418,7 @@ module ipi-if-extended {
                     "Push the outer and inner vid for a tpid";
 
                 leaf push-tpid  {
-                    when " ../vlan-action='2' and ../push-outer-vlan-id ";
+                    when " ../vlan-action='push' and ../push-outer-vlan-id ";
                     type  ipi-if-types:cml_outer_tpid_type_t;
                     mandatory true;
                     description "This attribute is used to configure the tpid value for the interface
@@ -1418,7 +1428,7 @@ module ipi-if-extended {
                 } // END of push-tpid definition.
 
                 leaf push-outer-vlan-id  {
-                    when " ../vlan-action='2' and ../push-tpid ";
+                    when " ../vlan-action='push' and ../push-tpid ";
                     type  uint16 {
                          range "1..4094"  {
                             description "1..4094: Supported range 1 - 4094";
@@ -1457,7 +1467,7 @@ module ipi-if-extended {
                 } // END of rewrite-translate-action definition.
 
                 leaf dot1q-dot1ad-tpid  {
-                    when " ../vlan-action='3' and ../outer-vlan-id ";
+                    when " ../vlan-action='translate' and ../outer-vlan-id ";
                     type  ipi-if-types:cml_outer_tpid_type_t;
                     mandatory true;
                     description "This Object is used to configure outer VLAN ID range for rewrite.
@@ -1466,7 +1476,7 @@ module ipi-if-extended {
                 } // END of dot1q-dot1ad-tpid definition.
 
                 leaf outer-vlan-id  {
-                    when " ../vlan-action='3' and ../dot1q-dot1ad-tpid ";
+                    when " ../vlan-action='translate' and ../dot1q-dot1ad-tpid ";
                     type  uint16 {
                          range "1..4094"  {
                             description "1..4094: Supported range 1 - 4094";
@@ -1479,7 +1489,7 @@ module ipi-if-extended {
                 } // END of outer-vlan-id definition.
 
                 leaf i-dot1q-dot1ad-tpid  {
-                    when " ../vlan-action='3' and ../inner-vlan-id ";
+                    when " ../vlan-action='translate' and ../inner-vlan-id ";
                     type  ipi-if-types:cml_inner_tpid_type_t;
                     mandatory true;
                     description "This Object is used to configure outer VLAN ID range for rewrite.
@@ -1488,7 +1498,7 @@ module ipi-if-extended {
                 } // END of i-dot1q-dot1ad-tpid definition.
 
                 leaf inner-vlan-id  {
-                    when " ../vlan-action='3' and ../i-dot1q-dot1ad-tpid ";
+                    when " ../vlan-action='translate' and ../i-dot1q-dot1ad-tpid ";
                     type  uint16 {
                          range "1..4094"  {
                             description "1..4094: Supported range 1 - 4094";
@@ -2027,7 +2037,7 @@ module ipi-if-extended {
         description
             "Grouping for configurations";
         leaf bcast-value  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  ipi-if-types:if_rate_limit_t;
             mandatory true;
             description "This attribute is used to set the storm control configuration, Set
@@ -2075,7 +2085,7 @@ module ipi-if-extended {
         description
             "Grouping for configurations";
         leaf mcast-value  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  ipi-if-types:if_rate_limit_t;
             mandatory true;
             description "This attribute is used to set the storm control configuration,Set
@@ -2123,7 +2133,7 @@ module ipi-if-extended {
         description
             "Grouping for configurations";
         leaf dlf-bcast-value  {
-            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+            when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
             type  ipi-if-types:if_rate_limit_t;
             mandatory true;
             description "This attribute is used to set the storm control configuration,Set DLF
@@ -2644,7 +2654,7 @@ module ipi-if-extended {
     }
 
     augment /ipi-interface:interfaces/ipi-interface:interface/ipi-if-ethernet:ethernet {
-    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport = '1' ";
+    when " /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
         description
             "Container for storm-control module";
         uses storm-control-grouping;

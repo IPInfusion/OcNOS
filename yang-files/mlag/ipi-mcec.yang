@@ -23,7 +23,7 @@ module ipi-mcec {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2022-06-01;
+        revision-date 2022-07-21;
     }
 
     import ipi-mcec-types {
@@ -43,12 +43,12 @@ module ipi-mcec {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2022-06-01;
+        revision-date 2022-07-13;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-06-27;
+        revision-date 2022-08-11;
     }
 
     organization
@@ -63,6 +63,16 @@ module ipi-mcec {
     description
         "Multi Chassis Ethernet Channel (MCEC)";
 
+
+    revision "2022-07-21" {
+        description "Updated leafref for mlag-interface object-list";
+        reference " 0.4.4.";
+    }
+
+    revision "2022-07-07" {
+        description "Added implicit_delete to the peer-link config container";
+        reference " 0.4.3.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -872,6 +882,13 @@ module ipi-mcec {
     grouping mcec-mlag-interface-config {
         description
             "Grouping for mlag interface configuration";
+        leaf name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "User specified MLAG interface name";
+        } // END of name definition.
+
         leaf interface-mode  {
             type  ipi-mcec-types:mcec_mode_type_t;
             default "active-active";
@@ -885,7 +902,7 @@ module ipi-mcec {
         description
             "Grouping for switchover type configuration";
         leaf revertive-timer  {
-            when " /ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:switchover-type/ipi-mcec:config/ipi-mcec:enable-non-revertive != '1' + /ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:config/ipi-mcec:interface-mode != '1' ";
+            when " not(/ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:switchover-type/ipi-mcec:config/ipi-mcec:enable-non-revertive) and /ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:config/ipi-mcec:interface-mode != 'active-active' ";
             type  uint8 {
                  range "1..255"  {
                     description "1..255: Supported range 1 - 255";
@@ -901,7 +918,7 @@ module ipi-mcec {
         } // END of revertive-timer definition.
 
         leaf enable-non-revertive  {
-            when " /ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:config/ipi-mcec:interface-mode != '1' + not(/ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:switchover-type/ipi-mcec:config/ipi-mcec:revertive-timer) ";
+            when " /ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:config/ipi-mcec:interface-mode != 'active-active' and not(/ipi-mcec:mcec/ipi-mcec:mlag-interface/ipi-mcec:switchover-type/ipi-mcec:config/ipi-mcec:revertive-timer) ";
             type  empty;
             description "Use this attribute to set the MC-LAG switchover to non-revertive type.
                         Do not switch back to the initially-active node after failure
@@ -938,7 +955,7 @@ module ipi-mcec {
                 "List of MLAG interfaces";
             leaf name  {
                 type  leafref {
-                    path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+                    path  "../config/name";
                 }
                 description "User specified MLAG interface name";
             } // END of name definition.
