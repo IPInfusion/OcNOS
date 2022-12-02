@@ -23,7 +23,7 @@ module ipi-snmp-server-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2022-04-04;
+        revision-date 2022-09-30;
     }
 
     import ipi-snmp {
@@ -48,7 +48,7 @@ module ipi-snmp-server-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2022-09-21;
+        revision-date 2022-12-01;
     }
 
     organization
@@ -64,6 +64,11 @@ module ipi-snmp-server-extended {
         "This module provides Simple Network Management Protocol server
                 configuration";
 
+
+    revision "2022-09-29" {
+        description "Added smux-port disable";
+        reference " 0.2.6.";
+    }
 
     revision "2022-07-21" {
         description "Removed the extra cli-sequence";
@@ -240,6 +245,15 @@ module ipi-snmp-server-extended {
             uses snmp-server-view-oid-tree-top;
         } // End of snmp-view-list
     } // END of snmp-server-view-top definition.
+    grouping snmp-server-smux-config {
+        description
+            "SNMP server smux configuration";
+        leaf smux-port-disable  {
+            type  empty;
+            description "Use this attribute to disable smux-port.";
+        } // END of smux-port-disable definition.
+
+    } // END of snmp-server-smux-config definition.
     grouping snmp-server-host-config {
         description
             "SNMP server host configuration";
@@ -760,6 +774,27 @@ module ipi-snmp-server-extended {
     } // END of snmp-views-container definition.
     } // END of snmp-views-grouping definition.
 
+    grouping  smux-port-grouping {
+    description
+        "Container for SNMP servers smux configuration";
+    container smux-port {
+        if-feature feature-list:HAVE_HOSTPD;
+        description
+            "Container for SNMP servers smux configuration";
+        container config {
+            description
+                "Configuration data for SNMP Server";
+            uses snmp-server-smux-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Operational state data for SNMP server smux-port";
+            uses snmp-server-smux-config;
+        } // END of state-container definition.
+    } // END of smux-port-container definition.
+    } // END of smux-port-grouping definition.
+
     grouping  hosts-grouping {
     description
         "Container for SNMP servers hosts configuration";
@@ -844,6 +879,13 @@ module ipi-snmp-server-extended {
         description
             "Container for SNMP servers views configuration";
         uses snmp-views-grouping;
+    }
+
+    augment /ipi-snmp:snmp {
+        if-feature feature-list:HAVE_SNMP_AGENT;
+        description
+            "Container for SNMP servers smux configuration";
+        uses smux-port-grouping;
     }
 
     augment /ipi-snmp:snmp/ipi-snmp-server:servers/ipi-snmp-server:server {
