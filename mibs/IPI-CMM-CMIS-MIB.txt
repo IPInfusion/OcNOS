@@ -1,0 +1,1046 @@
+    IPI-CMM-CMIS-MODULE-MIB DEFINITIONS ::= BEGIN
+
+    --  This module provides authoritative definitions for
+    --    Common Management Interface Specification (CMIS).
+    --
+    --  This module will be extended, as needed.
+    --
+
+    IMPORTS
+        OBJECT-TYPE, MODULE-IDENTITY,
+        Unsigned32, TimeTicks, NOTIFICATION-TYPE
+            FROM SNMPv2-SMI
+        DateAndTime, DisplayString, TruthValue,
+        MacAddress, RowStatus, TEXTUAL-CONVENTION
+            FROM SNMPv2-TC
+        MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+            FROM SNMPv2-CONF
+        enterprises,OBJECT-IDENTITY
+            FROM SNMPv2-SMI
+      ipi FROM IPI-MODULE-MIB
+      cmmChassisObject,
+      cmmStackUnitIndex FROM IPI-CMM-CHASSIS-MIB
+      ConnectorType, MediaInterfaceTechEncodings FROM IPI-CMM-CMIS-8024-MIB;
+
+   cmm  MODULE-IDENTITY
+   LAST-UPDATED "202206230000Z"   -- 2022 Jun 23, 12:00:00 GMT
+   ORGANIZATION "IPI."
+   CONTACT-INFO
+    "support@ipinfusion.com"
+
+   DESCRIPTION
+      "The Structure of CMM Common Management Interface Specification (CMIS) for
+       the IPI enterprise."
+   REVISION "202206230000Z"
+   DESCRIPTION
+      "Complying to level 3 of SMILINT"
+   ::= { ipi 100 }
+
+
+    -- ### Groups ###
+
+    cmmCmisModule      OBJECT IDENTIFIER ::={ cmmChassisObject 20 }
+
+    cmmCmisModuleObjects          OBJECT IDENTIFIER ::={ cmmCmisModule 1 }
+    cmmCmisModuleMonitorObjects   OBJECT IDENTIFIER ::={ cmmCmisModule 2 }
+
+    cmmCmisModuleEEPROMTable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmCmisModuleEEPROMTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of entries containing Cmis module EEPROM information."
+        ::= { cmmCmisModuleObjects 1 }
+
+    cmmCmisModuleEEPROMTableEntry OBJECT-TYPE
+      SYNTAX         CmmCmisModuleEEPROMTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing Cmis module EEPROM information."
+        INDEX    { cmmStackUnitIndex, cmmCmisModuleType,
+                   cmmCmisModulePortNumber }
+        ::= { cmmCmisModuleEEPROMTable 1 }
+
+    CmmCmisModuleEEPROMTableEntry   ::=
+       SEQUENCE {
+         cmmCmisModuleType                      INTEGER,
+         cmmCmisModulePortNumber                INTEGER,
+         cmmCmisModuleVendorName                DisplayString,
+         cmmCmisModuleIdentifier                INTEGER,
+         cmmCmisModuleVendorOUI                 DisplayString,
+         cmmCmisModuleVendorPartNumber          DisplayString,
+         cmmCmisModuleVendorRevision            DisplayString,
+         cmmCmisModuleVendorSerialNumber        DisplayString,
+         cmmCmisModuleMfgDate                   DateAndTime,
+         cmmCmisModulePowerClass                INTEGER,
+         cmmCmisModuleMaxPower                  INTEGER,
+         cmmCmisModuleCoolingImplemented        TruthValue,
+         cmmCmisModuleTemperatureMax            INTEGER,
+         cmmCmisModuleTemperatureMin            INTEGER,
+         cmmCmisModuleOperatingVoltageMin       INTEGER,
+         cmmCmisModuleOpticalDetector           INTEGER,
+         cmmCmisModuleRxPowerMeasurement        INTEGER,
+         cmmCmisModuleTxDisableModuleWide       TruthValue,
+         cmmCmisModuleCableAssemblyLinkLength   INTEGER,
+         cmmCmisModuleConnectorType             ConnectorType,
+         cmmCmisModuleMediaInterfaceTechnology  MediaInterfaceTechEncodings,
+         cmmCmisModuleCMISRevision              DisplayString,
+         cmmCmisModuleMemoryModel               INTEGER,
+         cmmCmisModuleMCIMaxSpeed               INTEGER,
+         cmmCmisModuleActiveFirmwareRevision    DisplayString,
+         cmmCmisModuleInactiveFirmwareRevision  DisplayString,
+         cmmCmisModuleHardwareRevision          DisplayString,
+         cmmCmisModuleMediaType                 INTEGER,
+         cmmCmisModuleWavelengthNominal         INTEGER,
+         cmmCmisModuleWavelengthTolerance       INTEGER,
+         cmmCmisModuleCleiCode                  DisplayString,
+         cmmCmisModuleCCA5GHz                   INTEGER,
+         cmmCmisModuleCCA7GHz                   INTEGER,
+         cmmCmisModuleCCA12P9GHz                INTEGER,
+         cmmCmisModuleCCA25P8GHz                INTEGER,
+         cmmCmisModuleMaxSmfLinkLength          INTEGER,
+         cmmCmisModuleMaxMmfOm2LinkLength       INTEGER,
+         cmmCmisModuleMaxMmfOm3LinkLength       INTEGER,
+         cmmCmisModuleMaxMmfOm4LinkLength       INTEGER,
+         cmmCmisModuleMaxMmfOm5LinkLength       INTEGER
+       }
+
+    cmmCmisModuleType  OBJECT-TYPE
+      SYNTAX                INTEGER {
+                              qsfp-dd(1)
+                            }
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module type."
+      ::= { cmmCmisModuleEEPROMTableEntry 1 }
+
+  cmmCmisModulePortNumber  OBJECT-TYPE
+    SYNTAX          INTEGER (1..128)
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+      "Module Port index number."
+    ::= { cmmCmisModuleEEPROMTableEntry 2 }
+
+    cmmCmisModuleVendorName  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module vendor name."
+      ::= { cmmCmisModuleEEPROMTableEntry 3 }
+
+    cmmCmisModuleIdentifier  OBJECT-TYPE
+      SYNTAX        INTEGER {
+                      id-unknown(1),
+                      gbic(2),
+                      soldered-to-motherboard(3),
+                      sfp-or-sfpplus-or-sfp28(4),
+                      xbi-300pin(5),
+                      xenpak(6),
+                      xfp(7),
+                      xff(8),
+                      xfpe(9),
+                      xpak(10),
+                      x2(11),
+                      dwdmsfp-or-dwdmsfpplus(12),
+                      qsfp(13),
+                      qsfpplus-or-later(14),
+                      cxp-or-later(15),
+                      shielded-mini-multilane-hd4x(16),
+                      shielded-mini-multilane-hd8x(17),
+                      qsfp28-or-later(18),
+                      cxp2-aka-cxp28-or-later(19),
+                      cdfpstyle1-or-cdfpstyle2(20),
+                      shielded-mini-multilane-hd4x-fanoutcable(21),
+                      shielded-mini-multilane-hd8x-fanoutcable(22),
+                      cdfpstyle3(23),
+                      microqsfp(24),
+                      qsfp-doubledensity-8x-pluggable-transceiver(25),
+                      reserved(26),
+                      vendor-specific(27)
+                    }
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module indentifier."
+      ::= { cmmCmisModuleEEPROMTableEntry 4 }
+
+    cmmCmisModuleVendorOUI  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "IEEE company ID provided by module vendor."
+      ::= { cmmCmisModuleEEPROMTableEntry 5 }
+
+    cmmCmisModuleVendorPartNumber  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Part number for module provided by vendor."
+      ::= { cmmCmisModuleEEPROMTableEntry 6 }
+
+    cmmCmisModuleVendorRevision  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Revision level for module provided by vendor."
+      ::= { cmmCmisModuleEEPROMTableEntry 7 }
+
+    cmmCmisModuleVendorSerialNumber  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Serial number for module provided by vendor."
+      ::= { cmmCmisModuleEEPROMTableEntry 8 }
+
+    cmmCmisModuleMfgDate    OBJECT-TYPE
+      SYNTAX                DateAndTime
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "The manufactured date of module."
+      ::= { cmmCmisModuleEEPROMTableEntry 9 }
+
+    cmmCmisModulePowerClass  OBJECT-TYPE
+      SYNTAX                INTEGER {
+                              powerclass1(1),
+                              powerclass2(2),
+                              powerclass3(3),
+                              powerclass4(4),
+                              powerclass5(5),
+                              powerclass6(6),
+                              powerclass7(7),
+                              powerclass8(8)
+                            }
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module power class."
+      ::= { cmmCmisModuleEEPROMTableEntry 10 }
+
+    cmmCmisModuleMaxPower  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "0.01 Watt"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module maximum power."
+      ::= { cmmCmisModuleEEPROMTableEntry 11 }
+
+    cmmCmisModuleCoolingImplemented  OBJECT-TYPE
+      SYNTAX                TruthValue
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module supports cooling feature."
+      ::= { cmmCmisModuleEEPROMTableEntry 12 }
+
+    cmmCmisModuleTemperatureMax  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "0.01 Celsius"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module maximum temperature."
+      ::= { cmmCmisModuleEEPROMTableEntry 13 }
+
+
+    cmmCmisModuleTemperatureMin  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "0.01 Celsius"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module minimum temperature."
+      ::= { cmmCmisModuleEEPROMTableEntry 14 }
+
+    cmmCmisModuleOperatingVoltageMin  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "0.01 Volt"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module minimum operating voltage."
+      ::= { cmmCmisModuleEEPROMTableEntry 15 }
+
+    cmmCmisModuleOpticalDetector  OBJECT-TYPE
+      SYNTAX                INTEGER {
+                              pin(1),
+                              apd(2)
+                            }
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module optical detector type."
+      ::= { cmmCmisModuleEEPROMTableEntry 16 }
+
+    cmmCmisModuleRxPowerMeasurement  OBJECT-TYPE
+      SYNTAX                INTEGER {
+                              oma(1),
+                              averagepower(2)
+                            }
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module rx power measurement."
+      ::= { cmmCmisModuleEEPROMTableEntry 17 }
+
+    cmmCmisModuleTxDisableModuleWide  OBJECT-TYPE
+      SYNTAX                TruthValue
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module tx output disable support per lane."
+      ::= { cmmCmisModuleEEPROMTableEntry 18 }
+
+    cmmCmisModuleCableAssemblyLinkLength  OBJECT-TYPE
+      SYNTAX                INTEGER
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module cable assembly link length.
+        -1 is separablemedia, -2 is greaterthan6300meter, -3 is undefined"
+      ::= { cmmCmisModuleEEPROMTableEntry 19 }
+
+    cmmCmisModuleConnectorType  OBJECT-TYPE
+      SYNTAX                ConnectorType
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module connector type for the media side."
+      ::= { cmmCmisModuleEEPROMTableEntry 20 }
+
+    cmmCmisModuleMediaInterfaceTechnology  OBJECT-TYPE
+      SYNTAX                MediaInterfaceTechEncodings
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module media interface technology."
+      ::= { cmmCmisModuleEEPROMTableEntry 21 }
+
+    cmmCmisModuleCMISRevision  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Cmis module revision provided by vendor."
+      ::= { cmmCmisModuleEEPROMTableEntry 22 }
+
+    cmmCmisModuleMemoryModel  OBJECT-TYPE
+      SYNTAX                INTEGER {
+                              paged(1),
+                              flat(2)
+                            }
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Cmis module memory model."
+      ::= { cmmCmisModuleEEPROMTableEntry 23 }
+
+    cmmCmisModuleMCIMaxSpeed  OBJECT-TYPE
+      SYNTAX                INTEGER {
+                              speed-400(1),
+                              speed-1000(2),
+                              reserved(3)
+                            }
+      UNITS                 "kHz"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module clock maximum speed of
+        Management Communication Interface(MCI)."
+      ::= { cmmCmisModuleEEPROMTableEntry 24 }
+
+    cmmCmisModuleActiveFirmwareRevision  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module active firmware revision."
+      ::= { cmmCmisModuleEEPROMTableEntry 25 }
+
+    cmmCmisModuleInactiveFirmwareRevision  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module inactive firmware revision."
+      ::= { cmmCmisModuleEEPROMTableEntry 26 }
+
+    cmmCmisModuleHardwareRevision  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module hardware revision."
+      ::= { cmmCmisModuleEEPROMTableEntry 27 }
+
+    cmmCmisModuleMediaType  OBJECT-TYPE
+      SYNTAX                INTEGER {
+                              none(1),
+                              mmf(2),
+                              smf(3),
+                              passive-copper-c(4),
+                              active-c(5),
+                              base-t(6),
+                              reserved(7)
+                            }
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module media type."
+      ::= { cmmCmisModuleEEPROMTableEntry 28 }
+
+    cmmCmisModuleWavelengthNominal  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "0.01 nm"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module wavelength nominal."
+      ::= { cmmCmisModuleEEPROMTableEntry 29 }
+
+    cmmCmisModuleWavelengthTolerance  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "0.01 nm"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module wavelength tolerance."
+      ::= { cmmCmisModuleEEPROMTableEntry 30 }
+
+    cmmCmisModuleCleiCode  OBJECT-TYPE
+      SYNTAX                DisplayString
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module Common Language Equiment Identification (CLEI)."
+      ::= { cmmCmisModuleEEPROMTableEntry 31 }
+
+    cmmCmisModuleCCA5GHz  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "dB"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module passive copper cable attenuation at 5 GHz."
+      ::= { cmmCmisModuleEEPROMTableEntry 32 }
+
+    cmmCmisModuleCCA7GHz  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "dB"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module passive copper cable attenuation at 7 GHz."
+      ::= { cmmCmisModuleEEPROMTableEntry 33 }
+
+    cmmCmisModuleCCA12P9GHz  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "dB"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module passive copper cable attenuation at 12.9 GHz."
+      ::= { cmmCmisModuleEEPROMTableEntry 34 }
+
+    cmmCmisModuleCCA25P8GHz  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "dB"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module passive copper cable attenuation at 25.8 GHz."
+      ::= { cmmCmisModuleEEPROMTableEntry 35 }
+
+    cmmCmisModuleMaxSmfLinkLength  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "0.01 Km"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module supported fiber link cable length."
+      ::= { cmmCmisModuleEEPROMTableEntry 36 }
+
+    cmmCmisModuleMaxMmfOm2LinkLength  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "meter"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module Link length supported for 50/125 micrometer fiber (OM2)."
+      ::= { cmmCmisModuleEEPROMTableEntry 37 }
+
+    cmmCmisModuleMaxMmfOm3LinkLength  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "meter"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module Link length supported for EBW 50/125 micrometer fiber (OM3)."
+      ::= { cmmCmisModuleEEPROMTableEntry 38 }
+
+    cmmCmisModuleMaxMmfOm4LinkLength  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "meter"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module Link length supported for OM4 fiber."
+      ::= { cmmCmisModuleEEPROMTableEntry 39 }
+
+    cmmCmisModuleMaxMmfOm5LinkLength  OBJECT-TYPE
+      SYNTAX                INTEGER
+      UNITS                 "meter"
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module Link length supported for OM5 fiber."
+      ::= { cmmCmisModuleEEPROMTableEntry 40 }
+
+
+    cmmCmisModuleOperationalStateTable OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmCmisModuleOperationalStateTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of entries containing Cmis operational state information."
+        ::= { cmmCmisModuleObjects 2 }
+
+    cmmCmisModuleOperationalStateTableEntry OBJECT-TYPE
+      SYNTAX            CmmCmisModuleOperationalStateTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing Cmis operational state information."
+      INDEX    { cmmStackUnitIndex, cmmCmisModuleType,
+                 cmmCmisModulePortNumber }
+        ::= { cmmCmisModuleOperationalStateTable 1 }
+
+    CmmCmisModuleOperationalStateTableEntry   ::=
+       SEQUENCE {
+         cmmCmisModuleFaultState            INTEGER,
+         cmmCmisModuleState                 INTEGER
+       }
+
+    cmmCmisModuleFaultState OBJECT-TYPE
+      SYNTAX                INTEGER {
+                              no-fault(1),
+                              tec-runaway(2),
+                              data-memory-corrupted(3),
+                              program-memory-corrupted(4),
+                              reserved(5)
+                            }
+      MAX-ACCESS            read-only
+      STATUS                current
+      DESCRIPTION
+        "Module fault information."
+      ::= { cmmCmisModuleOperationalStateTableEntry 1 }
+
+    cmmCmisModuleState OBJECT-TYPE
+       SYNTAX                INTEGER {
+                               reserved(1),
+                               low-power(2),
+                               power-up(3),
+                               ready(4),
+                               power-down(5),
+                               fault(6)
+                             }
+       MAX-ACCESS            read-only
+       STATUS                current
+       DESCRIPTION
+         "Module operation state."
+       ::= { cmmCmisModuleOperationalStateTableEntry 2 }
+
+
+    cmmCmisModuleDataPathStateTable OBJECT-TYPE
+       SYNTAX            SEQUENCE OF CmmCmisModuleDataPathStateTableEntry
+       MAX-ACCESS        not-accessible
+       STATUS            current
+       DESCRIPTION
+         "A list of entries containing Cmis data path information."
+       ::= { cmmCmisModuleObjects 3 }
+
+    cmmCmisModuleDataPathStateTableEntry OBJECT-TYPE
+       SYNTAX            CmmCmisModuleDataPathStateTableEntry
+       MAX-ACCESS        not-accessible
+       STATUS            current
+       DESCRIPTION
+         "A list of table entries containing Cmis data path state information."
+       INDEX    { cmmStackUnitIndex, cmmCmisModuleType,
+                  cmmCmisModulePortNumber, cmmCmisModuleLaneNumber }
+         ::= { cmmCmisModuleDataPathStateTable 1 }
+
+    CmmCmisModuleDataPathStateTableEntry   ::=
+       SEQUENCE {
+           cmmCmisModuleLaneNumber            INTEGER,
+           cmmCmisModuleDataPathState         INTEGER
+       }
+
+    cmmCmisModuleLaneNumber  OBJECT-TYPE
+      SYNTAX          INTEGER (1..8)
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Module Port lane number."
+      ::= { cmmCmisModuleDataPathStateTableEntry 1 }
+
+    cmmCmisModuleDataPathState OBJECT-TYPE
+       SYNTAX                INTEGER {
+                               reserved(1),
+                               deactivated(2),
+                               init(3),
+                               deinit(4),
+                               activated(5),
+                               tx-turn-on(6),
+                               tx-turn-off(7),
+                               initialized(8)
+                             }
+       MAX-ACCESS            read-only
+       STATUS                current
+       DESCRIPTION
+         "Module data path state for particular lane."
+       ::= { cmmCmisModuleDataPathStateTableEntry 2 }
+
+    cmmCmisModuleMonitoringTable OBJECT-TYPE
+       SYNTAX            SEQUENCE OF CmmCmisModuleMonitoringTableEntry
+       MAX-ACCESS        not-accessible
+       STATUS            current
+       DESCRIPTION
+         "A list of entries containing Cmis module monitoring."
+       ::= { cmmCmisModuleObjects 4 }
+
+    cmmCmisModuleMonitoringTableEntry OBJECT-TYPE
+       SYNTAX            CmmCmisModuleMonitoringTableEntry
+       MAX-ACCESS        not-accessible
+       STATUS            current
+       DESCRIPTION
+         "A list of table entries containing Cmis module monitoring information."
+       INDEX    { cmmStackUnitIndex, cmmCmisModuleType,
+                  cmmCmisModulePortNumber, cmmCmisModuleMonitoringAttrType }
+         ::= { cmmCmisModuleMonitoringTable 1 }
+
+    CmmCmisModuleMonitoringTableEntry   ::=
+       SEQUENCE {
+           cmmCmisModuleMonitoringAttrType         INTEGER,
+           cmmCmisModuleAttrValue                  INTEGER,
+           cmmCmisModuleAttrThreshAlertMax         INTEGER,
+           cmmCmisModuleAttrThreshCriticalMax      INTEGER,
+           cmmCmisModuleAttrThreshCriticalMin      INTEGER,
+           cmmCmisModuleAttrThreshAlertMin         INTEGER
+         }
+
+    cmmCmisModuleMonitoringAttrType  OBJECT-TYPE
+      SYNTAX       INTEGER {
+                             voltage(1),
+                             temperature(2),
+                             aux1(3),
+                             aux2(4),
+                             aux3(5)
+                           }
+
+      MAX-ACCESS   accessible-for-notify
+      STATUS       current
+      DESCRIPTION
+        "A generic threshold alarm event type information"
+        ::= { cmmCmisModuleMonitoringTableEntry 1 }
+
+    cmmCmisModuleAttrValue OBJECT-TYPE
+      SYNTAX          INTEGER
+      UNITS           "0.01 unit"
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module value.
+         Unit: Temperature in degree C, Voltage in Volts,
+         Aux in Percent."
+        ::= { cmmCmisModuleMonitoringTableEntry 2 }
+
+    cmmCmisModuleAttrThreshAlertMax OBJECT-TYPE
+      SYNTAX          INTEGER
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module maximum alert threshold value"
+        ::= { cmmCmisModuleMonitoringTableEntry 3 }
+
+    cmmCmisModuleAttrThreshCriticalMax OBJECT-TYPE
+      SYNTAX          INTEGER
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module maximum critical threshold value"
+        ::= { cmmCmisModuleMonitoringTableEntry 4 }
+
+    cmmCmisModuleAttrThreshCriticalMin OBJECT-TYPE
+      SYNTAX          INTEGER
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module minimum critical threshold value"
+        ::= { cmmCmisModuleMonitoringTableEntry 5 }
+
+    cmmCmisModuleAttrThreshAlertMin OBJECT-TYPE
+      SYNTAX          INTEGER
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module minimum alert threshold value"
+        ::= { cmmCmisModuleMonitoringTableEntry 6 }
+
+
+    -- for cmmCmisModuleMonitoringFlagsTable, cmmCmisModuleObjects: 5
+    -- is reserved
+
+    cmmCmisModuleMediaLaneMonitoringTable OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmCmisModuleMediaLaneMonitoringTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of entries containing Cmis module media lane monitoring."
+        ::= { cmmCmisModuleObjects 6 }
+
+    cmmCmisModuleMediaLaneMonitoringTableEntry OBJECT-TYPE
+       SYNTAX            CmmCmisModuleMediaLaneMonitoringTableEntry
+       MAX-ACCESS        not-accessible
+       STATUS            current
+       DESCRIPTION
+         "A list of table entries containing Cmis module media lane monitoring
+         information."
+       INDEX    { cmmStackUnitIndex, cmmCmisModuleType,
+                  cmmCmisModulePortNumber, cmmCmisModuleMediaMonitoringAttrType,
+                  cmmCmisModuleLaneNumber
+                }
+         ::= { cmmCmisModuleMediaLaneMonitoringTable 1 }
+
+    CmmCmisModuleMediaLaneMonitoringTableEntry   ::=
+       SEQUENCE {
+           cmmCmisModuleMediaMonitoringAttrType         INTEGER,
+           cmmCmisModuleMediaAttrValue                  INTEGER,
+           cmmCmisModuleMediaAttrThreshAlertMax         INTEGER,
+           cmmCmisModuleMediaAttrThreshCriticalMax      INTEGER,
+           cmmCmisModuleMediaAttrThreshCriticalMin      INTEGER,
+           cmmCmisModuleMediaAttrThreshAlertMin         INTEGER
+         }
+
+    cmmCmisModuleMediaMonitoringAttrType  OBJECT-TYPE
+      SYNTAX          INTEGER
+                      {
+                        rxopticalpwr(1),
+                        txopticalpwr(2),
+                        txbias(3)
+                      }
+      MAX-ACCESS   accessible-for-notify
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module Media lane event types"
+        ::= { cmmCmisModuleMediaLaneMonitoringTableEntry 1 }
+
+    cmmCmisModuleMediaAttrValue OBJECT-TYPE
+      SYNTAX          INTEGER
+      UNITS           "0.01 dBm"
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module media lane attribute value"
+        ::= { cmmCmisModuleMediaLaneMonitoringTableEntry 2 }
+
+    cmmCmisModuleMediaAttrThreshAlertMax OBJECT-TYPE
+      SYNTAX          INTEGER
+      UNITS           "0.01 dBm"
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module media lane maximum alert threshold value"
+        ::= { cmmCmisModuleMediaLaneMonitoringTableEntry 3 }
+
+    cmmCmisModuleMediaAttrThreshCriticalMax OBJECT-TYPE
+      SYNTAX          INTEGER
+      UNITS           "0.01 dBm"
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module media lane maximum critical threshold value"
+        ::= { cmmCmisModuleMediaLaneMonitoringTableEntry 4 }
+
+    cmmCmisModuleMediaAttrThreshCriticalMin OBJECT-TYPE
+      SYNTAX          INTEGER
+      UNITS           "0.01 dBm"
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module media lane minimum critical threshold value"
+        ::= { cmmCmisModuleMediaLaneMonitoringTableEntry 5 }
+
+    cmmCmisModuleMediaAttrThreshAlertMin OBJECT-TYPE
+      SYNTAX          INTEGER
+      UNITS           "0.01 dBm"
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module media lane minimum alert threshold value"
+        ::= { cmmCmisModuleMediaLaneMonitoringTableEntry 6 }
+
+
+    cmmCmisModuleMediaLaneFlagsTable OBJECT-TYPE
+       SYNTAX            SEQUENCE OF CmmCmisModuleMediaLaneFlagsTableEntry
+       MAX-ACCESS        not-accessible
+       STATUS            current
+       DESCRIPTION
+         "A list of table entries containing Cmis module media lane flags information."
+        ::= { cmmCmisModuleObjects 7 }
+
+    cmmCmisModuleMediaLaneFlagsTableEntry OBJECT-TYPE
+       SYNTAX            CmmCmisModuleMediaLaneFlagsTableEntry
+       MAX-ACCESS        not-accessible
+       STATUS            current
+       DESCRIPTION
+         "A list of table entries containing Cmis module media lane flags information."
+       INDEX    { cmmStackUnitIndex, cmmCmisModuleType,
+                  cmmCmisModulePortNumber, cmmCmisModuleMediaLaneAttrFlagType,
+                  cmmCmisModuleLaneNumber
+                 }
+         ::= { cmmCmisModuleMediaLaneFlagsTable 1 }
+
+    CmmCmisModuleMediaLaneFlagsTableEntry  ::=
+    SEQUENCE {
+               cmmCmisModuleMediaLaneAttrFlagType   INTEGER,
+               cmmCmisModuleMediaLaneFlags          TruthValue
+             }
+
+    cmmCmisModuleMediaLaneAttrFlagType  OBJECT-TYPE
+      SYNTAX          INTEGER
+                      {
+                        rxloss(1),
+                        rxcdrlol(2),
+                        txfailure(3),
+                        txoutputstatus(4)
+                      }
+      MAX-ACCESS   accessible-for-notify
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module Media lane event types"
+        ::= { cmmCmisModuleMediaLaneFlagsTableEntry 1 }
+
+    cmmCmisModuleMediaLaneFlags OBJECT-TYPE
+      SYNTAX          TruthValue
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module media lane flags"
+        ::= { cmmCmisModuleMediaLaneFlagsTableEntry 2 }
+
+
+    -- for cmmCmisModuleHostMonitoringTable, cmmCmisModuleObjects: 8
+    -- is reserved
+
+    cmmCmisModuleHostLaneFlagsTable OBJECT-TYPE
+       SYNTAX            SEQUENCE OF CmmCmisModuleHostLaneFlagsTableEntry
+       MAX-ACCESS        not-accessible
+       STATUS            current
+       DESCRIPTION
+         "A list of entries containing Cmis module host lane flags."
+       ::= { cmmCmisModuleObjects 9 }
+
+    cmmCmisModuleHostLaneFlagsTableEntry OBJECT-TYPE
+       SYNTAX            CmmCmisModuleHostLaneFlagsTableEntry
+       MAX-ACCESS        not-accessible
+       STATUS            current
+       DESCRIPTION
+         "A list of table entries containing Cmis module host lane flags
+         information."
+       INDEX    { cmmStackUnitIndex, cmmCmisModuleType,
+                  cmmCmisModulePortNumber, cmmCmisModuleHostLaneAttrFlagType,
+                  cmmCmisModuleLaneNumber
+                }
+         ::= { cmmCmisModuleHostLaneFlagsTable 1 }
+
+    CmmCmisModuleHostLaneFlagsTableEntry   ::=
+       SEQUENCE {
+           cmmCmisModuleHostLaneAttrFlagType     INTEGER,
+           cmmCmisModuleHostLaneFlags            TruthValue
+         }
+
+    cmmCmisModuleHostLaneAttrFlagType  OBJECT-TYPE
+      SYNTAX          INTEGER
+                      {
+                        txloss(1),
+                        txcdrlol(2),
+                        txadaptiveeqfailure(3),
+                        rxoutputstatus(4)
+                      }
+      MAX-ACCESS      accessible-for-notify
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module Host lane event types"
+        ::= { cmmCmisModuleHostLaneFlagsTableEntry 1 }
+
+    cmmCmisModuleHostLaneFlags OBJECT-TYPE
+      SYNTAX          TruthValue
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module host lane flags"
+        ::= { cmmCmisModuleHostLaneFlagsTableEntry 2 }
+
+
+    --
+    -- ## Notifications
+    --
+
+    cmmCmisModuleMonitorAlarm                      OBJECT IDENTIFIER ::= { cmmCmisModuleMonitorObjects 1 }
+    cmmCmisModuleMonitorNotifications              OBJECT IDENTIFIER ::= { cmmCmisModuleMonitorObjects 2 }
+    cmmCmisModuleMediaLaneMonitorNotifications     OBJECT IDENTIFIER ::= { cmmCmisModuleMonitorObjects 3 }
+    cmmCmisModuleHostLaneMonitorNotifications      OBJECT IDENTIFIER ::= { cmmCmisModuleMonitorObjects 4 }
+
+   cmmCmisModuleAlarmSeverity  OBJECT-TYPE
+      SYNTAX       INTEGER {
+                             alertmax(1),
+                             criticalmax(2),
+                             criticalmin(3),
+                             alertmin(4)
+                           }
+
+      MAX-ACCESS   accessible-for-notify
+      STATUS       current
+      DESCRIPTION
+      "A generic threshold alarm type information"
+      ::= { cmmCmisModuleMonitorAlarm 1 }
+
+   cmmCmisModuleDescreteAlarmType  OBJECT-TYPE
+      SYNTAX       TruthValue
+      MAX-ACCESS   accessible-for-notify
+      STATUS       current
+      DESCRIPTION
+      "Cmis module descrete status information"
+      ::= { cmmCmisModuleMonitorAlarm 2 }
+
+   cmmCmisModuleNotifyAlarm   NOTIFICATION-TYPE
+      OBJECTS     {
+                    cmmStackUnitIndex,
+                    cmmCmisModuleType,
+                    cmmCmisModulePortNumber,
+                    cmmCmisModuleAlarmSeverity,
+                    cmmCmisModuleMonitoringAttrType,
+                    cmmCmisModuleAttrValue,
+                    cmmCmisModuleAttrThreshAlertMax,
+                    cmmCmisModuleAttrThreshAlertMin
+                  }
+        STATUS       current
+        DESCRIPTION
+            "Set when cmis module event type exceeds threshold value"
+        ::= { cmmCmisModuleMonitorNotifications 1 }
+
+   cmmCmisModuleNotifyAlarmRecovery   NOTIFICATION-TYPE
+      OBJECTS     {
+                    cmmStackUnitIndex,
+                    cmmCmisModuleType,
+                    cmmCmisModulePortNumber,
+                    cmmCmisModuleMonitoringAttrType,
+                    cmmCmisModuleAttrValue,
+                    cmmCmisModuleAttrThreshCriticalMax,
+                    cmmCmisModuleAttrThreshCriticalMin
+                  }
+        STATUS       current
+        DESCRIPTION
+            "Set when cmis module event type recovers from alarm"
+        ::= { cmmCmisModuleMonitorNotifications 2 }
+
+    cmmCmisModuleMediaNotifyAlarm   NOTIFICATION-TYPE
+      OBJECTS     {
+                    cmmStackUnitIndex,
+                    cmmCmisModuleType,
+                    cmmCmisModulePortNumber,
+                    cmmCmisModuleLaneNumber,
+                    cmmCmisModuleAlarmSeverity,
+                    cmmCmisModuleMediaMonitoringAttrType,
+                    cmmCmisModuleMediaAttrValue,
+                    cmmCmisModuleMediaAttrThreshAlertMax,
+                    cmmCmisModuleMediaAttrThreshAlertMin
+                  }
+        STATUS       current
+        DESCRIPTION
+        "Set when cmis module media lane exceeds alarm value"
+        ::= { cmmCmisModuleMediaLaneMonitorNotifications 1 }
+
+    cmmCmisModuleMediaNotifyAlarmRecovery   NOTIFICATION-TYPE
+      OBJECTS     {
+                    cmmStackUnitIndex,
+                    cmmCmisModuleType,
+                    cmmCmisModulePortNumber,
+                    cmmCmisModuleLaneNumber,
+                    cmmCmisModuleMediaMonitoringAttrType,
+                    cmmCmisModuleMediaAttrValue,
+                    cmmCmisModuleMediaAttrThreshCriticalMax,
+                    cmmCmisModuleMediaAttrThreshCriticalMin
+                  }
+        STATUS       current
+        DESCRIPTION
+        "Set when cmis module media lane recovers alarm value"
+        ::= { cmmCmisModuleMediaLaneMonitorNotifications 2 }
+
+    cmmCmisModuleMediaFlagsNotifyAlarm    NOTIFICATION-TYPE
+      OBJECTS     {
+                    cmmStackUnitIndex,
+                    cmmCmisModuleType,
+                    cmmCmisModulePortNumber,
+                    cmmCmisModuleLaneNumber,
+                    cmmCmisModuleDescreteAlarmType,
+                    cmmCmisModuleMediaLaneAttrFlagType
+                  }
+        STATUS       current
+        DESCRIPTION
+        "When cmis module media lane descrete attributes flags are set"
+        ::= { cmmCmisModuleMediaLaneMonitorNotifications 3 }
+
+    cmmCmisModuleMediaFlagsNotifyAlarmRecovery    NOTIFICATION-TYPE
+      OBJECTS     {
+                    cmmStackUnitIndex,
+                    cmmCmisModuleType,
+                    cmmCmisModulePortNumber,
+                    cmmCmisModuleLaneNumber,
+                    cmmCmisModuleDescreteAlarmType,
+                    cmmCmisModuleMediaLaneAttrFlagType
+                  }
+        STATUS       current
+        DESCRIPTION
+        "When cmis module media lane descrete attributes flags are recovered"
+        ::= { cmmCmisModuleMediaLaneMonitorNotifications 4 }
+
+    cmmCmisModuleHostFlagsNotifyAlarm    NOTIFICATION-TYPE
+      OBJECTS     {
+                    cmmStackUnitIndex,
+                    cmmCmisModuleType,
+                    cmmCmisModulePortNumber,
+                    cmmCmisModuleLaneNumber,
+                    cmmCmisModuleDescreteAlarmType,
+                    cmmCmisModuleHostLaneAttrFlagType
+                  }
+        STATUS       current
+        DESCRIPTION
+        "When cmis module host lane descrete attributes flags are set"
+        ::= { cmmCmisModuleHostLaneMonitorNotifications 1 }
+
+    cmmCmisModuleHostFlagsNotifyAlarmRecovery    NOTIFICATION-TYPE
+      OBJECTS     {
+                    cmmStackUnitIndex,
+                    cmmCmisModuleType,
+                    cmmCmisModulePortNumber,
+                    cmmCmisModuleLaneNumber,
+                    cmmCmisModuleDescreteAlarmType,
+                    cmmCmisModuleHostLaneAttrFlagType
+                  }
+        STATUS       current
+        DESCRIPTION
+        "When cmis module host lane descrete attributes flags are recovered"
+        ::= { cmmCmisModuleHostLaneMonitorNotifications 2 }
+
+
+END

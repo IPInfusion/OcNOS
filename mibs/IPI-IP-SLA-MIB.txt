@@ -1,0 +1,224 @@
+IPI-IP-SLA-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+      OBJECT-TYPE, MODULE-IDENTITY,
+      Gauge32, Counter32, Integer32, Unsigned32,
+      IpAddress, Counter64,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC
+      ipi  FROM IPI-MODULE-MIB;
+
+ipi-ip-sla MODULE-IDENTITY
+   LAST-UPDATED "202208100000Z"
+   ORGANIZATION "IP Infusion Inc."
+   CONTACT-INFO 
+       "postal: 3965 Freedom Circle, Suite 200, Santa Clara, CA 95054
+
+        email: support@ipinfusion.com
+
+        telephone: +1 408-400-1900
+        website: http://www.ipinfusion.com/"
+   DESCRIPTION 
+      "This MIB module is for managing Datamodel for ipsla definations"
+
+   REVISION      "202208100000Z"
+   DESCRIPTION 
+      "Updated helpstring for ip parameter"
+
+   REVISION      "202207190000Z"
+   DESCRIPTION 
+      "Update if-feature for Notification"
+
+   REVISION      "202206010000Z"
+   DESCRIPTION 
+      "Updated the yang file with feature"
+
+   REVISION      "202102120000Z"
+   DESCRIPTION 
+      "Initial Version"
+   ::= { ipi  130 } 
+
+
+ipiIpSlaProcessesprocessTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiIpSlaProcessesprocessEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for List of IP SLA processes"
+	::= { ipi-ip-sla 1 }
+
+ipiIpSlaProcessesprocessEntry OBJECT-TYPE
+	SYNTAX IpiIpSlaProcessesprocessEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for List of IP SLA processes"
+	INDEX { ipiIpSlaIdentifier }
+	::= { ipiIpSlaProcessesprocessTable 1 }
+
+IpiIpSlaProcessesprocessEntry::= SEQUENCE {
+	ipiIpSlaIdentifier Unsigned32	}
+
+ipiIpSlaIdentifier OBJECT-TYPE
+	SYNTAX Unsigned32(1..65535) 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Use this attribute to set the IPSLA."
+	::= { ipiIpSlaProcessesprocessEntry 1 }
+
+
+ipiIpSlaIcmpEchoProcessTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiIpSlaIcmpEchoProcessEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for List of ICMP Echo process"
+	::= { ipi-ip-sla 2 }
+
+ipiIpSlaIcmpEchoProcessEntry OBJECT-TYPE
+	SYNTAX IpiIpSlaIcmpEchoProcessEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for List of ICMP Echo process"
+	INDEX { ipiIpSlaIdentifier,ipiIpSlaHost }
+	::= { ipiIpSlaIcmpEchoProcessTable 1 }
+
+IpiIpSlaIcmpEchoProcessEntry::= SEQUENCE {
+	ipiIpSlaHost OCTET STRING,
+	ipiIpSlaSourceInterface OCTET STRING,
+	ipiIpSlaFrequency Unsigned32,
+	ipiIpSlaTimeout Unsigned32,
+	ipiIpSlaThreshold Unsigned32	}
+
+ipiIpSlaHost OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Use this attribute to set the ICMP Echo host name or IP address."
+	::= { ipiIpSlaIcmpEchoProcessEntry 1 }
+
+ipiIpSlaSourceInterface OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Source Interface name"
+	::= { ipiIpSlaIcmpEchoProcessEntry 2 }
+
+ipiIpSlaFrequency OBJECT-TYPE
+	SYNTAX Unsigned32(1..60) 
+	UNITS "seconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"The frequency (interval) correlates to how often the ICMP packet is sent. The unit of this parameter is in seconds."
+	::= { ipiIpSlaIcmpEchoProcessEntry 3 }
+
+ipiIpSlaTimeout OBJECT-TYPE
+	SYNTAX Unsigned32(1000..60000) 
+	UNITS "milliseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"The timeout value correlates to how long the Ping application will wait for the response after sending packets ICMP Echo packets."
+	::= { ipiIpSlaIcmpEchoProcessEntry 4 }
+
+ipiIpSlaThreshold OBJECT-TYPE
+	SYNTAX Unsigned32(1000..60000) 
+	UNITS "milliseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"The threshold value correlates to the limit the administrator sets as what would be a successful test. Threshold can be configured in milli-seconds."
+	::= { ipiIpSlaIcmpEchoProcessEntry 5 }
+
+
+ipiIpSlaScheduledProcessTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiIpSlaScheduledProcessEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for IP SLA Schedule process"
+	::= { ipi-ip-sla 3 }
+
+ipiIpSlaScheduledProcessEntry OBJECT-TYPE
+	SYNTAX IpiIpSlaScheduledProcessEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for IP SLA Schedule process"
+	INDEX { ipiIpSlaTimeRangeName,ipiIpSlaScheduledPid }
+	::= { ipiIpSlaScheduledProcessTable 1 }
+
+IpiIpSlaScheduledProcessEntry::= SEQUENCE {
+	ipiIpSlaScheduledPid Unsigned32,
+	ipiIpSlaTimeRangeName OCTET STRING,
+	ipiIpSlaVrfName OCTET STRING	}
+
+ipiIpSlaScheduledPid OBJECT-TYPE
+	SYNTAX Unsigned32(1..65535) 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Use this attribute to schedule the IPSLA measurement operation."
+	::= { ipiIpSlaScheduledProcessEntry 1 }
+
+ipiIpSlaTimeRangeName OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Time range object name to schedule this SLA operation."
+	::= { ipiIpSlaScheduledProcessEntry 2 }
+
+ipiIpSlaVrfName OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"VRF name"
+	::= { ipiIpSlaScheduledProcessEntry 3 }
+
+
+--
+-- Notifications
+--
+
+ipiCMLSEPipCMLSEPslaNotificationsPrefix OBJECT IDENTIFIER ::=
+        { ipi-ip-sla 0 }
+
+icmpechothreshold NOTIFICATION-TYPE
+   OBJECTS { ipiIpSlaHost, ipiIpSlaIdentifier, ipiIpSlaThreshold }
+   STATUS  current
+   DESCRIPTION
+           "icmp-echo-threshold event is generated when packet level RTT value is greater than the threshold value or within the threshold time response is not received"
+   ::= { ipiCMLSEPipCMLSEPslaNotificationsPrefix 1 }
+
+icmpechotimeout NOTIFICATION-TYPE
+   OBJECTS { ipiIpSlaHost, ipiIpSlaIdentifier, ipiIpSlaTimeout }
+   STATUS  current
+   DESCRIPTION
+           "icmp-echo-timeout is generated when echo packet response is not received for any of the sent packets within the configured timeout value"
+   ::= { ipiCMLSEPipCMLSEPslaNotificationsPrefix 2 }
+
+icmpechodisconnect NOTIFICATION-TYPE
+   OBJECTS { ipiIpSlaIdentifier }
+   STATUS  current
+   DESCRIPTION
+           "icmp-echo-disconnect is generated when timeout is observed for any of the packet in sla measurement operation"
+   ::= { ipiCMLSEPipCMLSEPslaNotificationsPrefix 3 }
+END

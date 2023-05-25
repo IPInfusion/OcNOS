@@ -1,0 +1,186 @@
+IPI-VRF-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+  OBJECT-TYPE, MODULE-IDENTITY,
+  Integer32, Unsigned32,
+  DisplayString,
+  RowStatus
+  FROM SNMPv2-TC
+  enterprises, OBJECT-IDENTITY
+  FROM SNMPv2-SMI
+  InterfaceIndex
+        FROM IF-MIB
+  ipi  FROM IPI-MODULE-MIB;
+
+  ipiVrfMib MODULE-IDENTITY
+  LAST-UPDATED "202106171230Z"
+  ORGANIZATION "IP Infusion"
+  CONTACT-INFO "www.ipinfusion.com"
+  DESCRIPTION
+  "IPI VRF MIB."
+  ::= { ipi 3 }
+ 
+ipiVrf   OBJECT IDENTIFIER ::={ ipiVrfMib 1 }
+ipiVrfObjects   OBJECT IDENTIFIER ::={ ipiVrf 1 }
+ipiVrfTableObjects OBJECT IDENTIFIER ::={ipiVrfObjects 1}
+ipiVrfInterfaceTableObjects OBJECT IDENTIFIER ::={ipiVrfObjects 2}
+ 
+ipiVrfTable  OBJECT-TYPE
+  SYNTAX      SEQUENCE OF IpiVrfEntry
+  MAX-ACCESS  not-accessible
+  STATUS      current
+  DESCRIPTION
+  "The vrf information."
+   ::= { ipiVrfTableObjects 1 }
+
+ipiVrfEntry  OBJECT-TYPE
+  SYNTAX      IpiVrfEntry
+  MAX-ACCESS  not-accessible
+  STATUS      current
+  DESCRIPTION
+  "A Table object containing vrf information."
+  INDEX           { ipiVrfIndex }
+  ::= { ipiVrfTable 1 }
+ 
+IpiVrfEntry::=
+  SEQUENCE {
+          ipiVrfIndex  Unsigned32,
+          ipiVrfName   DisplayString,
+          ipiVrfOperStatus INTEGER,
+          ipiVrfRouteDistProt OCTET STRING,
+          ipiVrfStroageType INTEGER,
+          ipiVrfRowStatus INTEGER
+		  }
+ipiVrfIndex  OBJECT-TYPE
+  SYNTAX      Unsigned32 (1..4294967295)
+  MAX-ACCESS  not-accessible
+  STATUS      current
+  DESCRIPTION
+  "VRF Index"
+  ::= { ipiVrfEntry 1 }
+ 
+ipiVrfName    OBJECT-TYPE
+  SYNTAX      DisplayString
+  MAX-ACCESS  read-write
+  STATUS      current
+  DESCRIPTION
+  "This object specifies the VRF name."
+  ::= { ipiVrfEntry 2 }
+ 
+ipiVrfOperStatus OBJECT-TYPE
+  SYNTAX     INTEGER {
+          up(1),
+          down(2)
+           }
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+   "VRF operational Status."
+   ::= { ipiVrfEntry 3 }
+
+ipiVrfRouteDistProt    OBJECT-TYPE
+  SYNTAX      OCTET STRING
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+  "This object specifies the VRF route distinguisher."
+  ::= { ipiVrfEntry 4 }
+  
+ipiVrfStroageType OBJECT-TYPE
+  SYNTAX     INTEGER {other(1),
+                      volatile(2),
+                      non-volatile(3),
+                      permanent(4),
+                      read-only(5)
+                     }
+MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+   " Storage Type."
+   ::= { ipiVrfEntry 5 }
+   
+ipiVrfRowStatus OBJECT-TYPE
+  SYNTAX     INTEGER {active(1),
+                      notInService(2),
+                      notReady(3),
+                      createAndGo(4),
+                      createAndWait(5),
+                      destroy(6) 
+                     }
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+   " This variable is used to create, modify, and/or
+   delete a row in this table."
+   ::= { ipiVrfEntry 6 }
+  
+ipiVrfInterfaceTable  OBJECT-TYPE
+  SYNTAX      SEQUENCE OF IpiVrfInterfaceEntry
+  MAX-ACCESS  not-accessible
+  STATUS      current
+  DESCRIPTION
+  "The vrf interface information."
+   ::= { ipiVrfInterfaceTableObjects 1 }
+
+ipiVrfInterfaceEntry  OBJECT-TYPE
+  SYNTAX      IpiVrfInterfaceEntry
+  MAX-ACCESS  not-accessible
+  STATUS      current
+  DESCRIPTION
+  "A Table object containing vrf information."
+  INDEX           { ipiVrfInterfaceIndex }
+  ::= { ipiVrfInterfaceTable 1 }
+ 
+IpiVrfInterfaceEntry::=
+  SEQUENCE {
+             ipiVrfInterfaceIndex  InterfaceIndex,
+             ipiInterfaceVrfName   DisplayString,
+             ipiVrfInterfaceStroageType INTEGER,
+             ipiVrfInterfaceRowStatus INTEGER
+          }
+
+ipiVrfInterfaceIndex  OBJECT-TYPE
+  SYNTAX      InterfaceIndex
+  MAX-ACCESS  not-accessible
+  STATUS      current
+  DESCRIPTION
+  "Interface index bound to VRF"
+  ::= { ipiVrfInterfaceEntry 1 }
+ 
+ipiInterfaceVrfName    OBJECT-TYPE
+  SYNTAX      DisplayString
+  MAX-ACCESS  read-write
+  STATUS      current
+  DESCRIPTION
+  "VRF name to which the interface ipiVrfInterfaceIndex is bound to."
+  ::= { ipiVrfInterfaceEntry 2 }
+ 
+ipiVrfInterfaceStroageType OBJECT-TYPE
+  SYNTAX     INTEGER {other(1),
+                      volatile(2),
+                      non-volatile(3),
+                      permanent(4),
+                      read-only(5)
+                     }
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  " Storage Type."
+  ::= { ipiVrfInterfaceEntry 3 }
+ 
+ipiVrfInterfaceRowStatus OBJECT-TYPE
+  SYNTAX     INTEGER {active(1),
+                      notInService(2),
+                      notReady(3),
+                      createAndGo(4),
+                      createAndWait(5),
+                      destroy(6) 
+                     }
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+   " This variable is used to create, modify, and/or
+   delete a row in this table."
+   ::= { ipiVrfInterfaceEntry 4 }
+ 
+END

@@ -1,0 +1,924 @@
+    IPI-CMM-SMART-SFP-MIB DEFINITIONS ::= BEGIN
+
+    --  This module provides authoritative definitions for cmm smart sfp modules
+    --
+    --  This module will be extended, as needed.
+    --
+
+    IMPORTS
+        MODULE-IDENTITY, Counter32
+            FROM SNMPv2-SMI-MIB
+        OBJECT-TYPE, NOTIFICATION-TYPE
+            FROM SNMPv2-SMI-MIB
+        DisplayString
+            FROM SNMPv2-TC-MIB
+        MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+            FROM SNMPv2-CONF
+        enterprises, OBJECT-IDENTITY
+            FROM SNMPv2-SMI
+        ipi FROM IPI-MODULE-MIB
+        cmmChassisObject, cmmStackUnitIndex, cmmTransIndex
+            FROM IPI-CMM-CHASSIS-MIB;
+
+    cmm  MODULE-IDENTITY
+    LAST-UPDATED "202303080000Z"   -- March 08, 2023 12:00:00 GMT
+    ORGANIZATION
+      "IPI."
+    CONTACT-INFO
+      "support@ipinfusion.com"
+
+    DESCRIPTION
+       "The Structure of CMM Smart SFP Management Information for
+        the IPI enterprise."
+  REVISION "202303080000Z"
+  DESCRIPTION
+      "Complying to level 3 of SMILINT"
+    ::= { ipi 100 }
+
+
+    -- ### Groups ###
+    cmmSmartSFPModule      OBJECT IDENTIFIER ::={ cmmChassisObject 21 }
+
+
+    cmmSmartSFPModuleObjects         OBJECT IDENTIFIER ::={ cmmSmartSFPModule 1 }
+    cmmSmartSFPModuleMonitorObjects  OBJECT IDENTIFIER ::={ cmmSmartSFPModule 2 }
+
+
+    -- ## Remote SFP EEPROM Entry
+    cmmRemoteSFPEEPROMTable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmRemoteSFPEEPROMEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of entries containing Smart SFP module remote EEPROM information."
+        ::= { cmmSmartSFPModuleObjects 1 }
+
+    cmmRemoteSFPEEPROMEntry OBJECT-TYPE
+      SYNTAX            CmmRemoteSFPEEPROMEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing Smart SFP module remote EEPROM information."
+        INDEX    { cmmStackUnitIndex,
+                   cmmTransIndex }
+        ::= { cmmRemoteSFPEEPROMTable 1 }
+
+      CmmRemoteSFPEEPROMEntry::=
+        SEQUENCE {
+            cmmRemoteSFPidentifier                INTEGER,
+            cmmRemoteSFPSFPextendedidentifier     INTEGER,
+            cmmRemoteSFPconnectortype             INTEGER,
+            cmmRemoteSFPEthCompliance             INTEGER,
+            cmmRemoteSFPExtEthCompliance          BITS,
+            cmmRemoteSFPSonetCompliance           BITS,
+            cmmRemoteSFPFiberChnlLinkLen          BITS,
+            cmmRemoteSFPFiberChnlTransTech        BITS,
+            cmmRemoteSFPFiberChnlTransMedia       BITS,
+            cmmRemoteSFPSFPFiberChnlSpeed         BITS,
+            cmmRemoteSFPSFPInfiniBandCompliance   INTEGER,
+            cmmRemoteSFPSFPEsconCompliance        INTEGER,
+            cmmRemoteSFPSfpPlusCableTech          INTEGER,
+            cmmRemoteSFPEncoding                  INTEGER,
+            cmmRemoteSFPLengthKmtrs               INTEGER,
+            cmmRemoteSFPLengthMtrs                INTEGER,
+            cmmRemoteSFPLengthOM1                 INTEGER,
+            cmmRemoteSFPLengthOM2                 INTEGER,
+            cmmRemoteSFPLengthOM3                 INTEGER,
+            cmmRemoteSFPLengthOM4                 INTEGER,
+            cmmRemoteSFPVendorName                DisplayString,
+            cmmRemoteSFPVendorOUI                 DisplayString,
+            cmmRemoteSFPVendorPartNumber          DisplayString,
+            cmmRemoteSFPVendorRevision            DisplayString,
+            cmmRemoteSFPCheckCode                 OCTET STRING,
+            cmmRemoteSFPCheckCodeExtended         OCTET STRING,
+            cmmRemoteSFPNominalBitRate            INTEGER,
+            cmmRemoteSFPBitRateMax                INTEGER,
+            cmmRemoteSFPBitRateMin                INTEGER,
+            cmmRemoteSFPVendorSerialNumber        DisplayString,
+            cmmRemoteSFPDateCode                  DisplayString,
+            cmmRemoteSFPDDMSupport                INTEGER,
+            cmmRemoteSFPSFPOptionsImp             BITS
+        }
+
+        cmmRemoteSFPidentifier OBJECT-TYPE
+        SYNTAX        INTEGER {
+                             id-unknown(1),
+                             gbic(2),
+                             soldered-to-motherboard(3),
+                             sfp-or-sfpplus-or-sfp28(4),
+                             reserved(5),
+                             vendor-specific(6),
+                             unavailable(-100001),
+                             not-applicable(-100002)
+                             }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The Type of transceiver present eg:SFP/SFP+/SFP28/QSFP/QSFP+/QSFP28."
+        ::= { cmmRemoteSFPEEPROMEntry 1 }
+
+        cmmRemoteSFPSFPextendedidentifier OBJECT-TYPE
+        SYNTAX        INTEGER {
+                             gbic-notspecified-or-compliant-with-moddef(1),
+                             gbic-compliant-with-moddef1(2),
+                             gbic-compliant-with-moddef2(3),
+                             gbic-compliant-with-moddef3(4),
+                             gbic-or-sfp-definedby-twowire-interfaceid-only (5),
+                             gbic-compliant-with-moddef5(6),
+                             gbic-compliant-with-moddef6(7),
+                             gbic-compliant-with-moddef7(8),
+                             unallocated(9),
+                             unavailable(-100001),
+                             not-applicable(-100002)
+                             }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Extended identifier of SFP transceiver for additional information."
+        ::= { cmmRemoteSFPEEPROMEntry 2 }
+
+        cmmRemoteSFPconnectortype   OBJECT-TYPE
+        SYNTAX        INTEGER {
+                             type-unknown(1),
+                             subscriber-connector(2),
+                             fibrechannel-style1-copperconnector(3),
+                             fibrechannel-style2-copperconnector(4),
+                             bayonet-or-threaded-neill-concelman(5),
+                             fibrechannel-coaxheaders(6),
+                             fiber-jack(7),
+                             lucent-connector(8),
+                             mechanical-transfer-registeredjack(9),
+                             multiple-optical(10),
+                             sg(11),
+                             optical-pigtail(12),
+                             multifiber-paralleloptic-1x12(13),
+                             multifiber-paralleloptic-1x16(14),
+                             hssdcii(15),
+                             copper-pigtail(16),
+                             rj45(17),
+                             no-separable-connector(18),
+                             mxc2-x16(19),
+                             reserved(20),
+                             vendor-specific(21),
+                             unavailable(-100001),
+                             not-applicable(-100002)
+                             }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Connector type for the transceiver."
+        ::= { cmmRemoteSFPEEPROMEntry 3 }
+
+        cmmRemoteSFPEthCompliance   OBJECT-TYPE
+        SYNTAX        INTEGER {
+                             ec-unknown(1),
+                             ec-10gbase-sr(2),
+                             ec-10gbase-lr(3),
+                             ec-10gbase-lrm(4),
+                             ec-10gbase-er(5),
+                             ec-1000base-sx(6),
+                             ec-1000base-lx(7),
+                             ec-1000base-cx(8),
+                             ec-1000base-t(9),
+                             ec-100base-lx-or-lx10(10),
+                             ec-100base-fx(11),
+                             ec-base-bx10(12),
+                             ec-base-px(13),
+                             ec-40gbase-cr4(14),
+                             ec-40gbase-sr4(15),
+                             ec-40gbase-lr4(16),
+                             ec-40g-activecable(17),
+                             unavailable(-100001),
+                             not-applicable(-100002)
+                             }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Values of Ethernet Compliance codes."
+        ::= { cmmRemoteSFPEEPROMEntry 4 }
+
+        cmmRemoteSFPExtEthCompliance   OBJECT-TYPE
+        SYNTAX        BITS   {
+                             eec-unspecified(0),
+                             eec-100g-activeopticalcable-or-25g-auic2maoc(1),
+                             eec-100gbase-sr4-or-25gbase-sr(2),
+                             eec-100gbase-lr4-or-25gbase-lr(3),
+                             eec-100gbase-er4-or-25gbase-er(4),
+                             eec-100gbase-sr10(5),
+                             eec-100g-cwdm4(6),
+                             eec-100g-psm4-parallelsmf(7),
+                             eec-100g-activecoppercable-or-25g-auic2macc(8),
+                             eec-obsolete(9),
+                             eec-reserved(10),
+                             eec-100gbase-cr4-or-25gbase-crca-l(11),
+                             eec-25gbase-crca-s(12),
+                             eec-25gbase-crca-n(13),
+                             eec-40gbase-er4(14),
+                             eec-4x10gbase-sr(15),
+                             eec-40g-psm4-parallelsmf(16),
+                             eec-g959-dot1-profilep1-i1-2d1(17),
+                             eec-g959-dot1-profilep1-s1-2d2(18),
+                             eec-g959-dot1-profilep1-l1-2d2(19),
+                             eec-10gbase-t-with-sfi-electricalinterface(20),
+                             eec-100g-clr4(21),
+                             eec-100g-aoc-or-25g-auic2maoc(22),
+                             eec-100g-acc-or-25g-auic2macc(23),
+                             eec-100ge-dwdm2(24),
+                             unavailable(30),
+                             not-applicable(31)
+                             }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Bitmap of Extended Ethernet Compliance codes."
+        ::= { cmmRemoteSFPEEPROMEntry 5 }
+
+        cmmRemoteSFPSonetCompliance   OBJECT-TYPE
+        SYNTAX        BITS   {
+                             oc192-shortreach(0),
+                             sonet-reachspecifier-bit1(1),
+                             sonet-reachspecifier-bit2(2),
+                             oc48-longreach(3),
+                             oc48-intermediatereach(4),
+                             oc48-shortreach(5),
+                             oc12-singlemode-longreach(6),
+                             oc12-singlemode-intermediatereach(7),
+                             oc12-singlemode-shortreach(8),
+                             oc3-singlemode-longreach(9),
+                             oc3-singlemode-intermediatereach(10),
+                             oc3-singlemode-shortreach(11),
+                             unavailable(30),
+                             not-applicable(31)
+                             }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Sonet Compliance codes of transceiver."
+        ::= { cmmRemoteSFPEEPROMEntry 6 }
+
+        cmmRemoteSFPFiberChnlLinkLen  OBJECT-TYPE
+        SYNTAX        BITS {
+                           short(0),
+                           medium(1),
+                           intermediate(2),
+                           long(3),
+                           verylong(4),
+                           unavailable(30),
+                           not-applicable(31)
+                           }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Fiber Channel Link Length."
+        ::= { cmmRemoteSFPEEPROMEntry 7 }
+
+        cmmRemoteSFPFiberChnlTransTech  OBJECT-TYPE
+        SYNTAX        BITS {
+                           shortwaveLaserLinearRx(0),
+                           longwaveLaserLC(1),
+                           electricalInter-Enclosure(2),
+                           electricalIntra-Enclosure(3),
+                           shortwaveLaserWithOutOFC(4),
+                           shortwaveLaserwithOFC(5),
+                           longwaveLaserLL(6),
+                           unavailable(30),
+                           not-applicable(31)
+                           }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Fiber Channel Transmitter Technology."
+        ::= { cmmRemoteSFPEEPROMEntry 8 }
+
+        cmmRemoteSFPFiberChnlTransMedia  OBJECT-TYPE
+        SYNTAX        BITS {
+                           twinaxial-pair(0),
+                           twisted-pair(1),
+                           miniature-coax(2),
+                           video-coax(3),
+                           multi-mode62dot5m(4),
+                           multi-mode50m(5),
+                           multi-mode50um(6),
+                           single-mode(7),
+                           unavailable(30),
+                           not-applicable(31)
+                           }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Fiber Channel Transmitter Media."
+        ::= { cmmRemoteSFPEEPROMEntry 9 }
+
+        cmmRemoteSFPSFPFiberChnlSpeed  OBJECT-TYPE
+        SYNTAX        BITS  {
+                             fcs-3200mbps(0),
+                             fcs-1600mbps(1),
+                             fcs-1200mbps(2),
+                             fcs-800mbps(3),
+                             fcs-400mbps(4),
+                             fcs-200mbps(5),
+                             fcs-100mbps(6),
+                             unavailable(30),
+                             not-applicable(31)
+                             }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "SFP Fiber Channel Speed."
+        ::= { cmmRemoteSFPEEPROMEntry 10 }
+
+        cmmRemoteSFPSFPInfiniBandCompliance OBJECT-TYPE
+        SYNTAX        INTEGER {
+                           ibc-1xsx(1),
+                           ibc-1xlx(2),
+                           ibc-1xcopperactive(3),
+                           ibc-1xcopperpassive(4),
+                           unavailable(-100001),
+                           not-applicable(-100002)
+                           }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "SFP InfiniBand Compliance."
+        ::= { cmmRemoteSFPEEPROMEntry 11 }
+
+        cmmRemoteSFPSFPEsconCompliance  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                           escon-mmf-1310nm-led(1),
+                           escon-smf-1310nm-laser(2),
+                           unavailable(-100001),
+                           not-applicable(-100002)
+                           }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "SFP Enterprise Systems Connection compliance."
+        ::= { cmmRemoteSFPEEPROMEntry 12 }
+
+        cmmRemoteSFPSfpPlusCableTech  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                              active(1),
+                              passive(2),
+                              unavailable(-100001),
+                              not-applicable(-100002)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "SFP+ Cable Technology."
+        ::= { cmmRemoteSFPEEPROMEntry 13 }
+
+        cmmRemoteSFPEncoding  OBJECT-TYPE
+        SYNTAX        INTEGER {
+                              enc-unspecified(1),
+                              enc-8b-or-10b(2),
+                              enc-4b-or-5b(3),
+                              enc-nrz(4),
+                              enc-manchester(5),
+                              enc-sonet-scrambled(6),
+                              enc-64b-or-66b(7),
+                              enc-256b-or-257b(8),
+                              enc-pam4(9),
+                              enc-reserved(10),
+                              unavailable(-100001),
+                              not-applicable(-100002)
+                              }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Code for SFP/QSFP high speed serial encoding algorithm."
+        ::= { cmmRemoteSFPEEPROMEntry 14 }
+
+        cmmRemoteSFPLengthKmtrs  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS          "km"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Link length supported for single mode fiber, units of km.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 15 }
+
+        cmmRemoteSFPLengthMtrs  OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "100 m"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Link length supported for single mode fiber, units of 100 m.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 16 }
+
+        cmmRemoteSFPLengthOM1 OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "10 m"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Link length supported for 62.5 um OM1 fiber, units of 10 m.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 17 }
+
+        cmmRemoteSFPLengthOM2 OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "10 m"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Link length supported for 50 um OM2 fiber, units of 10 m.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 18 }
+
+        cmmRemoteSFPLengthOM3 OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "10 m"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Link length supported for 50 um OM3 fiber, units of 10 m.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 19 }
+
+        cmmRemoteSFPLengthOM4 OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "10 m"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Link length supported for 50 um OM4 fiber, units of 10 m.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 20 }
+
+        cmmRemoteSFPVendorName OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver vendor name.
+             Blank indicates unavailable"
+        ::= { cmmRemoteSFPEEPROMEntry 21 }
+
+        cmmRemoteSFPVendorOUI OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver vendor IEEE company ID.
+             Blank indicates unavailable"
+        ::= { cmmRemoteSFPEEPROMEntry 22 }
+
+        cmmRemoteSFPVendorPartNumber  OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Part number provided by tarnsceiver vendor.
+             Blank indicates unavailable"
+        ::= { cmmRemoteSFPEEPROMEntry 23 }
+
+        cmmRemoteSFPVendorRevision  OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Revision level for part number provided by vendor.
+             Blank indicates unavailable"
+        ::= { cmmRemoteSFPEEPROMEntry 24 }
+
+        cmmRemoteSFPCheckCode  OBJECT-TYPE
+        SYNTAX        OCTET STRING (SIZE (1))
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Check code for Base ID Fields.
+             Blank indicates unavailable"
+        ::= { cmmRemoteSFPEEPROMEntry 25 }
+
+        cmmRemoteSFPCheckCodeExtended  OBJECT-TYPE
+        SYNTAX        OCTET STRING (SIZE (1))
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Check code for the Extended ID Fields.
+             Blank indicates unavailable"
+        ::= { cmmRemoteSFPEEPROMEntry 26 }
+
+        cmmRemoteSFPNominalBitRate OBJECT-TYPE
+        SYNTAX        INTEGER
+        UNITS         "100MBd"
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Nominal signalling rate, units of 100MBd.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 27 }
+
+        cmmRemoteSFPBitRateMax  OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Upper bit rate margin, units of 1% above the Nominal Bit Rate.
+            Value '0' indicates this field is not specified.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 28 }
+
+        cmmRemoteSFPBitRateMin  OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Lower bit rate margin, units of 1% below the Nominal Bit Rate.
+            Value '0' indicates this field is not specified.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 29 }
+
+        cmmRemoteSFPVendorSerialNumber  OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Serial number provided by vendor.
+             Blank indicates unavailable"
+        ::= { cmmRemoteSFPEEPROMEntry 30 }
+
+        cmmRemoteSFPDateCode  OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Vendor's manufacturing date code.
+             Blank indicates unavailable"
+        ::= { cmmRemoteSFPEEPROMEntry 31 }
+
+        cmmRemoteSFPDDMSupport  OBJECT-TYPE
+        SYNTAX        INTEGER{
+                             yes(1),
+                             no(2),
+                             unavailable(-100001),
+                             not-applicable(-100002)
+                             }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Indicates whether diagnostics monitoring is
+            supported or not.
+            '-100001' indicates unavailable
+            '-100002' indicates not-applicable."
+        ::= { cmmRemoteSFPEEPROMEntry 32 }
+
+        cmmRemoteSFPSFPOptionsImp  OBJECT-TYPE
+        SYNTAX        BITS {
+                           reserved(0),
+                           power-level3(1),
+                           paging(2),
+                           internal-retimer-or-cdr(3),
+                           cooled-laser-transmitter(4),
+                           power-level2(5),
+                           power-level1(6),
+                           linear-receiver-output(7),
+                           receiver-decision-threshold(8),
+                           transmitter-wavelength-or-tunable-frequency(9),
+                           rate-select(10),
+                           tx-disable(11),
+                           tx-fault(12),
+                           rx-loss-of-signal(13),
+                           unavailable(30),
+                           not-applicable(31)
+                           }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Transceiver Options Implemented for SFP Transceiver."
+        ::= { cmmRemoteSFPEEPROMEntry 33 }
+
+
+    --
+    -- ## Remote SFP DDMChannel Entry
+    --
+    cmmRemoteSFPDDMTable OBJECT-TYPE
+      SYNTAX        SEQUENCE OF CmmRemoteSFPDDMEntry
+      MAX-ACCESS    not-accessible
+      STATUS        current
+      DESCRIPTION
+      "Information about Digital Optical Monitoring for each
+      interface per channel."
+      ::= { cmmSmartSFPModuleObjects 2 }
+
+    cmmRemoteSFPDDMEntry OBJECT-TYPE
+      SYNTAX        CmmRemoteSFPDDMEntry
+      MAX-ACCESS    not-accessible
+      STATUS        current
+      DESCRIPTION
+      "Information about Digital Optical Monitoring for each
+      interface per channel."
+      INDEX    { cmmStackUnitIndex,
+                 cmmTransIndex,
+                 cmmRemoteSFPAttrType }
+      ::= { cmmRemoteSFPDDMTable 1 }
+
+    CmmRemoteSFPDDMEntry    ::=
+      SEQUENCE {
+           cmmRemoteSFPAttrType                   INTEGER,
+           cmmRemoteSFPAttrValue                  INTEGER,
+           cmmRemoteSFPAttrThreshAlertMax         INTEGER,
+           cmmRemoteSFPAttrThreshCriticalMax      INTEGER,
+           cmmRemoteSFPAttrThreshCriticalMin      INTEGER,
+           cmmRemoteSFPAttrThreshAlertMin         INTEGER
+        }
+
+    cmmRemoteSFPAttrType  OBJECT-TYPE
+      SYNTAX    INTEGER {
+                    temperature(1),
+                    voltage(2),
+                    laserbiascurrent(3),
+                    rxpower(4),
+                    txpower(5)
+                  }
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "A generic threshold alarm attribute type information"
+      ::= { cmmRemoteSFPDDMEntry 1 }
+
+    cmmRemoteSFPAttrValue  OBJECT-TYPE
+      SYNTAX        INTEGER
+      UNITS         "0.01 unit"
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Smart SFP attribute value.
+      Unit: Temperature in degree Celsius (C), Voltage in Volts (V),
+      Current in Amphere (mA), TX/RX power in decibels (dBm)."
+      ::= { cmmRemoteSFPDDMEntry 2 }
+
+    cmmRemoteSFPAttrThreshAlertMax  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Smart SFP attribute maximum alert threshold value."
+      ::= { cmmRemoteSFPDDMEntry 3 }
+
+    cmmRemoteSFPAttrThreshCriticalMax  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Smart SFP attribute maximum critical threshold value."
+      ::= { cmmRemoteSFPDDMEntry 4 }
+
+    cmmRemoteSFPAttrThreshCriticalMin  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Smart SFP attribute manimum critical threshold value."
+      ::= { cmmRemoteSFPDDMEntry 5 }
+
+    cmmRemoteSFPAttrThreshAlertMin  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Smart SFP attribute manimum alert threshold value."
+      ::= { cmmRemoteSFPDDMEntry 6 }
+
+   --
+   -- ## Smart SFP OAM Switch Table
+   --
+    cmmSmartSFPOAMSwitchTable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmSmartSFPOAMSwitchEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+      "A list of entries containing Smart SFP module OAM switch information."
+      ::= { cmmSmartSFPModuleObjects 3 }
+
+    cmmSmartSFPOAMSwitchEntry OBJECT-TYPE
+      SYNTAX            CmmSmartSFPOAMSwitchEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+      "A list of table entries containing Smart SFP module OAM switch information."
+      INDEX    { cmmStackUnitIndex,
+                 cmmTransIndex }
+        ::= { cmmSmartSFPOAMSwitchTable 1 }
+
+    CmmSmartSFPOAMSwitchEntry::=
+      SEQUENCE {
+         cmmSmartSFPOAMSwitchState   INTEGER
+      }
+
+    cmmSmartSFPOAMSwitchState     OBJECT-TYPE
+      SYNTAX    INTEGER {
+                          on(1),
+                          off(2)
+                        }
+      MAX-ACCESS        read-only
+      STATUS            current
+      DESCRIPTION
+      "Smart SFP Pilot Tone Switch State"
+      ::= { cmmSmartSFPOAMSwitchEntry 1 }
+
+    --
+    -- ## Smart SFP OAM Status Table
+    --
+    cmmSmartSFPOAMStatusTable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmSmartSFPOAMStatusEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+      "A list of entries containing Smart SFP module OAM status information."
+      ::= { cmmSmartSFPModuleObjects 4 }
+
+    cmmSmartSFPOAMStatusEntry OBJECT-TYPE
+      SYNTAX            CmmSmartSFPOAMStatusEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing Smart SFP module OAM status information."
+        INDEX    { cmmStackUnitIndex,
+                   cmmTransIndex,
+                   cmmSmartSFPOAMStatusIndex }
+        ::= { cmmSmartSFPOAMStatusTable 1 }
+
+    CmmSmartSFPOAMStatusEntry::=
+      SEQUENCE {
+         cmmSmartSFPOAMStatusIndex   INTEGER,
+         cmmSmartSFPOAMStatus        INTEGER
+      }
+
+    cmmSmartSFPOAMStatusIndex OBJECT-TYPE
+      SYNTAX   INTEGER {
+                         local(1),
+                         remote(2)
+                       }
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Smart SFP Pilot Tone switch index"
+      ::= { cmmSmartSFPOAMStatusEntry 1 }
+
+    cmmSmartSFPOAMStatus OBJECT-TYPE
+      SYNTAX        INTEGER {
+                              local-tcvr-ready(1),
+                              remote-tcvr-ready(2),
+                              normal(3),
+                              receiving-fallure(4),
+                              link-failure(5)
+                            }
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Smart SFP Pilot Tone switch status"
+      ::= { cmmSmartSFPOAMStatusEntry 2 }
+
+
+    --
+    -- ## Smart SFP OAM Counters Table
+    --
+    cmmSmartSFPOAMCountersTable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmSmartSFPOAMCountersEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+      "A list of entries containing Smart SFP module OAM counters information."
+      ::= { cmmSmartSFPModuleObjects 5 }
+
+    cmmSmartSFPOAMCountersEntry OBJECT-TYPE
+      SYNTAX            CmmSmartSFPOAMCountersEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing Smart SFP module OAM counters information."
+        INDEX    { cmmStackUnitIndex,
+                   cmmTransIndex,
+                   cmmSmartSFPOAMCountersIndex }
+        ::= { cmmSmartSFPOAMCountersTable 1 }
+
+    CmmSmartSFPOAMCountersEntry::=
+    SEQUENCE {
+        cmmSmartSFPOAMCountersIndex   INTEGER,
+        cmmSmartSFPOAMPacketCounters  Counter32
+    }
+
+    cmmSmartSFPOAMCountersIndex OBJECT-TYPE
+    SYNTAX        INTEGER {
+                            rx(1),
+                            tx(2),
+                            err(3)
+    }
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Smart SFP OAM counter index."
+      ::= { cmmSmartSFPOAMCountersEntry 1 }
+
+    cmmSmartSFPOAMPacketCounters OBJECT-TYPE
+      SYNTAX        Counter32
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Smart SFP number of OAM packets counters."
+      ::= { cmmSmartSFPOAMCountersEntry 2 }
+
+
+    --
+    -- REMOTE TRANSCEIVER(DDM) AND OAM STATUS RELATED TRAPS
+    --
+    cmmRemoteSFPAlarm             OBJECT IDENTIFIER ::= { cmmSmartSFPModuleMonitorObjects 1 }
+    cmmRemoteSFPNotifications     OBJECT IDENTIFIER ::= { cmmSmartSFPModuleMonitorObjects 2 }
+
+    cmmRemoteSFPAlarmSeverity   OBJECT-TYPE
+      SYNTAX   INTEGER {
+                         alertmax(1),
+                         criticalmax(2),
+                         criticalmin(3),
+                         alertmin(4)
+                       }
+       MAX-ACCESS   accessible-for-notify
+       STATUS       current
+       DESCRIPTION
+       "A generic threshold alarm severity type."
+       ::= { cmmRemoteSFPAlarm 1 }
+
+    cmmRemoteSFPAlarmThresholdMax   OBJECT-TYPE
+      SYNTAX   INTEGER
+      MAX-ACCESS   accessible-for-notify
+      STATUS       current
+      DESCRIPTION
+      "A generic threshold maximum value."
+      ::= { cmmRemoteSFPAlarm 2 }
+
+    cmmRemoteSFPAlarmThresholdMin   OBJECT-TYPE
+      SYNTAX   INTEGER
+      MAX-ACCESS   accessible-for-notify
+       STATUS       current
+       DESCRIPTION
+       "A generic threshold minimum value."
+       ::= { cmmRemoteSFPAlarm 3 }
+
+    cmmRemoteSFPAlarmNotify   NOTIFICATION-TYPE
+       OBJECTS     {
+                     cmmStackUnitIndex,
+                     cmmTransIndex,
+                     cmmRemoteSFPAlarmSeverity,
+                     cmmRemoteSFPAttrType,
+                     cmmRemoteSFPAttrValue,
+                     cmmRemoteSFPAlarmThresholdMax,
+                     cmmRemoteSFPAlarmThresholdMin
+                   }
+         STATUS       current
+         DESCRIPTION
+             "Set when Smart SFP transceiver attribute type exceeds
+              threshold value."
+         ::= { cmmRemoteSFPNotifications 1 }
+
+    cmmRemoteSFPAlarmNotifyRecovery   NOTIFICATION-TYPE
+       OBJECTS     {
+                     cmmStackUnitIndex,
+                     cmmTransIndex,
+                     cmmRemoteSFPAttrType,
+                     cmmRemoteSFPAttrValue,
+                     cmmRemoteSFPAttrThreshCriticalMax,
+                     cmmRemoteSFPAttrThreshCriticalMin
+                   }
+         STATUS       current
+         DESCRIPTION
+             "Set when Smart SFP transceiver attribute type recovers
+              from threshold value."
+         ::= { cmmRemoteSFPNotifications 2 }
+
+    cmmSmartSFPOAMStateAlarmNotify  NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmStackUnitIndex,
+                      cmmTransIndex,
+                      cmmSmartSFPOAMStatusIndex
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Set when smart SFP OAM is alarm notified."
+         ::= { cmmRemoteSFPNotifications 3 }
+
+    cmmSmartSFPOAMStateAlarmNotifyRecovery  NOTIFICATION-TYPE
+        OBJECTS      {
+                      cmmStackUnitIndex,
+                      cmmTransIndex,
+                      cmmSmartSFPOAMStatusIndex
+                     }
+        STATUS       current
+        DESCRIPTION
+        "Set when smart SFP OAM is recovered."
+        ::= { cmmRemoteSFPNotifications 4 }
+
+END

@@ -1,0 +1,133 @@
+IPI-DOT1AG-CFM-NVO3-TRAP-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+MODULE-IDENTITY,
+       OBJECT-TYPE,
+       Counter32,
+       Unsigned32,
+       Integer32,
+       mib-2,
+       NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+       RowStatus,
+       TruthValue,
+       TimeStamp,
+       MacAddress
+           FROM SNMPv2-TC
+       OBJECT-GROUP,
+       NOTIFICATION-GROUP,
+       MODULE-COMPLIANCE
+           FROM SNMPv2-CONF
+       dot1agCfmMdIndex,
+       dot1agCfmMaIndex,
+       dot1agCfmMepIdentifier,
+       dot1agCfmMepEntry,
+       Dot1agCfmRemoteMepState
+           FROM IEEE8021-CFM-MIB
+
+       ipi  FROM IPI-MODULE-MIB;
+
+  dot1agCfmNVO3trapMib MODULE-IDENTITY
+  LAST-UPDATED "202209230000Z" -- September 23, 2022
+  ORGANIZATION "IP Infusion"
+  CONTACT-INFO "www.ipinfusion.com"
+
+  DESCRIPTION
+  "IPI NVO3 CFM CCM FaultAlarm Trap MIB. "
+
+  REVISION       "202209230000Z" -- September 23, 2022
+  DESCRIPTION
+  "Updated with allocated vendor ID."
+
+  ::= { ipi 121 }
+
+dot1agCfmNVO3Notifications      OBJECT IDENTIFIER ::= { dot1agCfmNVO3trapMib 0 }
+dot1agCfmNVO3TrapObj            OBJECT IDENTIFIER ::= { dot1agCfmNVO3trapMib 1 }
+
+dot1agCfmNVO3FaultAlarm NOTIFICATION-TYPE
+    OBJECTS     {
+                dot1agCfmNVO3LastGoodSeqNum,
+                dot1agCfmNVO3FlowId,
+                dot1agCfmNVO3FlowFailedOkTime,
+                dot1agCfmNVO3RMEPId,
+                dot1agCfmNVO3FlowState
+                }
+    STATUS      current
+    DESCRIPTION
+       "A MEP has a persistent defect condition. A notification
+        (fault alarm) is sent to the management entity with the OID
+        of the MEP that has detected the fault.
+
+        The management entity receiving the notification can identify
+        the system from the network source address of the
+        notification, and can identify the MEP reporting the defect
+        by the indices in the OID of the dot1agCfmMepHighestPrDefect
+        variable in the notification:
+
+           dot1agCfmMdIndex - Also the index of the MEP's
+                              Maintenance Domain table entry
+                              (dot1agCfmMdTable).
+           dot1agCfmMaIndex - Also an index (with the MD table index)
+                              of the MEP's Maintenance Association
+                              network table entry
+                              (dot1agCfmMaNetTable), and (with the MD
+                              table index and component ID) of the
+                              MEP's MA component table entry
+                              (dot1agCfmMaCompTable).
+           dot1agCfmMepIdentifier - MEP Identifier and final index
+                              into the MEP table (dot1agCfmMepTable).
+       "
+    REFERENCE
+       " "
+    ::= { dot1agCfmNVO3Notifications 1 }
+
+dot1agCfmNVO3LastGoodSeqNum OBJECT-TYPE
+       SYNTAX        Counter32
+       MAX-ACCESS    accessible-for-notify
+       STATUS        current
+       DESCRIPTION
+            "Last Sequence Number received."
+       REFERENCE "draft-tissa-nvo3-oam-fm#section-12.1"
+       ::= { dot1agCfmNVO3TrapObj 1 }
+
+dot1agCfmNVO3FlowId OBJECT-TYPE
+       SYNTAX        Counter32
+       MAX-ACCESS    accessible-for-notify
+       STATUS        current
+       DESCRIPTION
+            "Flow ID received successfully before state change"
+       REFERENCE "draft-tissa-nvo3-oam-fm#section-12.1"
+       ::= { dot1agCfmNVO3TrapObj 2 }
+
+dot1agCfmNVO3FlowFailedOkTime OBJECT-TYPE
+       SYNTAX        TimeStamp
+       MAX-ACCESS    accessible-for-notify
+       STATUS        current
+       DESCRIPTION
+           "The Time (sysUpTime) at which the Remote MEP flow state
+            machine last entered either the RMEP_FAILED or RMEP_OK
+            state."
+       REFERENCE "draft-tissa-nvo3-oam-fm#section-12.1"
+       ::= { dot1agCfmNVO3TrapObj 3 }
+
+dot1agCfmNVO3RMEPId OBJECT-TYPE
+       SYNTAX        Unsigned32(0..8191)
+       MAX-ACCESS    accessible-for-notify
+       STATUS        current
+       DESCRIPTION
+            "Remote MEP ID."
+       REFERENCE "draft-tissa-nvo3-oam-fm#section-12.1"
+       ::= { dot1agCfmNVO3TrapObj 4 }
+
+dot1agCfmNVO3FlowState OBJECT-TYPE
+       SYNTAX       Dot1agCfmRemoteMepState
+       MAX-ACCESS    accessible-for-notify
+       STATUS        current
+       DESCRIPTION
+           "The operational state of the remote MEP (flow-based)
+            IFF State machines.  State Machine is running now per
+            flow."
+       REFERENCE "draft-tissa-nvo3-oam-fm#section-12.1"
+       ::= { dot1agCfmNVO3TrapObj 5 }
+
+END

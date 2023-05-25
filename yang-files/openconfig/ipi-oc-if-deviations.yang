@@ -1,0 +1,256 @@
+module ipi-oc-if-deviations {
+  namespace   "http://www.ipinfusion.com/yang/ocnos/ipi-oc-if-deviations";
+  prefix "ipi-oc-if-deviations";
+
+  import iana-if-type { prefix ianaift; }
+  import openconfig-if-types { prefix oc-ift; }
+  import openconfig-interfaces { prefix oc-if; }
+  import openconfig-if-ethernet { prefix oc-eth; }
+  import openconfig-if-aggregate { prefix oc-lag; }
+  import openconfig-lacp { prefix oc-lacp; }
+  import openconfig-vlan { prefix oc-vlan; }
+  import openconfig-if-ip { prefix oc-ip; }
+  import openconfig-if-tunnel { prefix oc-tun; }
+
+  revision "2023-03-27" {
+    description "Add support to Multicahssis Link Aggregate and interface load-interval";
+  }
+
+  revision "2022-01-05" {
+    description "Removed constrain for oc-vlan:interface-mode";
+  }
+
+  revision "2021-12-27" {
+    description "Removed oc-vlan:singel-tagged-range from unsupported oc-vlan containers";
+  }
+
+  revision "2021-12-01" {
+    description "Added restrictions for oc-vlan unsupported containers";
+  }
+
+  revision "2021-05-12" {
+    description "Ensure port-speed is only set when auto-negotiate is false";
+  }
+
+  revision "2021-05-04" {
+    description "Change hw-mac-address to string in order to accept dotted notation";
+  }
+
+  revision "2021-04-30" {
+    description "Ensure subinterface 0 MTU is equal to interface MTU";
+  }
+
+  revision "2021-04-16" {
+    description "vlan-id is deprecated";
+  }
+
+  revision "2021-01-21" {
+    description
+      "First release: add restrictions to LAG interface names";
+    reference "2.4.3";
+  }
+
+  identity SPEED_20GB {
+    base "oc-ift:INTERFACE_TYPE";
+  }
+
+  identity MultiChassisLag {
+    base ianaift:iana-interface-type;
+    description
+      "Multichassis Link Aggregate";
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:config/oc-if:name {
+    deviate replace{
+      type string {
+        length "1..33";
+      }
+    }
+
+    deviate add {
+      must "(../type != 'ianaift:ieee8023adLag') or " +
+           "((starts-with(., 'po')) and boolean(number(substring-after(., 'po')))) or " +
+           "((starts-with(., 'sa')) and boolean(number(substring-after(., 'sa'))))" {
+        error-message "A LAG interface name must start with 'po' or 'sa' followed by a number";
+      }
+
+      must "(../type != 'ianaift:tunnel') or " +
+           "((starts-with(., 'Tunnel')) and " +
+            "boolean(number(substring-after(., 'Tunnel'))))" {
+        error-message "A Tunnel interface must start with 'Tunnel' followed by a number";
+      }
+    }
+  }
+
+  augment "/oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:config" {
+
+    description "Adds LACP mode configuration per member rather than per LAG interface";
+
+    leaf lacp-mode {
+      type oc-lacp:lacp-activity-type;
+      default ACTIVE;
+      description
+        "ACTIVE is to initiate the transmission of LACP packets.
+         PASSIVE is to wait for peer to initiate the transmission of
+         LACP packets.";
+    }
+  }
+
+  grouping load-interval-config {
+    description
+      "Configuration data for load interval period";
+
+    leaf load-interval {
+      type uint16 {
+        range "30..300";
+      }
+      default 300;
+      units seconds;
+      description
+        "Load period in multiples of 30 seconds";
+    }
+  }
+
+  augment "/oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:config" {
+    description
+      "Adds support to load interval support configuration";
+
+    uses load-interval-config;
+  }
+
+  augment "/oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state" {
+    description
+      "Adds support to load interval support";
+
+    uses load-interval-config;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:config/oc-eth:port-speed {
+    deviate add {
+      must "(../oc-eth:auto-negotiate = 'false')" {
+        error-message "Port speed can only be set if auto-negotiate is false";
+      }
+    }
+  }
+
+  grouping mlag-config {
+    description
+      "Configuration data for Multicahssis Link Aggregate";
+
+    leaf mlag-id {
+      type uint16 {
+        range "1..255";
+      }
+      description
+        "Multicahssis Link Aggregate group member";
+    }
+  }
+
+  augment /oc-if:interfaces/oc-if:interface/oc-lag:aggregation/oc-lag:config {
+    description
+      "Adds support to Multicahssis Link Aggregate configuration";
+
+    uses mlag-config;
+  }
+
+  augment /oc-if:interfaces/oc-if:interface/oc-lag:aggregation/oc-lag:state {
+    description
+      "Adds support to Multicahssis Link Aggregate";
+
+    uses mlag-config;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-lag:aggregation/oc-lag:config/oc-lag:lag-type {
+    deviate add {
+      must "(. != 'LACP') or starts-with(., 'po')" {
+        error-message "LACP interface name must start with 'po'";
+      }
+      must "(. = 'STATIC') or starts-with(., 'sa')" {
+        error-message "Static LAG interface name must start with 'sa'";
+      }
+    }
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-lag:aggregation/oc-lag:config/oc-lag:min-links {
+    deviate replace{
+      type uint8;
+    }
+  }
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:config/oc-vlan:vlan-id {
+    deviate not-supported;
+  }
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:single-tagged {
+    deviate not-supported;
+  }
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-outer-list/oc-vlan:config/oc-vlan:inner-vlan-id {
+    deviate not-supported;
+  }
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-inner-list {
+    deviate not-supported;
+  }
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-inner-range {
+    deviate not-supported;
+  }
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-outer-range {
+    deviate not-supported;
+  }
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-inner-outer-range {
+    deviate not-supported;
+  }
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:egress-mapping {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:config/oc-ip:mtu {
+    deviate add {
+      must "(../../../oc-if:index != '0') or " +
+           "not(../../../../../oc-if:config/oc-if:mtu) or " +
+           "(current() = ../../../../../oc-if:config/oc-if:mtu)";
+
+      must "not(../../../oc-ip:ipv6/oc-ip:config/oc-ip:mtu) or " +
+           "(current() = ../../../oc-ip:ipv6/oc-ip:config/oc-ip:mtu)";
+    }
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:config/oc-ip:mtu {
+    deviate add {
+      must "(../../../oc-if:index != '0') or " +
+           "not(../../../../../oc-if:config/oc-if:mtu) or " +
+           "(current() = ../../../../../oc-if:config/oc-if:mtu)";
+
+
+      must "not(../../../oc-ip:ipv4/oc-ip:config/oc-ip:mtu) or " +
+           "(current() = ../../../oc-ip:ipv4/oc-ip:config/oc-ip:mtu)";
+    }
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:hw-mac-address {
+    deviate replace {
+      type string;
+    }
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:unnumbered/oc-tun:config/oc-tun:enabled {
+    deviate add {
+      must "(. != 'true') or (../../oc-tun:interface-ref/oc-tun:config/oc-tun:interface)" {
+        error-message "If unnumbered is enabled, it must reference an interface";
+      }
+    }
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:unnumbered/oc-tun:interface-ref/oc-tun:config/oc-tun:interface {
+    deviate add {
+      must "../../../oc-tun:config/oc-tun:enabled = 'true'" {
+        error-message "Cannot set an interface if unnumbered is disabled";
+      }
+    }
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:unnumbered/oc-tun:interface-ref/oc-tun:config/oc-tun:subinterface {
+    deviate add {
+      must "../../../oc-tun:config/oc-tun:enabled = 'true'" {
+        error-message "Cannot set a subinterface if unnumbered is disabled";
+      }
+    }
+  }
+}

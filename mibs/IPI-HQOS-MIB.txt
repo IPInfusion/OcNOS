@@ -1,0 +1,240 @@
+IPI-HQOS-MIB DEFINITIONS ::= BEGIN
+
+--  This module provides authoritative definitions for hqos statistics modules
+--
+--  This module will be extended, as needed.
+--
+
+IMPORTS
+   MODULE-IDENTITY, OBJECT-TYPE,enterprises,
+   Counter64, Integer32
+   FROM SNMPv2-SMI
+   DisplayString FROM SNMPv2-TC
+   ifIndex FROM IF-MIB
+   ipi FROM IPI-MODULE-MIB;
+
+ipiQosMib MODULE-IDENTITY
+   LAST-UPDATED "201709181200Z"  -- Oct 25, 2017 12:00:00 GMT
+   ORGANIZATION "IP Infusion"
+   CONTACT-INFO "www.ipinfusion.com"
+   DESCRIPTION
+   "IPI QOS CLASS-MAP STATISTICS MIB."
+   ::= { ipi 107 }
+
+ipiQosObjects OBJECT IDENTIFIER ::={ ipiQosMib 1 }
+
+ipiQosCmapTable OBJECT-TYPE
+   SYNTAX       SEQUENCE OF IPIQosCmapEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table containing information of class-maps attached to interfaces through service policy."
+   ::= { ipiQosObjects 1 }
+
+ipiQosCmapEntry OBJECT-TYPE
+   SYNTAX       IPIQosCmapEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table object containing information of class-maps attached to interfaces through service policy."
+   INDEX   { ifIndex, qosDirection, qosCmapId }
+   ::= { ipiQosCmapTable 1 }
+
+IPIQosCmapEntry::=
+  SEQUENCE {
+            qosDirection              Integer32,
+            qosCmapId                 Integer32,
+            qosCmapName               DisplayString,
+            qosCmapMatchPkts          Counter64,
+            qosCmapMatchBytes         Counter64,
+            qosCmapTransmittedPkts    Counter64,
+            qosCmapTransmittedBytes   Counter64,
+            qosCmapDropPkts           Counter64,
+            qosCmapDropBytes          Counter64,
+            qosCmapStatsValid         Integer32     
+           }
+
+qosDirection OBJECT-TYPE
+   SYNTAX       Integer32
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   " The direction in which service policy is attached on the interface. 1 - input, 2 - output"
+   ::= { ipiQosCmapEntry 1 }
+
+qosCmapId OBJECT-TYPE
+   SYNTAX       Integer32
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A unique number corresponding to a class-map."
+   ::= { ipiQosCmapEntry 2 }
+
+qosCmapName OBJECT-TYPE
+   SYNTAX       DisplayString
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The name of the class-map."
+   ::= { ipiQosCmapEntry 3 }
+
+qosCmapMatchPkts OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   " The number of packets that matched the rules of class-map on the attached interface"
+   ::= { ipiQosCmapEntry 4 }
+
+qosCmapMatchBytes OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   " The number of bytes that matched the rules of class-map on the attached interface"
+   ::= { ipiQosCmapEntry 5 }
+
+qosCmapTransmittedPkts OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   " The number of packets that matched the rules of class-map and were transmitted through the interface"
+   ::= { ipiQosCmapEntry 6 }
+
+qosCmapTransmittedBytes OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   " The number of bytes that matched the rules of class-map and were transmitted through the interface"
+   ::= { ipiQosCmapEntry 7 }
+
+qosCmapDropPkts OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The number of packets that were dropped on the attached interface due to policer action on the class-map."
+   ::= { ipiQosCmapEntry 8 }
+
+qosCmapDropBytes OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The number of bytes that were dropped on the attached interface due to policer action on the class-map"
+   ::= { ipiQosCmapEntry 9 }
+
+qosCmapStatsValid OBJECT-TYPE
+   SYNTAX       Integer32
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "An indicator to validity of class-map statistics. 0 - invalid, 1 - valid."
+   ::= { ipiQosCmapEntry 10 }
+
+-- ## ChildCmapStatsEntry
+ipiQosChildCmapTable OBJECT-TYPE
+   SYNTAX       SEQUENCE OF IPIQosChildCmapEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A table containing information of child class-maps that are attached to parent class-map nodes at level 1."
+   ::= { ipiQosObjects 2 }
+
+ipiQosChildCmapEntry OBJECT-TYPE
+   SYNTAX       IPIQosChildCmapEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table object containing information of child class-maps that are attached to parent class-map nodes at level 1."
+   INDEX   { ifIndex, qosDirection, qosCmapId, qosChildCmapId }
+   ::= { ipiQosChildCmapTable 1 }
+
+IPIQosChildCmapEntry::=
+  SEQUENCE {
+            qosChildCmapId                 Integer32,
+            qosChildCmapName               DisplayString,
+            qosChildCmapMatchPkts          Counter64,
+            qosChildCmapMatchBytes         Counter64,
+            qosChildCmapTransmittedPkts    Counter64,
+            qosChildCmapTransmittedBytes   Counter64,
+            qosChildCmapDropPkts           Counter64,
+            qosChildCmapDropBytes          Counter64,
+            qosChildCmapStatsValid         Integer32
+           }
+
+qosChildCmapId OBJECT-TYPE
+   SYNTAX       Integer32
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A unique number corresponding to a child class-map."
+   ::= { ipiQosChildCmapEntry 1 }
+
+qosChildCmapName OBJECT-TYPE
+   SYNTAX       DisplayString
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The name of the child class-map."
+   ::= { ipiQosChildCmapEntry 2 }
+
+qosChildCmapMatchPkts OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The number of packets that matched the rules of child and parent class-map on the parent class-map attached interface."
+   ::= { ipiQosChildCmapEntry 3 }
+
+qosChildCmapMatchBytes OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The number of bytes that matched the rules of child and parent class-map on the parent class-map attached interface."
+   ::= { ipiQosChildCmapEntry 4 }
+
+qosChildCmapTransmittedPkts OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The number of packets that matched the rules of child and parent class-map on the parent class-map attached interface and were transmitted through the interface."
+   ::= { ipiQosChildCmapEntry 5 }
+
+qosChildCmapTransmittedBytes OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The number of bytes that matched the rules of child and parent class-map on the parent class-map attached interface and were transmitted through the interface."
+   ::= { ipiQosChildCmapEntry 6 }
+
+qosChildCmapDropPkts OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The number of packets that were dropped on the attached interface due to resolved policer action on the child and parent class-map."
+   ::= { ipiQosChildCmapEntry 7 }
+
+qosChildCmapDropBytes OBJECT-TYPE
+   SYNTAX       Counter64
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "The number of bytes that were dropped on the attached interface due to resolved policer action on the child and parent class-map."
+   ::= { ipiQosChildCmapEntry 8 }
+
+qosChildCmapStatsValid OBJECT-TYPE
+   SYNTAX       Integer32
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+   "An indicator to validity of class-map statistics. 0 - invalid, 1 - valid."
+   ::= { ipiQosChildCmapEntry 9 }
+
+END
