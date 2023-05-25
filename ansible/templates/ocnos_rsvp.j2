@@ -1,0 +1,47 @@
+{%if rsvp is defined %}
+router rsvp
+{% if rsvp.rsvppath is defined %}
+{% for path in rsvp.rsvppath -%}
+rsvp-path {{ path.name }} mpls
+ {% for hop in path.hops -%}
+ {{ hop }} strict
+ {% endfor %}
+!
+{% endfor %}
+{% endif %}
+{% if rsvp.interfaces is defined %}
+{% for interface in rsvp.interfaces -%}
+interface {{ interface.name }}
+ {{ interface.command }}
+!
+{% endfor %}
+{% endif %}
+{% if rsvp.trunks is defined %}
+{% for trunk in rsvp.trunks -%}
+rsvp-trunk {{ trunk.name }} ipv4
+ {{trunk.FRR}}
+{% if trunk.FRR_TYPE is defined %}
+ {{ trunk.FRR_TYPE }}
+{% endif %}
+ primary path {{ trunk.primary_path }}
+ primary label-record
+{% if trunk.secondary_path is defined %}
+ secondary path {{ trunk.secondary_path }}
+{% endif %}
+ from {{trunk.ingress}}
+ to {{ trunk.egress }}
+!
+{% endfor %}
+{% endif %}  
+
+{% if rsvp.bypass is defined %}
+{% for bypass in rsvp.bypass -%}
+rsvp-bypass {{ bypass.name }}
+ from {{bypass.ingress}}
+ to {{ bypass.egress }}
+ label-record
+ path {{ bypass.path }}
+ exit
+{% endfor %}
+{% endif %}
+{%endif%}

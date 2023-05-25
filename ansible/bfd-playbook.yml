@@ -1,0 +1,28 @@
+---
+  - hosts: ocnos
+    gather_facts: no
+
+    tasks:
+
+      - name: Create configuration templates for AGG node
+        template:
+          src: "templates/{{ ansible_network_os }}_bfdagg.j2"
+          dest: "configs/{{ inventory_hostname }}bfdagg.config"
+      - name: load configs bfd
+        ocnos_config:
+          src: "configs/{{ inventory_hostname }}bfdagg.config"
+      - name: show bfd config ocnos
+        cli_command:
+          command: show running-config  bfd
+        register: result1
+      - name: debug
+        debug:
+          msg: "{{ result1.stdout_lines }}"
+      - name: show bfd state ocnos
+        cli_command:
+          command: show  bfd
+        register: result2
+      - name: debug
+        debug:
+          msg: "{{ result2.stdout_lines }}"
+

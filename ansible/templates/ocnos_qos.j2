@@ -1,0 +1,63 @@
+{%if QOS is defined %}
+qos enable
+qos statistics
+!
+{% for classmap in  QOS.classmap -%}
+{% if classmap.protocol == "dscp" %}
+class-map {{ classmap.matchtype }} {{ classmap.name }}
+ match {{ classmap.protocol }} {{ classmap.dscptype }}
+{% endif %}
+{% if classmap.protocol == "queuing" %}
+class-map {{ classmap.matchtype }} {{ classmap.protocol }} {{ classmap.que_name }}
+ match {{ classmap.classification }} {{ classmap.name }}          
+{% endif %}
+{% if classmap.protocol == "vlan" %}
+class-map {{ classmap.matchtype }} {{ classmap.name }}
+ match {{ classmap.protocol }} {{ classmap.dscptype }}
+{% endif %}
+!
+{% endfor %}
+{% for policymap in  QOS.policymap -%}
+{% if policymap.qos_name is defined %}
+{% for param in policymap.params %}
+{% if param.matchtype is defined %}
+{%if param.val is defined %}
+{% if param.val==1%}
+policy-map {{ param.matchtype }} {{ param.protocol }} {{ policymap.qos_name }}
+{% endif %}
+{% endif %}
+{% endif %}
+ class {{ param.name }}
+{% if param.cosvalue is defined %}
+  set queue {{param.cosvalue}}
+{% endif %}
+  exit
+{% endfor %}
+!
+{% endif %}
+{% if policymap.que_name is defined %}
+{% for param in policymap.params %}
+{%if  param.val is defined %}
+{%if  param.val ==1 %}
+policy-map {{ param.matchtype }} {{ param.protocol }} {{ policymap.que_name }}
+{% endif %}
+{% endif %}
+ class type  {{ param.protocol }}  {{param.classmap_name}}
+  shape {{param.shape_rate}}
+  exit
+{% endfor %}
+{% endif %}
+{% endfor %}
+!
+{% for interface in QOS.interfaces -%}
+interface {{interface.name}}
+{% for policy in interface.policy_type -%}
+{% if policy.type == "qos" %}
+ service-policy type {{policy.type}} input {{policy.policy_name}}
+{% endif %}
+{% if policy.type == "queuing" %}
+ service-policy type {{policy.type}} output {{policy.policy_name}}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{%endif%}

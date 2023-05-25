@@ -1,0 +1,211 @@
+key:
+  chain: "isis"
+  keyid: 1
+  passwd: "0x46ff28ed3cbff32e"
+
+isis:
+  proc1:
+   - processid: 1
+     istype: "level-1"
+     spfvalue: 0
+     spfinmili: 0
+     level: "level-1"
+     net: "49.3600.3600.9608.00"
+     bfd: "all-interfaces"
+     dynamic: "dynamic-hostname"
+     interfaces:
+      - name: "xe4"
+        isis: 1
+        network: "point-to-point"
+      - name: "xe2"
+        isis: 1
+        network: "point-to-point"
+      - name: "lo"
+        isis: 1     
+
+interfaces:
+  ifnames:
+    - ifname: "xe4"
+      address: "10.110.140.20/31"
+      mtu: 9216
+    - ifname: "xe2"
+      loadinterval: 30
+      address: "10.110.140.61/31"
+      mtu: 9216
+    
+    - ifname: "vlan1.1001"
+      address: "192.168.21.212/24"
+    
+    - ifname: "vlan1.101"
+      address: "101.101.101.5/30"
+
+    - ifname: "lo"
+      address: "36.0.0.8/32 secondary"
+      address1: "::1/128"
+      bfdsession: "36.0.0.8  36.0.0.1"
+
+    - ifname: "xe0"
+      switch: "switchport"
+      bridge: 1
+      mode: "trunk"
+      vlan: "all"
+      loadinterval: 30
+
+    - ifname: "xe22"
+      switch: "switchport"
+      bridge: 1
+      mode: "trunk"
+      vlan: " add 101,1001"
+      loadinterval: 30
+      mtu: 9216
+
+    - ifname: "xe6"
+      switch: "switchport"
+      bridge: 1
+      mode: "access"
+
+      
+bfd:
+  interval: 3
+  minrx: 3
+  multiplier: 3
+  multihoppeer:
+    - address: 36.0.0.1
+      interval: 300
+      minrx: 300
+      multiplier: 5
+
+hardware:
+  filter: "qos-ext"
+  statistics: 
+    - value: mpls-ac 
+    - value: mpls-pwe 
+    - value: ac-lif 
+
+
+snmp:
+  traps:
+    - daemon: bgp
+    - daemon: isis
+    - daemon: pwdelete
+    - daemon: pw
+    - daemon: mpls
+    - daemon: ospf
+    - daemon: rsvp
+  vrf: "management"
+  viewname: "all"
+  oid: ".1"
+  community: "test"
+  communame: "public"
+  hosttest: 10.12.6.247 
+  hostpub: 10.12.47.72 
+   
+ntp:
+  states:
+    - state: "enable"
+    - state: "logging"
+  server: 
+    - address: 216.239.35.4 
+  logserver: 10.12.47.72 
+  routerid: 36.0.0.8  
+
+
+vlan:
+  level: "database"
+  range: 
+    - value: 101
+    - value: 1001
+  bridge: 1
+  state: "enable" 
+  protocol: "rstp"
+  
+lldp:
+  lldp1:
+    - name: "xe2"
+      state: "enable"
+      lagent: "lldp-agent"
+      mode: "txrx"
+      MED: "med"
+      powerviamdi: "media-capabilities"
+      port: "port-id-tlv"
+      ifname: "if-name"
+      tlvselect :
+        - mgmt: port-description
+        - mgmt: system-name
+        - mgmt: system-capabilities
+        - mgmt: system-description
+        - mgmt: management-address 
+ 
+    - name: "xe10"
+      state: "enable"
+      lagent: "lldp-agent"
+      mode: "txrx"
+      MED: "med"
+      powerviamdi: "media-capabilities"
+      port: "port-id-tlv"
+      ifname: "if-name"
+      tlvselect :
+        - mgmt: port-description
+        - mgmt: system-name
+        - mgmt: system-capabilities
+        - mgmt: system-description
+        - mgmt: management-address
+
+    - name: "xe11"
+      state: "enable"
+      lagent: "lldp-agent"
+      mode: "txrx"
+      MED: "med"
+      powerviamdi: "media-capabilities"
+      port: "port-id-tlv"
+      ifname: "if-name"
+      tlvselect :
+        - mgmt: port-description
+        - mgmt: system-name
+        - mgmt: system-capabilities
+        - mgmt: system-description
+        - mgmt: management-address
+ 
+    - name: "xe4"
+      state: "enable"
+      lagent: "lldp-agent"
+      mode: "txrx"
+      MED: "med"
+      powerviamdi: "media-capabilities"
+      port: "port-id-tlv"
+      ifname: "if-name"
+      tlvselect :
+        - mgmt: port-description
+        - mgmt: system-name
+        - mgmt: system-capabilities
+        - mgmt: system-description
+        - mgmt: management-address
+  
+    
+bgp:
+  asn: 65001
+  networks:
+    - network_id: 10.10.10.1
+  neighbors:
+     
+    - neighbor_id: 20.20.20.1
+      remoteas: 65001
+      detection: fall-over
+      updatesource: lo
+
+  address_family:
+      
+    - address_family_type: labeled-unicast
+      neighbors:
+        - neighbor_id: 20.20.20.1
+          next_hop_type: next-hop-self
+
+    - address_family_type: "vpnv4"
+      neighbors:          
+        - neighbor_id: 20.20.20.1
+          
+    - address_family_type: vrf
+      vrfs:
+        - vrf_name: 1001
+          
+

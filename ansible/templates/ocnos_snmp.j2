@@ -1,0 +1,14 @@
+snmp-server enable snmp vrf {{ snmp.vrf }}
+snmp-server view {{ snmp.viewname }} {{ snmp.oid }} included vrf management
+snmp-server community {{ snmp.communame }} group network-admin vrf management
+{% if snmp.community is defined %}
+snmp-server community {{ snmp.community }} group network-operator vrf management
+{% endif %} 
+{% if snmp.hosttest is defined %}
+snmp-server host {{ snmp.hosttest }} traps version 2c test udp-port 161 vrf management
+{% endif %}
+snmp-server host {{ snmp.hostpub }} traps version 2c public udp-port 162 vrf management
+{% for traps in snmp.traps -%}
+snmp-server enable traps {{ traps.daemon }}
+{% endfor -%}
+

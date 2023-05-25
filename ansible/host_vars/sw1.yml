@@ -1,0 +1,677 @@
+L3VPN:
+  vrfs:
+    - vrf_name: 1001
+      rd_1: 36.0.0.2
+      rd_2: 1001    
+      rt_1: 65001
+      rt_2: 1001
+  vrf_interfaces:
+    - interface_name: "xe19"
+      vrf_name: 1001
+      address: 19.19.19.1/24
+
+bgp:
+  asn: 65001
+  networks:
+    - network_id: 36.0.0.1/32
+  neighbors:
+    - neighbor_id: 10.0.1.14
+      remoteas: 65001
+      detection: fall-over
+      updatesource: lo
+      
+    - neighbor_id: 10.0.1.15
+      remoteas: 65001
+      detection: fall-over
+      updatesource: lo
+      
+    - neighbor_id: 36.0.0.2
+      remoteas: 65001
+      detection: fall-over
+      updatesource: lo
+      
+    - neighbor_id: 36.0.0.3
+      remoteas: 65001
+      detection: fall-over
+      updatesource: lo
+
+    - neighbor_id: 36.0.0.4
+      remoteas: 65001
+      detection: fall-over
+      updatesource: lo
+
+    - neighbor_id: 36.0.0.6
+      remoteas: 65001
+      detection: fall-over
+      updatesource: lo
+ 
+    - neighbor_id: 36.0.0.7
+      remoteas: 65001
+      detection: fall-over
+      updatesource: lo
+
+    - neighbor_id: 36.0.0.8
+      remoteas: 65001
+      detection: fall-over
+      updatesource: lo
+      
+  address_family:
+      
+    - address_family_type: labeled-unicast
+      neighbors:
+        - neighbor_id: 10.0.1.14 
+          next_hop_type: next-hop-self
+
+        - neighbor_id: 10.0.1.15
+          next_hop_type: next-hop-self
+
+        - neighbor_id: 36.0.0.3
+          next_hop_type: next-hop-self
+          route_reflector_type: route-reflector-client
+
+        - neighbor_id: 36.0.0.4 
+          next_hop_type: next-hop-self
+          route_reflector_type: route-reflector-client
+
+        - neighbor_id: 36.0.0.6
+          next_hop_type: next-hop-self
+          route_reflector_type: route-reflector-client
+
+        - neighbor_id: 36.0.0.7
+          next_hop_type: next-hop-self
+          route_reflector_type: route-reflector-client
+
+        - neighbor_id: 36.0.0.8
+          next_hop_type: next-hop-self
+          route_reflector_type: route-reflector-client
+          
+          
+    - address_family_type: "vpnv4"
+      neighbors:
+        - neighbor_id: 10.0.1.14
+
+        - neighbor_id: 10.0.1.15
+          
+        - neighbor_id: 36.0.0.2
+          
+        - neighbor_id: 36.0.0.3
+          route_reflector_type: route-reflector-client
+          
+        - neighbor_id: 36.0.0.4
+          route_reflector_type: route-reflector-client
+          
+        - neighbor_id: 36.0.0.6
+          route_reflector_type: route-reflector-client
+          
+        - neighbor_id: 36.0.0.7
+          route_reflector_type: route-reflector-client
+          
+        - neighbor_id: 36.0.0.8
+          route_reflector_type: route-reflector-client
+          
+    - address_family_type: vrf
+      vrfs:
+        - vrf_name: 1001
+
+                
+      
+ldp:
+  peers:
+    - address: 10.0.1.14
+    - address: 36.0.0.3
+    - address: 36.0.0.4
+    - address: 36.0.0.6
+    - address: 36.0.0.7
+    - address: 36.0.0.8
+  advertise_label_prefix: only_lo
+    
+  interfaces:
+    - name: "xe14"
+      protocol: ipv4
+      
+
+ 
+prefix_list:
+  params:
+    - name: LO_RED_TO_0  
+      seq_no: seq 5 
+      permission: permit 
+      prefix: 36.0.0.1/32
+    - name: only_lo 
+      seq_no: seq 5
+      permission: permit 
+      prefix: 36.0.0.0/24
+      eq: 32
+      
+VPWS:
+  pseudowire:
+    - vc_name: vpws
+      vc_id: 1
+      peer: 36.0.0.1
+
+      
+  service_template:
+    - name: vpws 
+      vlan: 500
+      operation: pop
+      tpid: dot1.q
+      
+    - name: vlan_101 
+      vlan: 100
+
+  interfaces:
+    - name: xe13
+      vpws_binding:
+        - instance: vpws
+          service_template: vpws
+
+ACL:
+  params:
+    - name: only_lo 
+      seq_no:  10 
+      permission: permit
+      protocol: any      
+      prefix: 36.0.0.0/24
+      dst: any
+    - name: only_lo
+      seq_no:  11 
+      permission: deny
+      protocol: any      
+      prefix: any
+      dst: any
+
+Route_Map:
+  params:
+    - name: NEXTHOP_SELF 
+      permission: permit
+      seq_no:  10
+      operation: set
+      protocol: vpnv4
+      match: next-hop      
+      prefix_list: 36.0.0.1
+    - name: LO_RED_TO_0 
+      permission: permit
+      seq_no:  10 
+      operation: match
+      protocol: ip
+      match: address      
+      prefix_list: LO_RED_TO_0
+     
+QOS:
+  classmap:
+    - matchtype: match-all
+      name: DSCP-AF11
+      protocol: dscp
+      dscptype: af11
+    
+    - matchtype: match-all
+      name: DSCP-AF12
+      protocol: dscp
+      dscptype: af12
+      
+    - matchtype: match-all
+      name: DSCP-AF21
+      protocol: dscp
+      dscptype: af21
+      
+    - matchtype: match-all
+      name: DSCP-AF31
+      protocol: dscp
+      dscptype: af31
+    
+    - matchtype: match-all
+      name: DSCP-AF32
+      protocol: dscp
+      dscptype: af32
+    
+    - matchtype: match-all
+      name: DSCP-AF41
+      protocol: dscp
+      dscptype: af41
+    
+    - matchtype: match-all
+      name: DSCP-AF42
+      protocol: dscp
+      dscptype: af42
+      
+    - matchtype: match-all
+      name: DSCP-BE
+      protocol: dscp
+      dscptype: default
+      
+    - matchtype: match-all
+      name: DSCP-CS6
+      protocol: dscp
+      dscptype: cs6
+    
+    - matchtype: match-all
+      name: DSCP-CS7
+      protocol: dscp
+      dscptype: cs7
+      
+    - matchtype: match-all
+      name: DSCP-EF
+      protocol: dscp
+      dscptype: ef
+    
+    - matchtype: match-all
+      name: VLAN100
+      protocol: vlan
+      dscptype: 500
+    
+    - matchtype: type
+      protocol: queuing
+      que_name: defaultq
+      classification: service-template
+      name: vpws 
+      
+    - matchtype: type
+      protocol: queuing
+      que_name: matchall
+      classification: vlan
+      name: 1001
+      
+  policymap:
+    
+    - qos_name: ALL-VLANs
+      params:
+        - matchtype: type
+          protocol: qos
+          name: VLAN100
+          val: 1 
+    - qos_name: DSCP-ALL  
+      params:    
+        - matchtype: type
+          protocol: qos
+          name: DSCP-AF11
+          val: 1
+          cosvalue: 1
+
+        - matchtype: type
+          protocol: qos       
+          name: DSCP-AF12
+          cosvalue: 1
+          val: 2
+                
+        - matchtype: type
+          protocol: qos
+          name: DSCP-AF21
+          cosvalue: 2
+          val: 3
+          
+               
+        - matchtype: type
+          protocol: qos
+          name: DSCP-AF31
+          cosvalue: 3
+          val: 4
+         
+        - matchtype: type
+          protocol: qos
+          name: DSCP-AF41
+          cosvalue: 4
+          val: 5
+
+         
+        - matchtype: type
+          protocol: qos
+          name: DSCP-BE
+          cosvalue: 0
+          val: 6
+ 
+
+        - matchtype: type
+          protocol: qos
+          name: DSCP-CS6
+          cosvalue: 6
+          val: 7
+        
+        - matchtype: type
+          protocol: qos
+          name: DSCP-CS7
+          cosvalue: 7
+          val: 8
+          
+        - matchtype: type
+          protocol: qos
+          name: DSCP-EF
+          cosvalue: 5
+          val: 9
+
+    - que_name: shaper
+      params:          
+        - matchtype: type
+          protocol: queuing
+          name: DSCP-EF
+          val: 1
+          classmap_name: defaultq
+          shape_rate: 10 gbps
+   
+        - matchtype: type
+          protocol: queuing
+          name: DSCP-EF
+          val: 2
+          classmap_name: matchall
+          shape_rate: 10 gbps 
+        
+
+  interfaces:
+    - name: xe19
+      policy_type:
+        - type: qos
+          policy_name: ALL-VLANs
+        - type: queuing
+          policy_name: shaper
+     
+rsvp:
+  trunks:
+    - name: "TO_AR-1"
+      ingress: 36.0.0.2
+      egress: 10.0.1.14
+      FRR: primary fast-reroute protection facility
+      primary_path: TO_AR-1
+      secondary_path: TO_AR-1_Sec   
+      
+    - name: TO_AR-2 
+      ingress: 36.0.0.2
+      egress: 10.0.1.15
+      FRR: primary fast-reroute protection facility
+      FRR_TYPE: primary fast-reroute node-protection
+      primary_path: TO_AR-2
+      
+  bypass:
+      
+    - name: TO_AR-1_BKUP
+      ingress: 36.0.0.2
+      egress: 10.0.1.14
+      path: TO_AR-1_BKUP
+      
+    - name: NODE_PROTECT_POI-2
+      ingress: 36.0.0.2
+      egress: 10.0.1.15
+      path: TO_AR-2_BKUP
+     
+    - name: PO2222_PROTECT_BKUP
+      ingress: 36.0.0.2
+      egress: 10.0.1.13
+      path: PO2222_PROTECT_BKUP
+
+      
+  rsvppath:
+    - name: TO_AR-2_BKUP
+      hops: 
+        - 10.110.140.110 
+        - 101.1.1.2
+        - 101.3.1.2
+        - 111.2.1.2
+        - 10.0.1.15
+
+        
+    - name: TO_AR-2
+      hops:
+        - 202.1.1.2
+        - 202.3.1.2
+        - 10.0.1.15
+
+    - name: TO_AR-1
+      hops:
+        - 10.110.140.110
+        - 101.1.1.2
+        - 101.3.1.2
+        - 10.0.1.14
+
+    - name: PO2222_PROTECT_BKUP         
+      hops:
+        - 10.110.140.110
+        - 101.1.1.2
+        - 101.2.1.2
+        - 10.0.1.13
+
+    - name: TO_AR-1_BKUP          
+      hops:
+        -  10.110.140.110        
+        
+    - name: TO_AR-1_Sec          
+      hops:
+        - 202.1.1.2
+        - 202.3.1.2
+        - 111.2.1.1
+        - 10.0.1.14
+
+  interfaces:
+    - name: "xe14"
+      command: enable-rsvp
+    - name: "xe15"
+      command: enable-rsvp
+      
+PTP_SYNCE:
+  numberport: 5
+  ptp:
+    - clockport: 1
+      interface: xe19
+    
+    - clockport: 2
+      interface: xe4
+          
+  interfaces:
+    - name: xe4
+      mode: synchronous
+      inputsource: 10
+
+key:
+  chain: "isis"
+  keyid: 1
+  passwd: "0x46ff28ed3cbff32e"
+
+isis:
+  proc1:
+    - processid: 0
+      istype: "level-1"
+      mode: "md5"
+      level: "level-1"
+      spfvalue: 0
+      spfinmili: 0
+      dynamic: "dynamic-hostname"
+      routerid:
+        - address: 36.0.0.1
+      capability: "cspf"
+      trafficeng: "level-1"
+      bfd: "all-interfaces"
+      net: "49.0002.0000.0000.0099.00"
+      metric: 100
+      word: "LO_RED_TO_0"
+      ifname: "lo"
+      interfaces:
+        - name: "po1111"
+          isis: 0
+          isisnw: "point-to-point"
+        - name: "vlan1.1002"
+          isis: 0
+          isisnw: "point-to-point"     
+    - processid: 1
+      istype: "level-1"
+      level1: "level-1"
+      spfvalue: 0
+      spfinmili: 0
+      dynamic: "dynamic-hostname"
+      bfd: "all-interfaces"
+      net: "49.3600.3600.9601.00"
+      passive: "lo"
+      interfaces:
+        - name: "xe4"
+          isis: 1
+        - name: "vlan1.101"
+          isis: 1
+        - name: "vlan1.1001"
+          isis: 1 
+interfaces:
+  ifnames:
+    - ifname: "xe4"
+      loadinterval: 30
+      address: "10.110.140.70/31"
+      mtu: 9216
+    - ifname: "xe2"
+      loadinterval: 30
+      address: "10.110.140.61/31"
+      mtu: 9216
+    - ifname: "vlan1.1001"
+      address: "10.110.140.108/31"
+      mtu: 9216
+    - ifname: "vlan1.1002"
+      address: "10.110.140.110/31"
+    - ifname: "vlan1.101"
+      address: "101.101.101.1/30"
+
+    - ifname: "lo"
+      address: "36.0.0.1/32 secondary"
+      address1: "::1/128"
+      bfdsession: "36.0.0.1  36.0.0.8"
+
+    - ifname: "po1111"
+      address: "101.1.1.1/30"
+      loadinterval: 30
+
+    - ifname: "xe20"
+      switch: "switchport"
+      bridge: 1
+      mode: "trunk"
+      vlan: "add 2001"
+      mtu: 9216
+      state: "no shutdown"
+
+    - ifname: "xe22"
+      switch: "switchport"
+      bridge: 1
+      mode: "trunk"
+      vlan: " add 101,2001"
+      loadinterval: 30
+      mtu: 9216
+      state: "shutdown"
+
+  
+    - ifname: "xe0"
+      switch: "switchport"
+ 
+    - ifname: "xe8"
+      switch: "switchport"
+      mtu : 9216
+    
+    - ifname: "po200"
+      bridge: 1
+      switch: "switchport"
+      mode: "trunk"
+      vlan: " add 1001-1002"
+      mtu: 9216
+    - ifname: "po199"
+      switch: "switchport"
+      bridge: 1
+      mode: "hybrid"
+
+    - ifname: "xe10"
+      groupid: 1111
+      state: "active"
+    - ifname: "xe12"
+      groupid: 200
+      state: "active"
+    
+
+bfd:
+  interval: 3
+  minrx: 3
+  multiplier: 3
+  multihoppeer:
+    - address: 36.0.0.1
+      interval: 300
+      minrx: 300
+      multiplier: 5
+
+hardware:
+  filter: "qos-ext"
+  statistics:
+    - value: mpls-ac 
+    - value: mpls-pwe 
+    - value: ac-lif 
+
+
+snmp:
+  traps:
+    - daemon: bgp
+    - daemon: isis
+    - daemon: pwdelete
+    - daemon: pw
+    - daemon: mpls
+    - daemon: ospf
+    - daemon: rsvp
+  vrf: "management"
+  viewname: "all"
+  oid: ".1"
+  community: "test"
+  communame: "public"
+  hostpub: 10.12.47.72
+
+ntp:
+  states:
+    - state: "enable"
+    - state: "logging"
+  server:
+    - address: 216.239.35.4
+  logserver: 10.12.47.72
+  routerid: 36.0.0.1
+vlan:
+  level: "database"
+  range:
+    - value: 101-105
+    - value: 1000-1002
+    - value: 2001
+  bridge: 1
+  state: "enable"
+  protocol: "ieee"
+
+
+lldp:
+  lldp1:
+    - name: "xe12"
+      state: "enable"
+      lagent: "lldp-agent"
+      mode: "txrx"
+      MED: "med"
+      powerviamdi: "media-capabilities"
+      port: "port-id-tlv"
+      ifname: "if-name"
+      tlvselect :
+        - mgmt: port-description
+        - mgmt: system-name
+        - mgmt: system-capabilities
+        - mgmt: system-description
+        - mgmt: management-address 
+
+    - name: "xe8"
+      state: "enable"
+      lagent: "lldp-agent"
+      mode: "txrx"
+      MED: "med"
+      powerviamdi: "media-capabilities"
+      port: "port-id-tlv"
+      ifname: "if-name"
+      tlvselect :
+        - mgmt: port-description
+        - mgmt: system-name
+        - mgmt: system-capabilities
+        - mgmt: system-description
+        - mgmt: management-address
+
+    - name: "xe4"
+      state: "enable"
+      lagent: "lldp-agent"
+      mode: "txrx"
+      MED: "med"
+      powerviamdi: "media-capabilities"
+      port: "port-id-tlv"
+      ifname: "if-name"
+      tlvselect :
+        - mgmt: port-description
+        - mgmt: system-name
+        - mgmt: system-capabilities
+        - mgmt: system-description
+        - mgmt: management-address
+
