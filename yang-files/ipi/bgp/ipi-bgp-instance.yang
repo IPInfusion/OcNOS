@@ -21,7 +21,7 @@ submodule ipi-bgp-instance {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-05-24;
+        revision-date 2023-07-13;
     }
 
     import ietf-inet-types {
@@ -36,15 +36,15 @@ submodule ipi-bgp-instance {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-02-22;
+        revision-date 2023-06-01;
     }
 
-    include ipi-bgp-common { revision-date 2023-05-06;}
+    include ipi-bgp-common { revision-date 2023-06-01;}
     include ipi-bgp-evpn-rib { revision-date 2023-04-25;}
     include ipi-bgp-link-state { revision-date 2022-06-01;}
     include ipi-bgp-address-family { revision-date 2023-02-22;}
-    include ipi-bgp-peer-group { revision-date 2023-04-21;}
-    include ipi-bgp-peer { revision-date 2023-04-21;}
+    include ipi-bgp-peer-group { revision-date 2023-06-01;}
+    include ipi-bgp-peer { revision-date 2023-06-01;}
     include ipi-bgp-address-family-vrf { revision-date 2023-05-06;}
     include ipi-bgp-epe { revision-date 2023-05-12;}
     organization
@@ -59,6 +59,11 @@ submodule ipi-bgp-instance {
     description
         "";
 
+
+    revision "2023-06-01" {
+        description "Adding ext-communities list and related grouping to rib container";
+        reference " 0.11.1.";
+    }
 
     revision "2023-04-21" {
         description "Updated feature tag";
@@ -415,6 +420,31 @@ submodule ipi-bgp-instance {
                     uses evpn-routes-grouping;
                     uses link-state-grouping;
                 } // End of address-family-list
+                container ext-communities {
+                    config false;
+                    description
+                        "Container for BGP extended communities";
+
+                    list ext-community {
+                        key "index";
+                        config false;
+                        description
+                            "List of BGP extended communities";
+                        leaf index  {
+                            type  leafref {
+                                path  "../state/index";
+                            }
+                            description "ext-community index number";
+                        } // END of index definition.
+
+                        container state {
+                            config false;
+                            description
+                                "State parameters for BGP extended communities";
+                            uses bgp-ext-community-state;
+                        } // END of state-container definition.
+                    } // End of ext-community-list
+                } // END of ext-communities-container definition.
             } // END of rib-container definition.
             uses bgp-allocate-label-top;
             uses address-family-grouping;
@@ -424,6 +454,25 @@ submodule ipi-bgp-instance {
             uses peer-engineering-grouping;
         } // End of bgp-instance-list
     } // END of bgp-instance-grouping definition.
+    grouping bgp-ext-community-state {
+        description
+            "State parameters for BGP extended communities";
+        leaf index  {
+            type  uint32;
+            description "ext-community index number";
+        } // END of index definition.
+
+        leaf-list ext-community  {
+            type  ipi-bgp-types:bgp_ext_community_recv_type_t {
+                length "1..1965";
+            }
+            description "A type definition utilised to define the extended community
+                        in a context where the system is receiving the extended
+                        community from an external source, such that the value may be
+                        unknown.";
+        } // END of ext-community definition.
+
+    } // END of bgp-ext-community-state definition.
     grouping bgp-instance-rib-address-family-state {
         description
             "State parameter for BGP routes";

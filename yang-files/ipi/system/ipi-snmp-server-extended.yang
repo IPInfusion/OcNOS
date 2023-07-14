@@ -48,7 +48,7 @@ module ipi-snmp-server-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-05-24;
+        revision-date 2023-07-13;
     }
 
     organization
@@ -64,6 +64,16 @@ module ipi-snmp-server-extended {
         "This module provides Simple Network Management Protocol server
                 configuration";
 
+
+    revision "2023-07-12" {
+        description "SNMP Engine ID added implicit_delete";
+        reference " 0.7.1.";
+    }
+
+    revision "2023-07-01" {
+        description "SNMP Engine ID";
+        reference " 0.7.0.";
+    }
 
     revision "2022-12-15" {
         description "Added new cli for unset in snmp community acl and view";
@@ -289,6 +299,18 @@ module ipi-snmp-server-extended {
         } // END of smux-port-disable definition.
 
     } // END of snmp-server-smux-config definition.
+    grouping snmp-server-engineID-config {
+        description
+            "SNMP server engine-id configuration";
+        leaf engine-id  {
+            type  string {
+                length "1..24";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to configure SNMPv3 engine ID.";
+        } // END of engine-id definition.
+
+    } // END of snmp-server-engineID-config definition.
     grouping snmp-server-host-config {
         description
             "SNMP server host configuration";
@@ -809,6 +831,28 @@ module ipi-snmp-server-extended {
     } // END of snmp-views-container definition.
     } // END of snmp-views-grouping definition.
 
+    grouping  engine-id-grouping {
+    description
+        "Container for SNMP servers engine-id configuration";
+    container engine-id {
+        if-feature feature-list:HAVE_SNMP_V3;
+        if-feature feature-list:HAVE_HOSTPD;
+        description
+            "Container for SNMP servers engine-id configuration";
+        container config {
+            description
+                "Configuration data for SNMP Server";
+            uses snmp-server-engineID-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Operational state data for SNMP server engineID";
+            uses snmp-server-engineID-config;
+        } // END of state-container definition.
+    } // END of engine-id-container definition.
+    } // END of engine-id-grouping definition.
+
     grouping  smux-port-grouping {
     description
         "Container for SNMP servers smux configuration";
@@ -914,6 +958,13 @@ module ipi-snmp-server-extended {
         description
             "Container for SNMP servers views configuration";
         uses snmp-views-grouping;
+    }
+
+    augment /ipi-snmp:snmp {
+        if-feature feature-list:HAVE_SNMP_AGENT;
+        description
+            "Container for SNMP servers engine-id configuration";
+        uses engine-id-grouping;
     }
 
     augment /ipi-snmp:snmp {

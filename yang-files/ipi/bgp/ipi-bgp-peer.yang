@@ -21,7 +21,7 @@ submodule ipi-bgp-peer {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-05-24;
+        revision-date 2023-07-13;
     }
 
     import cml-data-types {
@@ -31,10 +31,10 @@ submodule ipi-bgp-peer {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-02-22;
+        revision-date 2023-06-01;
     }
 
-    include ipi-bgp-common { revision-date 2023-05-06;}
+    include ipi-bgp-common { revision-date 2023-06-01;}
     include ipi-bgp-address-family { revision-date 2023-02-22;}
     include ipi-bgp-epe { revision-date 2023-05-12;}
     organization
@@ -49,6 +49,11 @@ submodule ipi-bgp-peer {
     description
         "";
 
+
+    revision "2023-06-01" {
+        description "Added new runtime attributes to bgp-peer-common-state and new groupings bgp-peer-notification-state";
+        reference " 0.13.2.";
+    }
 
     revision "2023-04-21" {
         description "Updated feature tag";
@@ -605,6 +610,24 @@ submodule ipi-bgp-peer {
                 uses bgp-peer-common-config;
                 uses bgp-peer-common-state;
             } // END of state-container definition.
+            container messages {
+                config false;
+                description
+                    "State parameters relating to the BGP peer session notifications";
+                container received {
+                    config false;
+                    description
+                        "State parameters relating to the BGP peer session notifications
+                                received";
+                    uses bgp-peer-notification-state;
+                } // END of received-container definition.
+                container sent {
+                    config false;
+                    description
+                        "State parameters relating to the BGP peer session notifications sent";
+                    uses bgp-peer-notification-state;
+                } // END of sent-container definition.
+            } // END of messages-container definition.
             container timers {
                 // when " ipi-bgp-peer:peer/config/peer-as  +  !ipi-bgp-peer:peer/config/mapped-peer-group-tag ";
                 description
@@ -915,9 +938,33 @@ submodule ipi-bgp-peer {
         } // END of enable-ext-opt-param-len definition.
 
     } // END of bgp-peer-common-config definition.
+    grouping bgp-peer-notification-state {
+        description
+            "State parameters for BGP peer session notifications";
+        leaf last-notification-time  {
+            type  uint64;
+            description "This timestamp indicates the time that a NOTIFICATION
+                        message was sent or received on the peering session";
+        } // END of last-notification-time definition.
+
+    } // END of bgp-peer-notification-state definition.
     grouping bgp-peer-common-state {
         description
             "Runtime parameters common for BGP peers";
+        leaf dynamically-configured  {
+            type  boolean;
+            description "When this leaf is set to true, the peer was configured dynamically
+                        due to an inbound connection request from a specified source prefix
+                        within a dynamic-neighbor-prefix.";
+        } // END of dynamically-configured definition.
+
+        leaf last-established  {
+            type  uint64;
+            description "This timestamp indicates the time that the
+                        BGP session last transitioned in or out of the Established
+                        state.";
+        } // END of last-established definition.
+
     } // END of bgp-peer-common-state definition.
     grouping bgp-peer-address-family-aigp-config {
         description

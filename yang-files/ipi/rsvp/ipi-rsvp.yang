@@ -33,7 +33,7 @@ module ipi-rsvp {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-05-24;
+        revision-date 2023-06-26;
     }
 
     import ietf-inet-types {
@@ -43,10 +43,10 @@ module ipi-rsvp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-05-24;
+        revision-date 2023-07-13;
     }
 
-    include ipi-rsvp-trunk { revision-date 2023-05-14;}
+    include ipi-rsvp-trunk { revision-date 2023-06-07;}
     include ipi-rsvp-interface { revision-date 2023-01-09;}
     include ipi-rsvp-session { revision-date 2022-06-01;}
     organization
@@ -61,6 +61,21 @@ module ipi-rsvp {
     description
         "Resource Reservation Protocol";
 
+
+    revision "2023-06-21" {
+        description "Added a command to set default protection mechanism if path msg doesn't mention";
+        reference " 0.11.8.";
+    }
+
+    revision "2023-06-07" {
+        description "Reverse pattern check patch for rsvp-multipath and rsvp-trunk name";
+        reference " 0.11.7.";
+    }
+
+    revision "2023-05-24" {
+        description "Added pattern check for rsvp-multipath and rsvp-trunk name";
+        reference " 0.11.6.";
+    }
 
     revision "2023-05-14" {
         description "Added length check for rsvp-multipath description";
@@ -868,6 +883,17 @@ module ipi-rsvp {
     grouping rsvp-global-frr-config {
         description
             "global configuration parameters for fast-reroute";
+        leaf default-frr-protection  {
+            if-feature feature-list:HAVE_MPLS_FRR;
+            type  ipi-rsvp-types:rsvp_frr_protection_t;
+            default "one-to-one";
+            description "Use this attribute to set default FRR protection mechanism to trigger
+                        when local protection requested by protection mechanism not mentioned
+                        via FRR object. When FRR object explicitly requests for the protection
+                        type, this attribute will not come into picture. Default will be
+                        one-to-one protection.";
+        } // END of default-frr-protection definition.
+
         leaf preemption-type  {
             if-feature feature-list:HAVE_MPLS_FRR;
             type  ipi-rsvp-types:rsvp_preemp_t;
