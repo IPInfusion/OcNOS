@@ -2,7 +2,7 @@
 #define _H_feature_list
 
 #define y_feature_list_M_feature_list (const xmlChar  *)"feature-list"
-#define y_feature_list_R_feature_list (const xmlChar *)"2023-07-13"
+#define y_feature_list_R_feature_list (const xmlChar *)"2023-08-29"
 
 #include <xmlstring.h>
 #include "dlq.h"
