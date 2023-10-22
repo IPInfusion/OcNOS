@@ -43,7 +43,7 @@ module ipi-evpn-mpls {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-26;
+        revision-date 2023-06-30;
     }
 
     import ipi-network-instance {
@@ -58,7 +58,7 @@ module ipi-evpn-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-08-29;
+        revision-date 2023-10-20;
     }
 
     organization
@@ -73,6 +73,11 @@ module ipi-evpn-mpls {
     description
         "Datamodel for EVPN-MPLS protocol";
 
+
+    revision "2023-08-25" {
+        description "RPC Implementation for clear nvo vxlan mac address-table with evid and mac+evid combination";
+        reference " 0.8.3.";
+    }
 
     revision "2023-03-14" {
         description "Added dependentObject for deletion of evpn-mpls enable and mpls-tenant";
@@ -964,12 +969,26 @@ module ipi-evpn-mpls {
         if-feature feature-list:HAVE_NVO;
         if-feature feature-list:HAVE_BGP_EVPN;
         description "Use this RPC to clear the dynamic entries from mac address table";
+    }
+
+    rpc clear-nvo-mpls-dynamic-mac-address-table-evid {
+        if-feature feature-list:HAVE_MPLS;
+        if-feature feature-list:HAVE_SUBINTERFACE;
+        if-feature feature-list:HAVE_NVO;
+        if-feature feature-list:HAVE_BGP_EVPN;
+        description "Use this RPC to clear the dynamic entries from mac address table with
+                    evid or evid+mac";
         input  {
             leaf tenant-identifier  {
                 type uint32 {
                     range "1..16777215";
                 }
+                mandatory true;
                 description "Use this attribute to include a tenant";
+            }
+            leaf mac-address  {
+                type cml-data-types:cml_mac_addr_t;
+                description "Interface MAC address";
             }
         }
     }

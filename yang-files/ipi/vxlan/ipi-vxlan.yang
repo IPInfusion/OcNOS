@@ -38,7 +38,7 @@ module ipi-vxlan {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-26;
+        revision-date 2023-06-30;
     }
 
     import ipi-vrf {
@@ -48,7 +48,7 @@ module ipi-vxlan {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2023-05-30;
+        revision-date 2023-10-09;
     }
 
     import ipi-network-instance {
@@ -63,7 +63,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-08-29;
+        revision-date 2023-10-20;
     }
 
     organization
@@ -78,6 +78,11 @@ module ipi-vxlan {
     description
         "Datamodel for VxLAN protocol";
 
+
+    revision "2023-08-25" {
+        description "RPC Implementation for clear nvo vxlan mac address-table with vnid and mac+vnid combination";
+        reference " 0.9.1.";
+    }
 
     revision "2023-04-18" {
         description "added dependentObject vxlan-tenant in vxlan/global/config";
@@ -2173,6 +2178,25 @@ module ipi-vxlan {
     rpc clear-nvo-vxlan-dynamic-mac-address-table {
         if-feature feature-list:HAVE_VXLAN;
         description "Use this RPC to clear the dynamic entries from mac address table";
+    }
+
+    rpc clear-nvo-vxlan-dynamic-mac-address-table-vnid {
+        if-feature feature-list:HAVE_VXLAN;
+        description "Use this RPC to clear the dynamic entries from mac address table with
+                    vnid or vnid+mac";
+        input  {
+            leaf vxlan-identifier  {
+                type uint32 {
+                    range "1..16777215";
+                }
+                mandatory true;
+                description "Use this attribute to include vxlan identifier";
+            }
+            leaf mac-address  {
+                type cml-data-types:cml_mac_addr_t;
+                description "Interface MAC address";
+            }
+        }
     }
 
     rpc clear-nvo-vxlan-tunnels {
