@@ -21,12 +21,12 @@ submodule ipi-isis-lsp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-isis-types {
@@ -51,6 +51,26 @@ submodule ipi-isis-lsp {
     description
         "Model for managing IS-IS LSP";
 
+
+    revision "2023-08-10" {
+        description "JIRA-61800:Added remaining enclosing containers";
+        reference " 0.9.3.";
+    }
+
+    revision "2023-08-04" {
+        description "Added cliprependstr for authentication";
+        reference " 0.9.2.";
+    }
+
+    revision "2023-06-29" {
+        description "JIRA-61800:Added enclosing containers";
+        reference " 0.9.1.";
+    }
+
+    revision "2023-06-16" {
+        description "ISIS-LSP-MAX-WAIT-DEFAULT-VALUE-CHANGE";
+        reference " 0.9.0.";
+    }
 
     revision "2022-11-25" {
         description "ISIS-LSP-MTU-RANGE-CHANGE-FIX";
@@ -92,117 +112,6 @@ submodule ipi-isis-lsp {
         reference " 0.1.0.";
     }
 
-
-
-    grouping spf-level-grouping {
-    description
-        "This objectlist defines the ISIS Level SPF Parameters";
-        list spf-level {
-        // when " ipi-isis-lsp:spf-level/spf-delay/spf-min-delay ";
-            if-feature feature-list:HAVE_ISISD;
-            key "level";
-            description
-                "This objectlist defines the ISIS Level SPF Parameters";
-            leaf level  {
-                type  leafref {
-                    path  "../config/level";
-                }
-                description "IS-IS instance level,(1|2|1-2)";
-            } // END of level definition.
-
-
-            list spf-delay {
-                key "spf-min-delay spf-max-delay";
-                description
-                    "This objectlist defines the ISIS SPF Parameters";
-                leaf spf-min-delay  {
-                    type  leafref {
-                        path  "../config/spf-min-delay";
-                    }
-                    description "Minimum delay between receiving a change to SPF calculation in
-                                milliseconds. The default value is 500";
-                } // END of spf-min-delay definition.
-
-                leaf spf-max-delay  {
-                    type  leafref {
-                        path  "../config/spf-max-delay";
-                    }
-                    description "Maximum delay between receiving a change to SPF calculation in
-                                milliseconds. The default value is 5000";
-                } // END of spf-max-delay definition.
-
-                container config {
-                    description
-                        "This container defines the ISIS SPF Configurations";
-                    uses isis-spf-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "This container defines the ISIS SPF state information";
-                    uses isis-spf-config;
-                } // END of state-container definition.
-            } // End of spf-delay-list
-            container config {
-                description
-                    "This container defines the ISIS SPF config parameters";
-                uses isis-spf-level-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "This container defines the ISIS SPF state parameters";
-                uses isis-spf-level-config;
-            } // END of state-container definition.
-        } // End of spf-level-list
-    } // END of spf-level-grouping definition.
-
-
-    grouping level-grouping {
-    description
-        "This objectlist defines the ISIS Level Parameters";
-        list level {
-            if-feature feature-list:HAVE_ISISD;
-            key "type";
-            description
-                "This objectlist defines the ISIS Level Parameters";
-            leaf type  {
-                type  leafref {
-                    path  "../config/type";
-                }
-                description "IS-IS instance level,(1|2|3)";
-            } // END of type definition.
-
-            container config {
-                description
-                    "This container defines the ISIS Level Configurations";
-                uses isis-level-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "This container defines the ISIS Level State";
-                uses isis-level-config;
-            } // END of state-container definition.
-            container authentication {
-                description
-                    "Configutational and state parameters for ISIS instance level
-                            authentication";
-                container config {
-                    presence "authentication mode is needed for keychain";
-                    description
-                        "Configutational parameters for ISIS authentication";
-                    uses isis-authentication-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "State parameters for ISIS interface level authentication";
-                    uses isis-authentication-config;
-                } // END of state-container definition.
-            } // END of authentication-container definition.
-        } // End of level-list
-    } // END of level-grouping definition.
 
 
     grouping level-runtime-grouping {
@@ -1790,7 +1699,7 @@ submodule ipi-isis-lsp {
                     description "1..120: Supported range 1 - 120";
                  }
             }
-            default "30";
+            default "5";
             description "Use this attribute to set minimum interval before regenerating the
                         same LSP. The smaller the interval, the faster the convergence.
                         However, this setting might cause more frequent flooding";
@@ -3063,6 +2972,130 @@ submodule ipi-isis-lsp {
         } // END of snpa-mac-address definition.
 
     } // END of isis-level-proto-vertex-nexthop-state definition.
+
+    grouping  spf-levels-grouping {
+    description
+        "Enclosing container for the list of spf-levels associated";
+    container spf-levels {
+        if-feature feature-list:HAVE_ISISD;
+        description
+            "Enclosing container for the list of spf-levels associated";
+
+        list spf-level {
+        // when " ipi-isis-lsp:spf-levels/spf-level/spf-delays/spf-delay/spf-min-delay ";
+            key "level";
+            description
+                "This objectlist defines the ISIS Level SPF Parameters";
+            leaf level  {
+                type  leafref {
+                    path  "../config/level";
+                }
+                description "IS-IS instance level,(1|2|1-2)";
+            } // END of level definition.
+
+            container spf-delays {
+                description
+                    "Enclosing container for ISIS SPF Parameters";
+
+                list spf-delay {
+                    key "spf-min-delay spf-max-delay";
+                    max-elements 1;
+                    description
+                        "This objectlist defines the ISIS SPF Parameters";
+                    leaf spf-min-delay  {
+                        type  leafref {
+                            path  "../config/spf-min-delay";
+                        }
+                        description "Minimum delay between receiving a change to SPF calculation in
+                                    milliseconds. The default value is 500";
+                    } // END of spf-min-delay definition.
+
+                    leaf spf-max-delay  {
+                        type  leafref {
+                            path  "../config/spf-max-delay";
+                        }
+                        description "Maximum delay between receiving a change to SPF calculation in
+                                    milliseconds. The default value is 5000";
+                    } // END of spf-max-delay definition.
+
+                    container config {
+                        description
+                            "This container defines the ISIS SPF Configurations";
+                        uses isis-spf-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "This container defines the ISIS SPF state information";
+                        uses isis-spf-config;
+                    } // END of state-container definition.
+                } // End of spf-delay-list
+            } // END of spf-delays-container definition.
+            container config {
+                description
+                    "This container defines the ISIS SPF config parameters";
+                uses isis-spf-level-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "This container defines the ISIS SPF state parameters";
+                uses isis-spf-level-config;
+            } // END of state-container definition.
+        } // End of spf-level-list
+    } // END of spf-levels-container definition.
+    } // END of spf-levels-grouping definition.
+
+    grouping  levels-grouping {
+    description
+        "Enclosing container for the list of levels associated";
+    container levels {
+        if-feature feature-list:HAVE_ISISD;
+        description
+            "Enclosing container for the list of levels associated";
+
+        list level {
+            key "type";
+            description
+                "This objectlist defines the ISIS Level Parameters";
+            leaf type  {
+                type  leafref {
+                    path  "../config/type";
+                }
+                description "IS-IS instance level,(1|2|3)";
+            } // END of type definition.
+
+            container config {
+                description
+                    "This container defines the ISIS Level Configurations";
+                uses isis-level-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "This container defines the ISIS Level State";
+                uses isis-level-config;
+            } // END of state-container definition.
+            container authentication {
+                description
+                    "Configutational and state parameters for ISIS instance level
+                            authentication";
+                container config {
+                    presence "authentication mode is needed for keychain";
+                    description
+                        "Configutational parameters for ISIS authentication";
+                    uses isis-authentication-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State parameters for ISIS interface level authentication";
+                    uses isis-authentication-config;
+                } // END of state-container definition.
+            } // END of authentication-container definition.
+        } // End of level-list
+    } // END of levels-container definition.
+    } // END of levels-grouping definition.
 
 
 }

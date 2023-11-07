@@ -21,6 +21,11 @@ module ipi-management-server {
 
     prefix "ipi-management-server";
 
+    import cml-data-types {
+        prefix cml-data-types;
+        revision-date 2023-08-10;
+    }
+
     import ietf-inet-types {
         prefix inet;
         revision-date 2013-07-15;
@@ -28,15 +33,30 @@ module ipi-management-server {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
+    }
+
+    import ipi-management-server-types {
+        prefix ipi-management-server-types;
+        revision-date 2023-05-16;
+    }
+
+    import ipi-network-instance {
+        prefix ipi-network-instance;
+        revision-date 2023-07-13;
+    }
+
+    import ipi-vrf {
+        prefix ipi-vrf;
+        revision-date 2023-08-08;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
-    include ipi-management-server-notification { revision-date 2022-10-17;}
+    include ipi-management-server-notification { revision-date 2023-05-05;}
     organization
         "IP Infusion Inc.";
 
@@ -49,6 +69,76 @@ module ipi-management-server {
     description
         "Data model for management server related configurations";
 
+
+    revision "2023-10-16" {
+        description "Added implicit delete tag for db-sync issue";
+        reference " 0.1.25.";
+    }
+
+    revision "2023-10-10" {
+        description "Added dependentObject for api ordering issue";
+        reference " 0.1.24.";
+    }
+
+    revision "2023-09-29" {
+        description "Added when expression for callhome";
+        reference " 0.1.24.";
+    }
+
+    revision "2023-09-04" {
+        description "Added separate container for Netconf SSH and Netconf TLS CLI";
+        reference " 0.1.23.";
+    }
+
+    revision "2023-08-26" {
+        description "Removed Netconf CLI and Added new Netconf SSH and Netconf TLS CLI";
+        reference " 0.1.22.";
+    }
+
+    revision "2023-08-08" {
+        description "Commented out when expression temporarily from netcon-translation-config container to unblock ZebmUT translation testing.";
+        reference " 0.1.21.";
+    }
+
+    revision "2023-08-07" {
+        description "Renaming callhome-debug to enable";
+        reference " 0.1.20.";
+    }
+
+    revision "2023-07-27" {
+        description "Update to follow OpenConfig style";
+        reference " 0.1.19.";
+    }
+
+    revision "2023-07-26" {
+        description "Adding HAVE_VRF flag";
+        reference " 0.1.18.";
+    }
+
+    revision "2023-07-10" {
+        description "Adding dependency of callhome and translation with feature netconf";
+        reference " 0.1.17.";
+    }
+
+    revision "2023-06-15" {
+        description "Implementing netconf port feature";
+        reference " 0.1.16.";
+    }
+
+    revision "2023-06-13" {
+        description "Add implicit-delete tag to remove empty config container";
+        reference " 0.1.15.";
+    }
+
+    revision "2023-05-19" {
+        description "Adding translation config and management server type file";
+        reference " 0.1.14.";
+    }
+
+    revision "2023-05-05" {
+        description "Imported cml-data-types for suppress-bulk-notification";
+        reference " 0.1.13.";
+    }
 
     revision "2023-01-05" {
         description "Leafref correction for config container";
@@ -115,9 +205,121 @@ module ipi-management-server {
         reference " 0.1.0.";
     }
 
+    grouping debug-config {
+        description
+            "Grouping for configuration related to debug";
+        leaf enable  {
+            type  empty;
+            description "Enable debugging info for callhome";
+        } // END of enable definition.
+
+    } // END of debug-config definition.
+    grouping debug-top {
+        description
+            "Grouping for debug";
+        container debug {
+            description
+                "NETCONF server debug";
+            container config {
+                description
+                    "Configuration data for debug";
+                uses debug-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for debug";
+                uses debug-config;
+            } // END of state-container definition.
+        } // END of debug-container definition.
+    } // END of debug-top definition.
+    grouping netconf-translation-config {
+        description
+            "Grouping for NETCONF configuration data";
+        leaf translation-mode  {
+            type  ipi-management-server-types:management_server_translation_type_t;
+            description "Enable/disable NETCONF translation";
+        } // END of translation-mode definition.
+
+    } // END of netconf-translation-config definition.
+    grouping netconf-translation-top {
+        description
+            "Grouping for NETCONF translation";
+        container netconf-translation {
+            if-feature feature-list:HAVE_NETCONF_OC_TRANSLATION;
+            description
+                "NETCONF translation";
+            container config {
+                description
+                    "Configuration data for NETCONF translation";
+                uses netconf-translation-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for NETCONF translation";
+                uses netconf-translation-config;
+            } // END of state-container definition.
+        } // END of netconf-translation-container definition.
+    } // END of netconf-translation-top definition.
+    grouping reconnect-config {
+        description
+            "Grouping for reconnect related configuration";
+        leaf enable  {
+            type  empty;
+            mandatory true;
+            description "specifies whether server will reconnect after client closes the
+                        session";
+        } // END of enable definition.
+
+        leaf retry-max-attempts  {
+            type  uint8 {
+                 range "0..255"  {
+                    description "0..255: Supported range 0 - 255";
+                 }
+            }
+            default "3";
+            description "Specifies the number of retry attempts the server should attempt to
+                        the callhome server before giving up. Set 0 to retry infinitely.";
+        } // END of retry-max-attempts definition.
+
+        leaf retry-interval  {
+            type  uint32 {
+                 range "1..86400"  {
+                    description "1..86400: Supported range 1 - 86400";
+                 }
+            }
+            units "seconds";
+            default "300";
+            description "Specifies the number of seconds to wait after a connect attempt to the
+                        callhome server has failed";
+        } // END of retry-interval definition.
+
+    } // END of reconnect-config definition.
+    grouping reconnect-top {
+        description
+            "Grouping for reconnect";
+        container reconnect {
+            when " /ipi-management-server:netconf-server/ipi-management-server:callhome/ipi-management-server:config/ipi-management-server:feature-enabled ";
+            description
+                "NETCONF server reconnect";
+            container config {
+                presence "yes";
+                description
+                    "Configuration data for reconnect";
+                uses reconnect-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operation state data for reconnect";
+                uses reconnect-config;
+            } // END of state-container definition.
+        } // END of reconnect-container definition.
+    } // END of reconnect-top definition.
     grouping callhome-endpoint-config {
         description
-            "Grouping for endpoint related attributes";
+            "Grouping for endpoint configuration data";
         leaf name  {
             type  string {
                 length "1..64";
@@ -147,104 +349,252 @@ module ipi-management-server {
         } // END of port definition.
 
     } // END of callhome-endpoint-config definition.
+    grouping netconf-clients-top {
+        description
+            "Grouping for NETCONF client data";
+        container netconf-clients {
+            description
+                "NETCONF client data";
+
+            list netconf-client {
+            when " /ipi-management-server:netconf-server/ipi-management-server:callhome/ipi-management-server:config/ipi-management-server:feature-enabled ";
+                key "name";
+                max-elements 5;
+                description
+                    "Object list for configuring callhome servers";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "An arbitrary name for the NETCONF listen endpoint";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data for NETCONF client";
+                    uses callhome-endpoint-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for NETCONF client";
+                    uses callhome-endpoint-config;
+                } // END of state-container definition.
+            } // End of netconf-client-list
+        } // END of netconf-clients-container definition.
+    } // END of netconf-clients-top definition.
+    grouping callhome-config {
+        description
+            "Grouping for callhome configuration data";
+        leaf feature-enabled  {
+            type  empty;
+            mandatory true;
+            description "Enable callhome feature on the NETCONF server";
+        } // END of feature-enabled definition.
+
+        leaf management-port  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Interface to be used to connect the callhome server";
+        } // END of management-port definition.
+
+    } // END of callhome-config definition.
+    grouping callhome-top {
+        description
+            "Grouping for callhome";
+        container callhome {
+            if-feature feature-list:HAVE_NETCONF;
+            description
+                "Callhome related data";
+            container config {
+                presence "yes";
+                description
+                    "Configuration data for callhome attributes";
+                uses callhome-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for callhome callhome related attributes";
+                uses callhome-config;
+            } // END of state-container definition.
+            uses netconf-clients-top;
+            uses reconnect-top;
+        } // END of callhome-container definition.
+    } // END of callhome-top definition.
+    grouping netconf-server-subsystem-config {
+        description
+            "NETCONF server configuration";
+        leaf vrf-name  {
+            if-feature feature-list:HAVE_VRF;
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
+            }
+            description "VRF Name associated with this instance";
+        } // END of vrf-name definition.
+
+    } // END of netconf-server-subsystem-config definition.
+    grouping netconf-ssh-server-config {
+        description
+            "NETCONF SSH server configuration";
+        leaf feature-netconf-ssh  {
+            if-feature feature-list:HAVE_NETCONF;
+            type  boolean;
+            mandatory true;
+            description "Use this attribute to enable or disable NETCONF SSH feature.";
+        } // END of feature-netconf-ssh definition.
+
+        leaf ssh-port  {
+            if-feature feature-list:HAVE_NETCONF;
+            type  uint32 {
+                 range "1024..65535"  {
+                    description "1024..65535: Supported range 1024 - 65535";
+                 }
+            }
+            description "Use this attribute to set the ssh-port number on which the NETCONF
+                        server listens for connections. The default port on which the
+                        netconf-ssh server listens is 830.";
+        } // END of ssh-port definition.
+
+    } // END of netconf-ssh-server-config definition.
+    grouping netconf-ssh-server-top {
+        description
+            "NETCONF SSH server configuration";
+        container netconf-ssh-config {
+            description
+                "NETCONF SSH server data";
+            container config {
+                presence "yes";
+                description
+                    "Configuration data for NETCONF SSH SERVER";
+                uses netconf-ssh-server-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for NETCONF SSH Server";
+                uses netconf-ssh-server-config;
+            } // END of state-container definition.
+        } // END of netconf-ssh-config-container definition.
+    } // END of netconf-ssh-server-top definition.
+    grouping netconf-tls-server-config {
+        description
+            "NETCONF TLS server configuration";
+        leaf feature-netconf-tls  {
+            if-feature feature-list:HAVE_NETCONF;
+            type  boolean;
+            mandatory true;
+            description "Use this attribute to enable or disable NETCONF TLS feature.";
+        } // END of feature-netconf-tls definition.
+
+        leaf tls-port  {
+            if-feature feature-list:HAVE_NETCONF;
+            type  uint32 {
+                 range "1024..65535"  {
+                    description "1024..65535: Supported range 1024 - 65535";
+                 }
+            }
+            description "Use this attribute to set the tls-port number on which the NETCONF
+                        server listens for connections. The default port on which the
+                        netconf-tls server listens is 6513.";
+        } // END of tls-port definition.
+
+    } // END of netconf-tls-server-config definition.
+    grouping netconf-tls-server-top {
+        description
+            "NETCONF TLS server configuration";
+        container netconf-tls-config {
+            description
+                "NETCONF TLS server data";
+            container config {
+                presence "yes";
+                description
+                    "Configuration data for NETCONF TLS SERVER";
+                uses netconf-tls-server-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for NETCONF TLS Server";
+                uses netconf-tls-server-config;
+            } // END of state-container definition.
+        } // END of netconf-tls-config-container definition.
+    } // END of netconf-tls-server-top definition.
+    grouping netconf-server-subsystem-top {
+        description
+            "Grouping for NETCONF subsystem related configuration";
+        container vrfs {
+            if-feature feature-list:HAVE_VRF;
+            description
+                "NETCONF server VRF configurations";
+
+            list vrf {
+                key "vrf-name";
+                description
+                    "NETCONF server VRF instance configurations";
+                leaf vrf-name  {
+                    type  leafref {
+                        path  "../config/vrf-name";
+                    }
+                    description "Use this attribute to specify the VRF for which NETCONF feature is
+                                enabled";
+                } // END of vrf-name definition.
+
+                container config {
+                    description
+                        "config container for NETCONF server VRF instance configurations";
+                    uses netconf-server-subsystem-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state container for NETCONF server VRF instance configurations";
+                    uses netconf-server-subsystem-config;
+                } // END of state-container definition.
+                uses netconf-ssh-server-top;
+                uses netconf-tls-server-top;
+            } // End of vrf-list
+        } // END of vrfs-container definition.
+    } // END of netconf-server-subsystem-top definition.
 
     grouping  netconf-server-grouping {
     description
-        "Top level container for netconf server configurations";
+        "Top level container for NETCONF server configurations";
     container netconf-server {
         if-feature feature-list:HAVE_NETCONF;
         if-feature feature-list:HAVE_CMLD;
         description
-            "Top level container for netconf server configurations";
-        container callhome {
-            presence "yes";
-            description
-                "Top level container for netconf server callhome configurations";
-            leaf feature-enabled  {
-                type  empty;
-                mandatory true;
-                description "Enable callhome feature on the Netconf server";
-            } // END of feature-enabled definition.
-
-            leaf management-port  {
-                type  leafref {
-                    path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-                }
-                description "Interface to be used to connect the callhome server";
-            } // END of management-port definition.
-
-            container netconf-clients {
-                description
-                    "Top level container for callhome servers";
-
-                list netconf-client {
-                    key "name";
-                    max-elements 5;
-                    description
-                        "Object list for configuring callhome servers";
-                    leaf name  {
-                        type  leafref {
-                            path  "../config/name";
-                        }
-                        description "An arbitrary name for the NETCONF listen endpoint";
-                    } // END of name definition.
-
-                    container config {
-                        description
-                            "Endpoint Configuration data";
-                        uses callhome-endpoint-config;
-                    } // END of config-container definition.
-                } // End of netconf-client-list
-            } // END of netconf-clients-container definition.
-            container reconnect {
-                presence "yes";
-                description
-                    "Container for Reconnect strategy configurations";
-                leaf enable  {
-                    type  empty;
-                    mandatory true;
-                    description "specifies whether server will reconnect after client closes the
-                                session";
-                } // END of enable definition.
-
-                leaf retry-max-attempts  {
-                    type  uint8 {
-                         range "0..255"  {
-                            description "0..255: Supported range 0 - 255";
-                         }
-                    }
-                    default "3";
-                    description "Specifies the number of retry attempts the server should attempt to
-                                the callhome server before giving up. Set 0 to retry infinitely.";
-                } // END of retry-max-attempts definition.
-
-                leaf retry-interval  {
-                    type  uint32 {
-                         range "1..86400"  {
-                            description "1..86400: Supported range 1 - 86400";
-                         }
-                    }
-                    units "seconds";
-                    default "300";
-                    description "Specifies the number of seconds to wait after a connect attempt to the
-                                callhome server has failed";
-                } // END of retry-interval definition.
-
-            } // END of reconnect-container definition.
-        } // END of callhome-container definition.
-        container debug {
-            description
-                "Top level container for debug related configurations";
-            leaf callhome-debug  {
-                type  empty;
-                description "Enable debugging info for callhome";
-            } // END of callhome-debug definition.
-
-        } // END of debug-container definition.
+            "Top level container for NETCONF server configurations";
+        uses callhome-top;
+        uses netconf-translation-top;
+        uses debug-top;
+        uses netconf-server-subsystem-top;
     } // END of netconf-server-container definition.
     } // END of netconf-server-grouping definition.
 
     uses netconf-server-grouping;
     uses management-server-grouping;
+
+    notification suppress-bulk-notification {
+        if-feature feature-list:HAVE_CMLD;
+
+        description "Send notification when bulk notifications are suppressed..";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: INFO)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: MESSAGE)";
+        }
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
 
 }

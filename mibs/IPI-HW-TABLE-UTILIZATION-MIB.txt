@@ -1,0 +1,126 @@
+HW-TABLE-UTILIZATION DEFINITIONS ::= BEGIN
+
+--  This module provides authoritative definitions for hw table utilization table
+--
+--  This module will be extended, as needed.
+--
+
+IMPORTS
+    OBJECT-TYPE, MODULE-IDENTITY,
+    Gauge32, Counter32, Unsigned32,
+    TimeTicks, NOTIFICATION-TYPE
+        FROM SNMPv2-SMI
+    DateAndTime, DisplayString,
+    MacAddress, RowStatus, TEXTUAL-CONVENTION
+        FROM SNMPv2-TC
+    MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+        FROM SNMPv2-CONF
+    enterprises, OBJECT-IDENTITY
+        FROM SNMPv2-SMI
+    ipi FROM IPI-MODULE-MIB;
+
+hwTableUtilization MODULE-IDENTITY
+    LAST-UPDATED "202306121200Z"   -- Jun 12, 2023 12:00:00 GMT
+    ORGANIZATION
+    "IPI."
+    CONTACT-INFO
+    "support@ipinfusion.com"
+
+   DESCRIPTION
+      "The Structure of HSL Management for HW Table Utilization Information for
+        the IPI enterprise."
+
+   REVISION      "202306121200Z"
+   DESCRIPTION
+      "Module released with L2 hardware table type"
+
+   ::= { ipi 122 }
+
+
+-- ### Groups ###
+
+hwTableUtilizationObjects             OBJECT IDENTIFIER ::= { hwTableUtilization 1 }
+hwTableUtilizationAlarmObjects        OBJECT IDENTIFIER ::= { hwTableUtilization 2 }
+
+-- ### Textual Convention
+
+CodeType ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "x"
+    STATUS      current
+    DESCRIPTION
+        "The code type value for a given unit,
+        displayed in hexadecimal."
+    SYNTAX  Unsigned32
+
+UnitType ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "x"
+    STATUS      current
+    DESCRIPTION
+        "The unit type value for a given unit,
+        displayed in hexadecimal."
+    SYNTAX  Unsigned32
+
+TableType ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION
+    "Table type.
+    Value of -1 means the field is not applicable."
+    SYNTAX  INTEGER     {
+        l2-table(1),
+        unknown(1000)
+    }
+
+--- ### hardware table Utilization Table
+
+    hwTableUtilizationTable         OBJECT-TYPE
+        SYNTAX                      SEQUENCE OF HwTableUtilizationEntry
+        MAX-ACCESS                  not-accessible
+        STATUS                      current
+        DESCRIPTION
+              "A Table displaying the free, used and total entries
+               of snmp traps."
+        ::= { hwTableUtilizationObjects 1 }
+
+        hwTableUtilizationEntry         OBJECT-TYPE
+            SYNTAX                      HwTableUtilizationEntry
+            MAX-ACCESS                  not-accessible
+            STATUS                      current
+            DESCRIPTION
+                "HW Table Utilization."
+            INDEX { hwTableType }
+            ::= { hwTableUtilizationTable 1 }
+
+        HwTableUtilizationEntry    ::=
+            SEQUENCE {
+                hwTableType           TableType
+            }
+
+        hwTableType         OBJECT-TYPE
+            SYNTAX          TableType
+            MAX-ACCESS      accessible-for-notify
+            STATUS          current
+            DESCRIPTION
+                "Table type.
+                 Value of -1 means the field is not applicable."
+            ::= { hwTableUtilizationEntry 1 }
+
+
+
+hwTableUtilizationAlarmNotifications  OBJECT IDENTIFIER ::= { hwTableUtilizationAlarmObjects 1 }
+    hwTableFullTrap               NOTIFICATION-TYPE
+        OBJECTS                   {hwTableType}
+        STATUS                    current
+        DESCRIPTION
+            "Trap to send information for Full HW Table."
+        ::= { hwTableUtilizationAlarmNotifications 1 }
+
+    hwTableFullTrapClear          NOTIFICATION-TYPE
+        OBJECTS                   {hwTableType}
+        STATUS                    current
+        DESCRIPTION
+            "Trap to send information for Full HW Table Clear."
+        ::= { hwTableUtilizationAlarmNotifications 2 }
+
+
+END
+

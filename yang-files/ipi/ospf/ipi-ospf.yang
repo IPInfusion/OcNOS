@@ -23,7 +23,7 @@ module ipi-ospf {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ietf-inet-types {
@@ -38,12 +38,12 @@ module ipi-ospf {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-03-14;
+        revision-date 2023-07-13;
     }
 
     import ipi-ospf-types {
@@ -58,19 +58,19 @@ module ipi-ospf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     include ipi-ospf-redistribute { revision-date 2022-06-01;}
     include ipi-ospf-global { revision-date 2022-06-01;}
-    include ipi-ospf-multi-area-interface { revision-date 2023-03-21;}
+    include ipi-ospf-multi-area-interface { revision-date 2023-07-25;}
     include ipi-ospf-processes-state { revision-date 2023-02-02;}
     include ipi-ospf-distribute-lists { revision-date 2022-06-01;}
     include ipi-ospf-timers { revision-date 2022-06-01;}
-    include ipi-ospf-area { revision-date 2023-05-19;}
+    include ipi-ospf-area { revision-date 2023-06-13;}
     include ipi-ospf-te-link { revision-date 2022-06-01;}
-    include ipi-ospf-debug { revision-date 2023-02-02;}
-    include ipi-ospf-interface { revision-date 2023-01-27;}
+    include ipi-ospf-debug { revision-date 2023-05-25;}
+    include ipi-ospf-interface { revision-date 2023-10-09;}
     include ipi-ospf-authentication { revision-date 2022-06-01;}
     include ipi-ospf-interface-common { revision-date 2023-01-11;}
     organization
@@ -85,6 +85,41 @@ module ipi-ospf {
     description
         "Layer-3 Open Shortest Path First (OSPF)";
 
+
+    revision "2023-10-09" {
+        description "CLI command updated for unconfiguration message-digest-key";
+        reference " 0.7.1.";
+    }
+
+    revision "2023-10-07" {
+        description "Linking Segment Routing and entropy capabilty";
+        reference " 0.9.5.";
+    }
+
+    revision "2023-08-09" {
+        description "Added Segment Routing capability entropy";
+        reference " 0.9.4.";
+    }
+
+    revision "2023-08-03" {
+        description "OSPF CLI Commands for EVPN IRB Interface";
+        reference " 0.9.3.";
+    }
+
+    revision "2023-07-25" {
+        description "Updated confirmation string for ospfv2-restart-graceful";
+        reference " 0.9.2.";
+    }
+
+    revision "2023-06-13" {
+        description "Added to delete area configs on removing non default vrf from interface";
+        reference " 0.9.1.";
+    }
+
+    revision "2023-05-25" {
+        description "Added new cli 'debug ip ospf all' and 'debug cspf all'";
+        reference " 0.9.0.";
+    }
 
     revision "2023-05-19" {
         description "Adding constraint to remove areas/area/interfaces/interface/mpls/igp-ldp-sync when holddown-timer is deleted";
@@ -609,6 +644,37 @@ module ipi-ospf {
             } // End of global-block-list
         } // END of global-blocks-container definition.
     } // END of ospfv2-segment-routing-global-block-top definition.
+    grouping ospfv2-segment-routing-entropy-config {
+        description
+            "Grouping for OSPF segment routing entropy capability configuration
+                        data";
+        leaf entropy-capability  {
+            type  empty;
+            description "Use this attribute to enable segment routing entropy capability.";
+        } // END of entropy-capability definition.
+
+    } // END of ospfv2-segment-routing-entropy-config definition.
+    grouping ospfv2-segment-routing-entropy-top {
+        description
+            "Grouping for OSPF segment routing entropy capability";
+        container sr-capability-entropy {
+            if-feature feature-list:HAVE_SR_MPLS;
+            description
+                "OSPF segment routing entropy capability";
+            container config {
+                when " /ipi-ospf:ospfv2/ipi-ospf:processes/ipi-ospf:process/ipi-ospf:segment-routing/ipi-ospf:config/ipi-ospf:mpls ";
+                description
+                    "Configuration data for OSPF segment routing entropy capability";
+                uses ospfv2-segment-routing-entropy-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for OSPF segment routing entropy capability";
+                uses ospfv2-segment-routing-entropy-config;
+            } // END of state-container definition.
+        } // END of sr-capability-entropy-container definition.
+    } // END of ospfv2-segment-routing-entropy-top definition.
     grouping ospfv2-segment-routing-config {
         description
             "Grouping for OSPF segment routing configuration data";
@@ -931,6 +997,16 @@ module ipi-ospf {
             description "Algorithm to calculate reachability to other nodes.";
         } // END of algorithms definition.
 
+        leaf entropy-capability  {
+            type  empty;
+            description "Entropy Capability.";
+        } // END of entropy-capability definition.
+
+        leaf entropy-readable-label-depth  {
+            type  uint8;
+            description "Entropy Label Readable Label Depth.";
+        } // END of entropy-readable-label-depth definition.
+
         leaf mapping-server-preference  {
             type  uint8;
             description "Mapping server preference.";
@@ -1069,6 +1145,7 @@ module ipi-ospf {
             uses ospfv2-segment-routing-prefix-sid-map-top;
             uses ospfv2-segment-routing-announce-lists-top;
             uses ospfv2-segment-routing-mapping-servers-top;
+            uses ospfv2-segment-routing-entropy-top;
             uses ospfv2-segment-routing-capabilities-top;
         } // END of segment-routing-container definition.
     } // END of ospfv2-segment-routing-top definition.
@@ -2838,6 +2915,18 @@ module ipi-ospf {
         }
     }
 
+    rpc ospfv2-terminal-debug-cspf-all-on {
+        if-feature feature-list:HAVE_OSPF_CSPF;
+        if-feature feature-list:HAVE_OSPFD;
+        description "CSPF Information";
+    }
+
+    rpc ospfv2-terminal-debug-cspf-all-off {
+        if-feature feature-list:HAVE_OSPF_CSPF;
+        if-feature feature-list:HAVE_OSPFD;
+        description "CSPF Information";
+    }
+
     rpc ospfv2-terminal-debug-cspf-events-on {
         if-feature feature-list:HAVE_OSPF_CSPF;
         if-feature feature-list:HAVE_OSPFD;
@@ -2860,6 +2949,16 @@ module ipi-ospf {
         if-feature feature-list:HAVE_OSPF_CSPF;
         if-feature feature-list:HAVE_OSPFD;
         description "CSPF message hexdump";
+    }
+
+    rpc ospfv2-terminal-debug-all-on {
+        if-feature feature-list:HAVE_OSPFD;
+        description "Turn on all OSPF debug information";
+    }
+
+    rpc ospfv2-terminal-debug-all-off {
+        if-feature feature-list:HAVE_OSPFD;
+        description "Turn off all OSPF debug information";
     }
 
     rpc ospfv2-terminal-debug-retransmission-on {

@@ -23,7 +23,7 @@ module ipi-rsvp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-rsvp-types {
@@ -33,7 +33,7 @@ module ipi-rsvp {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ietf-inet-types {
@@ -43,10 +43,10 @@ module ipi-rsvp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
-    include ipi-rsvp-trunk { revision-date 2023-08-21;}
+    include ipi-rsvp-trunk { revision-date 2023-08-01;}
     include ipi-rsvp-interface { revision-date 2023-01-09;}
     include ipi-rsvp-session { revision-date 2022-06-01;}
     organization
@@ -62,18 +62,53 @@ module ipi-rsvp {
         "Resource Reservation Protocol";
 
 
-    revision "2023-08-21" {
-        description "Handling of secondary and primary session container in rsvp-trunk";
-        reference " 0.11.9.";
-    }
-
     revision "2023-08-01" {
         description "Adding description option for rsvp path/trunk/bypass";
         reference " 0.12.7.";
     }
 
+    revision "2023-07-24" {
+        description "Updated GR message";
+        reference " 0.12.6.";
+    }
+
+    revision "2023-07-11" {
+        description "added HAVE_DIFFSERV flag to enable rsvp compilation for marvell platforms";
+        reference " 0.12.5.";
+    }
+
+    revision "2023-07-07" {
+        description "Adding Presence container for rsvp-bypass-trunk-dsinfo-config";
+        reference " 0.12.4.";
+    }
+
+    revision "2023-07-04" {
+        description "Handling of secondary and primary session container in rsvp-trunk";
+        reference " 0.12.3.";
+    }
+
+    revision "2023-07-03" {
+        description "Added a global command to configure acknowledgement send timer";
+        reference " 0.12.2.";
+    }
+
     revision "2023-06-21" {
         description "Added a command to set default protection mechanism if path msg doesn't mention";
+        reference " 0.12.1.";
+    }
+
+    revision "2023-06-19" {
+        description "Updated hidden command from exclude to visible command to allow detour over primary upstream path";
+        reference " 0.12.0.";
+    }
+
+    revision "2023-06-16" {
+        description "Input removed for detour-identification configuration unset";
+        reference " 0.11.9.";
+    }
+
+    revision "2023-06-14" {
+        description "Added hidden option to block detour formation over primary upstream path";
         reference " 0.11.8.";
     }
 
@@ -935,6 +970,16 @@ module ipi-rsvp {
                         method, using the detour object.";
         } // END of detour-id definition.
 
+        leaf detour-allow-primary-upstream-path  {
+            if-feature feature-list:HAVE_MPLS_FRR;
+            type  empty;
+            description "Use this attribute to ensure detour formation allowed to consider
+                        upstream path of primary, a deviation to RFC 4090 section 6.2
+                        recomendation. This attribute intended to be used on special case
+                        where detour protection required on ring topology with no additional
+                        alternate path available.";
+        } // END of detour-allow-primary-upstream-path definition.
+
     } // END of rsvp-global-frr-config definition.
     grouping rsvp-global-gmpls-config {
         description
@@ -1171,6 +1216,20 @@ module ipi-rsvp {
         } // END of value definition.
 
     } // END of rsvp-admin-group-state definition.
+    grouping rsvp-rr-global-config {
+        description
+            "global mode configuration parameters for route-refresh";
+        leaf ack-send-timer  {
+            type  uint16 {
+                 range "1..5"  {
+                    description "1..5: Supported range 1 - 5";
+                 }
+            }
+            description "Use this attribute to configure the timer for sending acknowledgement
+                        for all RSVP-TE neighbors. By default, timer is disabled.";
+        } // END of ack-send-timer definition.
+
+    } // END of rsvp-rr-global-config definition.
 
     grouping  rsvp-te-grouping {
     description
@@ -1375,12 +1434,14 @@ module ipi-rsvp {
                     description
                         "configuration container for route-refresh";
                     uses rsvp-rr-config;
+                    uses rsvp-rr-global-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
                         "state parameters related to route-refresh";
                     uses rsvp-rr-config;
+                    uses rsvp-rr-global-config;
                 } // END of state-container definition.
             } // END of route-refresh-container definition.
             container fast-reroute {
@@ -1460,6 +1521,7 @@ module ipi-rsvp {
             } // END of srlg-container definition.
             container diff-serv {
                 when " /ipi-rsvp:rsvp-te/ipi-rsvp:rsvp-instance/ipi-rsvp:config ";
+                if-feature feature-list:HAVE_DIFFSERV;
                 description
                     "Top level container for diff serv";
                 container config {

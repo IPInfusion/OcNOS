@@ -23,7 +23,7 @@ module ipi-snmp-server-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-snmp {
@@ -33,22 +33,22 @@ module ipi-snmp-server-extended {
 
     import ipi-snmp-server {
         prefix ipi-snmp-server;
-        revision-date 2023-08-08;
+        revision-date 2023-08-28;
     }
 
     import ipi-snmp-server-extended-types {
         prefix ipi-snmp-server-extended-types;
-        revision-date 2022-06-01;
+        revision-date 2023-08-28;
     }
 
     import ipi-acl {
         prefix ipi-acl;
-        revision-date 2023-04-10;
+        revision-date 2023-07-07;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -65,6 +65,31 @@ module ipi-snmp-server-extended {
                 configuration";
 
 
+    revision "2023-08-28" {
+        description "Added a new datatype for String without spaces";
+        reference " 0.7.7.";
+    }
+
+    revision "2023-08-22" {
+        description "Updated when tag to skip validations when snmp server is enabled";
+        reference " 0.7.6.";
+    }
+
+    revision "2023-08-19" {
+        description "Added a container to display default contact/location details";
+        reference " 0.7.5.";
+    }
+
+    revision "2023-08-14" {
+        description "Added skip yang flag in when tag to resolve compilation failure";
+        reference " 0.7.4.";
+    }
+
+    revision "2023-08-10" {
+        description "Added when tag to resolve DB sync issue";
+        reference " 0.7.3.";
+    }
+
     revision "2023-08-08" {
         description "Changed the smux design from disable to enable";
         reference " 0.7.2.";
@@ -78,6 +103,11 @@ module ipi-snmp-server-extended {
     revision "2023-07-01" {
         description "SNMP Engine ID";
         reference " 0.7.0.";
+    }
+
+    revision "2023-05-29" {
+        description "Added When tag for no-debug-all command";
+        reference " 0.6.0.";
     }
 
     revision "2022-12-15" {
@@ -791,6 +821,28 @@ module ipi-snmp-server-extended {
             uses snmp-community-context-mapping;
         } // End of community-list
     } // END of snmp-server-community-top definition.
+    grouping snmp-server-global-state-attrs {
+        description
+            "SNMP server default configuration";
+        leaf system-default-contact  {
+            if-feature feature-list:HAVE_SNMP_AGENT;
+            type  ipi-snmp-server-extended-types:cml_line_without_pattern_t {
+                length "1..1965";
+            }
+            description "Use this attribute to get the default system contact information for
+                        the device (sysContact object)";
+        } // END of system-default-contact definition.
+
+        leaf system-default-location  {
+            if-feature feature-list:HAVE_SNMP_AGENT;
+            type  ipi-snmp-server-extended-types:cml_line_without_pattern_t {
+                length "1..1965";
+            }
+            description "Use this attribute to get the default physical location information of
+                        the device (sysLocation object)";
+        } // END of system-default-location definition.
+
+    } // END of snmp-server-global-state-attrs definition.
     grouping snmp-statistics-state {
         description
             "SNMP statistics state";
@@ -951,6 +1003,25 @@ module ipi-snmp-server-extended {
     } // END of statistics-container definition.
     } // END of statistics-grouping definition.
 
+    grouping  default-global-values-grouping {
+    description
+        "Operation state default value data for SNMP server global
+                configuration";
+    container default-global-values {
+        if-feature feature-list:HAVE_HOSTPD;
+        config false;
+        description
+            "Operation state default value data for SNMP server global
+                    configuration";
+        container state {
+            config false;
+            description
+                "Operational state data for SNMP default global values";
+            uses snmp-server-global-state-attrs;
+        } // END of state-container definition.
+    } // END of default-global-values-container definition.
+    } // END of default-global-values-grouping definition.
+
     augment /ipi-snmp:snmp/ipi-snmp-server:servers {
         if-feature feature-list:HAVE_SNMP_AGENT;
         description
@@ -1019,6 +1090,14 @@ module ipi-snmp-server-extended {
         description
             "Container for SNMP statistics";
         uses statistics-grouping;
+    }
+
+    augment /ipi-snmp:snmp {
+        if-feature feature-list:HAVE_SNMP_AGENT;
+        description
+            "Operation state default value data for SNMP server global
+                    configuration";
+        uses default-global-values-grouping;
     }
 
 

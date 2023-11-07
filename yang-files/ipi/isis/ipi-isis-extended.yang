@@ -21,7 +21,7 @@ submodule ipi-isis-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import ipi-isis-types {
@@ -31,7 +31,7 @@ submodule ipi-isis-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ietf-inet-types {
@@ -52,9 +52,29 @@ submodule ipi-isis-extended {
         "Model for managing IS-IS Extended Parameters";
 
 
-    revision "2023-07-31" {
+    revision "2023-09-01" {
+        description "Updated confirmation string for isis-restart-graceful";
+        reference " 0.6.4.";
+    }
+
+    revision "2023-08-10" {
+        description "JIRA-61800:Added remaining enclosing containers";
+        reference " 0.6.3.";
+    }
+
+    revision "2023-08-04" {
+        description "Added desc for attribute name of ISIS-TILFA and removed cliprependstr for tunnel,proto,mpls-ldp";
+        reference " 0.6.2.";
+    }
+
+    revision "2023-07-28" {
         description "OCFEAT-536:Updated flag for frr 'when' tag";
-        reference " 0.5.2.";
+        reference " 0.6.1.";
+    }
+
+    revision "2023-06-15" {
+        description "JIRA-61800:Added enclosing containers";
+        reference " 0.6.0.";
     }
 
     revision "2022-06-13" {
@@ -189,294 +209,6 @@ submodule ipi-isis-extended {
             } // END of state-container definition.
         } // End of ipv6-lfa-route-list
     } // END of ipv6-lfa-route-grouping definition.
-
-
-    grouping fast-reroute-grouping {
-    description
-        "This objectlist defines the Fast Reroute";
-        list fast-reroute {
-            if-feature feature-list:HAVE_ISISD;
-            key "level-type";
-            description
-                "This objectlist defines the Fast Reroute";
-            leaf level-type  {
-                type  leafref {
-                    path  "../config/level-type";
-                }
-                description "IS-IS instance level,(1|2)";
-            } // END of level-type definition.
-
-
-            list route-map {
-                if-feature feature-list:HAVE_ISIS_LFA;
-                key "protocol";
-                description
-                    "This objectlist defines the Fast Reroute list";
-                leaf protocol  {
-                    type  leafref {
-                        path  "../config/protocol";
-                    }
-                    description "Protocol Address Family";
-                } // END of protocol definition.
-
-                container config {
-                    description
-                        "This container defines the ISIS FRR Routemap Configurations";
-                    uses isis-frr-routemap-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "This container defines the ISIS FRR Routemap state information";
-                    uses isis-frr-routemap-config;
-                } // END of state-container definition.
-            } // End of route-map-list
-
-            list ti-lfa {
-                if-feature feature-list:HAVE_ISIS_TI_LFA;
-                key "protocol";
-                description
-                    "Topology Independent LFA protocol information";
-                leaf protocol  {
-                    type  leafref {
-                        path  "../config/protocol";
-                    }
-                    description "Protocol Address Family";
-                } // END of protocol definition.
-
-                container config {
-                    description
-                        "This container defines the ISIS TI-LFA Configurations";
-                    uses isis-ti-lfa-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "This container defines the ISIS TI-LFA State information";
-                    uses isis-ti-lfa-config;
-                } // END of state-container definition.
-            } // End of ti-lfa-list
-
-            list protocol {
-                if-feature feature-list:HAVE_ISIS_LFA;
-                key "lfa-protocol preference-value";
-                description
-                    "This objectlist defines the Fast Protocol List";
-                leaf lfa-protocol  {
-                    type  leafref {
-                        path  "../config/lfa-protocol";
-                    }
-                    description "LFA Protocol (ipv4 | ipv6)";
-                } // END of lfa-protocol definition.
-
-                leaf preference-value  {
-                    type  leafref {
-                        path  "../config/preference-value";
-                    }
-                    description "Indicates which tie-break option to use.";
-                } // END of preference-value definition.
-
-                container config {
-                    description
-                        "This container defines the ISIS FRR Routemap Configurations";
-                    uses isis-frr-proto-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "This container defines the ISIS FRR Routemap state information";
-                    uses isis-frr-proto-config;
-                } // END of state-container definition.
-            } // End of protocol-list
-            container config {
-                description
-                    "This container defines the ISIS FRR level type Configurations";
-                uses isis-frr-level-type-config;
-                uses isis-remote-lfa-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "This container defines the ISIS FRR level type State information";
-                uses isis-frr-level-type-config;
-                uses isis-remote-lfa-config;
-            } // END of state-container definition.
-            container ipv4-tilfa-routes {
-                description
-                    "This container defines the ISIS TI-LFA routes";
-
-                list ipv4-tilfa-route {
-                    key "destination-prefix";
-                    config false;
-                    description
-                        "This ObjectList defines the ISIS TI-LFA route information";
-                    leaf destination-prefix  {
-                        type  leafref {
-                            path  "../state/destination-prefix";
-                        }
-                        description "Destination Prefix for the TI-LFA route";
-                    } // END of destination-prefix definition.
-
-                    container state {
-                        config false;
-                        description
-                            "This container defines the ISIS TI-LFA Route State";
-                        uses ipv4-tilfa-route-state;
-                    } // END of state-container definition.
-                    container nexthops {
-                        config false;
-                        description
-                            "This container defines the ISIS TI-LFA route Next Hops information";
-
-                        list nexthop {
-                            key "primary-nexthop";
-                            config false;
-                            description
-                                "This ObjectList defines the ISIS TI-LFA Route Next Hop information";
-                            leaf primary-nexthop  {
-                                type  leafref {
-                                    path  "../state/primary-nexthop";
-                                }
-                                description "Primary Nexthop address of TI-LFA route";
-                            } // END of primary-nexthop definition.
-
-                            container state {
-                                config false;
-                                description
-                                    "This container defines the ISIS TI-LFA Route Next Hop State";
-                                uses ipv4-tilfa-route-nexthop-state;
-                            } // END of state-container definition.
-                        } // End of nexthop-list
-                    } // END of nexthops-container definition.
-                    container pq-trunks {
-                        config false;
-                        description
-                            "This container defines the ISIS TI-LFA route PQ Trunk Information";
-
-                        list pq-trunk {
-                            key "trunk-id";
-                            config false;
-                            description
-                                "This ObjectList defines the ISIS TI-LFA Route PQ Trunk Information";
-                            leaf trunk-id  {
-                                type  leafref {
-                                    path  "../state/trunk-id";
-                                }
-                                description "PQ Trunk Id of TI-LFA Route";
-                            } // END of trunk-id definition.
-
-                            container state {
-                                config false;
-                                description
-                                    "This container defines the ISIS TI-LFA Route PQ Trunk state";
-                                uses tilfa-pq-trunk-state;
-                            } // END of state-container definition.
-                        } // End of pq-trunk-list
-                    } // END of pq-trunks-container definition.
-                } // End of ipv4-tilfa-route-list
-            } // END of ipv4-tilfa-routes-container definition.
-            container tilfa-pq-nodes {
-                description
-                    "This container defines ISIS TI-LFA pq nodes";
-                container circuit-levels {
-                    description
-                        "This container defines ISIS TI-LFA circuit levels";
-
-                    list circuit-level {
-                        key "level";
-                        config false;
-                        description
-                            "This ObjectList defines the ISIS TI-LFA circuit level";
-                        leaf level  {
-                            type  leafref {
-                                path  "../state/level";
-                            }
-                            description "ISIS level of TI-LFA PQ Nodes";
-                        } // END of level definition.
-
-                        container state {
-                            config false;
-                            description
-                                "This container defines ISIS TI-LFA circuit level state";
-                            uses tilfa-pq-state;
-                        } // END of state-container definition.
-                        container vertices {
-                            config false;
-                            description
-                                "This container defines ISIS TILFA PQ Node vertices";
-
-                            list vertex {
-                                key "destination-vertex";
-                                config false;
-                                description
-                                    "This ObjectList defines ISIS TILFA PQ Node vertex";
-                                leaf destination-vertex  {
-                                    type  leafref {
-                                        path  "../state/destination-vertex";
-                                    }
-                                    description "ISIS destination vertex of TI-LFA PQ Nodes";
-                                } // END of destination-vertex definition.
-
-                                container state {
-                                    config false;
-                                    description
-                                        "This container defines ISIS TILFA PQ Node vertex state";
-                                    uses tilfa-pq-vertex-state;
-                                } // END of state-container definition.
-                                container interfaces {
-                                    config false;
-                                    description
-                                        "This container defines ISIS TILFA PQ Node interfaces";
-
-                                    list interface {
-                                        key "name";
-                                        config false;
-                                        description
-                                            "This ObjectList defines ISIS TI-LFA PQ node interface";
-                                        leaf name  {
-                                            type  leafref {
-                                                path  "../state/name";
-                                            }
-                                            description "";
-                                        } // END of name definition.
-
-                                        container state {
-                                            config false;
-                                            description
-                                                "This container defines ISIS TILFA PQ Node interface state";
-                                            uses tilfa-pq-interface-state;
-                                        } // END of state-container definition.
-                                        container link-protection {
-                                            config false;
-                                            description
-                                                "This container defines ISIS TI-LFA Link protecting PQ Nodes";
-                                            container state {
-                                                config false;
-                                                description
-                                                    "This container defines ISIS TI-LFA Link protecting PQ Node state";
-                                                uses tilfa-pq-link-protection-state;
-                                            } // END of state-container definition.
-                                        } // END of link-protection-container definition.
-                                        container node-protection {
-                                            config false;
-                                            description
-                                                "This container defines ISIS TI-LFA Node  protecting PQ Nodes";
-                                            container state {
-                                                config false;
-                                                description
-                                                    "This container defines ISIS TI-LFA Node protecting PQ Node state";
-                                                uses tilfa-pq-node-protection-state;
-                                            } // END of state-container definition.
-                                        } // END of node-protection-container definition.
-                                    } // End of interface-list
-                                } // END of interfaces-container definition.
-                            } // End of vertex-list
-                        } // END of vertices-container definition.
-                    } // End of circuit-level-list
-                } // END of circuit-levels-container definition.
-            } // END of tilfa-pq-nodes-container definition.
-        } // End of fast-reroute-list
-    } // END of fast-reroute-grouping definition.
     grouping isis-lfa-route-state {
         description
             "State items for ISIS LFA Route";
@@ -644,7 +376,7 @@ submodule ipi-isis-extended {
         } // END of protocol definition.
 
         leaf name  {
-            // when " !ipi-isis-extended:fast-reroute/route-map/config/enable-all-prefixes ";
+            // when " !ipi-isis-extended:fast-reroute-levels/fast-reroute/route-maps/route-map/config/enable-all-prefixes ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -653,7 +385,7 @@ submodule ipi-isis-extended {
         } // END of name definition.
 
         leaf enable-all-prefixes  {
-            // when " !ipi-isis-extended:fast-reroute/route-map/config/name ";
+            // when " !ipi-isis-extended:fast-reroute-levels/fast-reroute/route-maps/route-map/config/name ";
             type  ipi-isis-types:isis_frr_enum_t;
             description "Apply on all prefixes";
         } // END of enable-all-prefixes definition.
@@ -906,6 +638,310 @@ submodule ipi-isis-extended {
         } // END of q-node-disjoint definition.
 
     } // END of tilfa-pq-node-protection-state definition.
+
+    grouping  fast-reroute-levels-grouping {
+    description
+        "Enclosing container for the list of fast-reroutes";
+    container fast-reroute-levels {
+        if-feature feature-list:HAVE_ISISD;
+        description
+            "Enclosing container for the list of fast-reroutes";
+
+        list fast-reroute {
+            key "level-type";
+            description
+                "This objectlist defines the Fast Reroute";
+            leaf level-type  {
+                type  leafref {
+                    path  "../config/level-type";
+                }
+                description "IS-IS instance level,(1|2)";
+            } // END of level-type definition.
+
+            container config {
+                description
+                    "This container defines the ISIS FRR level type Configurations";
+                uses isis-frr-level-type-config;
+                uses isis-remote-lfa-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "This container defines the ISIS FRR level type State information";
+                uses isis-frr-level-type-config;
+                uses isis-remote-lfa-config;
+            } // END of state-container definition.
+            container route-maps {
+                description
+                    "Enclosing container for the list of route-maps";
+
+                list route-map {
+                    if-feature feature-list:HAVE_ISIS_LFA;
+                    key "protocol";
+                    description
+                        "This objectlist defines the Fast Reroute list";
+                    leaf protocol  {
+                        type  leafref {
+                            path  "../config/protocol";
+                        }
+                        description "Protocol Address Family";
+                    } // END of protocol definition.
+
+                    container config {
+                        description
+                            "This container defines the ISIS FRR Routemap Configurations";
+                        uses isis-frr-routemap-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "This container defines the ISIS FRR Routemap state information";
+                        uses isis-frr-routemap-config;
+                    } // END of state-container definition.
+                } // End of route-map-list
+            } // END of route-maps-container definition.
+            container ti-lfas {
+                description
+                    "Enclosing container for the list of ti-lfas";
+
+                list ti-lfa {
+                    if-feature feature-list:HAVE_ISIS_TI_LFA;
+                    key "protocol";
+                    description
+                        "Topology Independent LFA protocol information";
+                    leaf protocol  {
+                        type  leafref {
+                            path  "../config/protocol";
+                        }
+                        description "Protocol Address Family";
+                    } // END of protocol definition.
+
+                    container config {
+                        description
+                            "This container defines the ISIS TI-LFA Configurations";
+                        uses isis-ti-lfa-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "This container defines the ISIS TI-LFA State information";
+                        uses isis-ti-lfa-config;
+                    } // END of state-container definition.
+                } // End of ti-lfa-list
+            } // END of ti-lfas-container definition.
+            container protocols {
+                description
+                    "Enclosing container for the list of protocols associated";
+
+                list protocol {
+                    if-feature feature-list:HAVE_ISIS_LFA;
+                    key "lfa-protocol preference-value";
+                    description
+                        "This objectlist defines the Fast Protocol List";
+                    leaf lfa-protocol  {
+                        type  leafref {
+                            path  "../config/lfa-protocol";
+                        }
+                        description "LFA Protocol (ipv4 | ipv6)";
+                    } // END of lfa-protocol definition.
+
+                    leaf preference-value  {
+                        type  leafref {
+                            path  "../config/preference-value";
+                        }
+                        description "Indicates which tie-break option to use.";
+                    } // END of preference-value definition.
+
+                    container config {
+                        description
+                            "This container defines the ISIS FRR Routemap Configurations";
+                        uses isis-frr-proto-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "This container defines the ISIS FRR Routemap state information";
+                        uses isis-frr-proto-config;
+                    } // END of state-container definition.
+                } // End of protocol-list
+            } // END of protocols-container definition.
+            container ipv4-tilfa-routes {
+                description
+                    "This container defines the ISIS TI-LFA routes";
+
+                list ipv4-tilfa-route {
+                    key "destination-prefix";
+                    config false;
+                    description
+                        "This ObjectList defines the ISIS TI-LFA route information";
+                    leaf destination-prefix  {
+                        type  leafref {
+                            path  "../state/destination-prefix";
+                        }
+                        description "Destination Prefix for the TI-LFA route";
+                    } // END of destination-prefix definition.
+
+                    container state {
+                        config false;
+                        description
+                            "This container defines the ISIS TI-LFA Route State";
+                        uses ipv4-tilfa-route-state;
+                    } // END of state-container definition.
+                    container nexthops {
+                        config false;
+                        description
+                            "This container defines the ISIS TI-LFA route Next Hops information";
+
+                        list nexthop {
+                            key "primary-nexthop";
+                            config false;
+                            description
+                                "This ObjectList defines the ISIS TI-LFA Route Next Hop information";
+                            leaf primary-nexthop  {
+                                type  leafref {
+                                    path  "../state/primary-nexthop";
+                                }
+                                description "Primary Nexthop address of TI-LFA route";
+                            } // END of primary-nexthop definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "This container defines the ISIS TI-LFA Route Next Hop State";
+                                uses ipv4-tilfa-route-nexthop-state;
+                            } // END of state-container definition.
+                        } // End of nexthop-list
+                    } // END of nexthops-container definition.
+                    container pq-trunks {
+                        config false;
+                        description
+                            "This container defines the ISIS TI-LFA route PQ Trunk Information";
+
+                        list pq-trunk {
+                            key "trunk-id";
+                            config false;
+                            description
+                                "This ObjectList defines the ISIS TI-LFA Route PQ Trunk Information";
+                            leaf trunk-id  {
+                                type  leafref {
+                                    path  "../state/trunk-id";
+                                }
+                                description "PQ Trunk Id of TI-LFA Route";
+                            } // END of trunk-id definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "This container defines the ISIS TI-LFA Route PQ Trunk state";
+                                uses tilfa-pq-trunk-state;
+                            } // END of state-container definition.
+                        } // End of pq-trunk-list
+                    } // END of pq-trunks-container definition.
+                } // End of ipv4-tilfa-route-list
+            } // END of ipv4-tilfa-routes-container definition.
+            container tilfa-pq-nodes {
+                description
+                    "This container defines ISIS TI-LFA pq nodes";
+                container circuit-levels {
+                    description
+                        "This container defines ISIS TI-LFA circuit levels";
+
+                    list circuit-level {
+                        key "level";
+                        config false;
+                        description
+                            "This ObjectList defines the ISIS TI-LFA circuit level";
+                        leaf level  {
+                            type  leafref {
+                                path  "../state/level";
+                            }
+                            description "ISIS level of TI-LFA PQ Nodes";
+                        } // END of level definition.
+
+                        container state {
+                            config false;
+                            description
+                                "This container defines ISIS TI-LFA circuit level state";
+                            uses tilfa-pq-state;
+                        } // END of state-container definition.
+                        container vertices {
+                            config false;
+                            description
+                                "This container defines ISIS TILFA PQ Node vertices";
+
+                            list vertex {
+                                key "destination-vertex";
+                                config false;
+                                description
+                                    "This ObjectList defines ISIS TILFA PQ Node vertex";
+                                leaf destination-vertex  {
+                                    type  leafref {
+                                        path  "../state/destination-vertex";
+                                    }
+                                    description "ISIS destination vertex of TI-LFA PQ Nodes";
+                                } // END of destination-vertex definition.
+
+                                container state {
+                                    config false;
+                                    description
+                                        "This container defines ISIS TILFA PQ Node vertex state";
+                                    uses tilfa-pq-vertex-state;
+                                } // END of state-container definition.
+                                container interfaces {
+                                    config false;
+                                    description
+                                        "This container defines ISIS TILFA PQ Node interfaces";
+
+                                    list interface {
+                                        key "name";
+                                        config false;
+                                        description
+                                            "This ObjectList defines ISIS TI-LFA PQ node interface";
+                                        leaf name  {
+                                            type  leafref {
+                                                path  "../state/name";
+                                            }
+                                            description "ISIS name of TI-LFA PQ Nodes";
+                                        } // END of name definition.
+
+                                        container state {
+                                            config false;
+                                            description
+                                                "This container defines ISIS TILFA PQ Node interface state";
+                                            uses tilfa-pq-interface-state;
+                                        } // END of state-container definition.
+                                        container link-protection {
+                                            config false;
+                                            description
+                                                "This container defines ISIS TI-LFA Link protecting PQ Nodes";
+                                            container state {
+                                                config false;
+                                                description
+                                                    "This container defines ISIS TI-LFA Link protecting PQ Node state";
+                                                uses tilfa-pq-link-protection-state;
+                                            } // END of state-container definition.
+                                        } // END of link-protection-container definition.
+                                        container node-protection {
+                                            config false;
+                                            description
+                                                "This container defines ISIS TI-LFA Node  protecting PQ Nodes";
+                                            container state {
+                                                config false;
+                                                description
+                                                    "This container defines ISIS TI-LFA Node protecting PQ Node state";
+                                                uses tilfa-pq-node-protection-state;
+                                            } // END of state-container definition.
+                                        } // END of node-protection-container definition.
+                                    } // End of interface-list
+                                } // END of interfaces-container definition.
+                            } // End of vertex-list
+                        } // END of vertices-container definition.
+                    } // End of circuit-level-list
+                } // END of circuit-levels-container definition.
+            } // END of tilfa-pq-nodes-container definition.
+        } // End of fast-reroute-list
+    } // END of fast-reroute-levels-container definition.
+    } // END of fast-reroute-levels-grouping definition.
 
     grouping  graceful-restart-grouping {
     description

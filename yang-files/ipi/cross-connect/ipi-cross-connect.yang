@@ -23,7 +23,7 @@ module ipi-cross-connect {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-cross-connect-types {
@@ -33,17 +33,17 @@ module ipi-cross-connect {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-03-14;
+        revision-date 2023-07-13;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -58,6 +58,26 @@ module ipi-cross-connect {
     description
         "Cross-Connect configurations";
 
+
+    revision "2023-08-17" {
+        description "Reverted: Reverted: Create the cross-connect interface as an object-list with endpoint-if as attribute";
+        reference " 0.1.7.";
+    }
+
+    revision "2023-08-16" {
+        description "Reverted: Create the cross-connect interface as an object-list with endpoint-if as attribute";
+        reference " 0.1.6.";
+    }
+
+    revision "2023-08-11" {
+        description "Create the cross-connect interface as an object-list with endpoint-if as attribute";
+        reference " 0.1.5.";
+    }
+
+    revision "2023-06-15" {
+        description "Added a when tag in endpoint-if with subinterface encapsulation";
+        reference " 0.1.4.";
+    }
 
     revision "2023-01-12" {
         description "Removed endpoint notification and added leaf-ref";
@@ -79,6 +99,49 @@ module ipi-cross-connect {
         reference " 0.1.0.";
     }
 
+    grouping cross-connect-interface-config {
+        description
+            "Grouping for Cross-Connect interface configuration";
+        leaf endpoint-if  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "This attribute specifies the endpoint for cross-connect";
+        } // END of endpoint-if definition.
+
+    } // END of cross-connect-interface-config definition.
+    grouping cross-connect-interface-top {
+        description
+            "Grouping for Cross-Connect interface";
+        container cross-connect-interfaces {
+            description
+                "Container for Cross-Connect interfaces";
+
+            list cross-connect-interface {
+                key "endpoint-if";
+                description
+                    "List of Cross-Connect interfaces";
+                leaf endpoint-if  {
+                    type  leafref {
+                        path  "../config/endpoint-if";
+                    }
+                    description "This attribute specifies the endpoint for cross-connect";
+                } // END of endpoint-if definition.
+
+                container config {
+                    description
+                        "Configuration data for Cross-Connect interface";
+                    uses cross-connect-interface-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for Cross-Connect interface";
+                    uses cross-connect-interface-config;
+                } // END of state-container definition.
+            } // End of cross-connect-interface-list
+        } // END of cross-connect-interfaces-container definition.
+    } // END of cross-connect-interface-top definition.
     grouping cross-connect-config {
         description
             "Grouping for Cross-Connect configurations";
@@ -88,13 +151,6 @@ module ipi-cross-connect {
             }
             description "This attribute specifies the entry name for cross-connect";
         } // END of xc-name definition.
-
-        leaf-list endpoint-if  {
-            type  leafref {
-                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-            }
-            description "This attribute specifies the endpoint for cross-connect";
-        } // END of endpoint-if definition.
 
         leaf description  {
             type  cml-data-types:cml_line_t {
@@ -138,6 +194,7 @@ module ipi-cross-connect {
             uses cross-connect-config;
             uses cross-connect-state;
         } // END of state-container definition.
+        uses cross-connect-interface-top;
     } // END of cross-connect-container definition.
     } // END of cross-connect-grouping definition.
 

@@ -21,17 +21,17 @@ submodule ipi-bgp-common {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-06-01;
+        revision-date 2023-09-22;
     }
 
     import ietf-yang-types {
@@ -57,8 +57,53 @@ submodule ipi-bgp-common {
         "Datamodel for bgp network list";
 
 
-    revision "2023-06-01" {
+    revision "2023-10-09" {
+        description "Updated When tag constraints for attribute 'enable-peer-bfd-multihop' and 'enable-peer-bfd'";
+        reference " 0.10.11.";
+    }
+
+    revision "2023-09-22" {
+        description "Updated attribute to bgp-peer-run-time-attribute-state ";
+        reference " 0.10.10.";
+    }
+
+    revision "2023-09-12" {
+        description "Added enclosing container for all objectlists";
+        reference " 0.10.9.";
+    }
+
+    revision "2023-09-07" {
+        description "Removing attributes from bgp-peer-run-time-attribute-state,bgp-peer-run-time-counters-state";
+        reference " 0.10.8.";
+    }
+
+    revision "2023-09-05" {
+        description "Updated When tag constraints for attribute 'peer-route-map-orig-name' and 'default-peer-route-map-name'";
+        reference " 0.10.7.";
+    }
+
+    revision "2023-08-16" {
+        description "New patch Added option 'no-prepend' and 'replace-as' for BGP neighbor local-as";
+        reference " 0.10.6.";
+    }
+
+    revision "2023-08-15" {
+        description "Revert patch Added option 'no-prepend' and 'replace-as' for BGP neighbor local-as";
+        reference " 0.10.5.";
+    }
+
+    revision "2023-08-11" {
+        description "Added option 'no-prepend' and 'replace-as' for BGP neighbor local-as";
+        reference " 0.10.4.";
+    }
+
+    revision "2023-08-03" {
         description "Added attr capability-ipv4-unicast to bgp-peer-run-time-attribute-state";
+        reference " 0.10.3.";
+    }
+
+    revision "2023-07-20" {
+        description "Added support for TCP Maximum Segment Size per BGP neighbor";
         reference " 0.10.2.";
     }
 
@@ -772,7 +817,7 @@ submodule ipi-bgp-common {
         } // END of activate definition.
 
         leaf de-activate  {
-            // when " ipi-bgp-peer:peer/config/mapped-peer-group-tag ";
+            // when " ipi-bgp-peer:peers/peer/config/mapped-peer-group-tag ";
             type  empty;
             description "Deactivate neighbor. This attribute disables the exchange of AF
                         information with a neighboring router.";
@@ -914,7 +959,7 @@ submodule ipi-bgp-common {
         } // END of allow-as-number definition.
 
         leaf capability-graceful-restart  {
-            // when " ipi-bgp-peer:peer/address-family/config/activate ";
+            // when " ipi-bgp-peer:peers/peer/address-families/address-family/config/activate ";
             type  empty;
             description "This attribute configures the router to advertise the Graceful Restart
                         Capability to the neighbors. This configuration indicates that the BGP
@@ -924,7 +969,7 @@ submodule ipi-bgp-common {
         } // END of capability-graceful-restart definition.
 
         leaf extended-nexthop-encode  {
-            // when " ipi-bgp-peer:peer/address-family/config/activate ";
+            // when " ipi-bgp-peer:peers/peer/address-families/address-family/config/activate ";
             type  empty;
             description "A BGP speaker that wishes to advertise an IPv6 next hop for IPv4 NLRI
                         for VPN-IPv4 NLRI to a BGP peer as per this specification MUST use the
@@ -934,7 +979,7 @@ submodule ipi-bgp-common {
         } // END of extended-nexthop-encode definition.
 
         leaf mapped-peer-group-tag-af  {
-            // when " ipi-bgp-peer:peer/address-family/config/activate ";
+            // when " ipi-bgp-peer:peers/peer/address-families/address-family/config/activate ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -1172,6 +1217,31 @@ submodule ipi-bgp-common {
         } // END of enabled definition.
 
     } // END of bgp-peer-ebgp-multhop-config definition.
+    grouping bgp-peer-local-as-config {
+        description
+            "attributes having Local-as configuration";
+        leaf peer-local-as  {
+            type  uint32 {
+                 range "1..4294967295"  {
+                    description "1..4294967295: Supported range 1 - 4294967295";
+                 }
+            }
+            description "Specifies an AS (autonomous system) number to use with BGP neighbor.";
+        } // END of peer-local-as definition.
+
+        leaf no-prepend-local-as  {
+            type  empty;
+            description "Use this attribute to stop the alternate ASN from being prepended when
+                        receiving routes from EBGP bgp neighbor.";
+        } // END of no-prepend-local-as definition.
+
+        leaf replace-local-as  {
+            type  empty;
+            description "Use this attribute to stop the alternate ASN from being prepended when
+                        sending routes to EBGP bgp neighbor.";
+        } // END of replace-local-as definition.
+
+    } // END of bgp-peer-local-as-config definition.
     grouping bgp-address-family-table-map-config {
         description
             "Table map configuration for  BGP Address Family";
@@ -1196,7 +1266,7 @@ submodule ipi-bgp-common {
         } // END of map-name definition.
 
         leaf table-map-filter  {
-            // when " ipi-bgp-address-family:address-family/table-map/config/map-name ";
+            // when " ipi-bgp-address-family:address-families/address-family/table-map/config/map-name ";
             if-feature feature-list:HAVE_BGP_TABLE_MAP;
             type  boolean;
             description "When tableMapFilter attribute is given in the table map attribute, the
@@ -1325,37 +1395,11 @@ submodule ipi-bgp-common {
             description "BGP AS-PATH entries";
         } // END of as-path-extended-count definition.
 
-        leaf update-message-in  {
-            type  int32;
-            default "0";
-            config false;
-            description "Update message input count";
-        } // END of update-message-in definition.
-
-        leaf update-message-out  {
-            type  int32;
-            default "0";
-            config false;
-            description "Update message ouput count";
-        } // END of update-message-out definition.
-
         leaf received-packet-count  {
             type  int32;
             config false;
             description "Received messages";
         } // END of received-packet-count definition.
-
-        leaf notification-in  {
-            type  int32;
-            config false;
-            description "Notify input count";
-        } // END of notification-in definition.
-
-        leaf notification-out  {
-            type  int32;
-            config false;
-            description "Notify output count";
-        } // END of notification-out definition.
 
         leaf packet-in-queue  {
             type  int32;
@@ -1675,12 +1719,6 @@ submodule ipi-bgp-common {
             description "BGP notify open error";
         } // END of notify-info definition.
 
-        leaf error-notify-sent  {
-            type  boolean;
-            config false;
-            description "Last reset due to notification type 0(sent), 1(received)";
-        } // END of error-notify-sent definition.
-
         leaf notify-last-reset-time  {
             type  string {
                 length "1..1965";
@@ -1689,14 +1727,6 @@ submodule ipi-bgp-common {
             config false;
             description "Last reset in week:day:hour:min:sec format string";
         } // END of notify-last-reset-time definition.
-
-        leaf notify-code-string  {
-            type  cml-data-types:cml_line_t {
-                length "1..1965";
-            }
-            config false;
-            description "Notification Error Message code and subcode";
-        } // END of notify-code-string definition.
 
         leaf connection-type  {
             type  ipi-bgp-types:bgp_connection_type_t;
@@ -1709,12 +1739,6 @@ submodule ipi-bgp-common {
             config false;
             description "Next connect timer due in seconds";
         } // END of next-connection-timer definition.
-
-        leaf connection-established-count  {
-            type  int32;
-            config false;
-            description "BGP state established count";
-        } // END of connection-established-count definition.
 
         leaf connection-dropped-count  {
             type  int32;
@@ -1760,13 +1784,6 @@ submodule ipi-bgp-common {
                         week then format is day:hour:min.If the time is more than a week then
                         the format is week:day:hour";
         } // END of last-read-time definition.
-
-        leaf bgp-peer-state  {
-            type  ipi-bgp-types:bgp_peer_status_t;
-            config false;
-            description "The bgp state of the session with following representation 1(Idle),
-                        2(Connect), 3(Active), 4(Opensent), 5(Openconfirm), 6(Established)";
-        } // END of bgp-peer-state definition.
 
         leaf link-type  {
             type  ipi-bgp-types:bgp_link_type_t;
@@ -1824,16 +1841,6 @@ submodule ipi-bgp-common {
             description "No Interfaces bound to BGP Instance";
         } // END of no-interface-binding definition.
 
-        leaf additional-path-send-capability  {
-            if-feature feature-list:HAVE_BGP_ADD_PATH;
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            config false;
-            description "Add-Path Send Capability";
-        } // END of additional-path-send-capability definition.
-
         leaf additional-path-receive-capability  {
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  string {
@@ -1843,6 +1850,16 @@ submodule ipi-bgp-common {
             config false;
             description "Add-Path Receive Capability";
         } // END of additional-path-receive-capability definition.
+
+        leaf additional-path-send-capability  {
+            if-feature feature-list:HAVE_BGP_ADD_PATH;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            config false;
+            description "Add-Path Send Capability";
+        } // END of additional-path-send-capability definition.
 
         leaf capability-ipv4-unicast  {
             type  ipi-bgp-types:bgp_capability_type_t;
@@ -1984,7 +2001,7 @@ submodule ipi-bgp-common {
         } // END of peer-as definition.
 
         leaf source-identifier  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -1999,19 +2016,8 @@ submodule ipi-bgp-common {
                         connections.";
         } // END of source-identifier definition.
 
-        leaf peer-local-as  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
-            type  uint32 {
-                 range "1..4294967295"  {
-                    description "1..4294967295: Supported range 1 - 4294967295";
-                 }
-            }
-            description "Use this attribute to specify an AS (autonomous system) number to use
-                        with BGP neighbor.";
-        } // END of peer-local-as definition.
-
         leaf bgp-version  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  uint8;
             default "4";
             description "BGP Version. This attribute configures router to accept only a
@@ -2022,7 +2028,7 @@ submodule ipi-bgp-common {
         } // END of bgp-version definition.
 
         leaf peer-connection-interval  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535: Supported range 1 - 65535";
@@ -2039,14 +2045,14 @@ submodule ipi-bgp-common {
         } // END of peer-connection-interval definition.
 
         leaf enforce-multihop  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "This attribute turns on the enforcement of eBGP neighbors perform
                         multihop.";
         } // END of enforce-multihop definition.
 
         leaf peer-shutdown  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "This attribute disables a neighbor administratively.
                         Use this attribute to terminate any active session for a specified
@@ -2056,7 +2062,7 @@ submodule ipi-bgp-common {
         } // END of peer-shutdown definition.
 
         leaf peer-shutdown-description  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as + ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-shutdown ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as + ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-shutdown ";
             type  cml-data-types:cml_line_t {
                 length "1..255";
             }
@@ -2065,13 +2071,13 @@ submodule ipi-bgp-common {
         } // END of peer-shutdown-description definition.
 
         leaf neighbor-passive  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Use this attribute to set a BGP neighbor as passive.";
         } // END of neighbor-passive definition.
 
         leaf disable-capability-negotiation  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Use this attribute to disable capability negotiation. The capability
                         negotiation is performed by default. This attribute is used to allow
@@ -2080,7 +2086,7 @@ submodule ipi-bgp-common {
         } // END of disable-capability-negotiation definition.
 
         leaf connection-retry-interval  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  int32 {
                  range "1..65535"  {
                     description "1..65535: Supported range 1 - 65535";
@@ -2092,7 +2098,7 @@ submodule ipi-bgp-common {
         } // END of connection-retry-interval definition.
 
         leaf enable-dynamic-capability  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Use this attribute to enable the dynamic capability for a specific
                         peer. This attribute allows a BGP speaker to advertise or withdraw an
@@ -2100,7 +2106,7 @@ submodule ipi-bgp-common {
         } // END of enable-dynamic-capability definition.
 
         leaf min-route-advertisement-interval  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  uint32 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -2115,7 +2121,7 @@ submodule ipi-bgp-common {
         } // END of min-route-advertisement-interval definition.
 
         leaf peer-as-origin-interval  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535: Supported range 1 - 65535";
@@ -2129,7 +2135,7 @@ submodule ipi-bgp-common {
         } // END of peer-as-origin-interval definition.
 
         leaf neighbor-as-override  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Use this attribute to configure a PE router to override the Autonomous
                         System Number (ASN) of a site with the ASN of a provider. BGP normally
@@ -2147,7 +2153,7 @@ submodule ipi-bgp-common {
         } // END of neighbor-as-override definition.
 
         leaf peer-description  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  cml-data-types:cml_line_t {
                 length "1..1965";
             }
@@ -2157,7 +2163,7 @@ submodule ipi-bgp-common {
         } // END of peer-description definition.
 
         leaf peer-restart-time  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             if-feature feature-list:HAVE_RESTART;
             if-feature feature-list:HAVE_VRF;
             type  uint32 {
@@ -2174,7 +2180,7 @@ submodule ipi-bgp-common {
         } // END of peer-restart-time definition.
 
         leaf site-origin-identifier  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             if-feature feature-list:HAVE_VRF;
             type  string {
                 length "1..1965";
@@ -2186,7 +2192,7 @@ submodule ipi-bgp-common {
         } // END of site-origin-identifier definition.
 
         leaf graceful-shut  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Use this attribute to start a graceful shutdown for the BGP session of
                         the specified BGP neighbor. The BGP session for this neighbor is shut
@@ -2198,7 +2204,7 @@ submodule ipi-bgp-common {
         } // END of graceful-shut definition.
 
         leaf graceful-shut-timer  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  uint32 {
                  range "10..65535"  {
                     description "10..65535: Supported range 10 - 65535";
@@ -2210,14 +2216,14 @@ submodule ipi-bgp-common {
         } // END of graceful-shut-timer definition.
 
         leaf enable-peer-bfd  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as + !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/enable-peer-bfd-multihop ";
             if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer";
         } // END of enable-peer-bfd definition.
 
         leaf enable-peer-bfd-multihop  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/enable-peer-bfd ";
+            // when " !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/enable-peer-bfd ";
             if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer with
@@ -2225,18 +2231,28 @@ submodule ipi-bgp-common {
         } // END of enable-peer-bfd-multihop definition.
 
         leaf enable-ext-opt-param-len  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-as ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Use this attribute for a specific peer to encode extended optional
                         parameter length.";
         } // END of enable-ext-opt-param-len definition.
+
+        leaf tcp-adjust-mss  {
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
+            type  uint16 {
+                 range "40..1440"  {
+                    description "40..1440: Supported range 40 - 1440";
+                 }
+            }
+            description "Use this attribute to set the BGP TCP MSS value of a neighbor.";
+        } // END of tcp-adjust-mss definition.
 
     } // END of bgp-address-family-vrf-peer-group-config definition.
     grouping bgp-address-family-peer-group-vrf-config {
         description
             "Configuration parameters common for peer group VRFs";
         leaf bgp-port  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  uint16 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -2253,7 +2269,6 @@ submodule ipi-bgp-common {
         } // END of activate definition.
 
         leaf default-peer-route-map-name  {
-            // when " !ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/peer-route-map-orig-name ";
             type  empty;
             description "This attribute allows a BGP local router to send the default route
                         0.0.0.0 to a neighbor for use as a default route for specified
@@ -2261,7 +2276,6 @@ submodule ipi-bgp-common {
         } // END of default-peer-route-map-name definition.
 
         leaf peer-route-map-orig-name  {
-            // when " !ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/default-peer-route-map-name ";
             type  string {
                 length "1..63";
                 pattern "[^?' =,>|]+";
@@ -2273,7 +2287,7 @@ submodule ipi-bgp-common {
         } // END of peer-route-map-orig-name definition.
 
         leaf weight  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  uint16 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -2293,7 +2307,7 @@ submodule ipi-bgp-common {
         } // END of weight definition.
 
         leaf flowspec-validation-disable  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             if-feature feature-list:HAVE_BGP_FLOWSPEC;
             type  empty;
             description "This attribute specifies if FLOWSPEC validiation should be disabled
@@ -2301,7 +2315,7 @@ submodule ipi-bgp-common {
         } // END of flowspec-validation-disable definition.
 
         leaf peer-route-reflector  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  empty;
             description "This attribute configures the router as a BGP route reflector and
                         configure the specified neighbor as its client for specified
@@ -2315,7 +2329,7 @@ submodule ipi-bgp-common {
         } // END of peer-route-reflector definition.
 
         leaf peer-remove-private-as  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  empty;
             description "This attribute removes the private Autonomous System (AS) number from
                         outbound updates. Private AS numbers are not advertised to the
@@ -2326,7 +2340,7 @@ submodule ipi-bgp-common {
         } // END of peer-remove-private-as definition.
 
         leaf no-send-community  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  empty;
             description "This attribute specifies if a community attribute should be sent to a
                         BGP neighbor for specified address-family. The community attribute
@@ -2336,21 +2350,21 @@ submodule ipi-bgp-common {
         } // END of no-send-community definition.
 
         leaf no-send-community-type  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  ipi-bgp-types:bgp_send_commu_type_t;
             description "This attribute specifies the type of community attribute to be sent to
                         a BGP neighbor.";
         } // END of no-send-community-type definition.
 
         leaf neighbor-attribute-unchanged  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  ipi-bgp-types:bgp_attribute_unchanged_type_t;
             description "This attribute advertises unchanged BGP AS path, next hop and med to
                         the specified neighbor.";
         } // END of neighbor-attribute-unchanged definition.
 
         leaf orf-prefix-capability  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  ipi-bgp-types:bgp_orf_prefix_type_t;
             description "This attribute enables Outbound Router Filtering (ORF), and advertise
                         the ORF capability to its neighbors. The ORFs send and receive
@@ -2370,7 +2384,7 @@ submodule ipi-bgp-common {
         } // END of peer-allow-ebgp-vpn definition.
 
         leaf allow-as-number  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  uint32 {
                  range "1..10"  {
                     description "1..10: Supported range 1 - 10";
@@ -2399,7 +2413,7 @@ submodule ipi-bgp-common {
         } // END of allow-as-number definition.
 
         leaf capability-graceful-restart  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  empty;
             description "This attribute configures the router to advertise the Graceful Restart
                         Capability to the neighbors. This configuration indicates that the BGP
@@ -2409,7 +2423,7 @@ submodule ipi-bgp-common {
         } // END of capability-graceful-restart definition.
 
         leaf unsuppress-route-map-name  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -2419,21 +2433,21 @@ submodule ipi-bgp-common {
         } // END of unsuppress-route-map-name definition.
 
         leaf additional-paths-mode  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  ipi-bgp-types:bgp_peer_additional_path_type_t;
             description "Adds additional paths in the BGP table";
         } // END of additional-paths-mode definition.
 
         leaf additional-path-select-all  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  empty;
             description "Attribute to select advertise additional path";
         } // END of additional-path-select-all definition.
 
         leaf additional-paths-best-select-count  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  uint8 {
                  range "2..3"  {

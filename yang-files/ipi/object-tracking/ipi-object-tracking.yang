@@ -23,12 +23,17 @@ module ipi-object-tracking {
 
     import ipi-object-tracking-types {
         prefix ipi-object-tracking-types;
-        revision-date 2022-06-01;
+        revision-date 2022-07-27;
+    }
+
+    import ipi-interface {
+        prefix ipi-interface;
+        revision-date 2023-10-13;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -43,6 +48,16 @@ module ipi-object-tracking {
     description
         "Datamodel for Object Tracking Configuration and operational data.";
 
+
+    revision "2022-08-16" {
+        description "Modified to delete the interface info when trackid deleted";
+        reference " 0.3.1.";
+    }
+
+    revision "2022-07-27" {
+        description "Added interface level object tracking commands";
+        reference " 0.3.0.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -106,6 +121,101 @@ module ipi-object-tracking {
         } // END of reachability-status definition.
 
     } // END of tracker-object-state definition.
+    grouping object-tracking-interface-config {
+        description
+            "Grouping for object tracking configuration on interface";
+        leaf name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Interface name for which object tracking is being configured";
+        } // END of name definition.
+
+        leaf select-option  {
+            type  ipi-object-tracking-types:object_tracking_select_option_t;
+            description "object tracking options";
+        } // END of select-option definition.
+
+    } // END of object-tracking-interface-config definition.
+    grouping object-tracking-track-id-config {
+        description
+            "Grouping for object tracking config";
+        leaf track-id  {
+            type  uint32 {
+                 range "1..500"  {
+                    description "1..500: Supported range 1 - 500";
+                 }
+            }
+            description "Use this attribute for Object Tracking id.";
+        } // END of track-id definition.
+
+    } // END of object-tracking-track-id-config definition.
+    grouping object-tracking-interface-top {
+        description
+            "Grouping for object tracking configuration on interface";
+        container track-interfaces {
+            description
+                "Configuration data";
+
+            list track-interface {
+                key "track-id";
+                description
+                    "Object tracking interface related operations";
+                leaf track-id  {
+                    type  leafref {
+                        path  "../config/track-id";
+                    }
+                    description "Use this attribute for Object Tracking id.";
+                } // END of track-id definition.
+
+                container config {
+                    description
+                        "This container defines Tracked object configuration in interface mode.";
+                    uses object-tracking-track-id-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container defines Tracked object Operational states in interface
+                                mode.";
+                    uses object-tracking-track-id-config;
+                } // END of state-container definition.
+            } // End of track-interface-list
+        } // END of track-interfaces-container definition.
+    } // END of object-tracking-interface-top definition.
+    grouping object-tracking-interface-configs {
+        description
+            "Grouping for object tracking configuration on interface";
+        container interfaces {
+            description
+                "Object tracking interface Configuration data";
+
+            list interface {
+                key "name";
+                description
+                    "Object tracking interface related operations";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Interface name for which object tracking is being configured";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data";
+                    uses object-tracking-interface-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses object-tracking-interface-config;
+                } // END of state-container definition.
+                uses object-tracking-interface-top;
+            } // End of interface-list
+        } // END of interfaces-container definition.
+    } // END of object-tracking-interface-configs definition.
 
     grouping  object-tracking-grouping {
     description
@@ -145,6 +255,7 @@ module ipi-object-tracking {
                 } // END of state-container definition.
             } // End of tracker-list
         } // END of trackers-container definition.
+        uses object-tracking-interface-configs;
     } // END of object-tracking-container definition.
     } // END of object-tracking-grouping definition.
 

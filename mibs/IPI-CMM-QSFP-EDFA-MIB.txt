@@ -1,0 +1,241 @@
+    IPI-CMM-QSFP-EDFA-MIB DEFINITIONS ::= BEGIN
+
+    --  This module provides authoritative definitions for cmm qsfp EDFA
+    --  transceiver modules
+    --
+    --  This module will be extended, as needed.
+    --
+
+    IMPORTS
+        MODULE-IDENTITY, Counter32
+            FROM SNMPv2-SMI-MIB
+        OBJECT-TYPE, NOTIFICATION-TYPE
+            FROM SNMPv2-SMI-MIB
+        DisplayString
+            FROM SNMPv2-TC-MIB
+        MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+            FROM SNMPv2-CONF
+        enterprises, OBJECT-IDENTITY
+            FROM SNMPv2-SMI
+        ipi FROM IPI-MODULE-MIB
+        cmmChassisObject, cmmStackUnitIndex, cmmTransIndex
+            FROM IPI-CMM-CHASSIS-MIB;
+
+    cmm  MODULE-IDENTITY
+    LAST-UPDATED "202304030000Z"   -- April 03, 2023 12:00:00 GMT
+    ORGANIZATION
+      "IPI."
+    CONTACT-INFO
+      "support@ipinfusion.com"
+
+    DESCRIPTION
+       "The Structure of CMM EDFA qsfp transceiver Information for
+        the IPI enterprise."
+  REVISION "202304030000Z"
+  DESCRIPTION
+      "Complying to level 3 of SMILINT"
+    ::= { ipi 100 }
+
+
+    -- ### Groups ###
+    cmmQSFPEDFAModule      OBJECT IDENTIFIER ::={ cmmChassisObject 22 }
+
+    cmmQSFPEDFAModuleObjects  OBJECT IDENTIFIER ::={ cmmQSFPEDFAModule 1 }
+    cmmQSFPEDFADDMObjects     OBJECT IDENTIFIER ::={ cmmQSFPEDFAModule 2 }
+
+
+    -- ## Remote QSFP EDFA Entry
+    cmmQSFPEDFATable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmQSFPEDFAEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of entries containing QSFP EDFA Transceiver module information."
+        ::= { cmmQSFPEDFAModuleObjects 1 }
+
+    cmmQSFPEDFAEntry OBJECT-TYPE
+      SYNTAX            CmmQSFPEDFAEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing QSFP EDFA Transceiver module information."
+        INDEX    { cmmStackUnitIndex,
+                   cmmTransIndex }
+        ::= { cmmQSFPEDFATable 1 }
+
+    CmmQSFPEDFAEntry::=
+        SEQUENCE {
+           cmmQSFPEDFAOpertingMode     INTEGER
+        }
+
+    cmmQSFPEDFAOpertingMode    OBJECT-TYPE
+      SYNTAX  INTEGER {
+                        agc(1),
+                        apc(2)
+      }
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "EDFA configured mode of operation."
+      ::= { cmmQSFPEDFAEntry 1 }
+
+
+    -- ## Remote QSFP EDFA DDM Entry
+    cmmQSFPEDFADDMTable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmQSFPEDFADDMEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of entries containing QSFP EDFA Transceiver DDM information."
+        ::= { cmmQSFPEDFAModuleObjects 2 }
+
+    cmmQSFPEDFADDMEntry OBJECT-TYPE
+      SYNTAX            CmmQSFPEDFADDMEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing QSFP EDFA Transceiver DDM information."
+        INDEX    { cmmStackUnitIndex,
+                   cmmTransIndex,
+                   cmmQSFPEDFAAttrType
+        }
+        ::= { cmmQSFPEDFADDMTable 1 }
+
+    CmmQSFPEDFADDMEntry::=
+        SEQUENCE {
+           cmmQSFPEDFAAttrType            INTEGER,
+           cmmQSFPEDFAValue               INTEGER,
+           cmmQSFPEDFAAlertMax            INTEGER,
+           cmmQSFPEDFACriticalMax         INTEGER,
+           cmmQSFPEDFACriticalMin         INTEGER,
+           cmmQSFPEDFAAlertMin            INTEGER
+        }
+
+    cmmQSFPEDFAAttrType  OBJECT-TYPE
+      SYNTAX    INTEGER {
+                        temperature(1),
+                        voltage(2),
+                        inputpower(3),
+                        outputpower(4),
+                        pumpbias(5),
+                        gain(6)
+      }
+      MAX-ACCESS   accessible-for-notify
+      STATUS      current
+      DESCRIPTION
+      "QSFP EDFA DDM for variables."
+      ::= { cmmQSFPEDFADDMEntry 1 }
+
+    cmmQSFPEDFAValue  OBJECT-TYPE
+      SYNTAX        INTEGER
+      UNITS         "0.01 unit"
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Internally measured temperature of the transceiver.
+       Unit: Temperature in degree C, Voltage in Volts,
+             TargetGain/TargetOutputPower/InputPower in dBm and
+             PumpBias in Amp"
+      ::= { cmmQSFPEDFADDMEntry 2 }
+
+    cmmQSFPEDFAAlertMax  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Qsfp EDFA transceiver alert max threshold value."
+      ::= { cmmQSFPEDFADDMEntry 3 }
+
+    cmmQSFPEDFACriticalMax  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Qsfp EDFA transceiver critical max threshold value."
+      ::= { cmmQSFPEDFADDMEntry 4 }
+
+    cmmQSFPEDFACriticalMin  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Qsfp EDFA transceiver critical min threshold value."
+      ::= { cmmQSFPEDFADDMEntry 5 }
+
+    cmmQSFPEDFAAlertMin  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Qsfp EDFA transceiver alert min threshold value."
+      ::= { cmmQSFPEDFADDMEntry 6 }
+
+
+    --
+    -- ## Notifications
+    --
+
+    cmmQSFPEDFADDMAlarm           OBJECT IDENTIFIER ::= { cmmQSFPEDFADDMObjects 1 }
+    cmmQSFPEDFADDMNotifications   OBJECT IDENTIFIER ::= { cmmQSFPEDFADDMObjects 2  }
+
+
+    cmmQSFPEDFAAlarmSeverity  OBJECT-TYPE
+      SYNTAX  INTEGER {
+                        alertmax(1),
+                        criticalmax(2),
+                        criticalmin(3),
+                        alertmin(4)
+      }
+      MAX-ACCESS   accessible-for-notify
+      STATUS      current
+      DESCRIPTION
+      "QSFP EDFA generic threshold alarm severity type."
+      ::= { cmmQSFPEDFADDMAlarm 1 }
+
+    cmmQSFPEDFAAlarmThresholdMax  OBJECT-TYPE
+      SYNTAX   INTEGER
+       MAX-ACCESS   accessible-for-notify
+       STATUS       current
+       DESCRIPTION
+       "A generic threshold maximum value"
+       ::= { cmmQSFPEDFADDMAlarm 2 }
+
+    cmmQSFPEDFAAlarmThresholdMin  OBJECT-TYPE
+      SYNTAX   INTEGER
+       MAX-ACCESS   accessible-for-notify
+       STATUS       current
+       DESCRIPTION
+       "A generic threshold minimum value"
+       ::= { cmmQSFPEDFADDMAlarm 3 }
+
+    cmmQSFPEDFANotifyAlarm   NOTIFICATION-TYPE
+      OBJECTS     {
+            cmmStackUnitIndex,
+            cmmTransIndex,
+            cmmQSFPEDFAAlarmSeverity,
+            cmmQSFPEDFAAttrType,
+            cmmQSFPEDFAValue,
+            cmmQSFPEDFAAlarmThresholdMax,
+            cmmQSFPEDFAAlarmThresholdMin
+      }
+      STATUS       current
+      DESCRIPTION
+      "Set when qsfp EDFA transceiver type exceeds alarm value"
+      ::= { cmmQSFPEDFADDMNotifications 1 }
+
+    cmmQSFPEDFANotifyAlarmRecovery   NOTIFICATION-TYPE
+      OBJECTS     {
+            cmmStackUnitIndex,
+            cmmTransIndex,
+            cmmQSFPEDFAAttrType,
+            cmmQSFPEDFAValue,
+            cmmQSFPEDFACriticalMax,
+            cmmQSFPEDFACriticalMin
+      }
+      STATUS       current
+      DESCRIPTION
+      "Set when qsfp EDFA transceiver type recovers from alarm value"
+      ::= { cmmQSFPEDFADDMNotifications 2 }
+
+
+END

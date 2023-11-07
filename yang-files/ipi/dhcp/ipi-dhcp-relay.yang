@@ -21,7 +21,7 @@ submodule ipi-dhcp-relay {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import ipi-dhcp-relay-types {
@@ -41,17 +41,17 @@ submodule ipi-dhcp-relay {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-03-14;
+        revision-date 2023-07-13;
     }
 
     import ipi-vrf {
@@ -71,6 +71,11 @@ submodule ipi-dhcp-relay {
     description
         "dhcp_relay_configuration";
 
+
+    revision "2023-06-30" {
+        description "DHCP Group feature";
+        reference " 0.9.0.";
+    }
 
     revision "2023-01-12" {
         description "Container has delete api which is not correct hence changed it us unset";
@@ -466,6 +471,15 @@ submodule ipi-dhcp-relay {
             description "Specify the interface as an uplink interface(Server facing)";
         } // END of ipv4-uplink-interface definition.
 
+        leaf ipv4-group-name  {
+            // when " ipi-dhcp-relay:relay/interfaces/interface/config/ipv4-uplink-interface ";
+            type  string {
+                length "1..63";
+                pattern "[^?' =,>|]+";
+            }
+            description "Correlate specified interface to a specified DHCP server group.";
+        } // END of ipv4-group-name definition.
+
         leaf ipv6-relay-interface  {
             // when " !ipi-dhcp-relay:relay/interfaces/interface/config/ipv6-uplink-interface ";
             if-feature feature-list:HAVE_IPV6;
@@ -479,6 +493,15 @@ submodule ipi-dhcp-relay {
             type  empty;
             description "Specify the interface as an uplink interface(Server facing)";
         } // END of ipv6-uplink-interface definition.
+
+        leaf ipv6-group-name  {
+            // when " ipi-dhcp-relay:relay/interfaces/interface/config/ipv6-uplink-interface ";
+            type  string {
+                length "1..63";
+                pattern "[^?' =,>|]+";
+            }
+            description "Correlate specified interface to a specified DHCPv6 server group.";
+        } // END of ipv6-group-name definition.
 
     } // END of relay-interface-config definition.
     grouping relay-stats {
@@ -625,6 +648,107 @@ submodule ipi-dhcp-relay {
                 } // END of state definition.
 
     } // END of dhcpv6-delegated-prefixes-attrs definition.
+    grouping dhcp-relay-group-config {
+        description
+            "Grouping for dhcp pool configurations";
+        leaf group-name  {
+            type  string {
+                length "1..63";
+                pattern "[^?' =,>|]+";
+            }
+            description "IPv4 DHCP Relay group name";
+        } // END of group-name definition.
+
+        leaf-list server  {
+            type  inet:ipv4-address;
+            description "IPv4 DHCP Relay Group server details";
+        } // END of server definition.
+
+    } // END of dhcp-relay-group-config definition.
+    grouping dhcpv6-relay-group-config {
+        description
+            "Grouping for dhcp pool configurations";
+        leaf group6-name  {
+            type  string {
+                length "1..63";
+                pattern "[^?' =,>|]+";
+            }
+            description "IPv6 DHCP Relay group name";
+        } // END of group6-name definition.
+
+        leaf-list server  {
+            type  inet:ipv6-address;
+            description "IPv6 DHCP Relay Group server details";
+        } // END of server definition.
+
+    } // END of dhcpv6-relay-group-config definition.
+    grouping dhcp-v4-groups-top {
+        description
+            "Grouping for IPv4 DHCP relay group attributes";
+        container dhcp-groups {
+            description
+                "Container for IPv4 DHCP relay groups";
+
+            list dhcp-group {
+                key "group-name";
+                max-elements 32;
+                description
+                    "List of IPv4 DHCP relay group";
+                leaf group-name  {
+                    type  leafref {
+                        path  "../config/group-name";
+                    }
+                    description "IPv4 DHCP Relay group name";
+                } // END of group-name definition.
+
+                container config {
+                    description
+                        "Configuration data for each IPv4 DHCP relay group";
+                    uses dhcp-relay-group-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational data for each IPv4 DHCP address group";
+                    uses dhcp-relay-group-config;
+                } // END of state-container definition.
+            } // End of dhcp-group-list
+        } // END of dhcp-groups-container definition.
+    } // END of dhcp-v4-groups-top definition.
+    grouping dhcp-v6-groups-top {
+        description
+            "Grouping for IPv6 DHCP relay group attributes";
+        container dhcpv6-groups {
+            if-feature feature-list:HAVE_IPV6;
+            description
+                "Container for IPv6 DHCP relay groups";
+
+            list dhcpv6-group {
+                key "group6-name";
+                max-elements 32;
+                description
+                    "List of IPv6 DHCP relay group";
+                leaf group6-name  {
+                    type  leafref {
+                        path  "../config/group6-name";
+                    }
+                    description "IPv6 DHCP Relay group name";
+                } // END of group6-name definition.
+
+                container config {
+                    description
+                        "Configuration data for each IPv6 DHCP relay group";
+                    uses dhcpv6-relay-group-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational data for each IPv6 DHCP relay group";
+                    uses dhcpv6-relay-group-config;
+                } // END of state-container definition.
+            } // End of dhcpv6-group-list
+        } // END of dhcpv6-groups-container definition.
+    } // END of dhcp-v6-groups-top definition.
     grouping relay-interface-top {
         description
             "DHCP relay interface level information grouping";
@@ -725,6 +849,8 @@ submodule ipi-dhcp-relay {
                 uses relay-delegated-prefixes;
                 uses relay-ipv4-dhcp-server-top;
                 uses relay-ipv6-dhcp-server-top;
+                uses dhcp-v4-groups-top;
+                uses dhcp-v6-groups-top;
             } // End of vrf-list
         } // END of vrfs-container definition.
     } // END of dhcp-relay-vrf-top definition.

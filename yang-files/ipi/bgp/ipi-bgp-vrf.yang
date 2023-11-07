@@ -23,17 +23,17 @@ module ipi-bgp-vrf {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-06-01;
+        revision-date 2023-09-22;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-03-14;
+        revision-date 2023-07-13;
     }
 
     import ipi-vrf {
@@ -48,7 +48,7 @@ module ipi-bgp-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -64,7 +64,17 @@ module ipi-bgp-vrf {
         "Datamodel for BGP VRF";
 
 
-    revision "2023-06-01" {
+    revision "2023-09-22" {
+        description "Added new type BGP_PEER_TYPE_T";
+        reference " 0.10.3.";
+    }
+
+    revision "2023-09-12" {
+        description "Added enclosing container for all objectlists";
+        reference " 0.10.2.";
+    }
+
+    revision "2023-08-03" {
         description "Added attr capability-ipv4-unicast to bgp-peer-run-time-attribute-state";
         reference " 0.10.1.";
     }
@@ -629,32 +639,36 @@ module ipi-bgp-vrf {
     grouping bgp-vrf-route-target {
         description
             "Grouping for route target information";
-
-        list route-target {
-        when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-bgp-vrf:bgp-vrf/ipi-bgp-vrf:config/ipi-bgp-vrf:rd-string ";
-        // when " ipi-bgp-vrf:bgp-vrf/route-target/config/direction ";
-            key "rt-rd-string";
+        container route-targets {
             description
-                "Route target information";
-            leaf rt-rd-string  {
-                type  leafref {
-                    path  "../config/rt-rd-string";
-                }
-                description "Assigns Route distinguisher for the VRF";
-            } // END of rt-rd-string definition.
+                "Top level container for Route target information";
 
-            container config {
+            list route-target {
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-bgp-vrf:bgp-vrf/ipi-bgp-vrf:config/ipi-bgp-vrf:rd-string ";
+            // when " ipi-bgp-vrf:bgp-vrf/route-targets/route-target/config/direction ";
+                key "rt-rd-string";
                 description
-                    "Configuration data for bgp vrf route target";
-                uses bgp-vrf-route-target-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "State parameters for bgp vrf route target";
-                uses bgp-vrf-route-target-config;
-            } // END of state-container definition.
-        } // End of route-target-list
+                    "Route target information";
+                leaf rt-rd-string  {
+                    type  leafref {
+                        path  "../config/rt-rd-string";
+                    }
+                    description "Assigns Route distinguisher for the VRF";
+                } // END of rt-rd-string definition.
+
+                container config {
+                    description
+                        "Configuration data for bgp vrf route target";
+                    uses bgp-vrf-route-target-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State parameters for bgp vrf route target";
+                    uses bgp-vrf-route-target-config;
+                } // END of state-container definition.
+            } // End of route-target-list
+        } // END of route-targets-container definition.
     } // END of bgp-vrf-route-target definition.
     grouping bgp-vrf-bgp-rd-as-state {
         description

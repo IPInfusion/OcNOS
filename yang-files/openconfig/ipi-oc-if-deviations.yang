@@ -3,7 +3,6 @@ module ipi-oc-if-deviations {
   prefix "ipi-oc-if-deviations";
 
   import iana-if-type { prefix ianaift; }
-  import openconfig-if-types { prefix oc-ift; }
   import openconfig-interfaces { prefix oc-if; }
   import openconfig-if-ethernet { prefix oc-eth; }
   import openconfig-if-aggregate { prefix oc-lag; }
@@ -11,6 +10,45 @@ module ipi-oc-if-deviations {
   import openconfig-vlan { prefix oc-vlan; }
   import openconfig-if-ip { prefix oc-ip; }
   import openconfig-if-tunnel { prefix oc-tun; }
+  import openconfig-transport-line-common { prefix oc-line-com; }
+  import openconfig-platform-port { prefix oc-port; }
+  import openconfig-platform-transceiver { prefix oc-transceiver; }
+
+  revision "2023-07-31" {
+    description "Add missing state attributes for already supported config counterparts";
+  }
+
+  revision "2023-07-25" {
+    description "Adding deviation not supported for the MTU configuration of subinterfaces using the IPv4/IPv6 protocols, and for the path oc-tun:tunnel/oc-tun:ipv4/oc-tun:config/oc-tun:mtu";
+  }
+
+  revision "2023-07-19" {
+    description "Removed constrain for oc-if:subinterface/oc-if:state/oc-if:index";
+  }
+
+  revision "2023-07-17" {
+    description "Remove not-supported deviation for ingress-mapping/state/tpid attribute";
+  }
+
+  revision "2023-06-30" {
+    description "Add augment to support state on leaf lacp-mode";
+  }
+
+  revision "2023-06-01" {
+    description "Add deviations for not-supported paths";
+  }
+
+  revision "2023-04-20" {
+    description "Add deviations based on Open Config v2.0.0";
+  }
+
+  revision "2023-04-04" {
+    description "Removed constrain for oc-vlan:double-tagged-inner-outer-range";
+  }
+
+  revision "2023-04-03" {
+    description "Removed constrain for oc-vlan:double-tagged-outer-range";
+  }
 
   revision "2023-03-27" {
     description "Add support to Multicahssis Link Aggregate and interface load-interval";
@@ -51,7 +89,7 @@ module ipi-oc-if-deviations {
   }
 
   identity SPEED_20GB {
-    base "oc-ift:INTERFACE_TYPE";
+    base "oc-eth:ETHERNET_SPEED";
   }
 
   identity MultiChassisLag {
@@ -89,6 +127,19 @@ module ipi-oc-if-deviations {
     leaf lacp-mode {
       type oc-lacp:lacp-activity-type;
       default ACTIVE;
+      description
+        "ACTIVE is to initiate the transmission of LACP packets.
+         PASSIVE is to wait for peer to initiate the transmission of
+         LACP packets.";
+    }
+  }
+
+  augment "/oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state" {
+
+    description "Adds LACP mode configuration per member rather than per LAG interface";
+
+    leaf lacp-mode {
+      type oc-lacp:lacp-activity-type;
       description
         "ACTIVE is to initiate the transmission of LACP packets.
          PASSIVE is to wait for peer to initiate the transmission of
@@ -176,52 +227,45 @@ module ipi-oc-if-deviations {
       type uint8;
     }
   }
+
   deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:config/oc-vlan:vlan-id {
     deviate not-supported;
   }
+
   deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:single-tagged {
     deviate not-supported;
   }
+
   deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-outer-list/oc-vlan:config/oc-vlan:inner-vlan-id {
     deviate not-supported;
   }
+
   deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-inner-list {
     deviate not-supported;
   }
+
   deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-inner-range {
     deviate not-supported;
   }
-  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-outer-range {
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-outer-range/oc-vlan:config/oc-vlan:inner-vlan-id {
     deviate not-supported;
   }
-  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-inner-outer-range {
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-outer-range/oc-vlan:state/oc-vlan:inner-vlan-id {
     deviate not-supported;
   }
+
   deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:egress-mapping {
     deviate not-supported;
   }
 
   deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:config/oc-ip:mtu {
-    deviate add {
-      must "(../../../oc-if:index != '0') or " +
-           "not(../../../../../oc-if:config/oc-if:mtu) or " +
-           "(current() = ../../../../../oc-if:config/oc-if:mtu)";
-
-      must "not(../../../oc-ip:ipv6/oc-ip:config/oc-ip:mtu) or " +
-           "(current() = ../../../oc-ip:ipv6/oc-ip:config/oc-ip:mtu)";
-    }
+    deviate not-supported;
   }
 
   deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:config/oc-ip:mtu {
-    deviate add {
-      must "(../../../oc-if:index != '0') or " +
-           "not(../../../../../oc-if:config/oc-if:mtu) or " +
-           "(current() = ../../../../../oc-if:config/oc-if:mtu)";
-
-
-      must "not(../../../oc-ip:ipv4/oc-ip:config/oc-ip:mtu) or " +
-           "(current() = ../../../oc-ip:ipv4/oc-ip:config/oc-ip:mtu)";
-    }
+    deviate not-supported;
   }
 
   deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:hw-mac-address {
@@ -253,4 +297,337 @@ module ipi-oc-if-deviations {
       }
     }
   }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:config {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:state {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-lag:aggregation/oc-lag:state/oc-lag:lag-speed {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-lag:aggregation/oc-lag:state/oc-lag:member {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:config/oc-if:loopback-mode {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:config/oc-eth:enable-flow-control {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:config/oc-eth:fec-mode {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:config/oc-eth:standalone-link-training {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-8021q-frames {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-block-errors {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-carrier-errors {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-interrupted-tx {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-late-collision {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-mac-control-frames {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-mac-errors-rx {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-mac-pause-frames {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-maxsize-exceeded {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-single-collision {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-symbol-error {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:in-undersize-frames {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:out-8021q-frames {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:out-mac-control-frames {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:out-mac-errors-tx {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:counters/oc-eth:out-mac-pause-frames {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:enable-flow-control {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:fec-mode {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:state/oc-eth:standalone-link-training {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:hold-time {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-vlan:routed-vlan {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-line-com:sonet {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-if:counters/oc-if:carrier-transitions {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-if:counters/oc-if:in-unknown-protos {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-if:cpu {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-port:hardware-port {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-if:loopback-mode {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-if:management {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-transceiver:physical-channel {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-transceiver:transceiver {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:addresses/oc-ip:address/oc-ip:state/oc-ip:origin {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:addresses/oc-ip:address/oc-ip:vrrp {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:config/oc-ip:enabled {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:neighbors {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:proxy-arp {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:state/oc-ip:enabled {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:state/oc-ip:counters {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:state/oc-ip:mtu {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:unnumbered {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:addresses/oc-ip:address/oc-ip:config/oc-ip:type {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:addresses/oc-ip:address/oc-ip:state/oc-ip:origin {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:addresses/oc-ip:address/oc-ip:state/oc-ip:status {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:addresses/oc-ip:address/oc-ip:state/oc-ip:type {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:addresses/oc-ip:address/oc-ip:vrrp {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:config/oc-ip:dup-addr-detect-transmits {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:config/oc-ip:enabled {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:neighbors {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:router-advertisement {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:state/oc-ip:enabled {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:state/oc-ip:dup-addr-detect-transmits {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:state/oc-ip:counters {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:state/oc-ip:mtu {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv6/oc-ip:unnumbered {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-if:state/oc-if:counters/oc-if:carrier-transitions {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-if:state/oc-if:counters/oc-if:in-unknown-protos {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-if:state/oc-if:admin-status {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-if:state/oc-if:cpu {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-if:state/oc-if:management {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:config {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:match/oc-vlan:double-tagged-outer-list/oc-vlan:state/oc-vlan:inner-vlan-id {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-vlan:vlan/oc-vlan:state {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:config/oc-tun:gre-key {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:addresses/oc-tun:address/oc-tun:state/oc-tun:origin {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:neighbors {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:proxy-arp {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv6/oc-tun:addresses/oc-tun:address/oc-tun:config/oc-tun:type {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv6/oc-tun:addresses/oc-tun:address/oc-tun:state/oc-tun:type {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv6/oc-tun:addresses/oc-tun:address/oc-tun:state/oc-tun:origin {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv6/oc-tun:addresses/oc-tun:address/oc-tun:state/oc-tun:status {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv6/oc-tun:config {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv6/oc-tun:neighbors {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv6/oc-tun:router-advertisement {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv6/oc-tun:state {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv6/oc-tun:unnumbered {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:state/oc-tun:gre-key {
+    deviate not-supported;
+  }
+
 }

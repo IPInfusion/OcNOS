@@ -23,22 +23,22 @@ module ipi-if-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-if-types {
         prefix ipi-if-types;
-        revision-date 2023-05-26;
+        revision-date 2023-10-10;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ipi-if-ethernet {
         prefix ipi-if-ethernet;
-        revision-date 2023-05-26;
+        revision-date 2023-10-10;
     }
 
     import ietf-inet-types {
@@ -53,7 +53,7 @@ module ipi-if-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -69,18 +69,73 @@ module ipi-if-extended {
         "Datamodel for IPI Interface extended module";
 
 
+    revision "2023-10-13" {
+        description "Added dependentObject tag for aclif";
+        reference " 0.18.28.";
+    }
+
+    revision "2023-10-12" {
+        description "Added dependentObject tag for encapsulation";
+        reference " 0.18.27.";
+    }
+
+    revision "2023-10-11" {
+        description "Adding skip-delete for one of encap when expression";
+        reference " 0.18.26.";
+    }
+
+    revision "2023-10-10" {
+        description "Change storm-control maximum level to 99%";
+        reference " 0.18.25.";
+    }
+
+    revision "2023-09-03" {
+        description "Added a dependentObject tag under rewrite container";
+        reference " 0.18.24.";
+    }
+
+    revision "2023-08-23" {
+        description "Implementation of aclif CLI in interface mode";
+        reference " 0.18.23.";
+    }
+
+    revision "2023-08-18" {
+        description "Added utils_func tag for the attribute dot1q-dot1ad-tpid";
+        reference " 0.18.22.";
+    }
+
+    revision "2023-06-27" {
+        description "Added load-interval command for marvell";
+        reference " 0.18.21.";
+    }
+
     revision "2023-06-26" {
         description "Added install condition for protected-port";
         reference " 0.18.20.";
     }
 
+    revision "2023-06-15" {
+        description "Remove storm-control commands for Tomahawk 3 boards";
+        reference " 0.18.19.";
+    }
+
     revision "2023-06-09" {
         description "updated helpString for outer-vlan-id and inner-vlan-id attribute";
-        reference " 0.18.16.";
+        reference " 0.18.18.";
+    }
+
+    revision "2023-05-30" {
+        description "Added when tag for disable-snmp-trap-link-status";
+        reference " 0.18.17.";
     }
 
     revision "2023-05-26" {
         description "Added element types for FEC type configuration support";
+        reference " 0.18.16.";
+    }
+
+    revision "2023-05-13" {
+        description "Updated service-queue command dependencies for save and reload";
         reference " 0.18.15.";
     }
 
@@ -90,7 +145,7 @@ module ipi-if-extended {
     }
 
     revision "2023-05-10" {
-        description "Updated service-queue command dependencies for save and reload";
+        description "Modified the trigger to remove bridge-group from po interface when mapped to mlag and members";
         reference " 0.18.13.";
     }
 
@@ -99,13 +154,13 @@ module ipi-if-extended {
         reference " 0.18.12.";
     }
 
-    revision "2023-05-03" {
-        description "L2CP changes done w.r.t. CML infra";
+    revision "2023-04-28" {
+        description "Removed hardware-profile portmode command ";
         reference " 0.18.11.";
     }
 
-    revision "2023-04-28" {
-        description "Removed hardware-profile portmode command ";
+    revision "2023-04-25" {
+        description "L2CP changes done w.r.t. CML infra";
         reference " 0.18.10.";
     }
 
@@ -115,7 +170,7 @@ module ipi-if-extended {
     }
 
     revision "2023-04-17" {
-        description "Added a trigger to remove load-interval from po interface when mapped to mlag and members";
+        description "Added a trigger to remove bridge-group from po interface when mapped to mlag and members";
         reference " 0.18.8.";
     }
 
@@ -1031,7 +1086,7 @@ module ipi-if-extended {
         } // END of forward-err-correction definition.
 
         leaf load-interval  {
-            if-feature feature-list:HAVE_BROADCOM;
+            if-feature feature-list:HAVE_BROADCOM_OR_HAVE_MARVELL;
             type  uint16 {
                  range "30..300"  {
                     description "30..300: Supported range 30 - 300";
@@ -1454,6 +1509,15 @@ module ipi-if-extended {
         } // END of subif-service-queue definition.
 
     } // END of subif-service-queue-config definition.
+    grouping aclif-interface-config {
+        description
+            "Configuration data for interface config";
+        leaf aclif-type  {
+            type  ipi-if-types:if_aclif_type_t;
+            description "Use this attribute to set the Hardware timestamp";
+        } // END of aclif-type definition.
+
+    } // END of aclif-interface-config definition.
     grouping subif-encapsulation-double-tag-top {
         description
             "Top level groupig for double tagged encapsulations";
@@ -2438,6 +2502,21 @@ module ipi-if-extended {
                 uses subif-service-queue-config;
             } // END of state-container definition.
         } // END of service-queue-container definition.
+        container aclif {
+            description
+                "Configure interface/subinterface for aclif failover and no-failover";
+            container config {
+                description
+                    "Configuration data for interface/subinterface aclif";
+                uses aclif-interface-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for interface/subinterface for aclif";
+                uses aclif-interface-config;
+            } // END of state-container definition.
+        } // END of aclif-container definition.
         container subinterface-encapsulation {
             if-feature feature-list:HAVE_SUBINTERFACE;
             description

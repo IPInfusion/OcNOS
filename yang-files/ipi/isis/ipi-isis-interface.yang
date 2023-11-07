@@ -21,12 +21,12 @@ submodule ipi-isis-interface {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-isis-types {
@@ -36,7 +36,7 @@ submodule ipi-isis-interface {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ietf-inet-types {
@@ -57,6 +57,31 @@ submodule ipi-isis-interface {
         "Model for managing IS-IS interfaces -- auguments the ISIS model for
                 interface configurations and state";
 
+
+    revision "2023-08-10" {
+        description "JIRA-61800:Added remaining enclosing containers";
+        reference " 0.7.4.";
+    }
+
+    revision "2023-08-04" {
+        description "Addition of missing cliprependstr";
+        reference " 0.7.3.";
+    }
+
+    revision "2023-07-25" {
+        description "ISIS CLI Commands for EVPN IRB Interface";
+        reference " 0.7.2.";
+    }
+
+    revision "2023-07-11" {
+        description "Added attributes for grouping adjacency-state";
+        reference " 0.7.1.";
+    }
+
+    revision "2023-06-15" {
+        description "JIRA-61800:Added enclosing containers";
+        reference " 0.7.0.";
+    }
 
     revision "2022-08-10" {
         description "Debug hierarchy change";
@@ -376,6 +401,67 @@ submodule ipi-isis-interface {
             config false;
             description "Adjacency up time.";
         } // END of up-time definition.
+
+        leaf adjacency-sid  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  uint32;
+            config false;
+            description "Specify Adjacency state SID value.";
+        } // END of adjacency-sid definition.
+
+        leaf ilm-id  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  uint32;
+            config false;
+            description "Specify ILM ID at adjacency state level";
+        } // END of ilm-id definition.
+
+        leaf bypass-trunk-id  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  uint32;
+            config false;
+            description "This attr is used to specify Bypass Trunk ID";
+        } // END of bypass-trunk-id definition.
+
+        leaf backup-ilm-id  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            if-feature feature-list:HAVE_ISIS_TI_LFA;
+            type  uint32;
+            config false;
+            description "Specify backup ILM ID for adjacency state";
+        } // END of backup-ilm-id definition.
+
+        leaf backup-ilm-msg-id  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            if-feature feature-list:HAVE_ISIS_TI_LFA;
+            type  uint32;
+            config false;
+            description "Specify Backup ILM msg ID";
+        } // END of backup-ilm-msg-id definition.
+
+        leaf p-router-id  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            if-feature feature-list:HAVE_ISIS_TI_LFA;
+            type  inet:ipv4-address;
+            config false;
+            description "Specify P-router ID for adjacency state level";
+        } // END of p-router-id definition.
+
+        leaf q-router-id  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            if-feature feature-list:HAVE_ISIS_TI_LFA;
+            type  inet:ipv4-address;
+            config false;
+            description "Specify Q-router ID for adjacency state level";
+        } // END of q-router-id definition.
+
+        leaf pq-router-id  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            if-feature feature-list:HAVE_ISIS_TI_LFA;
+            type  inet:ipv4-address;
+            config false;
+            description "Specify PQ-router ID for adjacency state level";
+        } // END of pq-router-id definition.
 
         leaf neighbor-protocol  {
             type  ipi-isis-types:isis_neighbour_protocol_t;
@@ -753,7 +839,7 @@ submodule ipi-isis-interface {
         } // END of metric definition.
 
         leaf password  {
-            // when " !ipi-isis-interface:interfaces/interface/interface-parameters/level-info/authentication/config/mode ";
+            // when " !ipi-isis-interface:interfaces/interface/interface-parameters/level-infos/level-info/authentication/config/mode ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -1165,47 +1251,6 @@ submodule ipi-isis-interface {
             container interface-parameters {
                 description
                     "This container contains Configurable and state Interface parameters";
-
-                list level-info {
-                    key "level";
-                    description
-                        "Interface Level parameter";
-                    leaf level  {
-                        type  leafref {
-                            path  "../config/level";
-                        }
-                        description "ISIS level number (level-1, level-2, level-1-2).";
-                    } // END of level definition.
-
-                    container config {
-                        description
-                            "Configutational and state parameters for ISIS interface level";
-                        uses isis-interface-level-params-info-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters for ISIS interface level";
-                        uses isis-interface-level-params-info-config;
-                    } // END of state-container definition.
-                    container authentication {
-                        description
-                            "Configutational and state parameters for ISIS interface level
-                                    authentication";
-                        container config {
-                            presence "authentication mode is needed for keychain";
-                            description
-                                "Configutational and state parameters for ISIS authentication";
-                            uses isis-interface-authentication-config;
-                        } // END of config-container definition.
-                        container state {
-                            config false;
-                            description
-                                "State parameters for ISIS interface level authentication";
-                            uses isis-interface-authentication-config;
-                        } // END of state-container definition.
-                    } // END of authentication-container definition.
-                } // End of level-info-list
                 container config {
                     description
                         "This container defines config information for isis interface";
@@ -1248,6 +1293,51 @@ submodule ipi-isis-interface {
                         uses isis-interface-params-frr-config;
                     } // END of state-container definition.
                 } // END of fast-re-route-container definition.
+                container level-infos {
+                    description
+                        "Enclosing container for the list of per interface level-information";
+
+                    list level-info {
+                        key "level";
+                        description
+                            "Interface Level parameter";
+                        leaf level  {
+                            type  leafref {
+                                path  "../config/level";
+                            }
+                            description "ISIS level number (level-1, level-2, level-1-2).";
+                        } // END of level definition.
+
+                        container config {
+                            description
+                                "Configutational and state parameters for ISIS interface level";
+                            uses isis-interface-level-params-info-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State parameters for ISIS interface level";
+                            uses isis-interface-level-params-info-config;
+                        } // END of state-container definition.
+                        container authentication {
+                            description
+                                "Configutational and state parameters for ISIS interface level
+                                        authentication";
+                            container config {
+                                presence "authentication mode is needed for keychain";
+                                description
+                                    "Configutational and state parameters for ISIS authentication";
+                                uses isis-interface-authentication-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters for ISIS interface level authentication";
+                                uses isis-interface-authentication-config;
+                            } // END of state-container definition.
+                        } // END of authentication-container definition.
+                    } // End of level-info-list
+                } // END of level-infos-container definition.
             } // END of interface-parameters-container definition.
             container igp-ldp-sync {
                 if-feature feature-list:HAVE_LDPD;

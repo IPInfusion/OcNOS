@@ -21,7 +21,7 @@ submodule ipi-pcep-peer {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import ipi-pcep-types {
@@ -48,6 +48,16 @@ submodule ipi-pcep-peer {
         "Datamodel for PCEP Peer";
 
 
+    revision "2023-08-04" {
+        description "Removed cliprendstr for pce and added for *";
+        reference " 0.5.1.";
+    }
+
+    revision "2023-07-18" {
+        description "Added enclosing container for peer objectlist";
+        reference " 0.5.0.";
+    }
+
     revision "2021-09-03" {
         description "Update descriptions of attribute";
         reference " 0.4.0.";
@@ -68,40 +78,6 @@ submodule ipi-pcep-peer {
         reference " 0.1.0.";
     }
 
-
-
-    grouping peer-grouping {
-    description
-        "The list of configured peers for the entity (remote PCE)";
-        list peer {
-            if-feature feature-list:HAVE_PCEP;
-            key "address";
-            description
-                "The list of configured peers for the entity (remote PCE)";
-            leaf address  {
-                type  leafref {
-                    path  "../config/address";
-                }
-                description "The local Internet address of this PCEP peer.";
-            } // END of address definition.
-
-            container config {
-                description
-                    "Configuration data of the peer";
-                uses pcep-peer-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses pcep-peer-config;
-                uses pcep-peer-state;
-                uses pcep-peer-counters;
-            } // END of state-container definition.
-            uses pcep-peer-capability;
-            uses pcep-peer-session;
-        } // End of peer-list
-    } // END of peer-grouping definition.
     grouping pcep-peer-config {
         description
             "Configuration data related to the PCEP peer";
@@ -341,6 +317,44 @@ submodule ipi-pcep-peer {
             } // END of state-container definition.
         } // END of session-container definition.
     } // END of pcep-peer-session definition.
+
+    grouping  peers-grouping {
+    description
+        "Top level container for PCEP peers";
+    container peers {
+        if-feature feature-list:HAVE_PCEP;
+        description
+            "Top level container for PCEP peers";
+
+        list peer {
+            key "address";
+            description
+                "The list of configured peers for the entity (remote PCE)";
+            leaf address  {
+                type  leafref {
+                    path  "../config/address";
+                }
+                description "The local Internet address of this PCEP peer.";
+            } // END of address definition.
+
+            container config {
+                description
+                    "Configuration data of the peer";
+                uses pcep-peer-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses pcep-peer-config;
+                uses pcep-peer-state;
+                uses pcep-peer-counters;
+            } // END of state-container definition.
+            uses pcep-peer-capability;
+            uses pcep-peer-session;
+        } // End of peer-list
+    } // END of peers-container definition.
+    } // END of peers-grouping definition.
 
 
 }

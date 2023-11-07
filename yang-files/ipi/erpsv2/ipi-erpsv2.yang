@@ -28,22 +28,22 @@ module ipi-erpsv2 {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-erpsv2-types {
         prefix ipi-erpsv2-types;
-        revision-date 2023-03-13;
+        revision-date 2023-08-16;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -61,9 +61,39 @@ module ipi-erpsv2 {
 
     reference "Rec. ITU-T G.8032/Y.1344 (08/2015)";
 
-    revision "2023-07-19" {
+    revision "2023-10-12" {
+        description "Added dependentObject tag under associate-ring";
+        reference " 0.11.7.";
+    }
+
+    revision "2023-08-16" {
+        description "Updated subifp erp-instance options";
+        reference " 0.11.6.";
+    }
+
+    revision "2023-08-11" {
+        description "erps instance dependency for add vlan to port";
+        reference " 0.11.5.";
+    }
+
+    revision "2023-07-28" {
+        description "Added displayString with option all for clear g8032 erp-instance and g8032 erp-instance commands";
+        reference " 0.11.4.";
+    }
+
+    revision "2023-07-27" {
+        description "Added if-not-feature directive for bridge-domain when clause";
+        reference " 0.11.3.";
+    }
+
+    revision "2023-07-24" {
+        description "Remove implicit delete directives to erp-instance and erpsv2";
+        reference " 0.11.2.";
+    }
+
+    revision "2023-07-17" {
         description "Added implicit_delete tag for objectlist subinterface and container config";
-        reference " 0.10.14.";
+        reference " 0.11.1.";
     }
 
     revision "2023-06-13" {
@@ -71,24 +101,19 @@ module ipi-erpsv2 {
         reference " 0.11.0.";
     }
 
-    revision "2023-05-26" {
+    revision "2023-06-01" {
         description "Add bridge and bridge-domain dependencies to the ring object";
-        reference " 0.10.13.";
-    }
-
-    revision "2023-05-01" {
-        description "Removed attribute aps-channel-inner-vlan";
-        reference " 0.10.12.";
-    }
-
-    revision "2023-04-28" {
-        description "Removed implicit delete tag for the objectlist ERPSv2 ring";
         reference " 0.10.11.";
     }
 
     revision "2023-04-26" {
         description "Removed implicit delete tag for the objectlist profile";
         reference " 0.10.10.";
+    }
+
+    revision "2023-04-25" {
+        description "Removed implicit delete tag for the objectlist ERPSv2 ring";
+        reference " 0.10.9.";
     }
 
     revision "2023-04-18" {
@@ -101,13 +126,18 @@ module ipi-erpsv2 {
         reference " 0.10.6.";
     }
 
-    revision "2023-04-07" {
-        description "Added implicit delete tag on debug config container";
-        reference " 0.10.5.";
+    revision "2023-04-10" {
+        description "ERPS over bridge-domain";
+        reference " 0.10.6.";
     }
 
     revision "2023-04-04" {
         description "Added when tag for tcn-to-instances attribute";
+        reference " 0.10.5.";
+    }
+
+    revision "2023-03-23" {
+        description "Added implicit delete tag on debug config container";
         reference " 0.10.4.";
     }
 
@@ -206,9 +236,54 @@ module ipi-erpsv2 {
         reference " 0.1.0.";
     }
 
+    grouping erpsv2-associate-ring-config {
+        description
+            "Grouping for ERPS Associate Ring configuration data";
+        leaf associate-ring-name  {
+            type  string {
+                length "1..255";
+                pattern "[^?' =,>|]+";
+            }
+            description "G.8032 ring name to be associate with.";
+        } // END of associate-ring-name definition.
+
+    } // END of erpsv2-associate-ring-config definition.
+    grouping erpsv2-associate-ring-top {
+        description
+            "Grouping for ERPS Associate Rings";
+        container associate-rings {
+            description
+                "Container for ERPS Associate Rings";
+
+            list associate-ring {
+            when " /ipi-erpsv2:erpsv2/ipi-erpsv2:erp-instances/ipi-erpsv2:erp-instance/ipi-erpsv2:config/ipi-erpsv2:ring-name ";
+                key "associate-ring-name";
+                description
+                    "ERPS Associate Ring";
+                leaf associate-ring-name  {
+                    type  leafref {
+                        path  "../config/associate-ring-name";
+                    }
+                    description "G.8032 ring name to be associate with.";
+                } // END of associate-ring-name definition.
+
+                container config {
+                    description
+                        "Configuration data for ERPS Associate Ring";
+                    uses erpsv2-associate-ring-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for ERPS Associate Ring";
+                    uses erpsv2-associate-ring-config;
+                } // END of state-container definition.
+            } // End of associate-ring-list
+        } // END of associate-rings-container definition.
+    } // END of erpsv2-associate-ring-top definition.
     grouping erpsv2-data-vlan-config {
         description
-            "Grouping for ERPSv2 data VLAN configuration data grouping";
+            "Grouping for ERPS data VLAN configuration data grouping";
         leaf data-vlan  {
             type  cml-data-types:cml_range_t;
             description "List of VLAN-IDs, protected by ring instance. For
@@ -220,27 +295,88 @@ module ipi-erpsv2 {
     } // END of erpsv2-data-vlan-config definition.
     grouping erpsv2-data-vlan-top {
         description
-            "Grouping for ERPSv2 data VLAN";
+            "Grouping for ERPS data VLAN";
         container data {
             when " /ipi-erpsv2:erpsv2/ipi-erpsv2:erp-instances/ipi-erpsv2:erp-instance/ipi-erpsv2:config/ipi-erpsv2:ring-name ";
             description
-                "Container for ERPSv2 data VLAN";
+                "Container for ERPS data VLAN";
             container config {
                 description
-                    "Configuration data for ERPSv2 data VLAN";
+                    "Configuration data for ERPS data VLAN";
                 uses erpsv2-data-vlan-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
-                    "Operational state data for ERPSv2 data VLAN";
+                    "Operational state data for ERPS data VLAN";
                 uses erpsv2-data-vlan-config;
             } // END of state-container definition.
         } // END of data-container definition.
     } // END of erpsv2-data-vlan-top definition.
+    grouping erpsv2-aps-channel-vlan-config {
+        description
+            "Grouping for ERPS APS channel VLAN configuration data";
+        leaf vlan-id  {
+            when " /ipi-erpsv2:erpsv2/ipi-erpsv2:erp-instances/ipi-erpsv2:erp-instance/ipi-erpsv2:config/ipi-erpsv2:ring-name ";
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094: Supported range 2 - 4094";
+                 }
+            }
+            description "Ring wide control VLAN-ID used by ERPS instance to send and receive
+                        the RAPS messages in the ring";
+        } // END of vlan-id definition.
+
+        leaf inner-vlan-id  {
+            when " /ipi-erpsv2:erpsv2/ipi-erpsv2:erp-instances/ipi-erpsv2:erp-instance/ipi-erpsv2:config/ipi-erpsv2:ring-name ";
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094: Supported range 2 - 4094";
+                 }
+            }
+            description "Ring wide control inner VLAN-ID used by ERPS instance to send and
+                        receive the RAPS messages in the ring";
+        } // END of inner-vlan-id definition.
+
+    } // END of erpsv2-aps-channel-vlan-config definition.
+    grouping erpsv2-aps-channel-vlan-top {
+        description
+            "Grouping for ERPS APS channel VLAN";
+        container aps-channel-vlans {
+            description
+                "Container for ERPS APS channel VLAN";
+
+            list aps-channel-vlan {
+            when " /ipi-erpsv2:erpsv2/ipi-erpsv2:erp-instances/ipi-erpsv2:erp-instance/ipi-erpsv2:config/ipi-erpsv2:ring-name ";
+                key "vlan-id";
+                max-elements 1;
+                description
+                    "List of ERPS APS channel VLANs";
+                leaf vlan-id  {
+                    type  leafref {
+                        path  "../config/vlan-id";
+                    }
+                    description "Ring wide control vlan-id used by ERPS instance to send and receive
+                                the RAPS messages in the ring";
+                } // END of vlan-id definition.
+
+                container config {
+                    description
+                        "Configuration data for ERPS APS channel VLAN";
+                    uses erpsv2-aps-channel-vlan-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for ERPS APS channel VLAN";
+                    uses erpsv2-aps-channel-vlan-config;
+                } // END of state-container definition.
+            } // End of aps-channel-vlan-list
+        } // END of aps-channel-vlans-container definition.
+    } // END of erpsv2-aps-channel-vlan-top definition.
     grouping erpsv2-aps-channel-config {
         description
-            "Grouping for ERPSv2 APS channel configuration data";
+            "Grouping for ERPS APS channel configuration data";
         leaf level  {
             type  uint8 {
                  range "0..7"  {
@@ -252,40 +388,29 @@ module ipi-erpsv2 {
                         configured with same APS level value.";
         } // END of level definition.
 
-        leaf aps-channel-vlan  {
-            when " /ipi-erpsv2:erpsv2/ipi-erpsv2:erp-instances/ipi-erpsv2:erp-instance/ipi-erpsv2:config/ipi-erpsv2:ring-name ";
-            type  uint16 {
-                 range "2..4094"  {
-                    description "2..4094: Supported range 2 - 4094";
-                 }
-            }
-            description "Ring wide control vlan-id used by ERPS instance to send and receive
-                        the RAPS messages in the ring";
-        } // END of aps-channel-vlan definition.
-
     } // END of erpsv2-aps-channel-config definition.
     grouping erpsv2-aps-channel-top {
         description
-            "Grouping for ERPSv2 APS channel";
+            "Grouping for ERPS APS channel";
         container aps-channel {
             description
-                "Container for ERPSv2 APS channel";
+                "Container for ERPS APS channel";
             container config {
                 description
-                    "Configuration data for erpsv2 APS channel";
+                    "Configuration data for ERPS APS channel";
                 uses erpsv2-aps-channel-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
-                    "Operational state data for erpsv2 APS channel";
+                    "Operational state data for ERPS APS channel";
                 uses erpsv2-aps-channel-config;
             } // END of state-container definition.
         } // END of aps-channel-container definition.
     } // END of erpsv2-aps-channel-top definition.
     grouping erpsv2-ring-config {
         description
-            "Grouping for ERPSv2 ring configuration data";
+            "Grouping for ERPS ring configuration data";
         leaf ring-name  {
             type  string {
                 length "1..255";
@@ -320,15 +445,15 @@ module ipi-erpsv2 {
     } // END of erpsv2-ring-config definition.
     grouping erpsv2-ring-top {
         description
-            "Grouping for ERPSv2 Ring";
+            "Grouping for ERPS Ring";
         container rings {
             description
-                "Container for ERPSv2 rings";
+                "Container for ERPS rings";
 
             list ring {
                 key "ring-name";
                 description
-                    "List of ERPSv2 ring";
+                    "List of ERPS ring";
                 leaf ring-name  {
                     type  leafref {
                         path  "../config/ring-name";
@@ -339,7 +464,7 @@ module ipi-erpsv2 {
 
                 container config {
                     description
-                        "Configuration data for erpsv2 ring";
+                        "Configuration data for ERPS ring";
                     uses erpsv2-ring-config;
                 } // END of config-container definition.
                 container state {
@@ -353,7 +478,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-ring-top definition.
     grouping erpsv2-profile-config {
         description
-            "Grouping for ERPSv2 profile configuration data";
+            "Grouping for ERPS profile configuration data";
         leaf profile-name  {
             type  string {
                 length "1..32";
@@ -439,7 +564,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-profile-config definition.
     grouping erpsv2-profile-state {
         description
-            "Grouping for ERPSv2 profile operational state data";
+            "Grouping for ERPS profile operational state data";
         leaf wait-to-block-time  {
             type  uint32;
             units "milliseconds";
@@ -450,7 +575,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-profile-state definition.
     grouping erpsv2-profiles-top {
         description
-            "Grouping for ERPSv2 profile";
+            "Grouping for ERPS profile";
         container profiles {
             description
                 "Container for erpsv2 profiles";
@@ -458,7 +583,7 @@ module ipi-erpsv2 {
             list profile {
                 key "profile-name";
                 description
-                    "List of erpsv2 profile";
+                    "List of ERPS profile";
                 leaf profile-name  {
                     type  leafref {
                         path  "../config/profile-name";
@@ -468,13 +593,13 @@ module ipi-erpsv2 {
 
                 container config {
                     description
-                        "Configuration data for erpsv2 profile";
+                        "Configuration data for ERPS profile";
                     uses erpsv2-profile-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
-                        "Operational state data for erpsv2 profile";
+                        "Operational state data for ERPS profile";
                     uses erpsv2-profile-config;
                     uses erpsv2-profile-state;
                 } // END of state-container definition.
@@ -483,7 +608,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-profiles-top definition.
     grouping erpsv2-instance-config {
         description
-            "Grouping for ERPSv2 instance configuration data";
+            "Grouping for ERPS instance configuration data";
         leaf name  {
             type  string {
                 length "1..255";
@@ -578,7 +703,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-instance-previous-state definition.
     grouping erpsv2-instance-role-config {
         description
-            "Grouping for ERPSv2 instance role configuration data";
+            "Grouping for ERPS instance role configuration data";
         choice role-option {
             description
                 "RPL role option";
@@ -630,7 +755,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-instance-role-config definition.
     grouping erpsv2-instance-role-top {
         description
-            "Grouping for ERPSv2 instance role";
+            "Grouping for ERPS instance role";
         container instance-role {
             description
                 "Container for instance-role";
@@ -649,7 +774,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-instance-role-top definition.
     grouping erpsv2-virtual-channel-config {
         description
-            "Grouping for ERPSv2 instance virtual channel configuration data";
+            "Grouping for ERPS instance virtual channel configuration data";
         leaf channel-id  {
             type  uint16 {
                  range "2..4094"  {
@@ -675,7 +800,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-virtual-channel-config definition.
     grouping erpsv2-subinterface-config {
         description
-            "Grouping for ERPSv2 instance virtual channel configuration data";
+            "Grouping for ERPS instance virtual channel configuration data";
         leaf name  {
             type  leafref {
                 path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
@@ -692,7 +817,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-subinterface-config definition.
     grouping erpsv2-virtual-channel-top {
         description
-            "Grouping for ERPSv2 instance virtual channel";
+            "Grouping for ERPS instance virtual channel";
         container virtual-channel {
             // when " ../config/ring-type='sub-ring-vc' ";
             description
@@ -713,7 +838,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-virtual-channel-top definition.
     grouping erpsv2-link-state {
         description
-            "Grouping for ERPSv2 link operational state data";
+            "Grouping for ERPS link operational state data";
         leaf link-name  {
             type  string {
                 length "1..33";
@@ -751,71 +876,71 @@ module ipi-erpsv2 {
     } // END of erpsv2-link-state definition.
     grouping erpsv2-east-link-top {
         description
-            "Grouping for ERPSv2 east link";
+            "Grouping for ERPS east link";
         container east-link {
             description
-                "Container for erpsv2 east link state";
+                "Container for ERPS east link state";
             container state {
                 config false;
                 description
-                    "Operational state data for erpsv2 east link";
+                    "Operational state data for ERPS east link";
                 uses erpsv2-link-state;
             } // END of state-container definition.
         } // END of east-link-container definition.
     } // END of erpsv2-east-link-top definition.
     grouping erpsv2-west-link-top {
         description
-            "Grouping for ERPSv2 west link";
+            "Grouping for ERPS west link";
         container west-link {
             description
-                "Container for erpsv2 west link state";
+                "Container for ERPS west link state";
             container state {
                 config false;
                 description
-                    "Operational state data for erpsv2 west link";
+                    "Operational state data for ERPS west link";
                 uses erpsv2-link-state;
             } // END of state-container definition.
         } // END of west-link-container definition.
     } // END of erpsv2-west-link-top definition.
-    grouping erpsv2-raps-statistics-state {
+    grouping erpsv2-aps-statistics-state {
         description
-            "Grouping for ERPSv2 RAPS statistics operational state data";
-        leaf tx-raps  {
+            "Grouping for ERPS RAPS statistics operational state data";
+        leaf tx-ring-aps-messages  {
             type  yang:counter32;
             description "Number of R-APS messages transmitted";
-        } // END of tx-raps definition.
+        } // END of tx-ring-aps-messages definition.
 
-        leaf rx-raps  {
+        leaf rx-ring-aps-messages  {
             type  yang:counter32;
             description "Number of R-APS messages received";
-        } // END of rx-raps definition.
+        } // END of rx-ring-aps-messages definition.
 
-    } // END of erpsv2-raps-statistics-state definition.
-    grouping erpsv2-raps-statistics-top {
+    } // END of erpsv2-aps-statistics-state definition.
+    grouping erpsv2-aps-statistics-top {
         description
-            "Grouping for ERPSv2 RAPS statistics";
-        container raps-statistics {
+            "Grouping for ERPS RAPS statistics";
+        container aps-statistics {
             description
-                "Container for raps-statistics";
+                "Container for aps-statistics";
             container state {
                 config false;
                 description
-                    "Operational state data for raps-statistics";
-                uses erpsv2-raps-statistics-state;
+                    "Operational state data for aps-statistics";
+                uses erpsv2-aps-statistics-state;
             } // END of state-container definition.
-        } // END of raps-statistics-container definition.
-    } // END of erpsv2-raps-statistics-top definition.
+        } // END of aps-statistics-container definition.
+    } // END of erpsv2-aps-statistics-top definition.
     grouping erpsv2-instance-top {
         description
-            "Grouping for ERPSv2 instance";
+            "Grouping for ERPS instance";
         container erp-instances {
             description
-                "Container for erpsv2 instances";
+                "Container for ERPS instances";
 
             list erp-instance {
                 key "name";
                 description
-                    "List of erpsv2 instance";
+                    "List of ERPS instances";
                 leaf name  {
                     type  leafref {
                         path  "../config/name";
@@ -825,30 +950,32 @@ module ipi-erpsv2 {
 
                 container config {
                     description
-                        "Configuration data for erpsv2 instance";
+                        "Configuration data for ERPS instance";
                     uses erpsv2-instance-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
-                        "Operational state data for";
+                        "Operational state data for ERPS instance";
                     uses erpsv2-instance-config;
                     uses erpsv2-instance-state;
                     uses erpsv2-instance-previous-state;
                 } // END of state-container definition.
+                uses erpsv2-associate-ring-top;
                 uses erpsv2-instance-role-top;
                 uses erpsv2-aps-channel-top;
+                uses erpsv2-aps-channel-vlan-top;
                 uses erpsv2-data-vlan-top;
                 uses erpsv2-virtual-channel-top;
                 uses erpsv2-east-link-top;
                 uses erpsv2-west-link-top;
-                uses erpsv2-raps-statistics-top;
+                uses erpsv2-aps-statistics-top;
             } // End of erp-instance-list
         } // END of erp-instances-container definition.
     } // END of erpsv2-instance-top definition.
     grouping erpsv2-debug-config {
         description
-            "G8032 ERPSv2 debug configuration attributes";
+            "G8032 ERPS debug configuration attributes";
         leaf options  {
             type  ipi-erpsv2-types:erpsv2_debug_t;
             description "Supported debug options for G.8032";
@@ -857,7 +984,7 @@ module ipi-erpsv2 {
     } // END of erpsv2-debug-config definition.
     grouping erpsv2-debug-terminal-top {
         description
-            "G8032 ERPSv2 debug state attributes";
+            "G8032 ERPS debug state attributes";
         leaf terminal-debug-status  {
             type  ipi-erpsv2-types:erpsv2_debug_t;
             description "Supported debug options for G.8032";
@@ -889,14 +1016,14 @@ module ipi-erpsv2 {
             "Grouping for g8032 subinterfaces";
         container subinterfaces {
             description
-                "Container for ERPSv2 subinterface";
+                "Container for ERPS subinterface";
 
             list subinterface {
                 if-feature feature-list:HAVE_SUBINTERFACE;
                 if-feature feature-list:HAVE_G8032V2;
                 key "name";
                 description
-                    "List of ERPSv2 subinterfaces";
+                    "List of ERPS subinterfaces";
                 leaf name  {
                     type  leafref {
                         path  "../config/name";
@@ -906,13 +1033,13 @@ module ipi-erpsv2 {
 
                 container config {
                     description
-                        "Configuration data for erps subinterface";
+                        "Configuration data for ERPS subinterface";
                     uses erpsv2-subinterface-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
-                        "Operational state data for erps subinterface";
+                        "Operational state data for ERPS subinterface";
                     uses erpsv2-subinterface-config;
                 } // END of state-container definition.
             } // End of subinterface-list
@@ -921,12 +1048,12 @@ module ipi-erpsv2 {
 
     grouping  erpsv2-grouping {
     description
-        "Container for ERPSv2 module";
+        "Container for ERPS module";
     container erpsv2 {
         if-feature feature-list:HAVE_G8032V2;
         if-feature feature-list:HAVE_ONMD;
         description
-            "Container for ERPSv2 module";
+            "Container for ERPS module";
         uses erpsv2-ring-top;
         uses erpsv2-profiles-top;
         uses erpsv2-instance-top;

@@ -23,7 +23,7 @@ module ipi-ldp {
 
     import ipi-ldp-types {
         prefix ipi-ldp-types;
-        revision-date 2023-05-22;
+        revision-date 2023-10-05;
     }
 
     import ietf-inet-types {
@@ -33,17 +33,17 @@ module ipi-ldp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
-    include ipi-ldp-l2vpn { revision-date 2022-09-08;}
-    include ipi-ldp-interface { revision-date 2023-02-17;}
-    include ipi-ldp-peer { revision-date 2023-01-17;}
+    include ipi-ldp-l2vpn { revision-date 2023-09-01;}
+    include ipi-ldp-interface { revision-date 2023-07-19;}
+    include ipi-ldp-peer { revision-date 2023-08-28;}
     organization
         "IP Infusion Inc.";
 
@@ -56,6 +56,46 @@ module ipi-ldp {
     description
         "Datamodel for LDP protocol";
 
+
+    revision "2023-10-05" {
+        description "Updated help-string for tcp mss attribute";
+        reference " 0.9.11.";
+    }
+
+    revision "2023-09-01" {
+        description "Updated if-feature flag for LDP VPLS counters";
+        reference " 0.9.10.";
+    }
+
+    revision "2023-08-28" {
+        description "Removed implicit delete tag for config container of targeted peer objectlist";
+        reference " 0.9.9.";
+    }
+
+    revision "2023-08-24" {
+        description "Added new attributes for LDP VPLS counters";
+        reference " 0.9.8.";
+    }
+
+    revision "2023-08-21" {
+        description "Added a new attribute local-address under adjacency-list object list";
+        reference " 0.9.7.";
+    }
+
+    revision "2023-07-25" {
+        description "CLI support for LDP TCP MSS";
+        reference " 0.9.6.";
+    }
+
+    revision "2023-07-24" {
+        description "Updated GR message";
+        reference " 0.9.5.";
+    }
+
+    revision "2023-07-19" {
+        description "Disable IPv6 Support";
+        reference " 0.9.4.";
+    }
 
     revision "2023-05-22" {
         description "Fix patter for session protection prefix list name";
@@ -400,7 +440,7 @@ module ipi-ldp {
         description
             "Grouping for LDP Peer Authentication configuration";
         leaf-list peer-address  {
-            type  inet:ip-address;
+            type  inet:ipv4-address;
             description "Use this attribute to exclude neighbors of LDP from authentication.";
         } // END of peer-address definition.
 
@@ -808,15 +848,6 @@ module ipi-ldp {
                         FEC prefixes.";
         } // END of label-request-policy-ipv4 definition.
 
-        leaf label-request-policy-ipv6  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to send LDP Label Request Message for certain IPv6
-                        FEC prefixes.";
-        } // END of label-request-policy-ipv6 definition.
-
     } // END of ldp-label-request-policy-config definition.
     grouping ldp-loop-detection-config {
         description
@@ -922,23 +953,6 @@ module ipi-ldp {
                         address.";
         } // END of transport-address-ipv4 definition.
 
-        leaf transport-address-ipv6  {
-            when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
-            if-feature feature-list:HAVE_IPV6;
-            type  inet:ipv6-address;
-            description "Use this attribute to configure an IPv6 transport address for a label
-                        space.
-                        The transport address is the address used for the TCP session over
-                        which LDP is running. Use this attribute to
-                        manually configure the transport address. Transport addresses may
-                        either be bound to a loopback interface, or to a
-                        physical interface that is bound to the label space in question. A
-                        transport address can also be manually configured
-                        using the CLI with the loopback address as the transport address. The
-                        CLI accepts only the loopback address to be configured as
-                        the transport address";
-        } // END of transport-address-ipv6 definition.
-
     } // END of ldp-transport-address-config definition.
     grouping peer-authentication-top {
         description
@@ -1012,6 +1026,57 @@ module ipi-ldp {
         } // END of password definition.
 
     } // END of ldp-authentication-config definition.
+    grouping ldp-tcp-mss-top {
+        description
+            "Top-Level Grouping for TCP MSS";
+        container tcp-mss-lists {
+            description
+                "lists for TCP MSS of neighbors";
+
+            list tcp-mss-list {
+            when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
+                key "peer-address";
+                description
+                    "list for TCP MSS of neighbor";
+                leaf peer-address  {
+                    type  leafref {
+                        path  "../config/peer-address";
+                    }
+                    description "Use this attribute to specify LDP neighbors";
+                } // END of peer-address definition.
+
+                container config {
+                    description
+                        "Configuration data";
+                    uses ldp-tcp-mss-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ldp-tcp-mss-config;
+                } // END of state-container definition.
+            } // End of tcp-mss-list-list
+        } // END of tcp-mss-lists-container definition.
+    } // END of ldp-tcp-mss-top definition.
+    grouping ldp-tcp-mss-config {
+        description
+            "Grouping to adjust TCP MSS configuration data";
+        leaf peer-address  {
+            type  ipi-ldp-types:ldp_neighbor_type_t;
+            description "Use this attribute to specify LDP neighbors";
+        } // END of peer-address definition.
+
+        leaf tcp-mss-range  {
+            type  uint32 {
+                 range "560..1440"  {
+                    description "560..1440: Supported range 560 - 1440";
+                 }
+            }
+            description "Use this attribute to configure TCP MSS for LDP neighbors";
+        } // END of tcp-mss-range definition.
+
+    } // END of ldp-tcp-mss-config definition.
     grouping ldp-label-mapping-access-control-top {
         description
             "Top-Level Grouping for LDP label-advertisement-ACL";
@@ -1381,6 +1446,7 @@ module ipi-ldp {
         uses ldp-transport-address-top;
         uses peer-authentication-top;
         uses ldp-label-mapping-access-control-top;
+        uses ldp-tcp-mss-top;
         uses interfaces-grouping;
         uses l2vpn-grouping;
         uses targeted-peers-grouping;
@@ -1446,19 +1512,6 @@ module ipi-ldp {
         }
     }
 
-    rpc clear-ldp-session-ipv6 {
-        if-feature feature-list:HAVE_IPV6;
-        if-feature feature-list:HAVE_LDPD;
-        description "Use this RPC to clear all LDP IPV6 sessions";
-        input  {
-            leaf addr  {
-                type inet:ipv6-address;
-                mandatory true;
-                description "LDP session IPV6 address";
-            }
-        }
-    }
-
     rpc clear-ldp-adjacency-all {
         if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to clear an adjacency with a specified peer, or to clear
@@ -1473,19 +1526,6 @@ module ipi-ldp {
                 type inet:ipv4-address;
                 mandatory true;
                 description "LDP adjacency IPV4 address";
-            }
-        }
-    }
-
-    rpc clear-ldp-adjacency-ipv6 {
-        if-feature feature-list:HAVE_IPV6;
-        if-feature feature-list:HAVE_LDPD;
-        description "Use this RPC to clear an adjacency with a specified IPV6 peer LSR";
-        input  {
-            leaf addr  {
-                type inet:ipv6-address;
-                mandatory true;
-                description "LDP adjacency IPV6 address";
             }
         }
     }

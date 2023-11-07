@@ -23,7 +23,7 @@ module ipi-segment-routing {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-sr-types {
@@ -33,7 +33,7 @@ module ipi-segment-routing {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ietf-yang-types {
@@ -48,10 +48,10 @@ module ipi-segment-routing {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
-    include ipi-segment-routing-odn { revision-date 2023-03-09;}
+    include ipi-segment-routing-odn { revision-date 2023-09-12;}
     organization
         "IP Infusion Inc.";
 
@@ -66,13 +66,43 @@ module ipi-segment-routing {
                 which includes traffic-enireening for sr as well";
 
 
-    revision "2023-04-17" {
-        description "Changed the Data type of flags attribute";
+    revision "2023-10-16" {
+        description "Added CML_RUNTIME tag for include-hop state container ";
+        reference " 0.11.4.";
+    }
+
+    revision "2023-09-12" {
+        description "Change in hierarchy for attrs under on-demand-nexthop";
+        reference " 0.11.4.";
+    }
+
+    revision "2023-08-04" {
+        description "Added desc for attr start/end for srlb-config and cliprependstr for adj-sid,prefix-sid";
+        reference " 0.11.3.";
+    }
+
+    revision "2023-07-11" {
+        description "Added enclosing container for bound and policy-key objectlist";
+        reference " 0.11.2.";
+    }
+
+    revision "2023-06-13" {
+        description "Added enclosing container for mapping-entry objectlist";
+        reference " 0.11.1.";
+    }
+
+    revision "2023-06-08" {
+        description "Validation added for constraints IP-Address";
+        reference " 0.11.0.";
+    }
+
+    revision "2023-04-22" {
+        description "Added implicit delete tag for srms preference empty contanier";
         reference " 0.10.6.";
     }
 
-    revision "2023-04-11" {
-        description "Added implicit delete tag for srms preference empty contanier";
+    revision "2023-04-14" {
+        description "Changed the Data type of flags attribute ";
         reference " 0.10.5.";
     }
 
@@ -298,7 +328,7 @@ module ipi-segment-routing {
                  }
             }
             mandatory true;
-            description "";
+            description "Start range for srlb-config";
         } // END of start definition.
 
         leaf end  {
@@ -308,7 +338,7 @@ module ipi-segment-routing {
                  }
             }
             mandatory true;
-            description "";
+            description "End range for srlb-config";
         } // END of end definition.
 
     } // END of srlb-config definition.
@@ -784,37 +814,41 @@ module ipi-segment-routing {
                     description "User friendly name of the SR Policy";
                 } // END of name definition.
 
-
-                list policy-key {
-                    key "color end-point";
+                container policy-keys {
                     description
-                        "SR Policy key";
-                    leaf color  {
-                        type  leafref {
-                            path  "../config/color";
-                        }
-                        description "Color associated with the policy";
-                    } // END of color definition.
+                        "SR Policy key container";
 
-                    leaf end-point  {
-                        type  leafref {
-                            path  "../config/end-point";
-                        }
-                        description "Policy end point IP address";
-                    } // END of end-point definition.
+                    list policy-key {
+                        key "color end-point";
+                        description
+                            "SR Policy key";
+                        leaf color  {
+                            type  leafref {
+                                path  "../config/color";
+                            }
+                            description "Color associated with the policy";
+                        } // END of color definition.
 
-                    container config {
-                        description
-                            "SR policy config container";
-                        uses policy-key-properties-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "SR policy state container";
-                        uses policy-key-properties-config;
-                    } // END of state-container definition.
-                } // End of policy-key-list
+                        leaf end-point  {
+                            type  leafref {
+                                path  "../config/end-point";
+                            }
+                            description "Policy end point IP address";
+                        } // END of end-point definition.
+
+                        container config {
+                            description
+                                "SR policy config container";
+                            uses policy-key-properties-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "SR policy state container";
+                            uses policy-key-properties-config;
+                        } // END of state-container definition.
+                    } // End of policy-key-list
+                } // END of policy-keys-container definition.
                 container config {
                     description
                         "SR policy config container";
@@ -1210,31 +1244,6 @@ module ipi-segment-routing {
                 description
                     "constraints for candidate path which needs to be satisfied by
                             computation engine when calculating a segment-list for the cp";
-
-                list bounds {
-                    key "metric-type";
-                    max-elements 1;
-                    description
-                        "Upper-bound constraints on the computed dynamic path";
-                    leaf metric-type  {
-                        type  leafref {
-                            path  "../config/metric-type";
-                        }
-                        description "Metric type can be IGP or TE";
-                    } // END of metric-type definition.
-
-                    container config {
-                        description
-                            "Bounds config container";
-                        uses bounds-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "Bounds State container";
-                        uses bounds-config;
-                    } // END of state-container definition.
-                } // End of bounds-list
                 container config {
                     presence "yes";
                     description
@@ -1278,6 +1287,35 @@ module ipi-segment-routing {
                         } // END of state-container definition.
                     } // End of admin-group-list
                 } // END of admin-groups-container definition.
+                container bounds {
+                    description
+                        "Upper-bound constraints container";
+
+                    list bound {
+                        key "metric-type";
+                        max-elements 1;
+                        description
+                            "Upper-bound constraints on the computed dynamic path";
+                        leaf metric-type  {
+                            type  leafref {
+                                path  "../config/metric-type";
+                            }
+                            description "Metric type can be IGP or TE";
+                        } // END of metric-type definition.
+
+                        container config {
+                            description
+                                "Bounds config container";
+                            uses bounds-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "Bounds State container";
+                            uses bounds-config;
+                        } // END of state-container definition.
+                    } // End of bound-list
+                } // END of bounds-container definition.
                 container ip {
                     description
                         "IP constraints to be used for dynamic candidate path";
@@ -1299,6 +1337,7 @@ module ipi-segment-routing {
                             uses include-ip-constraints-config;
                         } // END of config-container definition.
                         container state {
+                            config false;
                             description
                                 "include-hop state container";
                             uses include-ip-constraints-config;
@@ -1907,52 +1946,6 @@ module ipi-segment-routing {
                         when " /ipi-segment-routing:segment-routing/ipi-segment-routing:sr-mpls/ipi-segment-routing:bindings/ipi-segment-routing:mapping-server/ipi-segment-routing:config/ipi-segment-routing:enable ";
                         description
                             "mapping-server entries.";
-
-                        list mapping-entry {
-                        when " /ipi-segment-routing:segment-routing/ipi-segment-routing:sr-mpls/ipi-segment-routing:bindings/ipi-segment-routing:mapping-server/ipi-segment-routing:prefix-sid-map-ipv4/ipi-segment-routing:config/ipi-segment-routing:enable ";
-                            key "start-address start-sid";
-                            description
-                                "This objectlist contains config and state parameters for mapping
-                                            entries";
-                            leaf start-address  {
-                                type  leafref {
-                                    path  "../config/start-address";
-                                }
-                                description "connected prefix for prefix-sid";
-                            } // END of start-address definition.
-
-                            leaf start-sid  {
-                                type  leafref {
-                                    path  "../config/start-sid";
-                                }
-                                description "Starting Segment Identifier";
-                            } // END of start-sid definition.
-
-                            container config {
-                                description
-                                    "this container contains configuration parameters for mapping entries";
-                                uses ipv4-mapping-entry-properties-config;
-                                uses mapping-entry-common-properties-config;
-                            } // END of config-container definition.
-                            container state {
-                                config false;
-                                description
-                                    "this container contains operational parameters for mapping entries";
-                                uses ipv4-mapping-entry-properties-config;
-                                uses mapping-entry-common-properties-config;
-                            } // END of state-container definition.
-                            container ipv4-table {
-                                config false;
-                                description
-                                    "IPv4 SR Mapping Table Attributes";
-                                container state {
-                                    config false;
-                                    description
-                                        "IPv4 SR Mapping-Server Table";
-                                    uses srms-ipv4-prefix-sid-map-state;
-                                } // END of state-container definition.
-                            } // END of ipv4-table-container definition.
-                        } // End of mapping-entry-list
                         container config {
                             presence "yes";
                             description
@@ -1975,6 +1968,56 @@ module ipi-segment-routing {
                             } // END of enable definition.
 
                         } // END of state-container definition.
+                        container mapping-entries {
+                            description
+                                "Mapping entries container";
+
+                            list mapping-entry {
+                            when " /ipi-segment-routing:segment-routing/ipi-segment-routing:sr-mpls/ipi-segment-routing:bindings/ipi-segment-routing:mapping-server/ipi-segment-routing:prefix-sid-map-ipv4/ipi-segment-routing:config/ipi-segment-routing:enable ";
+                                key "start-address start-sid";
+                                description
+                                    "This objectlist contains config and state parameters for mapping
+                                                entries";
+                                leaf start-address  {
+                                    type  leafref {
+                                        path  "../config/start-address";
+                                    }
+                                    description "connected prefix for prefix-sid";
+                                } // END of start-address definition.
+
+                                leaf start-sid  {
+                                    type  leafref {
+                                        path  "../config/start-sid";
+                                    }
+                                    description "Starting Segment Identifier";
+                                } // END of start-sid definition.
+
+                                container config {
+                                    description
+                                        "this container contains configuration parameters for mapping entries";
+                                    uses ipv4-mapping-entry-properties-config;
+                                    uses mapping-entry-common-properties-config;
+                                } // END of config-container definition.
+                                container state {
+                                    config false;
+                                    description
+                                        "this container contains operational parameters for mapping entries";
+                                    uses ipv4-mapping-entry-properties-config;
+                                    uses mapping-entry-common-properties-config;
+                                } // END of state-container definition.
+                                container ipv4-table {
+                                    config false;
+                                    description
+                                        "IPv4 SR Mapping Table Attributes";
+                                    container state {
+                                        config false;
+                                        description
+                                            "IPv4 SR Mapping-Server Table";
+                                        uses srms-ipv4-prefix-sid-map-state;
+                                    } // END of state-container definition.
+                                } // END of ipv4-table-container definition.
+                            } // End of mapping-entry-list
+                        } // END of mapping-entries-container definition.
                     } // END of prefix-sid-map-ipv4-container definition.
                 } // END of mapping-server-container definition.
             } // END of bindings-container definition.

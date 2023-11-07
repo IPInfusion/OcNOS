@@ -21,7 +21,7 @@ submodule ipi-bgp-address-family-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import ietf-inet-types {
@@ -31,16 +31,16 @@ submodule ipi-bgp-address-family-vrf {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-06-01;
+        revision-date 2023-09-22;
     }
 
-    include ipi-bgp-common { revision-date 2023-06-01;}
-    include ipi-bgp-address-family { revision-date 2023-08-23;}
+    include ipi-bgp-common { revision-date 2023-10-09;}
+    include ipi-bgp-address-family { revision-date 2023-09-12;}
     organization
         "IP Infusion Inc.";
 
@@ -53,6 +53,66 @@ submodule ipi-bgp-address-family-vrf {
     description
         "";
 
+
+    revision "2023-10-13" {
+        description "Updated cliFlag for attribute 'peer-address'";
+        reference " 0.13.13.";
+    }
+
+    revision "2023-10-04" {
+        description "Updated cliFlag for attribute 'enable-dynamic-capability'";
+        reference " 0.13.12.";
+    }
+
+    revision "2023-09-12" {
+        description "Added enclosing container for all objectlists";
+        reference " 0.13.11.";
+    }
+
+    revision "2023-09-07" {
+        description "Adding new groupings bgp-address-family-vrf-peer-state,bgp-address-family-vrf-peer-counters-state";
+        reference " 0.13.10.";
+    }
+
+    revision "2023-09-06" {
+        description "Updated utils api for attribute 'peer-address'";
+        reference " 0.13.9.";
+    }
+
+    revision "2023-09-05" {
+        description "Updated When tag constraints for attribute 'peer-route-map-orig-name' and 'default-peer-route-map-name'";
+        reference " 0.13.8.";
+    }
+
+    revision "2023-08-21" {
+        description "Implicit delete tag removed for 'local-as/config' container";
+        reference " 0.13.7.";
+    }
+
+    revision "2023-08-16" {
+        description "New patch Added option 'no-prepend' and 'replace-as' for BGP neighbor local-as";
+        reference " 0.13.6.";
+    }
+
+    revision "2023-08-15" {
+        description "Revert patch Added option 'no-prepend' and 'replace-as' for BGP neighbor local-as";
+        reference " 0.13.5.";
+    }
+
+    revision "2023-08-11" {
+        description "Added option 'no-prepend' and 'replace-as' for BGP neighbor local-as";
+        reference " 0.13.4.";
+    }
+
+    revision "2023-08-07" {
+        description "Added support for BGP addpath for ebgp neighbors";
+        reference " 0.13.3.";
+    }
+
+    revision "2023-07-20" {
+        description "Added support for TCP Maximum Segment Size per BGP neighbor";
+        reference " 0.13.2.";
+    }
 
     revision "2023-05-06" {
         description "address-family ipv4 flowspec vrf support";
@@ -274,600 +334,6 @@ submodule ipi-bgp-address-family-vrf {
         reference " 0.1.0.";
     }
 
-
-
-    grouping address-family-vrf-grouping {
-    description
-        "List of VRF address family";
-        list address-family-vrf {
-            if-feature feature-list:HAVE_BGPD;
-            key "afi safi vrf-name";
-            description
-                "List of VRF address family";
-            leaf afi  {
-                type  leafref {
-                    path  "../config/afi";
-                }
-                description "BGP address family identifier";
-            } // END of afi definition.
-
-            leaf safi  {
-                type  leafref {
-                    path  "../config/safi";
-                }
-                description "BGP sub address family identifier";
-            } // END of safi definition.
-
-            leaf vrf-name  {
-                type  leafref {
-                    path  "../config/vrf-name";
-                }
-                description "vrf name";
-            } // END of vrf-name definition.
-
-
-            list distance {
-                key "ebgp ibgp local";
-                max-elements 1;
-                description
-                    "Container for Attributes related to Distance for routes";
-                leaf ebgp  {
-                    type  leafref {
-                        path  "../config/ebgp";
-                    }
-                    description "Distance for routes external to the AS <1-255>";
-                } // END of ebgp definition.
-
-                leaf ibgp  {
-                    type  leafref {
-                        path  "../config/ibgp";
-                    }
-                    description "Distance for routes internal to the AS <1-255>";
-                } // END of ibgp definition.
-
-                leaf local  {
-                    type  leafref {
-                        path  "../config/local";
-                    }
-                    description "Use this attribute to specify distance value for local routes";
-                } // END of local definition.
-
-                container config {
-                    description
-                        "Configuration attributes related to Distance for routes";
-                    uses bgp-af-distance-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data related to Distance for routes";
-                    uses bgp-af-distance-config;
-                } // END of state-container definition.
-            } // End of distance-list
-
-            list route-flap-dampening {
-                key "enable-dampening";
-                max-elements 1;
-                description
-                    "Container for BGP Route Flap Dampening User Configurable Parameters";
-                leaf enable-dampening  {
-                    type  leafref {
-                        path  "../config/enable-dampening";
-                    }
-                    description "Use this attribute to enable route flap dampening";
-                } // END of enable-dampening definition.
-
-                container config {
-                    description
-                        "BGP Route Flap Dampening User Configurable Parameters";
-                    uses route-flap-dampening-param-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data related to BGP Route Flap Dampening";
-                    uses route-flap-dampening-param-config;
-                } // END of state-container definition.
-            } // End of route-flap-dampening-list
-
-            list route-redistribute-list {
-                key "protocol-type";
-                description
-                    "redistribute for address-family";
-                leaf protocol-type  {
-                    type  leafref {
-                        path  "../config/protocol-type";
-                    }
-                    description "Use this attribute to inject routes from one routing process into
-                                another. Redistribution is used by routing protocols to advertise
-                                routes that are learned by some other means, such as by another
-                                routing protocol or by static routes. Since all internal routes are
-                                dumped into BGP, careful filtering is applied to make sure that only
-                                routes to be advertised reach the internet, not everything. This
-                                attribute allows redistribution by injecting prefixes from one routing
-                                protocol into another routing protocol.";
-                } // END of protocol-type definition.
-
-                container config {
-                    description
-                        "Configuration data for redistribute for address-family";
-                    uses address-family-redist-list-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for redistribute for address-family";
-                    uses address-family-redist-list-config;
-                } // END of state-container definition.
-            } // End of route-redistribute-list-list
-
-            list bgp-redistribute-ospf {
-                key "ospf-instance-number";
-                description
-                    "redistribute with ospf proc Id for address family";
-                leaf ospf-instance-number  {
-                    type  leafref {
-                        path  "../config/ospf-instance-number";
-                    }
-                    description "Use this attribute to inject routes from one routing process into
-                                another. Redistribution is used by routing protocols to advertise
-                                routes that are learned by some other means, such as by another
-                                routing protocol or by static routes. Since all internal routes are
-                                dumped into BGP, careful filtering is applied to make sure that only
-                                routes to be advertised reach the internet, not everything. This
-                                attribute allows redistribution by injecting prefixes from one routing
-                                protocol into another routing protocol.";
-                } // END of ospf-instance-number definition.
-
-                container config {
-                    description
-                        "Configuration data for redistribute with ospf proc Id for address
-                                family";
-                    uses bgp-redistribute-ospf-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data related to redistribute with ospf proc Id for
-                                address family";
-                    uses bgp-redistribute-ospf-config;
-                } // END of state-container definition.
-            } // End of bgp-redistribute-ospf-list
-
-            list vrf-peer {
-                key "peer-address";
-                description
-                    "List of VRF peers";
-                leaf peer-address  {
-                    type  leafref {
-                        path  "../config/peer-address";
-                    }
-                    description "The peer address or Tag of a neighbor. This attribute adds a neighbor.
-                                The specified neighbor when activated using the activate attribute
-                                exchanges routing information.";
-                } // END of peer-address definition.
-
-
-                list maximum-prefixes {
-                    key "prefix-count";
-                    max-elements 1;
-                    description
-                        "list for Prefix related configuration";
-                    leaf prefix-count  {
-                        type  leafref {
-                            path  "../config/prefix-count";
-                        }
-                        description "This attribute specifies number of prefixes that a BGP router is
-                                    allowed to receive from a neighbor. When the maximum-prefix-warning
-                                    attribute is not set and extra prefixes are received, the router ends
-                                    the peering.";
-                    } // END of prefix-count definition.
-
-                    container config {
-                        description
-                            "Configuration parameters relating to the number of prefixes that can
-                                    be received from a neighbor";
-                        uses bgp-address-family-vrf-maximum-prefixes-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to the VRF address family";
-                        uses bgp-address-family-vrf-maximum-prefixes-config;
-                    } // END of state-container definition.
-                } // End of maximum-prefixes-list
-
-                list bgp-password {
-                // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/bgp-password/config/auth-key-encrypt ";
-                    key "password";
-                    max-elements 1;
-                    description
-                        "list for BGP password";
-                    leaf password  {
-                        type  leafref {
-                            path  "../config/password";
-                        }
-                        description "Use this attribute to specify BGP encrypted password";
-                    } // END of password definition.
-
-                    container config {
-                        description
-                            "Configuration parameters relating to the BGP password";
-                        uses bgp-password-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to the BGP password";
-                        uses bgp-password-config;
-                    } // END of state-container definition.
-                } // End of bgp-password-list
-
-                list distribute-list-filter {
-                // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/distribute-list-filter/config/access-list-identifier ";
-                    key "filter-direction";
-                    description
-                        "List of Distribute list Filter";
-                    leaf filter-direction  {
-                        type  leafref {
-                            path  "../config/filter-direction";
-                        }
-                        description "This attribute sets the direction of the filter (0=FILTER_IN
-                                    |1=FILTER_OUT). This attribute is used to filter route updates from a
-                                    particular BGP neighbor for specified address-family. Only one
-                                    distribute-list per BGP neighbor.";
-                    } // END of filter-direction definition.
-
-                    container config {
-                        description
-                            "Configuration parameters relating to BGP Distribute list Filter";
-                        uses bgp-vrf-distribute-list-filter-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to BGP Distribute list Filter";
-                        uses bgp-vrf-distribute-list-filter-config;
-                    } // END of state-container definition.
-                } // End of distribute-list-filter-list
-
-                list as-list-filter {
-                // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/as-list-filter/config/as-access-list-identifier ";
-                    key "as-list-direction";
-                    description
-                        "List of AS list Filter";
-                    leaf as-list-direction  {
-                        type  leafref {
-                            path  "../config/as-list-direction";
-                        }
-                        description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
-                    } // END of as-list-direction definition.
-
-                    container config {
-                        description
-                            "Configuration parameters relating to BGP AS list Filter";
-                        uses bgp-vrf-as-list-filter-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to BGP AS list Fileter";
-                        uses bgp-vrf-as-list-filter-config;
-                    } // END of state-container definition.
-                } // End of as-list-filter-list
-
-                list prefix-list-filter {
-                // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/prefix-list-filter/config/prefix-list-name ";
-                    key "prefix-filter-direction";
-                    description
-                        "List of Prefix list Filter";
-                    leaf prefix-filter-direction  {
-                        type  leafref {
-                            path  "../config/prefix-filter-direction";
-                        }
-                        description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
-                    } // END of prefix-filter-direction definition.
-
-                    container config {
-                        description
-                            "Configuration parameters relating to BGP Prefix list Filter";
-                        uses bgp-vrf-prefix-list-filter-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to BGP Prefix list Filter";
-                        uses bgp-vrf-prefix-list-filter-config;
-                    } // END of state-container definition.
-                } // End of prefix-list-filter-list
-
-                list route-map-filter {
-                // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/route-map-filter/config/route-map-name ";
-                    key "route-map-direction";
-                    description
-                        "List of Route map Filter";
-                    leaf route-map-direction  {
-                        type  leafref {
-                            path  "../config/route-map-direction";
-                        }
-                        description "Use this attribute to configure the direction in which the route map.";
-                    } // END of route-map-direction definition.
-
-                    container config {
-                        description
-                            "Configuration parameters relating to BGP Route map Filter";
-                        uses bgp-vrf-route-map-filter-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to BGP Route map Filter";
-                        uses bgp-vrf-route-map-filter-config;
-                    } // END of state-container definition.
-                } // End of route-map-filter-list
-
-                list peer-adj-out-route {
-                    key "network-address";
-                    config false;
-                    description
-                        "List of BGP Peer adj out route";
-                    leaf network-address  {
-                        type  leafref {
-                            path  "../state/network-address";
-                        }
-                        description "Peer Adj-Out Network address";
-                    } // END of network-address definition.
-
-
-                    list next-hop {
-                        key "next-hop-address";
-                        config false;
-                        description
-                            "next hop address and state list";
-                        leaf next-hop-address  {
-                            type  leafref {
-                                path  "../state/next-hop-address";
-                            }
-                            description "Peer Adj-Out Nexthop address";
-                        } // END of next-hop-address definition.
-
-                        container state {
-                            config false;
-                            description
-                                "State attributes for next-hop";
-                            uses bgp-next-hop-state;
-                        } // END of state-container definition.
-                    } // End of next-hop-list
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to Adj out route";
-                        uses bgp-peer-adj-out-route-state;
-                    } // END of state-container definition.
-                } // End of peer-adj-out-route-list
-
-                list peer-adj-in-route {
-                    key "network-address";
-                    config false;
-                    description
-                        "List of BGP Peer adj  in route";
-                    leaf network-address  {
-                        type  leafref {
-                            path  "../state/network-address";
-                        }
-                        description "Peer Adj-In Network address";
-                    } // END of network-address definition.
-
-
-                    list next-hop {
-                        key "next-hop-address";
-                        config false;
-                        description
-                            "next hop address and state list";
-                        leaf next-hop-address  {
-                            type  leafref {
-                                path  "../state/next-hop-address";
-                            }
-                            description "Peer Adj-In Nexthop address";
-                        } // END of next-hop-address definition.
-
-                        container state {
-                            config false;
-                            description
-                                "State attributes for next-hop";
-                            uses bgp-next-hop-state;
-                        } // END of state-container definition.
-                    } // End of next-hop-list
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to Adj In route";
-                        uses bgp-peer-adj-in-route-state;
-                    } // END of state-container definition.
-                } // End of peer-adj-in-route-list
-                container config {
-                    description
-                        "Configuration parameters relating to the VRF address family";
-                    uses bgp-address-family-vrf-peer-config;
-                    uses bgp-address-family-peer-vrf-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "State parameters relating to the VRF address family";
-                    container counters {
-                        config false;
-                        description
-                            "Container for the peer runtime counters";
-                        uses bgp-peer-run-time-counters-state;
-                    } // END of counters-container definition.
-                    uses bgp-address-family-vrf-peer-config;
-                    uses bgp-address-family-peer-vrf-config;
-                    uses bgp-peer-run-time-attribute-state;
-                } // END of state-container definition.
-                container timers {
-                    description
-                        "container for bgp timers";
-                    container config {
-                        presence "To configure timers";
-                        description
-                            "configuration parameters relating to timers";
-                        uses bgp-peer-timers-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "state parameters relating to timers";
-                        uses bgp-peer-timers-config;
-                    } // END of state-container definition.
-                } // END of timers-container definition.
-                container ebgp-multihop {
-                    description
-                        "container for EBGP multhop";
-                    container config {
-                        presence "To configure EBGP multihop";
-                        description
-                            "configuration parameters relating to EBGP multihop";
-                        uses bgp-peer-ebgp-multhop-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "state parameters relating to timers";
-                        uses bgp-peer-ebgp-multhop-config;
-                    } // END of state-container definition.
-                } // END of ebgp-multihop-container definition.
-                container outbound-route-filter {
-                    config false;
-                    description
-                        "Container for the peer runtime outbound route filter";
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to outbound route filter";
-                        uses bgp-peer-run-time-orf-state;
-                    } // END of state-container definition.
-                } // END of outbound-route-filter-container definition.
-                container peer-prefix {
-                    config false;
-                    description
-                        "Container for peer prefix attributes";
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to prefix attributes";
-                        uses bgp-peer-run-time-attribute-prefix-state;
-                    } // END of state-container definition.
-                } // END of peer-prefix-container definition.
-                container peer-index {
-                    config false;
-                    description
-                        "Container for peer index attributes";
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to peer index attributes";
-                        uses bgp-peer-run-time-attribute-index-state;
-                    } // END of state-container definition.
-                } // END of peer-index-container definition.
-            } // End of vrf-peer-list
-            container config {
-                description
-                    "Configuration parameters relating to the VRF address family";
-                uses address-family-common-config;
-                uses bgp-address-family-vrf-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "State parameters relating to the VRF address family";
-                uses address-family-common-config;
-                uses bgp-address-family-vrf-config;
-            } // END of state-container definition.
-            container confederation {
-                description
-                    "Container for confederation parameters";
-                container config {
-                    description
-                        "configuration parameters relating to confederation";
-                    uses bgp-af-vrf-confederation-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "state parameters relating to confederation";
-                    uses bgp-af-vrf-confederation-config;
-                } // END of state-container definition.
-            } // END of confederation-container definition.
-            container maximum-paths {
-                description
-                    "Container for attributes related to multipath ECMP numbers";
-                container config {
-                    description
-                        "Configuration attributes related to multipath ECMP numbers";
-                    uses bgp-af-maximum-paths-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data related to multipath ECMP numbers";
-                    uses bgp-af-maximum-paths-config;
-                } // END of state-container definition.
-            } // END of maximum-paths-container definition.
-            container table-map {
-                if-feature feature-list:HAVE_BGP_TABLE_MAP;
-                description
-                    "Container for Attributes related to Table map";
-                container config {
-                    presence "To configure table map";
-                    description
-                        "Configuration attributes related to Table map";
-                    uses bgp-address-family-vrf-table-map-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data related to Distance for routes";
-                    uses bgp-address-family-vrf-table-map-config;
-                } // END of state-container definition.
-            } // END of table-map-container definition.
-            container bgp-srv6 {
-                if-feature feature-list:HAVE_SRV6;
-                description
-                    "SRv6 container for BGP segment routing";
-                container config {
-                    presence "yes";
-                    description
-                        "Segment routing SRv6 configuration and other CLIs inside srv6";
-                    uses bgp-vrf-srv6-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Segment routing V6 runtime parameters";
-                    uses bgp-vrf-srv6-config;
-                } // END of state-container definition.
-                container sid-alloc-mode {
-                    // when " ipi-bgp-address-family-vrf:address-family-vrf/bgp-srv6/config/bgpSRv6enable ";
-                    description
-                        "To configure sid-alloc-mode";
-                    container config {
-                        description
-                            "config attribute for sid-alloc mode";
-                        uses prefer-sid-alloc-per-vrf-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State attribute for sid-alloc";
-                        uses prefer-sid-alloc-per-vrf-config;
-                    } // END of state-container definition.
-                } // END of sid-alloc-mode-container definition.
-            } // END of bgp-srv6-container definition.
-            uses bgp-af-vrf-network-list;
-            uses bgp-address-family-vrf-peer-group;
-        } // End of address-family-vrf-list
-    } // END of address-family-vrf-grouping definition.
     grouping bgp-vrf-distribute-list-filter-config {
         description
             "Grouping for BGP distribute list filter configuration";
@@ -1031,7 +497,7 @@ submodule ipi-bgp-address-family-vrf {
         description
             "Configuration parameters common for peer VRFs";
         leaf bgp-port  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint16 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -1042,21 +508,21 @@ submodule ipi-bgp-address-family-vrf {
         } // END of bgp-port definition.
 
         leaf activate  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as   +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Activate/Deactivate neighbor. This attribute enables or disables the
                         exchange of AF information with a neighboring router.";
         } // END of activate definition.
 
         leaf de-activate  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Deactivate neighbor. This attribute disables the exchange of AF
                         information with a neighboring router.";
         } // END of de-activate definition.
 
         leaf default-peer-route-map-name  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-route-map-orig-name ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate ";
             type  empty;
             description "This attribute allows a BGP local router to send the default route
                         0.0.0.0 to a neighbor for use as a default route for specified
@@ -1064,7 +530,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of default-peer-route-map-name definition.
 
         leaf peer-route-map-orig-name  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/default-peer-route-map-name ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate ";
             type  string {
                 length "1..63";
                 pattern "[^?' =,>|]+";
@@ -1076,7 +542,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-route-map-orig-name definition.
 
         leaf weight  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint16 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -1096,7 +562,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of weight definition.
 
         leaf flowspec-validation-disable  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate   +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate   +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_BGP_FLOWSPEC;
             type  empty;
             description "This attribute specifies if FLOWSPEC validation should be disabled for
@@ -1105,7 +571,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of flowspec-validation-disable definition.
 
         leaf peer-route-reflector  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate   +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate   +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "This attribute configures the router as a BGP route reflector and
                         configure the specified neighbor as its client for specified
@@ -1119,7 +585,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-route-reflector definition.
 
         leaf peer-remove-private-as  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "This attribute removes the private Autonomous System (AS) number from
                         outbound updates. Private AS numbers are not advertised to the
@@ -1130,7 +596,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-remove-private-as definition.
 
         leaf no-send-community  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "This attribute specifies if a community attribute should be sent to a
                         BGP neighbor for specified address-family. The community attribute
@@ -1140,21 +606,21 @@ submodule ipi-bgp-address-family-vrf {
         } // END of no-send-community definition.
 
         leaf no-send-community-type  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  ipi-bgp-types:bgp_send_commu_type_t;
             description "This attribute specifies the type of community attribute to be sent to
                         a BGP neighbor.";
         } // END of no-send-community-type definition.
 
         leaf neighbor-attribute-unchanged  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  ipi-bgp-types:bgp_attribute_unchanged_type_t;
             description "This attribute advertises unchanged BGP AS path, next hop and med to
                         the specified neighbor.";
         } // END of neighbor-attribute-unchanged definition.
 
         leaf orf-prefix-capability  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  ipi-bgp-types:bgp_orf_prefix_type_t;
             description "This attribute enables Outbound Router Filtering (ORF), and advertise
                         the ORF capability to its neighbors. The ORFs send and receive
@@ -1174,7 +640,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-allow-ebgp-vpn definition.
 
         leaf allow-as-number  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint32 {
                  range "1..10"  {
                     description "1..10: Supported range 1 - 10";
@@ -1203,7 +669,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of allow-as-number definition.
 
         leaf capability-graceful-restart  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate ";
             type  empty;
             description "This attribute configures the router to advertise the Graceful Restart
                         Capability to the neighbors. This configuration indicates that the BGP
@@ -1226,7 +692,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of mapped-peer-group-tag-af definition.
 
         leaf unsuppress-route-map-name  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -1236,28 +702,28 @@ submodule ipi-bgp-address-family-vrf {
         } // END of unsuppress-route-map-name definition.
 
         leaf enable-ext-opt-param-len  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Use this attribute for a specific peer to encode extended optional
                         parameter length.";
         } // END of enable-ext-opt-param-len definition.
 
         leaf additional-paths-mode  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  ipi-bgp-types:bgp_peer_additional_path_type_t;
             description "Adds additional paths in the BGP table";
         } // END of additional-paths-mode definition.
 
         leaf additional-path-select-all  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  empty;
             description "Attribute to select advertise additional path";
         } // END of additional-path-select-all definition.
 
         leaf additional-paths-best-select-count  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  uint8 {
                  range "2..3"  {
@@ -1266,6 +732,15 @@ submodule ipi-bgp-address-family-vrf {
             }
             description "Attribute to select best advertise additional path";
         } // END of additional-paths-best-select-count definition.
+
+        leaf tcp-adjust-mss  {
+            type  uint16 {
+                 range "40..1440"  {
+                    description "40..1440: Supported range 40 - 1440";
+                 }
+            }
+            description "Use this attribute to set the BGP TCP MSS value of a neighbor.";
+        } // END of tcp-adjust-mss definition.
 
     } // END of bgp-address-family-peer-vrf-config definition.
     grouping bgp-address-family-vrf-table-map-config {
@@ -1292,7 +767,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of map-name definition.
 
         leaf table-map-filter  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/table-map/config/map-name ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/table-map/config/map-name ";
             if-feature feature-list:HAVE_BGP_TABLE_MAP;
             type  boolean;
             description "When tableMapFilter attribute is given in the table map attribute, the
@@ -1332,272 +807,371 @@ submodule ipi-bgp-address-family-vrf {
     grouping bgp-address-family-vrf-peer-group {
         description
             "Grouping for peer-group list";
-
-        list peer-group {
-            key "peer-group-tag";
+        container peer-groups {
             description
-                "List of peer-groups";
-            leaf peer-group-tag  {
-                type  leafref {
-                    path  "../config/peer-group-tag";
-                }
-                description "Creates a peer group. Neighbors with the same update policies are
-                            grouped into peer groups. This facilitates the updates of various
-                            policies, such as distribute and filter lists. The peer group is then
-                            configured easily with any of the neighbor attributes. Any changes
-                            made to the peer group affect all members.";
-            } // END of peer-group-tag definition.
+                "Top level container for peer-groups";
 
-
-            list bgp-password {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/bgp-password/config/auth-key-encrypt ";
-                key "password";
-                max-elements 1;
+            list peer-group {
+                key "peer-group-tag";
                 description
-                    "list for BGP password";
-                leaf password  {
+                    "List of peer-group";
+                leaf peer-group-tag  {
                     type  leafref {
-                        path  "../config/password";
+                        path  "../config/peer-group-tag";
                     }
-                    description "Use this attribute to specify BGP encrypted password";
-                } // END of password definition.
+                    description "Creates a peer group. Neighbors with the same update policies are
+                                grouped into peer groups. This facilitates the updates of various
+                                policies, such as distribute and filter lists. The peer group is then
+                                configured easily with any of the neighbor attributes. Any changes
+                                made to the peer group affect all members.";
+                } // END of peer-group-tag definition.
 
                 container config {
                     description
-                        "Configuration parameters relating to the BGP password";
-                    uses bgp-password-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "State parameters relating to the BGP password";
-                    uses bgp-password-config;
-                } // END of state-container definition.
-            } // End of bgp-password-list
-
-            list maximum-prefixes {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate ";
-                key "prefix-count";
-                max-elements 1;
-                description
-                    "list for Prefix related configuration";
-                leaf prefix-count  {
-                    type  leafref {
-                        path  "../config/prefix-count";
-                    }
-                    description "This attribute specifies number of prefixes that a BGP router is
-                                allowed to receive from a neighbor. When the maximum-prefix-warning
-                                attribute is not set and extra prefixes are received, the router ends
-                                the peering.";
-                } // END of prefix-count definition.
-
-                container config {
-                    description
-                        "Configuration parameters relating to the number of prefixes that can
-                                be received from a neighbor";
-                    uses bgp-address-family-vrf-maximum-prefixes-config;
+                        "Configuration parameters relating to the VRF address family";
+                    uses bgp-address-family-peer-group-vrf-config;
+                    uses bgp-address-family-vrf-peer-group-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
                         "State parameters relating to the VRF address family";
-                    uses bgp-address-family-vrf-maximum-prefixes-config;
+                    uses bgp-address-family-peer-group-vrf-config;
+                    uses bgp-address-family-vrf-peer-group-config;
                 } // END of state-container definition.
-            } // End of maximum-prefixes-list
-            container config {
-                description
-                    "Configuration parameters relating to the VRF address family";
-                uses bgp-address-family-peer-group-vrf-config;
-                uses bgp-address-family-vrf-peer-group-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "State parameters relating to the VRF address family";
-                uses bgp-address-family-peer-group-vrf-config;
-                uses bgp-address-family-vrf-peer-group-config;
-            } // END of state-container definition.
-            container optional-as-lists {
-                description
-                    "List of optional AS";
-
-                list optional-as-list {
-                    key "optional-as";
+                container optional-as-lists {
                     description
-                        "List of optional AS";
-                    leaf optional-as  {
-                        type  leafref {
-                            path  "../config/optional-as";
-                        }
-                        description "Use this attribute to specify optional AS for BGP dynamic peer-group";
-                    } // END of optional-as definition.
+                        "Top level container for optional AS";
 
-                    container config {
+                    list optional-as-list {
+                        key "optional-as";
                         description
-                            "Configuration of optional AS list";
-                        uses bgp-optional-as-list-config;
+                            "List of optional AS";
+                        leaf optional-as  {
+                            type  leafref {
+                                path  "../config/optional-as";
+                            }
+                            description "Use this attribute to specify optional AS for BGP dynamic peer-group";
+                        } // END of optional-as definition.
+
+                        container config {
+                            description
+                                "Configuration of optional AS list";
+                            uses bgp-optional-as-list-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State parameters of optional AS list";
+                            uses bgp-optional-as-list-config;
+                        } // END of state-container definition.
+                    } // End of optional-as-list-list
+                } // END of optional-as-lists-container definition.
+                container bgp-passwords {
+                    description
+                        "Top level container for BGP password";
+
+                    list bgp-password {
+                    // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/bgp-passwords/bgp-password/config/auth-key-encrypt ";
+                        key "password";
+                        max-elements 1;
+                        description
+                            "list for BGP password";
+                        leaf password  {
+                            type  leafref {
+                                path  "../config/password";
+                            }
+                            description "Use this attribute to specify BGP encrypted password";
+                        } // END of password definition.
+
+                        container config {
+                            description
+                                "Configuration parameters relating to the BGP password";
+                            uses bgp-password-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to the BGP password";
+                            uses bgp-password-config;
+                        } // END of state-container definition.
+                    } // End of bgp-password-list
+                } // END of bgp-passwords-container definition.
+                container timers {
+                    description
+                        "container for bgp timers";
+                    container config {
+                        presence "To configure timers";
+                        description
+                            "configuration parameters relating to timers";
+                        uses bgp-peer-timers-config;
                     } // END of config-container definition.
                     container state {
                         config false;
                         description
-                            "State parameters of optional AS list";
-                        uses bgp-optional-as-list-config;
+                            "state parameters relating to timers";
+                        uses bgp-peer-timers-config;
                     } // END of state-container definition.
-                } // End of optional-as-list-list
-            } // END of optional-as-lists-container definition.
-            container timers {
-                description
-                    "container for bgp timers";
-                container config {
-                    presence "To configure timers";
+                } // END of timers-container definition.
+                container local-as {
                     description
-                        "configuration parameters relating to timers";
-                    uses bgp-peer-timers-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "state parameters relating to timers";
-                    uses bgp-peer-timers-config;
-                } // END of state-container definition.
-            } // END of timers-container definition.
-            container ebgp-multihop {
-                description
-                    "container for EBGP multhop";
-                container config {
-                    presence "To configure EBGP multihop";
-                    description
-                        "configuration parameters relating to EBGP multihop";
-                    uses bgp-peer-ebgp-multhop-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "state parameters relating to timers";
-                    uses bgp-peer-ebgp-multhop-config;
-                } // END of state-container definition.
-            } // END of ebgp-multihop-container definition.
-            container distribute-list-filters {
-                description
-                    "Container for distribute list filters";
+                        "Container for Local AS";
 
-                list distribute-list-filter {
-                // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate + ipi-bgp-address-family-vrf:address-family-vrf/peer-group/distribute-list-filters/distribute-list-filter/config/access-list-identifier ";
-                    key "filter-direction";
-                    description
-                        "List of Distribute list Filter";
-                    leaf filter-direction  {
-                        type  leafref {
-                            path  "../config/filter-direction";
-                        }
-                        description "This attribute sets the direction of the filter (0=FILTER_IN
-                                    |1=FILTER_OUT). This attribute is used to filter route updates from a
-                                    particular BGP neighbor for specified address-family. Only one
-                                    distribute-list per BGP neighbor.";
-                    } // END of filter-direction definition.
-
-                    container config {
+                    list local-as-list {
+                    // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
+                        key "peer-local-as";
+                        max-elements 1;
                         description
-                            "Configuration parameters relating to BGP Distribute list Filter";
-                        uses bgp-vrf-distribute-list-filter-config;
+                            "Objectlist for Local AS";
+                        leaf peer-local-as  {
+                            type  leafref {
+                                path  "../config/peer-local-as";
+                            }
+                            description "Specifies an AS (autonomous system) number to use with BGP neighbor.";
+                        } // END of peer-local-as definition.
+
+                        container config {
+                            description
+                                "Configuration parameters relating to Local AS";
+                            uses bgp-peer-local-as-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "state parameters relating to local-as";
+                            uses bgp-peer-local-as-config;
+                        } // END of state-container definition.
+                    } // End of local-as-list-list
+                } // END of local-as-container definition.
+                container ebgp-multihop {
+                    description
+                        "container for EBGP multhop";
+                    container config {
+                        presence "To configure EBGP multihop";
+                        description
+                            "configuration parameters relating to EBGP multihop";
+                        uses bgp-peer-ebgp-multhop-config;
                     } // END of config-container definition.
                     container state {
                         config false;
                         description
-                            "State parameters relating to BGP Distribute list Filter";
-                        uses bgp-vrf-distribute-list-filter-config;
+                            "state parameters relating to timers";
+                        uses bgp-peer-ebgp-multhop-config;
                     } // END of state-container definition.
-                } // End of distribute-list-filter-list
-            } // END of distribute-list-filters-container definition.
-            container as-list-filters {
-                description
-                    "Container for  AS list Filters";
-
-                list as-list-filter {
-                // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate + ipi-bgp-address-family-vrf:address-family-vrf/peer-group/as-list-filters/as-list-filter/config/as-access-list-identifier ";
-                    key "as-list-direction";
+                } // END of ebgp-multihop-container definition.
+                container maximum-prefixes {
                     description
-                        "List of AS list Filter";
-                    leaf as-list-direction  {
-                        type  leafref {
-                            path  "../config/as-list-direction";
-                        }
-                        description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
-                    } // END of as-list-direction definition.
+                        "Top level container for Prefix related configuration";
 
-                    container config {
+                    list maximum-prefix {
+                    // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
+                        key "prefix-count";
+                        max-elements 1;
                         description
-                            "Configuration parameters relating to BGP AS list Filter";
-                        uses bgp-vrf-as-list-filter-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to BGP AS list Fileter";
-                        uses bgp-vrf-as-list-filter-config;
-                    } // END of state-container definition.
-                } // End of as-list-filter-list
-            } // END of as-list-filters-container definition.
-            container prefix-list-filters {
-                description
-                    "Container for Prefix list Filters";
+                            "List for Prefix related configuration";
+                        leaf prefix-count  {
+                            type  leafref {
+                                path  "../config/prefix-count";
+                            }
+                            description "This attribute specifies number of prefixes that a BGP router is
+                                        allowed to receive from a neighbor. When the maximum-prefix-warning
+                                        attribute is not set and extra prefixes are received, the router ends
+                                        the peering.";
+                        } // END of prefix-count definition.
 
-                list prefix-list-filter {
-                // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate + ipi-bgp-address-family-vrf:address-family-vrf/peer-group/prefix-list-filters/prefix-list-filter/config/prefix-list-name ";
-                    key "prefix-filter-direction";
+                        container config {
+                            description
+                                "Configuration parameters relating to the number of prefixes that can
+                                        be received from a neighbor";
+                            uses bgp-address-family-vrf-maximum-prefixes-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to the VRF address family";
+                            uses bgp-address-family-vrf-maximum-prefixes-config;
+                        } // END of state-container definition.
+                    } // End of maximum-prefix-list
+                } // END of maximum-prefixes-container definition.
+                container distribute-list-filters {
                     description
-                        "List of Prefix list Filter";
-                    leaf prefix-filter-direction  {
-                        type  leafref {
-                            path  "../config/prefix-filter-direction";
-                        }
-                        description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
-                    } // END of prefix-filter-direction definition.
+                        "Container for distribute list filters";
 
-                    container config {
+                    list distribute-list-filter {
+                    // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate + ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/distribute-list-filters/distribute-list-filter/config/access-list-identifier ";
+                        key "filter-direction";
                         description
-                            "Configuration parameters relating to BGP Prefix list Filter";
-                        uses bgp-vrf-prefix-list-filter-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to BGP Prefix list Filter";
-                        uses bgp-vrf-prefix-list-filter-config;
-                    } // END of state-container definition.
-                } // End of prefix-list-filter-list
-            } // END of prefix-list-filters-container definition.
-            container route-map-filters {
-                description
-                    "Container for Route map Filters";
+                            "List of Distribute list Filter";
+                        leaf filter-direction  {
+                            type  leafref {
+                                path  "../config/filter-direction";
+                            }
+                            description "This attribute sets the direction of the filter (0=FILTER_IN
+                                        |1=FILTER_OUT). This attribute is used to filter route updates from a
+                                        particular BGP neighbor for specified address-family. Only one
+                                        distribute-list per BGP neighbor.";
+                        } // END of filter-direction definition.
 
-                list route-map-filter {
-                // when " ipi-bgp-address-family-vrf:address-family-vrf/peer-group/config/activate + ipi-bgp-address-family-vrf:address-family-vrf/peer-group/route-map-filters/route-map-filter/config/route-map-name ";
-                    key "route-map-direction";
+                        container config {
+                            description
+                                "Configuration parameters relating to BGP Distribute list Filter";
+                            uses bgp-vrf-distribute-list-filter-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to BGP Distribute list Filter";
+                            uses bgp-vrf-distribute-list-filter-config;
+                        } // END of state-container definition.
+                    } // End of distribute-list-filter-list
+                } // END of distribute-list-filters-container definition.
+                container as-list-filters {
                     description
-                        "List of Route map Filter";
-                    leaf route-map-direction  {
-                        type  leafref {
-                            path  "../config/route-map-direction";
-                        }
-                        description "Use this attribute to configure the direction in which the route map.";
-                    } // END of route-map-direction definition.
+                        "Container for  AS list Filters";
 
-                    container config {
+                    list as-list-filter {
+                    // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate + ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/as-list-filters/as-list-filter/config/as-access-list-identifier ";
+                        key "as-list-direction";
                         description
-                            "Configuration parameters relating to BGP Route map Filter";
-                        uses bgp-vrf-route-map-filter-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
+                            "List of AS list Filter";
+                        leaf as-list-direction  {
+                            type  leafref {
+                                path  "../config/as-list-direction";
+                            }
+                            description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
+                        } // END of as-list-direction definition.
+
+                        container config {
+                            description
+                                "Configuration parameters relating to BGP AS list Filter";
+                            uses bgp-vrf-as-list-filter-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to BGP AS list Fileter";
+                            uses bgp-vrf-as-list-filter-config;
+                        } // END of state-container definition.
+                    } // End of as-list-filter-list
+                } // END of as-list-filters-container definition.
+                container prefix-list-filters {
+                    description
+                        "Container for Prefix list Filters";
+
+                    list prefix-list-filter {
+                    // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate + ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/prefix-list-filters/prefix-list-filter/config/prefix-list-name ";
+                        key "prefix-filter-direction";
                         description
-                            "State parameters relating to BGP Route map Filter";
-                        uses bgp-vrf-route-map-filter-config;
-                    } // END of state-container definition.
-                } // End of route-map-filter-list
-            } // END of route-map-filters-container definition.
-        } // End of peer-group-list
+                            "List of Prefix list Filter";
+                        leaf prefix-filter-direction  {
+                            type  leafref {
+                                path  "../config/prefix-filter-direction";
+                            }
+                            description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
+                        } // END of prefix-filter-direction definition.
+
+                        container config {
+                            description
+                                "Configuration parameters relating to BGP Prefix list Filter";
+                            uses bgp-vrf-prefix-list-filter-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to BGP Prefix list Filter";
+                            uses bgp-vrf-prefix-list-filter-config;
+                        } // END of state-container definition.
+                    } // End of prefix-list-filter-list
+                } // END of prefix-list-filters-container definition.
+                container route-map-filters {
+                    description
+                        "Container for Route map Filters";
+
+                    list route-map-filter {
+                    // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate + ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/route-map-filters/route-map-filter/config/route-map-name ";
+                        key "route-map-direction";
+                        description
+                            "List of Route map Filter";
+                        leaf route-map-direction  {
+                            type  leafref {
+                                path  "../config/route-map-direction";
+                            }
+                            description "Use this attribute to configure the direction in which the route map.";
+                        } // END of route-map-direction definition.
+
+                        container config {
+                            description
+                                "Configuration parameters relating to BGP Route map Filter";
+                            uses bgp-vrf-route-map-filter-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to BGP Route map Filter";
+                            uses bgp-vrf-route-map-filter-config;
+                        } // END of state-container definition.
+                    } // End of route-map-filter-list
+                } // END of route-map-filters-container definition.
+            } // End of peer-group-list
+        } // END of peer-groups-container definition.
     } // END of bgp-address-family-vrf-peer-group definition.
+    grouping bgp-address-family-vrf-peer-state {
+        description
+            "State parameters common for BGP address family VRF peers";
+        leaf connection-established-count  {
+            type  int32;
+            description "BGP state established count";
+        } // END of connection-established-count definition.
+
+        leaf error-notify-sent  {
+            type  boolean;
+            description "Last reset due to notification type 0(sent), 1(received)";
+        } // END of error-notify-sent definition.
+
+        leaf notify-code-string  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Notification Error Message code and subcode";
+        } // END of notify-code-string definition.
+
+        leaf bgp-peer-state  {
+            type  ipi-bgp-types:bgp_peer_status_t;
+            description "The bgp state of the session with following representation 1(Idle),
+                        2(Connect), 3(Active), 4(Opensent), 5(Openconfirm), 6(Established)";
+        } // END of bgp-peer-state definition.
+
+    } // END of bgp-address-family-vrf-peer-state definition.
+    grouping bgp-address-family-vrf-peer-counters-state {
+        description
+            "State counter parameters common for BGP address family VRF peers";
+        leaf notification-in  {
+            type  int32;
+            config false;
+            description "Notify input count";
+        } // END of notification-in definition.
+
+        leaf notification-out  {
+            type  int32;
+            config false;
+            description "Notify output count";
+        } // END of notification-out definition.
+
+        leaf update-message-in  {
+            type  int32;
+            default "0";
+            config false;
+            description "Update message input count";
+        } // END of update-message-in definition.
+
+        leaf update-message-out  {
+            type  int32;
+            default "0";
+            config false;
+            description "Update message ouput count";
+        } // END of update-message-out definition.
+
+    } // END of bgp-address-family-vrf-peer-counters-state definition.
     grouping bgp-address-family-vrf-peer-config {
         description
             "Configuration parameters common for BGP address family VRF peers";
@@ -1621,7 +1195,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-as definition.
 
         leaf source-identifier  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -1636,17 +1210,6 @@ submodule ipi-bgp-address-family-vrf {
                         connections.";
         } // END of source-identifier definition.
 
-        leaf peer-local-as  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
-            type  uint32 {
-                 range "1..4294967295"  {
-                    description "1..4294967295: Supported range 1 - 4294967295";
-                 }
-            }
-            description "Use this attribute to specify an AS (autonomous system) number to use
-                        with BGP neighbor.";
-        } // END of peer-local-as definition.
-
         leaf bgp-version  {
             type  uint8;
             default "4";
@@ -1658,7 +1221,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of bgp-version definition.
 
         leaf peer-connection-interval  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535: Supported range 1 - 65535";
@@ -1675,14 +1238,14 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-connection-interval definition.
 
         leaf enforce-multihop  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "This attribute turns on the enforcement of eBGP neighbors perform
                         multihop.";
         } // END of enforce-multihop definition.
 
         leaf peer-shutdown  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "This attribute disables a neighbor administratively.
                         Use this attribute to terminate any active session for a specified
@@ -1692,7 +1255,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-shutdown definition.
 
         leaf peer-shutdown-description  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af + ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-shutdown ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af + ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-shutdown ";
             type  cml-data-types:cml_line_t {
                 length "1..255";
             }
@@ -1701,13 +1264,13 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-shutdown-description definition.
 
         leaf neighbor-passive  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Use this attribute to set a BGP neighbor as passive.";
         } // END of neighbor-passive definition.
 
         leaf disable-capability-negotiation  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Use this attribute to disable capability negotiation. The capability
                         negotiation is performed by default. This attribute is used to allow
@@ -1716,7 +1279,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of disable-capability-negotiation definition.
 
         leaf enable-dynamic-capability  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Use this attribute to enable the dynamic capability for a specific
                         peer. This attribute allows a BGP speaker to advertise or withdraw an
@@ -1724,7 +1287,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of enable-dynamic-capability definition.
 
         leaf min-route-advertisement-interval  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint32 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -1738,7 +1301,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of min-route-advertisement-interval definition.
 
         leaf peer-as-origin-interval  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535: Supported range 1 - 65535";
@@ -1751,7 +1314,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-as-origin-interval definition.
 
         leaf neighbor-as-override  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Use this attribute to configure a PE router to override the Autonomous
                         System Number (ASN) of a site with the ASN of a provider. BGP normally
@@ -1769,7 +1332,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of neighbor-as-override definition.
 
         leaf peer-interface-name  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_VRF;
             type  string {
                 length "1..1965";
@@ -1779,7 +1342,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-interface-name definition.
 
         leaf peer-description  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  cml-data-types:cml_line_t {
                 length "1..1965";
             }
@@ -1789,7 +1352,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-description definition.
 
         leaf peer-restart-time  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_RESTART;
             if-feature feature-list:HAVE_VRF;
             type  uint32 {
@@ -1806,7 +1369,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of peer-restart-time definition.
 
         leaf site-origin-identifier  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             if-feature feature-list:HAVE_VRF;
             type  string {
                 length "1..1965";
@@ -1818,7 +1381,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of site-origin-identifier definition.
 
         leaf graceful-shut  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  empty;
             description "Use this attribute to start a graceful shutdown for the BGP session of
                         the specified BGP neighbor. The BGP session for this neighbor is shut
@@ -1830,7 +1393,7 @@ submodule ipi-bgp-address-family-vrf {
         } // END of graceful-shut definition.
 
         leaf graceful-shut-timer  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
             type  uint32 {
                  range "10..65535"  {
                     description "10..65535: Supported range 10 - 65535";
@@ -1842,14 +1405,14 @@ submodule ipi-bgp-address-family-vrf {
         } // END of graceful-shut-timer definition.
 
         leaf enable-peer-bfd  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af + !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/enable-peer-bfd-multihop ";
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af + !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/enable-peer-bfd-multihop ";
             if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer";
         } // END of enable-peer-bfd definition.
 
         leaf enable-peer-bfd-multihop  {
-            // when " !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/enable-peer-bfd ";
+            // when " !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/enable-peer-bfd ";
             if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer with
@@ -1927,36 +1490,723 @@ submodule ipi-bgp-address-family-vrf {
             description "Use this attribute to select best N paths";
         } // END of additional-paths-best-select-count definition.
 
+        leaf enable-pic  {
+            if-feature feature-list:HAVE_BGP_PIC_CORE_EDGE;
+            type  empty;
+            description "Use this attribute to enable the additional paths in the BGP
+                        table,install the indirect nexthop in RIB";
+        } // END of enable-pic definition.
+
     } // END of bgp-address-family-vrf-config definition.
     grouping bgp-af-vrf-network-list {
         description
             "Grouping for BGP network list";
-
-        list network-list {
-            key "local-network-prefix";
+        container network-lists {
             description
-                "List of networks announced by BGP";
-            leaf local-network-prefix  {
+                "Top levle container for networks announced by BGP";
+
+            list network-list {
+                key "local-network-prefix";
+                description
+                    "List of networks announced by BGP";
+                leaf local-network-prefix  {
+                    type  leafref {
+                        path  "../config/local-network-prefix";
+                    }
+                    description "Use this attribute to specify the network to be announced via BGP";
+                } // END of local-network-prefix definition.
+
+                container config {
+                    description
+                        "configuration parameters for address-family network list";
+                    uses bgp-address-family-network-list-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state parameters for address-family network list";
+                    uses bgp-address-family-network-list-config;
+                    uses bgp-network-list-state;
+                } // END of state-container definition.
+            } // End of network-list-list
+        } // END of network-lists-container definition.
+    } // END of bgp-af-vrf-network-list definition.
+
+    grouping  address-family-vrfs-grouping {
+    description
+        "Top level container for VRF address family";
+    container address-family-vrfs {
+        if-feature feature-list:HAVE_BGPD;
+        description
+            "Top level container for VRF address family";
+
+        list address-family-vrf {
+            key "afi safi vrf-name";
+            description
+                "List of VRF address family";
+            leaf afi  {
                 type  leafref {
-                    path  "../config/local-network-prefix";
+                    path  "../config/afi";
                 }
-                description "Use this attribute to specify the network to be announced via BGP";
-            } // END of local-network-prefix definition.
+                description "BGP address family identifier";
+            } // END of afi definition.
+
+            leaf safi  {
+                type  leafref {
+                    path  "../config/safi";
+                }
+                description "BGP sub address family identifier";
+            } // END of safi definition.
+
+            leaf vrf-name  {
+                type  leafref {
+                    path  "../config/vrf-name";
+                }
+                description "vrf name";
+            } // END of vrf-name definition.
 
             container config {
                 description
-                    "configuration parameters for address-family network list";
-                uses bgp-address-family-network-list-config;
+                    "Configuration parameters relating to the VRF address family";
+                uses address-family-common-config;
+                uses bgp-address-family-vrf-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
-                    "state parameters for address-family network list";
-                uses bgp-address-family-network-list-config;
-                uses bgp-network-list-state;
+                    "State parameters relating to the VRF address family";
+                uses address-family-common-config;
+                uses bgp-address-family-vrf-config;
             } // END of state-container definition.
-        } // End of network-list-list
-    } // END of bgp-af-vrf-network-list definition.
+            container confederation {
+                description
+                    "Container for confederation parameters";
+                container config {
+                    description
+                        "configuration parameters relating to confederation";
+                    uses bgp-af-vrf-confederation-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state parameters relating to confederation";
+                    uses bgp-af-vrf-confederation-config;
+                } // END of state-container definition.
+            } // END of confederation-container definition.
+            container distances {
+                description
+                    "Top level Container for Attributes related to Distance for routes";
+
+                list distance {
+                    key "ebgp ibgp local";
+                    max-elements 1;
+                    description
+                        "List of Attributes related to Distance for routes";
+                    leaf ebgp  {
+                        type  leafref {
+                            path  "../config/ebgp";
+                        }
+                        description "Distance for routes external to the AS <1-255>";
+                    } // END of ebgp definition.
+
+                    leaf ibgp  {
+                        type  leafref {
+                            path  "../config/ibgp";
+                        }
+                        description "Distance for routes internal to the AS <1-255>";
+                    } // END of ibgp definition.
+
+                    leaf local  {
+                        type  leafref {
+                            path  "../config/local";
+                        }
+                        description "Use this attribute to specify distance value for local routes";
+                    } // END of local definition.
+
+                    container config {
+                        description
+                            "Configuration attributes related to Distance for routes";
+                        uses bgp-af-distance-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational state data related to Distance for routes";
+                        uses bgp-af-distance-config;
+                    } // END of state-container definition.
+                } // End of distance-list
+            } // END of distances-container definition.
+            container maximum-paths {
+                description
+                    "Container for attributes related to multipath ECMP numbers";
+                container config {
+                    description
+                        "Configuration attributes related to multipath ECMP numbers";
+                    uses bgp-af-maximum-paths-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data related to multipath ECMP numbers";
+                    uses bgp-af-maximum-paths-config;
+                } // END of state-container definition.
+            } // END of maximum-paths-container definition.
+            container table-map {
+                if-feature feature-list:HAVE_BGP_TABLE_MAP;
+                description
+                    "Container for Attributes related to Table map";
+                container config {
+                    presence "To configure table map";
+                    description
+                        "Configuration attributes related to Table map";
+                    uses bgp-address-family-vrf-table-map-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data related to Distance for routes";
+                    uses bgp-address-family-vrf-table-map-config;
+                } // END of state-container definition.
+            } // END of table-map-container definition.
+            container route-flap-dampenings {
+                description
+                    "Top level Container for BGP Route Flap Dampening User Configurable
+                            Parameters";
+
+                list route-flap-dampening {
+                    key "enable-dampening";
+                    max-elements 1;
+                    description
+                        "List of BGP Route Flap Dampening User Configurable Parameters";
+                    leaf enable-dampening  {
+                        type  leafref {
+                            path  "../config/enable-dampening";
+                        }
+                        description "Use this attribute to enable route flap dampening";
+                    } // END of enable-dampening definition.
+
+                    container config {
+                        description
+                            "BGP Route Flap Dampening User Configurable Parameters";
+                        uses route-flap-dampening-param-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational state data related to BGP Route Flap Dampening";
+                        uses route-flap-dampening-param-config;
+                    } // END of state-container definition.
+                } // End of route-flap-dampening-list
+            } // END of route-flap-dampenings-container definition.
+            container route-redistribute-lists {
+                description
+                    "Top level container of redistribute for address-family";
+
+                list route-redistribute-list {
+                    key "protocol-type";
+                    description
+                        "List of redistribute for address-family";
+                    leaf protocol-type  {
+                        type  leafref {
+                            path  "../config/protocol-type";
+                        }
+                        description "Use this attribute to inject routes from one routing process into
+                                    another. Redistribution is used by routing protocols to advertise
+                                    routes that are learned by some other means, such as by another
+                                    routing protocol or by static routes. Since all internal routes are
+                                    dumped into BGP, careful filtering is applied to make sure that only
+                                    routes to be advertised reach the internet, not everything. This
+                                    attribute allows redistribution by injecting prefixes from one routing
+                                    protocol into another routing protocol.";
+                    } // END of protocol-type definition.
+
+                    container config {
+                        description
+                            "Configuration data for redistribute for address-family";
+                        uses address-family-redist-list-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational state data for redistribute for address-family";
+                        uses address-family-redist-list-config;
+                    } // END of state-container definition.
+                } // End of route-redistribute-list-list
+            } // END of route-redistribute-lists-container definition.
+            container bgp-srv6 {
+                if-feature feature-list:HAVE_SRV6;
+                description
+                    "SRv6 container for BGP segment routing";
+                container config {
+                    presence "yes";
+                    description
+                        "Segment routing SRv6 configuration and other CLIs inside srv6";
+                    uses bgp-vrf-srv6-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Segment routing V6 runtime parameters";
+                    uses bgp-vrf-srv6-config;
+                } // END of state-container definition.
+                container sid-alloc-mode {
+                    // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/bgp-srv6/config/bgpSRv6enable ";
+                    description
+                        "To configure sid-alloc-mode";
+                    container config {
+                        description
+                            "config attribute for sid-alloc mode";
+                        uses prefer-sid-alloc-per-vrf-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State attribute for sid-alloc";
+                        uses prefer-sid-alloc-per-vrf-config;
+                    } // END of state-container definition.
+                } // END of sid-alloc-mode-container definition.
+            } // END of bgp-srv6-container definition.
+            container bgp-redistribute-ospfs {
+                description
+                    "Top level container for redistribute with ospf proc Id for address
+                            family";
+
+                list bgp-redistribute-ospf {
+                    key "ospf-instance-number";
+                    description
+                        "List of redistribute with ospf proc Id for address family";
+                    leaf ospf-instance-number  {
+                        type  leafref {
+                            path  "../config/ospf-instance-number";
+                        }
+                        description "Use this attribute to inject routes from one routing process into
+                                    another. Redistribution is used by routing protocols to advertise
+                                    routes that are learned by some other means, such as by another
+                                    routing protocol or by static routes. Since all internal routes are
+                                    dumped into BGP, careful filtering is applied to make sure that only
+                                    routes to be advertised reach the internet, not everything. This
+                                    attribute allows redistribution by injecting prefixes from one routing
+                                    protocol into another routing protocol.";
+                    } // END of ospf-instance-number definition.
+
+                    container config {
+                        description
+                            "Configuration data for redistribute with ospf proc Id for address
+                                    family";
+                        uses bgp-redistribute-ospf-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational state data related to redistribute with ospf proc Id for
+                                    address family";
+                        uses bgp-redistribute-ospf-config;
+                    } // END of state-container definition.
+                } // End of bgp-redistribute-ospf-list
+            } // END of bgp-redistribute-ospfs-container definition.
+            container vrf-peers {
+                description
+                    "Top level container for VRF peers";
+
+                list vrf-peer {
+                    key "peer-address";
+                    description
+                        "List of VRF peer";
+                    leaf peer-address  {
+                        type  leafref {
+                            path  "../config/peer-address";
+                        }
+                        description "The peer address or Tag of a neighbor. This attribute adds a neighbor.
+                                    The specified neighbor when activated using the activate attribute
+                                    exchanges routing information.";
+                    } // END of peer-address definition.
+
+
+                    list peer-adj-out-route {
+                        key "network-address";
+                        config false;
+                        description
+                            "List of BGP Peer adj out route";
+                        leaf network-address  {
+                            type  leafref {
+                                path  "../state/network-address";
+                            }
+                            description "Peer Adj-Out Network address";
+                        } // END of network-address definition.
+
+
+                        list next-hop {
+                            key "next-hop-address";
+                            config false;
+                            description
+                                "next hop address and state list";
+                            leaf next-hop-address  {
+                                type  leafref {
+                                    path  "../state/next-hop-address";
+                                }
+                                description "Peer Adj-Out Nexthop address";
+                            } // END of next-hop-address definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "State attributes for next-hop";
+                                uses bgp-next-hop-state;
+                            } // END of state-container definition.
+                        } // End of next-hop-list
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to Adj out route";
+                            uses bgp-peer-adj-out-route-state;
+                        } // END of state-container definition.
+                    } // End of peer-adj-out-route-list
+
+                    list peer-adj-in-route {
+                        key "network-address";
+                        config false;
+                        description
+                            "List of BGP Peer adj  in route";
+                        leaf network-address  {
+                            type  leafref {
+                                path  "../state/network-address";
+                            }
+                            description "Peer Adj-In Network address";
+                        } // END of network-address definition.
+
+
+                        list next-hop {
+                            key "next-hop-address";
+                            config false;
+                            description
+                                "next hop address and state list";
+                            leaf next-hop-address  {
+                                type  leafref {
+                                    path  "../state/next-hop-address";
+                                }
+                                description "Peer Adj-In Nexthop address";
+                            } // END of next-hop-address definition.
+
+                            container state {
+                                config false;
+                                description
+                                    "State attributes for next-hop";
+                                uses bgp-next-hop-state;
+                            } // END of state-container definition.
+                        } // End of next-hop-list
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to Adj In route";
+                            uses bgp-peer-adj-in-route-state;
+                        } // END of state-container definition.
+                    } // End of peer-adj-in-route-list
+                    container config {
+                        description
+                            "Configuration parameters relating to the VRF address family";
+                        uses bgp-address-family-vrf-peer-config;
+                        uses bgp-address-family-peer-vrf-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State parameters relating to the VRF address family";
+                        container counters {
+                            config false;
+                            description
+                                "Container for the peer runtime counters";
+                            uses bgp-peer-run-time-counters-state;
+                            uses bgp-address-family-vrf-peer-counters-state;
+                        } // END of counters-container definition.
+                        uses bgp-address-family-vrf-peer-config;
+                        uses bgp-address-family-peer-vrf-config;
+                        uses bgp-address-family-vrf-peer-state;
+                        uses bgp-peer-run-time-attribute-state;
+                    } // END of state-container definition.
+                    container timers {
+                        description
+                            "container for bgp timers";
+                        container config {
+                            presence "To configure timers";
+                            description
+                                "configuration parameters relating to timers";
+                            uses bgp-peer-timers-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "state parameters relating to timers";
+                            uses bgp-peer-timers-config;
+                        } // END of state-container definition.
+                    } // END of timers-container definition.
+                    container ebgp-multihop {
+                        description
+                            "container for EBGP multhop";
+                        container config {
+                            presence "To configure EBGP multihop";
+                            description
+                                "configuration parameters relating to EBGP multihop";
+                            uses bgp-peer-ebgp-multhop-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "state parameters relating to timers";
+                            uses bgp-peer-ebgp-multhop-config;
+                        } // END of state-container definition.
+                    } // END of ebgp-multihop-container definition.
+                    container maximum-prefixes {
+                        description
+                            "Top level container for Prefix related configuration";
+
+                        list maximum-prefix {
+                            key "prefix-count";
+                            max-elements 1;
+                            description
+                                "List for Prefix related configuration";
+                            leaf prefix-count  {
+                                type  leafref {
+                                    path  "../config/prefix-count";
+                                }
+                                description "This attribute specifies number of prefixes that a BGP router is
+                                            allowed to receive from a neighbor. When the maximum-prefix-warning
+                                            attribute is not set and extra prefixes are received, the router ends
+                                            the peering.";
+                            } // END of prefix-count definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to the number of prefixes that can
+                                            be received from a neighbor";
+                                uses bgp-address-family-vrf-maximum-prefixes-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to the VRF address family";
+                                uses bgp-address-family-vrf-maximum-prefixes-config;
+                            } // END of state-container definition.
+                        } // End of maximum-prefix-list
+                    } // END of maximum-prefixes-container definition.
+                    container bgp-passwords {
+                        description
+                            "Top level container for BGP password";
+
+                        list bgp-password {
+                        // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/bgp-passwords/bgp-password/config/auth-key-encrypt ";
+                            key "password";
+                            max-elements 1;
+                            description
+                                "List for BGP password";
+                            leaf password  {
+                                type  leafref {
+                                    path  "../config/password";
+                                }
+                                description "Use this attribute to specify BGP encrypted password";
+                            } // END of password definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to the BGP password";
+                                uses bgp-password-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to the BGP password";
+                                uses bgp-password-config;
+                            } // END of state-container definition.
+                        } // End of bgp-password-list
+                    } // END of bgp-passwords-container definition.
+                    container distribute-list-filters {
+                        description
+                            "List of Distribute list Filter";
+
+                        list distribute-list-filter {
+                        // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/distribute-list-filters/distribute-list-filter/config/access-list-identifier ";
+                            key "filter-direction";
+                            description
+                                "List of Distribute list Filter";
+                            leaf filter-direction  {
+                                type  leafref {
+                                    path  "../config/filter-direction";
+                                }
+                                description "This attribute sets the direction of the filter (0=FILTER_IN
+                                            |1=FILTER_OUT). This attribute is used to filter route updates from a
+                                            particular BGP neighbor for specified address-family. Only one
+                                            distribute-list per BGP neighbor.";
+                            } // END of filter-direction definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to BGP Distribute list Filter";
+                                uses bgp-vrf-distribute-list-filter-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to BGP Distribute list Filter";
+                                uses bgp-vrf-distribute-list-filter-config;
+                            } // END of state-container definition.
+                        } // End of distribute-list-filter-list
+                    } // END of distribute-list-filters-container definition.
+                    container as-list-filters {
+                        description
+                            "Top level container of AS list Filter";
+
+                        list as-list-filter {
+                        // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/as-list-filters/as-list-filter/config/as-access-list-identifier ";
+                            key "as-list-direction";
+                            description
+                                "List of AS list Filter";
+                            leaf as-list-direction  {
+                                type  leafref {
+                                    path  "../config/as-list-direction";
+                                }
+                                description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
+                            } // END of as-list-direction definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to BGP AS list Filter";
+                                uses bgp-vrf-as-list-filter-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to BGP AS list Fileter";
+                                uses bgp-vrf-as-list-filter-config;
+                            } // END of state-container definition.
+                        } // End of as-list-filter-list
+                    } // END of as-list-filters-container definition.
+                    container prefix-list-filters {
+                        description
+                            "Top level container for Prefix list Filter";
+
+                        list prefix-list-filter {
+                        // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/prefix-list-filters/prefix-list-filter/config/prefix-list-name ";
+                            key "prefix-filter-direction";
+                            description
+                                "List of Prefix list Filter";
+                            leaf prefix-filter-direction  {
+                                type  leafref {
+                                    path  "../config/prefix-filter-direction";
+                                }
+                                description "Direction of the filter (0=FILTER_IN |1=FILTER_OUT)";
+                            } // END of prefix-filter-direction definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to BGP Prefix list Filter";
+                                uses bgp-vrf-prefix-list-filter-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to BGP Prefix list Filter";
+                                uses bgp-vrf-prefix-list-filter-config;
+                            } // END of state-container definition.
+                        } // End of prefix-list-filter-list
+                    } // END of prefix-list-filters-container definition.
+                    container route-map-filters {
+                        description
+                            "Top level container for Route map Filter";
+
+                        list route-map-filter {
+                        // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/route-map-filters/route-map-filter/config/route-map-name ";
+                            key "route-map-direction";
+                            description
+                                "List of Route map Filter";
+                            leaf route-map-direction  {
+                                type  leafref {
+                                    path  "../config/route-map-direction";
+                                }
+                                description "Use this attribute to configure the direction in which the route map.";
+                            } // END of route-map-direction definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to BGP Route map Filter";
+                                uses bgp-vrf-route-map-filter-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to BGP Route map Filter";
+                                uses bgp-vrf-route-map-filter-config;
+                            } // END of state-container definition.
+                        } // End of route-map-filter-list
+                    } // END of route-map-filters-container definition.
+                    container local-as {
+                        description
+                            "Container for Local AS";
+
+                        list local-as-list {
+                        // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
+                            key "peer-local-as";
+                            max-elements 1;
+                            description
+                                "Objectlist for Local AS";
+                            leaf peer-local-as  {
+                                type  leafref {
+                                    path  "../config/peer-local-as";
+                                }
+                                description "Specifies an AS (autonomous system) number to use with BGP neighbor.";
+                            } // END of peer-local-as definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to Local AS";
+                                uses bgp-peer-local-as-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "state parameters relating to Local AS";
+                                uses bgp-peer-local-as-config;
+                            } // END of state-container definition.
+                        } // End of local-as-list-list
+                    } // END of local-as-container definition.
+                    container outbound-route-filter {
+                        config false;
+                        description
+                            "Container for the peer runtime outbound route filter";
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to outbound route filter";
+                            uses bgp-peer-run-time-orf-state;
+                        } // END of state-container definition.
+                    } // END of outbound-route-filter-container definition.
+                    container peer-prefix {
+                        config false;
+                        description
+                            "Container for peer prefix attributes";
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to prefix attributes";
+                            uses bgp-peer-run-time-attribute-prefix-state;
+                        } // END of state-container definition.
+                    } // END of peer-prefix-container definition.
+                    container peer-index {
+                        config false;
+                        description
+                            "Container for peer index attributes";
+                        container state {
+                            config false;
+                            description
+                                "State parameters relating to peer index attributes";
+                            uses bgp-peer-run-time-attribute-index-state;
+                        } // END of state-container definition.
+                    } // END of peer-index-container definition.
+                } // End of vrf-peer-list
+            } // END of vrf-peers-container definition.
+            uses bgp-af-vrf-network-list;
+            uses bgp-address-family-vrf-peer-group;
+        } // End of address-family-vrf-list
+    } // END of address-family-vrfs-container definition.
+    } // END of address-family-vrfs-grouping definition.
 
 
 }

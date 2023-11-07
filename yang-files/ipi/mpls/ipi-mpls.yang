@@ -23,17 +23,17 @@ module ipi-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-mpls-types {
         prefix ipi-mpls-types;
-        revision-date 2022-11-10;
+        revision-date 2023-06-20;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ipi-global-te {
@@ -48,7 +48,7 @@ module ipi-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -63,6 +63,31 @@ module ipi-mpls {
     description
         "Data model for MPLS";
 
+
+    revision "2023-07-14" {
+        description "Updated proper help-string for vlan identifiers";
+        reference " 0.7.6.";
+    }
+
+    revision "2023-07-05" {
+        description "added HAVE_6PE flag to enable rsvp compilation for marvell platforms";
+        reference " 0.7.5.";
+    }
+
+    revision "2023-06-20" {
+        description "CLI support for MPLS FTN and ILM ECMP";
+        reference " 0.7.4.";
+    }
+
+    revision "2023-06-19" {
+        description "Reverting Fix for sget changes to enable or disable ldp ecmp";
+        reference " 0.7.3.";
+    }
+
+    revision "2023-05-11" {
+        description "corrected the helpsting for unform";
+        reference " 0.7.2.";
+    }
 
     revision "2023-05-04" {
         description "Removed implicit delete tag for the objectlist Customer Service Template";
@@ -272,6 +297,24 @@ module ipi-mpls {
         } // END of name definition.
 
     } // END of mpls-6pe-tunnel-policy definition.
+    grouping ecmp-mpls-config {
+        description
+            "Grouping for MPLS ECMP options per protocol";
+        leaf ftn-ecmp-protocol  {
+            if-feature feature-list:HAVE_MPLS_ECMP;
+            type  ipi-mpls-types:mpls_ecmp_protocol_t;
+            description "Use this attribute to configure ECMP on forwarder for supported
+                        protocol FTNs";
+        } // END of ftn-ecmp-protocol definition.
+
+        leaf ilm-ecmp-protocol  {
+            if-feature feature-list:HAVE_MPLS_ECMP;
+            type  ipi-mpls-types:mpls_ecmp_protocol_t;
+            description "Use this attribute to configure ECMP on forwarder for supported
+                        protocol ILMs";
+        } // END of ilm-ecmp-protocol definition.
+
+    } // END of ecmp-mpls-config definition.
     grouping nsm-client-graceful-restart-state {
         description
             "Operational parameters for rsvp/ldp graceful-restart";
@@ -341,12 +384,6 @@ module ipi-mpls {
             type  empty;
             description "Use this attribute to configure the MPLS LSP model as Uniform.";
         } // END of lsp-model-uniform definition.
-
-        leaf ilm-ecmp  {
-            if-feature feature-list:HAVE_MPLS_ECMP;
-            type  empty;
-            description "Use this attribute to enable ECMP for LDP";
-        } // END of ilm-ecmp definition.
 
     } // END of mpls-global-config definition.
     grouping mpls-debug-config {
@@ -1091,8 +1128,24 @@ module ipi-mpls {
                 uses mpls-debug-config;
             } // END of state-container definition.
         } // END of debug-container definition.
+        container ecmp {
+            description
+                "Container for FTN and ILM ECMP configuration per protocol";
+            container config {
+                description
+                    "MPLS ECMP configuration";
+                uses ecmp-mpls-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for MPLS ECMP";
+                uses ecmp-mpls-config;
+            } // END of state-container definition.
+        } // END of ecmp-container definition.
         container six-pe-tunnel-policies {
             if-feature feature-list:HAVE_SERVICE_MAPPING;
+            if-feature feature-list:HAVE_6PE;
             description
                 "6PE tunnel policy configuration and state data";
 

@@ -33,12 +33,12 @@ module ipi-vlan-xc {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -53,6 +53,21 @@ module ipi-vlan-xc {
     description
         "Datamodel for IPI VLAN XC Managed Object";
 
+
+    revision "2023-10-04" {
+        description "Fixed dependency issues between port cross-connect configurations";
+        reference " 0.5.1.";
+    }
+
+    revision "2023-09-07" {
+        description "Removed cross-connect config / added cross-connect show error for Hurricane 4";
+        reference " 0.5.0.";
+    }
+
+    revision "2023-07-04" {
+        description "Removed cross-connect config / added cross-connect show error for Tomahawk 3";
+        reference " 0.4.0.";
+    }
 
     revision "2022-12-20" {
         description "Added missing cliprependstr tags";
@@ -229,6 +244,11 @@ module ipi-vlan-xc {
             description "Disable this cross connect";
         } // END of disable definition.
 
+    } // END of crossconnect-config definition.
+    grouping crossconnect-port-specific-config {
+        description
+            "Grouping for Port Cross-connect specific variables for ethernet
+                        interfaces";
         leaf backup-endpoint-1  {
             type  string {
                 length "1..1965";
@@ -255,7 +275,7 @@ module ipi-vlan-xc {
             description "Configure link fault pass through";
         } // END of link-fault-pass-through-enable definition.
 
-    } // END of crossconnect-config definition.
+    } // END of crossconnect-port-specific-config definition.
     grouping crossconnect-port-config {
         description
             "Grouping for Port Cross-connect state variables for ethernet
@@ -278,6 +298,26 @@ module ipi-vlan-xc {
         } // END of port-endpoint-2 definition.
 
     } // END of crossconnect-port-config definition.
+    grouping crossconnect-port-specific-top {
+        description
+            "Grouping config for port specific cross-connect";
+        container cross-connect-port-specific {
+            description
+                "Port cross-connect specific configurations";
+            container config {
+                presence "Configuring specific port cross-connect";
+                description
+                    "Specific cross-connect Configuration data for port cross-connect";
+                uses crossconnect-port-specific-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Cross-connect State variables for port cross-connect";
+                uses crossconnect-port-specific-config;
+            } // END of state-container definition.
+        } // END of cross-connect-port-specific-container definition.
+    } // END of crossconnect-port-specific-top definition.
     grouping crossconnect-port-ep-config {
         description
             "Grouping config for port cross-connect";
@@ -394,6 +434,7 @@ module ipi-vlan-xc {
                 uses crossconnect-statistics-state;
             } // END of state-container definition.
             uses crossconnect-port-ep-config;
+            uses crossconnect-port-specific-top;
             uses crossconnect-vlan-ep-config;
         } // End of cross-connect-list
     } // END of cross-connects-container definition.

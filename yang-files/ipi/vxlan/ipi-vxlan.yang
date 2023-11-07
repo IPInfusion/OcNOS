@@ -23,7 +23,7 @@ module ipi-vxlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ietf-inet-types {
@@ -33,12 +33,12 @@ module ipi-vxlan {
 
     import ipi-vxlan-types {
         prefix ipi-vxlan-types;
-        revision-date 2022-06-01;
+        revision-date 2023-08-23;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ipi-vrf {
@@ -53,7 +53,7 @@ module ipi-vxlan {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-03-14;
+        revision-date 2023-07-13;
     }
 
     import ietf-yang-types {
@@ -63,7 +63,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -79,8 +79,33 @@ module ipi-vxlan {
         "Datamodel for VxLAN protocol";
 
 
-    revision "2023-08-25" {
+    revision "2023-08-28" {
+        description "modified the helpstring for tag-protocol-identifier attribute";
+        reference " 0.9.6.";
+    }
+
+    revision "2023-08-24" {
         description "RPC Implementation for clear nvo vxlan mac address-table with vnid and mac+vnid combination";
+        reference " 0.9.5.";
+    }
+
+    revision "2023-08-23" {
+        description "Added new enum values to VXLAN_VTEP_REDUND_TYPE_T to map vteps having multiple redund types in remote-vtep-entries grouping";
+        reference " 0.9.4.";
+    }
+
+    revision "2023-07-10" {
+        description "Enable QoS by default related changes";
+        reference " 0.9.3.";
+    }
+
+    revision "2023-06-28" {
+        description "Added new grouping for remote-vtep-entries with attributes remote-vtep-ip-addr, description, redund-type";
+        reference " 0.9.2.";
+    }
+
+    revision "2023-06-26" {
+        description "Added module-init-condition to disable vxlan cli's for TH3 platform";
         reference " 0.9.1.";
     }
 
@@ -1880,7 +1905,7 @@ module ipi-vxlan {
                 "Enclosing container for untagged access side QoS map list";
 
             list access-interface-qos-type-mapping {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos = 'enable' ";
                 if-feature feature-list:HAVE_QOS;
                 key "profile-map-type";
                 description
@@ -2140,6 +2165,61 @@ module ipi-vxlan {
             } // End of access-interface-list
         } // END of access-interfaces-container definition.
     } // END of vxlan-access-interface-counters-top definition.
+    grouping vtep-entries-config {
+        description
+            "VTEP locally configured details";
+        leaf address  {
+            type  inet:ipv4-address;
+            description "VTEP ip address";
+        } // END of address definition.
+
+        leaf description  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "VTEP description";
+        } // END of description definition.
+
+        leaf redund-type  {
+            type  ipi-vxlan-types:vxlan_vtep_redund_type_t;
+            description "VTEP redundancy type";
+        } // END of redund-type definition.
+
+    } // END of vtep-entries-config definition.
+    grouping vtep-entries-top {
+        description
+            "Top level grouping for vtep info";
+        container vtep-entries {
+            if-feature feature-list:HAVE_BGNOS_CUSTOM;
+            description
+                "Top level container for vtep-entries";
+
+            list vtep-entry {
+            when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config ";
+                key "address";
+                description
+                    "VTEP locally configured details";
+                leaf address  {
+                    type  leafref {
+                        path  "../config/address";
+                    }
+                    description "VTEP ip address";
+                } // END of address definition.
+
+                container config {
+                    description
+                        "Config container";
+                    uses vtep-entries-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses vtep-entries-config;
+                } // END of state-container definition.
+            } // End of vtep-entry-list
+        } // END of vtep-entries-container definition.
+    } // END of vtep-entries-top definition.
 
     grouping  vxlan-grouping {
     description
@@ -2170,6 +2250,7 @@ module ipi-vxlan {
         uses vxlan-tunnel-top;
         uses vxlan-access-interface-top;
         uses vxlan-access-interface-counters-top;
+        uses vtep-entries-top;
     } // END of vxlan-container definition.
     } // END of vxlan-grouping definition.
 

@@ -33,7 +33,7 @@ module ipi-ipsec {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     include ipi-ipsec-interface { revision-date 2022-06-01;}
@@ -49,6 +49,11 @@ module ipi-ipsec {
     description
         "Internet Protocol Security";
 
+
+    revision "2023-07-07" {
+        description "Removing the misplaced initialized from ah-authentication";
+        reference " 0.1.0.";
+    }
 
     revision "2022-08-22" {
         description "Updated SPI range to support 0 spi";
@@ -272,13 +277,13 @@ module ipi-ipsec {
     grouping ipsec-transform-set-config {
         description
             "IPsec Transform-set Configuration Grouping";
-        leaf name  {
+        leaf transform-set-name  {
             type  string {
                 length "1..127";
                 pattern "[^?' =,>|]+";
             }
             description "This attribute configures IPsec transform-set name.";
-        } // END of name definition.
+        } // END of transform-set-name definition.
 
         leaf transform-set-mode  {
             type  ipi-ipsec-types:ipsec_ts_mode_t;
@@ -292,7 +297,6 @@ module ipi-ipsec {
             "IPsec Transform-set AH Authentication Configuration Grouping";
         leaf ah-authentication  {
             type  ipi-ipsec-types:ipsec_ah_authentication_t;
-            mandatory true;
             description "This attribute configures IPsec AH authentication type.";
         } // END of ah-authentication definition.
 
@@ -360,15 +364,15 @@ module ipi-ipsec {
                 "IPsec transform-sets Set Grouping";
 
             list transform-set {
-                key "name";
+                key "transform-set-name";
                 description
                     "IPsec transform-set";
-                leaf name  {
+                leaf transform-set-name  {
                     type  leafref {
-                        path  "../config/name";
+                        path  "../config/transform-set-name";
                     }
                     description "IPsec transform-set name";
-                } // END of name definition.
+                } // END of transform-set-name definition.
 
                 container config {
                     description
@@ -567,7 +571,7 @@ module ipi-ipsec {
             "IPsec Crypto Map Session TS Configuration Grouping";
         leaf transform-set-name  {
             type  leafref {
-                path  "/ipsec/transform-sets/transform-set/name";
+                path  "/ipsec/transform-sets/transform-set/transform-set-name";
             }
             description "This attributes associates and Transform-Set object to a Crypto Map
                         session object.";

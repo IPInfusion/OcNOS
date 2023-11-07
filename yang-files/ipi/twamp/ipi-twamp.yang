@@ -23,7 +23,7 @@ module ipi-twamp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ietf-yang-types {
@@ -33,7 +33,7 @@ module ipi-twamp {
 
     import ipi-twamp-types {
         prefix ipi-twamp-types;
-        revision-date 2022-07-05;
+        revision-date 2023-05-12;
     }
 
     import ietf-inet-types {
@@ -43,7 +43,7 @@ module ipi-twamp {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-03-14;
+        revision-date 2023-07-13;
     }
 
     import ipi-vrf {
@@ -53,9 +53,10 @@ module ipi-twamp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
+    include ipi-twamp-client { revision-date 2023-09-06;}
     organization
         "IP Infusion Inc.";
 
@@ -68,6 +69,26 @@ module ipi-twamp {
     description
         "Two-Way Active Measurement Protocol (TWAMP)";
 
+
+    revision "2023-10-11" {
+        description "Set reflector session parameters to CML_INITIALIZED";
+        reference " 0.13.3.";
+    }
+
+    revision "2023-09-06" {
+        description "Added Reset CLI for the TWAMP client dead sessions";
+        reference " 0.13.2.";
+    }
+
+    revision "2023-08-31" {
+        description "Remove unnecessary import";
+        reference " 0.13.1.";
+    }
+
+    revision "2023-05-12" {
+        description "Added datatype for twamp client module";
+        reference " 0.13.0.";
+    }
 
     revision "2022-10-20" {
         description "Fixed a cli generation problem related to vrf-name";
@@ -215,11 +236,13 @@ module ipi-twamp {
 
         leaf sender-ip-address  {
             type  ipi-twamp-types:twamp_hostname_t;
+            mandatory true;
             description "Set TWAMP Reflector Session sender IP address";
         } // END of sender-ip-address definition.
 
         leaf sender-udp-port  {
             type  ipi-twamp-types:twamp_ref_src_udp_port_t;
+            mandatory true;
             description "Use this attribute to set the sender UDP Port";
         } // END of sender-udp-port definition.
 
@@ -918,10 +941,82 @@ module ipi-twamp {
         uses twamp-light-top;
         uses twamp-debug-top;
         uses twamp-server-top;
+        uses client-grouping;
     } // END of twamp-container definition.
     } // END of twamp-grouping definition.
 
     uses twamp-grouping;
+
+    rpc twamp-client-start-connection {
+        if-feature feature-list:HAVE_TWAMP;
+        description "Start TWAMP client connection";
+        input  {
+            leaf connection-name  {
+                type string {
+                    length "1..128";
+                }
+                mandatory true;
+                description "Sets client connection Name";
+            }
+            leaf vrf-name  {
+                type string;
+                default "default";
+                description "Use this attribute to set the connection VRF name";
+            }
+            leaf packet-count  {
+                type uint32 {
+                    range "0..1000000";
+                }
+                mandatory true;
+                description "Two-may Active Measurement Protocol client connection pkt count";
+            }
+        }
+    }
+
+    rpc twamp-client-stop-connection {
+        if-feature feature-list:HAVE_TWAMP;
+        description "Stop TWAMP client connection";
+        input  {
+            leaf connection-name  {
+                type string {
+                    length "1..128";
+                }
+                mandatory true;
+                description "Sets client connection Name";
+            }
+            leaf vrf-name  {
+                type string;
+                default "default";
+                description "Use this attribute to set the connection VRF name";
+            }
+        }
+    }
+
+    rpc twamp-client-reset-session {
+        if-feature feature-list:HAVE_TWAMP;
+        description "Reset TWAMP client session";
+        input  {
+            leaf connection-name  {
+                type string {
+                    length "1..128";
+                }
+                mandatory true;
+                description "The client connection Name where the session will be reset";
+            }
+            leaf session-name  {
+                type string {
+                    length "1..128";
+                }
+                mandatory true;
+                description "The client session that will be reset";
+            }
+            leaf vrf-name  {
+                type string;
+                default "default";
+                description "Use this attribute to set the connection VRF name";
+            }
+        }
+    }
 
     rpc twamp-test-session-start {
         if-feature feature-list:HAVE_TWAMP;

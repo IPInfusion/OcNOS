@@ -28,7 +28,7 @@ module ipi-delay-profile {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -43,6 +43,21 @@ module ipi-delay-profile {
     description
         "Datamodel for configuring the delay measurement profile";
 
+
+    revision "2023-09-13" {
+        description "Added implicit_delete tag for delay-profile-parameters to fix db-sync";
+        reference " 0.6.2.";
+    }
+
+    revision "2023-07-26" {
+        description "Removed interval attribute for delay profile twamp client";
+        reference " 0.6.1.";
+    }
+
+    revision "2023-05-12" {
+        description "Added delay profile measurment parameters for twamp client";
+        reference " 0.6.0.";
+    }
 
     revision "2023-03-02" {
         description "Added one way measurement option";
@@ -78,12 +93,16 @@ module ipi-delay-profile {
             container config {
                 description
                     "Configuration data";
+                uses interface-client-config;
+                uses interface-config;
                 uses profile-parameters-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operational state data";
+                uses interface-client-config;
+                uses interface-config;
                 uses profile-parameters-config;
             } // END of state-container definition.
         } // END of profile-parameters-container definition.
@@ -186,14 +205,9 @@ module ipi-delay-profile {
         } // END of minimum-change definition.
 
     } // END of profile-accelerated-config definition.
-    grouping profile-parameters-config {
+    grouping interface-client-config {
         description
-            "Set the configuration parameters";
-        leaf mode  {
-            type  ipi-delay-profile-types:delay_profile_measurement_mode_t;
-            description "Set the measurement mode";
-        } // END of mode definition.
-
+            "Parameters to update delay profile interfaces and clients";
         leaf burst-interval  {
             type  uint16 {
                  range "1000..15000"  {
@@ -212,6 +226,10 @@ module ipi-delay-profile {
             description "Configure the burst-count";
         } // END of burst-count definition.
 
+    } // END of interface-client-config definition.
+    grouping interface-config {
+        description
+            "Parameters to update delay profile interfaces";
         leaf interval  {
             type  uint16 {
                  range "30..3600"  {
@@ -220,6 +238,15 @@ module ipi-delay-profile {
             }
             description "Configure the computation interval";
         } // END of interval definition.
+
+    } // END of interface-config definition.
+    grouping profile-parameters-config {
+        description
+            "Set the configuration parameters";
+        leaf mode  {
+            type  ipi-delay-profile-types:delay_profile_measurement_mode_t;
+            description "Set the measurement mode";
+        } // END of mode definition.
 
         leaf sender-port  {
             type  uint16 {
@@ -240,6 +267,38 @@ module ipi-delay-profile {
         } // END of profile-type definition.
 
     } // END of delay-profile-config definition.
+    grouping delay-profile-client {
+        description
+            "Use this to enable delay profile for client";
+        leaf delay-profile-enable  {
+            type  empty;
+            mandatory true;
+            description "Enables TWAMP Client delay profile";
+        } // END of delay-profile-enable definition.
+
+    } // END of delay-profile-client definition.
+    grouping twamp-client-delay-profile-top {
+        description
+            "Grouping for TWAMP client delay profile configuration";
+        container delay-profile-clients {
+            description
+                "TWAMP client delay profile Configuration";
+            container config {
+                presence "yes";
+                description
+                    "Delay profile configuration data for TWAMP client";
+                uses delay-profile-client;
+                uses interface-client-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for TWAMP Client delay profile status data";
+                uses delay-profile-client;
+                uses interface-client-config;
+            } // END of state-container definition.
+        } // END of delay-profile-clients-container definition.
+    } // END of twamp-client-delay-profile-top definition.
 
     grouping  delay-profiles-grouping {
     description
@@ -278,6 +337,7 @@ module ipi-delay-profile {
             uses profile-periodic-top;
             uses profile-accelerated-top;
         } // End of delay-profile-list
+        uses twamp-client-delay-profile-top;
     } // END of delay-profiles-container definition.
     } // END of delay-profiles-grouping definition.
 

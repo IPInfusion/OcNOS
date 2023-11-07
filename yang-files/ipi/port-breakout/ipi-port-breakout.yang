@@ -23,12 +23,12 @@ module ipi-port-breakout {
 
     import ipi-port-breakout-types {
         prefix ipi-port-breakout-types;
-        revision-date 2023-04-07;
+        revision-date 2023-07-26;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     include ipi-port-breakout-interface { revision-date 2023-03-01;}
@@ -45,13 +45,48 @@ module ipi-port-breakout {
         "Datamodel for Layer-2 Port Breakout";
 
 
-    revision "2023-04-14" {
+    revision "2023-10-05" {
+        description "Added flags for serdes in port breakout ";
+        reference " 0.4.6.";
+    }
+
+    revision "2023-09-20" {
+        description "Maverick2 port breakout support";
+        reference " 0.4.5.";
+    }
+
+    revision "2023-07-26" {
+        description "Combined breakout and breakout-ifname containers";
+        reference " 0.4.4.";
+    }
+
+    revision "2023-07-12" {
+        description "Restructred port breakout data model";
+        reference " 0.4.3.";
+    }
+
+    revision "2023-06-22" {
+        description "Added changes in xgs port breakout";
+        reference " 0.4.2.";
+    }
+
+    revision "2023-05-29" {
+        description "Restructuredport breakout support for non dune boards";
+        reference " 0.4.1.";
+    }
+
+    revision "2023-05-17" {
+        description "400g port breakout support for TH3 board";
+        reference " 0.4.0.";
+    }
+
+    revision "2023-04-12" {
         description "Added dependency for port breakout config";
         reference " 0.3.9.";
     }
 
-    revision "2023-04-07" {
-        description "Blocked 400g breakout mode for dnx";
+    revision "2023-03-23" {
+        description "400g port breakout support for dnx";
         reference " 0.3.8.";
     }
 
@@ -122,11 +157,14 @@ module ipi-port-breakout {
     grouping port-breakout-breakout-config {
         description
             "Grouping for port-breakout configuration data";
-        leaf port-number  {
-            type  uint8;
-            description "Use this attribute to set the port number associated with this
-                        instance";
-        } // END of port-number definition.
+        leaf interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "use this attribute to configure the port breakout with Interface
+                        name/portnumber";
+        } // END of interface definition.
 
         leaf mode  {
             type  ipi-port-breakout-types:port_breakout_mode_t;
@@ -134,27 +172,29 @@ module ipi-port-breakout {
             description "Use this attribute to set port breakout mode";
         } // END of mode definition.
 
+        leaf serdes  {
+            type  ipi-port-breakout-types:port_breakout_serdes_type_t;
+            description "Use this attribute to set lane per port";
+        } // END of serdes definition.
+
     } // END of port-breakout-breakout-config definition.
     grouping port-breakout-breakout-top {
         description
             "Grouping for port-breakout entries";
         container breakouts {
-            if-feature feature-list:NOT_HAVE_DUNE;
             description
                 "Container for port-breakout list configuration";
 
             list breakout {
-            // when " ipi-port-breakout:port-breakout/breakouts/breakout/config/mode ";
-                key "port-number";
+                key "interface";
                 description
                     "List of port breakout";
-                leaf port-number  {
+                leaf interface  {
                     type  leafref {
-                        path  "../config/port-number";
+                        path  "../config/interface";
                     }
-                    description "Use this attribute to set the port number associated with this
-                                instance";
-                } // END of port-number definition.
+                    description "Name of the interface to breakout";
+                } // END of interface definition.
 
                 container config {
                     description
@@ -230,57 +270,6 @@ module ipi-port-breakout {
             } // End of group-speed-list
         } // END of groups-speed-container definition.
     } // END of port-breakout-group-speed-top definition.
-    grouping port-breakout-dune-breakout-config {
-        description
-            "Grouping for port-breakout configuration data";
-        leaf if-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Interface name";
-        } // END of if-name definition.
-
-        leaf mode  {
-            type  ipi-port-breakout-types:port_breakout_mode_t;
-            mandatory true;
-            description "Use this attribute to set port breakout mode";
-        } // END of mode definition.
-
-    } // END of port-breakout-dune-breakout-config definition.
-    grouping port-breakout-dune-breakout-top {
-        description
-            "Grouping for port-breakout entries";
-        container breakouts-dune {
-            description
-                "Container for port-breakout list configuration";
-
-            list breakout-dune {
-            // when " ipi-port-breakout:port-breakout/breakouts-dune/breakout-dune/config/mode ";
-                key "if-name";
-                description
-                    "List of port breakout";
-                leaf if-name  {
-                    type  leafref {
-                        path  "../config/if-name";
-                    }
-                    description "Name of the interface to breakout";
-                } // END of if-name definition.
-
-                container config {
-                    description
-                        "Configuration data for port-breakout entry";
-                    uses port-breakout-dune-breakout-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "Operational state data for port-breakout entry";
-                    uses port-breakout-dune-breakout-config;
-                } // END of state-container definition.
-            } // End of breakout-dune-list
-        } // END of breakouts-dune-container definition.
-    } // END of port-breakout-dune-breakout-top definition.
 
     grouping  port-breakout-grouping {
     description
@@ -292,7 +281,6 @@ module ipi-port-breakout {
         uses port-breakout-breakout-top;
         uses port-breakout-group-speed-top;
         uses port-breakout-interface-top;
-        uses port-breakout-dune-breakout-top;
     } // END of port-breakout-container definition.
     } // END of port-breakout-grouping definition.
 

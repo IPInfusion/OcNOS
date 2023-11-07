@@ -21,7 +21,7 @@ submodule ipi-ldp-l2vpn {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import ietf-yang-types {
@@ -36,7 +36,7 @@ submodule ipi-ldp-l2vpn {
 
     import ipi-ldp-types {
         prefix ipi-ldp-types;
-        revision-date 2023-05-22;
+        revision-date 2023-10-05;
     }
 
     organization
@@ -51,6 +51,16 @@ submodule ipi-ldp-l2vpn {
     description
         "Datamodel for LDP-L2VPN attributes information";
 
+
+    revision "2023-09-01" {
+        description "Updated if-feature flag for LDP VPLS counters";
+        reference " 0.6.1.";
+    }
+
+    revision "2023-08-24" {
+        description "Added new attributes for LDP VPLS counters";
+        reference " 0.6.0.";
+    }
 
     revision "2022-09-08" {
         description "Added HAVE_MPLS_VC and HAVE_VPLS flags to fix compilation issues";
@@ -366,6 +376,30 @@ submodule ipi-ldp-l2vpn {
             } // END of state-container definition.
         } // End of virtual-circuit-list-list
     } // END of ldp-virtual-circuit-top definition.
+    grouping ldp-vpls-counters-state {
+        description
+            "Grouping for global counters for VPLS";
+        leaf total-vpls-instances  {
+            type  yang:counter32;
+            description "This attribute acquires total VPLS instances";
+        } // END of total-vpls-instances definition.
+
+        leaf total-virtual-circuit-instances  {
+            type  yang:counter32;
+            description "This attribute acquires total VC instances";
+        } // END of total-virtual-circuit-instances definition.
+
+        leaf active-virtual-circuit-instances  {
+            type  yang:counter32;
+            description "This attribute acquires total active VC instances";
+        } // END of active-virtual-circuit-instances definition.
+
+        leaf inactive-virtual-circuit-instances  {
+            type  yang:counter32;
+            description "This attribute acquires total non-active VC instances";
+        } // END of inactive-virtual-circuit-instances definition.
+
+    } // END of ldp-vpls-counters-state definition.
     grouping ldp-virtual-circuit-info-state {
         description
             "State data for LDP based Virtual-Circuits";
@@ -454,6 +488,18 @@ submodule ipi-ldp-l2vpn {
             } // END of state-container definition.
             uses ldp-vpls-virtual-circuit-top;
         } // End of vpls-list-list
+        container state {
+            config false;
+            description
+                "Operational state data";
+            container counters {
+                if-feature feature-list:HAVE_VPLS;
+                config false;
+                description
+                    "Operational container for VPLS counters";
+                uses ldp-vpls-counters-state;
+            } // END of counters-container definition.
+        } // END of state-container definition.
         uses ldp-virtual-circuit-top;
     } // END of l2vpn-container definition.
     } // END of l2vpn-grouping definition.

@@ -38,16 +38,16 @@ module ipi-pcep {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
-    include ipi-pcep-lsp { revision-date 2021-09-03;}
-    include ipi-pcep-peer { revision-date 2021-09-03;}
+    include ipi-pcep-lsp { revision-date 2023-08-04;}
+    include ipi-pcep-peer { revision-date 2023-08-04;}
     include ipi-pcep-stats { revision-date 2021-09-03;}
     organization
         "IP Infusion Inc.";
@@ -61,6 +61,16 @@ module ipi-pcep {
     description
         "Datamodel for PCEP Entity";
 
+
+    revision "2023-08-04" {
+        description "Removed cliprependstr for peer";
+        reference " 0.7.1.";
+    }
+
+    revision "2023-07-18" {
+        description "Added enclosing container for entity and peer objectlists";
+        reference " 0.7.0.";
+    }
 
     revision "2023-02-24" {
         description "Added When tag for no-debug-all command";
@@ -586,37 +596,41 @@ module ipi-pcep {
         if-feature feature-list:HAVE_PCEP;
         description
             "Generic configuration and operational model for PCEP entity";
-
-        list entity {
-            key "entity-id";
+        container entities {
             description
-                "Path Computation Element Configurations";
-            leaf entity-id  {
-                type  leafref {
-                    path  "../config/entity-id";
-                }
-                description "PCEP Entity ID.";
-            } // END of entity-id definition.
+                "PCEP entity Element Configuration container";
 
-            container config {
+            list entity {
+                key "entity-id";
                 description
-                    "Configuration data of the PCEP entity on the device";
-                uses pcep-entity-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data of the PCEP entity on the device";
-                uses pcep-entity-config;
-                uses pcep-entity-state;
-            } // END of state-container definition.
-            uses pcep-entity-capability;
-            uses pcep-entity-stateful;
-            uses pcep-entity-flap-limit;
-            uses pcep-entity-update-limit;
-            uses pcep-lsp-database;
-            uses peer-grouping;
-        } // End of entity-list
+                    "Path Computation Element Configurations";
+                leaf entity-id  {
+                    type  leafref {
+                        path  "../config/entity-id";
+                    }
+                    description "PCEP Entity ID.";
+                } // END of entity-id definition.
+
+                container config {
+                    description
+                        "Configuration data of the PCEP entity on the device";
+                    uses pcep-entity-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data of the PCEP entity on the device";
+                    uses pcep-entity-config;
+                    uses pcep-entity-state;
+                } // END of state-container definition.
+                uses pcep-entity-capability;
+                uses pcep-entity-stateful;
+                uses pcep-entity-flap-limit;
+                uses pcep-entity-update-limit;
+                uses pcep-lsp-database;
+                uses peers-grouping;
+            } // End of entity-list
+        } // END of entities-container definition.
         uses pcep-init-lsp-top;
         uses pcep-debug;
         uses pcep-srv6-spirent-comp;

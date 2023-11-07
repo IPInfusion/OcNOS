@@ -21,12 +21,12 @@ submodule ipi-platform-cmis {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import ipi-platform-cmis-types {
         prefix ipi-platform-cmis-types;
-        revision-date 2023-04-11;
+        revision-date 2023-06-22;
     }
 
     import ipi-platform-sff8024-types {
@@ -48,9 +48,59 @@ submodule ipi-platform-cmis {
                 datamodel";
 
 
+    revision "2023-10-18" {
+        description "Handle QSFP-DD media and host lane emtpy config cases";
+        reference " 0.6.0.";
+    }
+
+    revision "2023-08-29" {
+        description "Add autoPopulate tag to QSFP-DD config media lane number key attribute";
+        reference " 0.5.9.";
+    }
+
+    revision "2023-08-11" {
+        description "Fixes made in order resolve QSFP-DD laser config DB sync issues";
+        reference " 0.5.8.";
+    }
+
+    revision "2023-07-28" {
+        description "Minor fixes introduced as result of review of CMIS Xpath v1.2";
+        reference " 0.5.7.";
+    }
+
+    revision "2023-07-25" {
+        description "Fixed QSFP-DD per media lane laser and user threshold config DB sync issues";
+        reference " 0.5.6.";
+    }
+
     revision "2023-07-21" {
         description "service-disable will be supported for all QSFP-DD modules";
         reference " 0.5.5.";
+    }
+
+    revision "2023-06-30" {
+        description "Added CLI command for QSFP-DD configurable threshold support";
+        reference " 0.5.4.";
+    }
+
+    revision "2023-06-29" {
+        description "Fixed QSFP-DD media side flags datatype";
+        reference " 0.5.3.";
+    }
+
+    revision "2023-06-20" {
+        description "Added CCMIS media threshold alarms";
+        reference " 0.5.2.";
+    }
+
+    revision "2023-06-12" {
+        description "Added CCMIS host threshold alarms";
+        reference " 0.5.1.";
+    }
+
+    revision "2023-06-02" {
+        description "Added CCMIS host and media discrete alarms";
+        reference " 0.5.0.";
     }
 
     revision "2023-04-11" {
@@ -571,6 +621,84 @@ submodule ipi-platform-cmis {
             } // END of state-container definition.
         } // END of monitor-alarm-container definition.
     } // END of ipi-platform-cmis-module-module-monitors-top definition.
+    grouping ipi-platform-cmis-module-host-monitors-lane-monitor-state {
+        description
+            "ipi-platform-cmis-module-host-monitors-lane-monitor-state";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_cmis_host_monitor_id_t;
+            description "Host side monitor ID";
+        } // END of id definition.
+
+        leaf description  {
+            type  string {
+                length "1..1965";
+            }
+            description "Host side monitor description";
+        } // END of description definition.
+
+        leaf value  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Host side monitor value";
+        } // END of value definition.
+
+        leaf high-alarm  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Host side monitor high alarm value";
+        } // END of high-alarm definition.
+
+        leaf high-warning  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Host side monitor high warning value";
+        } // END of high-warning definition.
+
+        leaf low-warning  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Host side monitor low warning value";
+        } // END of low-warning definition.
+
+        leaf low-alarm  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Host side monitor low alarm value";
+        } // END of low-alarm definition.
+
+    } // END of ipi-platform-cmis-module-host-monitors-lane-monitor-state definition.
+    grouping ipi-platform-cmis-module-host-monitor-alarm-state {
+        description
+            "ipi-platform-cmis-module-host-monitor-alarm-state";
+        leaf alarm-id  {
+            type  ipi-platform-cmis-types:cmm_cmis_host_monitor_id_t;
+            description "Threshold alarm ID";
+        } // END of alarm-id definition.
+
+        leaf alarm-type  {
+            type  ipi-platform-cmis-types:cmm_cmis_threshold_alarm_t;
+            description "Threshold alarm type";
+        } // END of alarm-type definition.
+
+        leaf current-value  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Current monitor value";
+        } // END of current-value definition.
+
+        leaf threshold-minimum  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Threshold minimum value";
+        } // END of threshold-minimum definition.
+
+        leaf threshold-maximum  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Threshold maximum value";
+        } // END of threshold-maximum definition.
+
+    } // END of ipi-platform-cmis-module-host-monitor-alarm-state definition.
     grouping ipi-platform-cmis-module-host-monitors-lane-flag-state {
         description
             "ipi-platform-cmis-module-host-monitors-lane-flag-state";
@@ -640,6 +768,31 @@ submodule ipi-platform-cmis {
                         "Per lane host side monitors state data";
                     uses ipi-platform-cmis-module-host-monitors-lane-state;
                 } // END of state-container definition.
+                container monitors {
+                    config false;
+                    description
+                        "Top level container for host side per lane monitors";
+
+                    list monitor {
+                        key "id";
+                        config false;
+                        description
+                            "Host side list of per lane monitors";
+                        leaf id  {
+                            type  leafref {
+                                path  "../state/id";
+                            }
+                            description "Media side monitor ID";
+                        } // END of id definition.
+
+                        container state {
+                            config false;
+                            description
+                                "Host side monitor state data";
+                            uses ipi-platform-cmis-module-host-monitors-lane-monitor-state;
+                        } // END of state-container definition.
+                    } // End of monitor-list
+                } // END of monitors-container definition.
                 container flags {
                     config false;
                     description
@@ -665,6 +818,17 @@ submodule ipi-platform-cmis {
                         } // END of state-container definition.
                     } // End of flag-list
                 } // END of flags-container definition.
+                container monitor-alarm {
+                    config false;
+                    description
+                        "Top level container for host side ler lane monitor alarm";
+                    container state {
+                        config false;
+                        description
+                            "State data for CMIS module host side per lane monitor alarm";
+                        uses ipi-platform-cmis-module-host-monitor-alarm-state;
+                    } // END of state-container definition.
+                } // END of monitor-alarm-container definition.
                 container flag-alarm {
                     config false;
                     description
@@ -729,7 +893,7 @@ submodule ipi-platform-cmis {
         description
             "ipi-platform-cmis-module-media-monitors-lane-flag-state";
         leaf id  {
-            type  ipi-platform-cmis-types:cmm_cmis_media_monitor_id_t;
+            type  ipi-platform-cmis-types:cmm_cmis_media_flag_id_t;
             description "Media side flag ID";
         } // END of id definition.
 
@@ -782,7 +946,7 @@ submodule ipi-platform-cmis {
         description
             "ipi-platform-cmis-module-media-flag-alarm-state";
         leaf alarm-id  {
-            type  ipi-platform-cmis-types:cmm_cmis_media_monitor_id_t;
+            type  ipi-platform-cmis-types:cmm_cmis_media_flag_id_t;
             description "Flag alarm ID";
         } // END of alarm-id definition.
 
@@ -846,7 +1010,7 @@ submodule ipi-platform-cmis {
                         container state {
                             config false;
                             description
-                                "Host side monitor state data";
+                                "Media side monitor state data";
                             uses ipi-platform-cmis-module-media-monitors-lane-monitor-state;
                         } // END of state-container definition.
                     } // End of monitor-list
@@ -1139,6 +1303,163 @@ submodule ipi-platform-cmis {
             } // END of state-container definition.
         } // END of laser-container definition.
     } // END of ipi-platform-qsfp-dd-laser-top definition.
+    grouping ipi-platform-qsfp-dd-threshold-parameters {
+        description
+            "Grouping of all configurable threshold parameters";
+        leaf high-alarm  {
+            type  decimal64 {
+                 fraction-digits 6;            }
+            description "High alarm threshold";
+        } // END of high-alarm definition.
+
+        leaf low-alarm  {
+            type  decimal64 {
+                 fraction-digits 6;            }
+            description "Low alarm threshold";
+        } // END of low-alarm definition.
+
+        leaf high-warning  {
+            type  decimal64 {
+                 fraction-digits 6;            }
+            description "High warn threshold";
+        } // END of high-warning definition.
+
+        leaf low-warning  {
+            type  decimal64 {
+                 fraction-digits 6;            }
+            description "Low warn threshold";
+        } // END of low-warning definition.
+
+    } // END of ipi-platform-qsfp-dd-threshold-parameters definition.
+    grouping ipi-platform-qsfp-dd-host-lane-threshold-config {
+        description
+            "Grouping for per host lane threshold configurable parameters";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_ccmis_host_lane_thres_id_t;
+            description "Threshold ID";
+        } // END of id definition.
+
+        uses ipi-platform-qsfp-dd-threshold-parameters;
+    } // END of ipi-platform-qsfp-dd-host-lane-threshold-config definition.
+    grouping ipi-platform-qsfp-dd-host-thresholds-top {
+        description
+            "Grouping for per host lane thresholds configuration related data";
+        container thresholds {
+            description
+                "Top level container for per host lane thresholds";
+
+            list threshold {
+            // when "                  ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config/high-alarm  +                  ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config/low-alarm ";
+                key "id";
+                description
+                    "List of thresholds and their configuration";
+                leaf id  {
+                    type  leafref {
+                        path  "../config/id";
+                    }
+                    description "Threshold ID";
+                } // END of id definition.
+
+                container config {
+                    description
+                        "Threshold configuration data";
+                    uses ipi-platform-qsfp-dd-host-lane-threshold-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Threshold operational data";
+                    uses ipi-platform-qsfp-dd-host-lane-threshold-config;
+                } // END of state-container definition.
+            } // End of threshold-list
+        } // END of thresholds-container definition.
+    } // END of ipi-platform-qsfp-dd-host-thresholds-top definition.
+    grouping ipi-platform-qsfp-dd-media-lane-threshold-config {
+        description
+            "Grouping for per media lane threshold configurable parameters";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_ccmis_media_lane_thres_id_t;
+            description "Threshold ID";
+        } // END of id definition.
+
+        uses ipi-platform-qsfp-dd-threshold-parameters;
+    } // END of ipi-platform-qsfp-dd-media-lane-threshold-config definition.
+    grouping ipi-platform-qsfp-dd-media-thresholds-top {
+        description
+            "Grouping for per media lane thresholds configuration related data";
+        container thresholds {
+            description
+                "Top level container for per media lane thresholds";
+
+            list threshold {
+            // when "                  ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config/high-alarm  +                  ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config/low-alarm ";
+                key "id";
+                description
+                    "List of thresholds and their configuration";
+                leaf id  {
+                    type  leafref {
+                        path  "../config/id";
+                    }
+                    description "Threshold ID";
+                } // END of id definition.
+
+                container config {
+                    description
+                        "Threshold configuration data";
+                    uses ipi-platform-qsfp-dd-media-lane-threshold-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Threshold operational data";
+                    uses ipi-platform-qsfp-dd-media-lane-threshold-config;
+                } // END of state-container definition.
+            } // End of threshold-list
+        } // END of thresholds-container definition.
+    } // END of ipi-platform-qsfp-dd-media-thresholds-top definition.
+    grouping ipi-platform-qsfp-dd-threshold-config {
+        description
+            "Grouping for global threshold configurable parameters";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_ccmis_thres_id_t;
+            description "Threshold ID";
+        } // END of id definition.
+
+        uses ipi-platform-qsfp-dd-threshold-parameters;
+    } // END of ipi-platform-qsfp-dd-threshold-config definition.
+    grouping ipi-platform-qsfp-dd-thresholds-top {
+        description
+            "Grouping for global thresholds configuration related data";
+        container thresholds {
+            description
+                "Top level container for global thresholds";
+
+            list threshold {
+            // when "                  ipi-platform-cmis:qsfp-dds/qsfp-dd/thresholds/threshold/config/high-alarm  +                  ipi-platform-cmis:qsfp-dds/qsfp-dd/thresholds/threshold/config/low-alarm ";
+                key "id";
+                description
+                    "List of thresholds and their configuration";
+                leaf id  {
+                    type  leafref {
+                        path  "../config/id";
+                    }
+                    description "Threshold ID";
+                } // END of id definition.
+
+                container config {
+                    description
+                        "Threshold configuration data";
+                    uses ipi-platform-qsfp-dd-threshold-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Threshold operational data";
+                    uses ipi-platform-qsfp-dd-threshold-config;
+                } // END of state-container definition.
+            } // End of threshold-list
+        } // END of thresholds-container definition.
+    } // END of ipi-platform-qsfp-dd-thresholds-top definition.
     grouping ipi-platform-qsfp-dd-host-lane-config {
         description
             "Host lane configuration data";
@@ -1225,6 +1546,7 @@ submodule ipi-platform-cmis {
                     "Top level container for per host lane configuration";
 
                 list lane {
+                // when " ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config ";
                     key "lane-number";
                     description
                         "List of host lanes and their configuration";
@@ -1246,6 +1568,7 @@ submodule ipi-platform-cmis {
                             "Host lane operational data";
                         uses ipi-platform-qsfp-dd-host-lane-config;
                     } // END of state-container definition.
+                    uses ipi-platform-qsfp-dd-host-thresholds-top;
                 } // End of lane-list
             } // END of lanes-container definition.
         } // END of host-container definition.
@@ -1310,6 +1633,7 @@ submodule ipi-platform-cmis {
                     "Top level container for per media lane configuration";
 
                 list lane {
+                // when "                    ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                    ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config ";
                     key "lane-number";
                     description
                         "List of media lanes and their configuration";
@@ -1332,6 +1656,7 @@ submodule ipi-platform-cmis {
                         uses ipi-platform-qsfp-dd-media-lane-config;
                     } // END of state-container definition.
                     uses ipi-platform-qsfp-dd-media-laser-top;
+                    uses ipi-platform-qsfp-dd-media-thresholds-top;
                 } // End of lane-list
             } // END of lanes-container definition.
         } // END of media-container definition.
@@ -1341,7 +1666,7 @@ submodule ipi-platform-cmis {
             "ipi-platform-qsfp-dd-top";
 
         list qsfp-dd {
-        // when "                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/application  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/service-disable  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/laser/config ";
+        // when "                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/application  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/service-disable  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config ";
             key "fp-port";
             description
                 "List of configured QSFP-DD transceivers";
@@ -1366,6 +1691,7 @@ submodule ipi-platform-cmis {
             uses ipi-platform-qsfp-dd-host-top;
             uses ipi-platform-qsfp-dd-media-top;
             uses ipi-platform-qsfp-dd-laser-top;
+            uses ipi-platform-qsfp-dd-thresholds-top;
         } // End of qsfp-dd-list
     } // END of ipi-platform-qsfp-dd-top definition.
 

@@ -23,7 +23,7 @@ module ipi-qos {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-qos-types {
@@ -33,7 +33,7 @@ module ipi-qos {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -51,7 +51,32 @@ module ipi-qos {
 
     revision "2023-10-09" {
         description "Added CML_FORCE_SET flags to qos-policer types";
-        reference " 3.0.4.";
+        reference " 4.0.6.";
+    }
+
+    revision "2023-08-30" {
+        description "Enable match ethertype for DC";
+        reference " 4.0.5.";
+    }
+
+    revision "2023-07-11" {
+        description "Added HAVE_CUSTOM4_QOS flag for Marvell AC5X";
+        reference " 4.0.2.";
+    }
+
+    revision "2023-07-10" {
+        description "Enable QoS by default";
+        reference " 4.0.4.";
+    }
+
+    revision "2023-07-07" {
+        description "Removing the misplaced initialized from wred object";
+        reference " 4.0.1.";
+    }
+
+    revision "2023-07-03" {
+        description "Remove qos queue-to-precedence configuration";
+        reference " 4.0.3.";
     }
 
     revision "2023-05-30" {
@@ -298,7 +323,7 @@ module ipi-qos {
                 "State data for QoS class-map-default";
 
             list class-map-default {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos = 'enable' ";
                 key "name";
                 config false;
                 description
@@ -428,7 +453,7 @@ module ipi-qos {
                             "Configuration data for QoS class match-any";
 
                         list layer4-match {
-                            if-feature feature-list:HAVE_CUSTOM2_QOS;
+                            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
                             key "protocol port-type";
                             max-elements 1;
                             description
@@ -522,7 +547,7 @@ module ipi-qos {
                         } // End of layer4-match-ipv4-list
                     } // END of layer4-matches-ipv4-container definition.
                     container layer4-matches-ipv6 {
-                        if-feature feature-list:HAVE_CUSTOM2_QOS;
+                        if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
                         description
                             "Configuration data for QoS class ipv6 layer 4 match";
 
@@ -663,7 +688,6 @@ module ipi-qos {
 
         leaf-list ethertype  {
             // when " !ipi-qos:qos/global/class-maps/class-map/match-any-conditions/config/access-control-list-name ";
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
                 length "1..1965";
                 pattern "0x[^?' =,>]+";
@@ -733,7 +757,7 @@ module ipi-qos {
 
         leaf ipv6-dscp  {
             // when " !ipi-qos:qos/global/class-maps/class-map/match-any-conditions/config/access-control-list-name ";
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             type  cml-data-types:cml_range_t;
             description "Use this attribute to classify traffic based on the Differentiated
                         Services Control Protocol (DSCP) value.
@@ -753,7 +777,7 @@ module ipi-qos {
 
         leaf ipv6-precedence  {
             // when " !ipi-qos:qos/global/class-maps/class-map/match-any-conditions/config/access-control-list-name ";
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             type  cml-data-types:cml_range_t;
             description "Use this attribute to classify IPv6 traffic based on the precedence
                         value.
@@ -796,7 +820,6 @@ module ipi-qos {
         description
             "Grouping for QoS class match-all configuration";
         leaf ethertype-all  {
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  string {
                 length "5..6";
                 pattern "0x[0-9a-fA-F]+";
@@ -1284,7 +1307,7 @@ module ipi-qos {
         description
             "Grouping for QoS DSCP to DSCP profile";
         container dscp-to-dscp-profiles {
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             description
                 "Configuration data for QoS DSCP to DSCP profile";
 
@@ -1401,7 +1424,7 @@ module ipi-qos {
         description
             "Grouping for QoS Precedence to Precedence profile";
         container precedence-to-precedence-profiles {
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             description
                 "Configuration data for QoS Precedence to Precedence profile";
 
@@ -2619,6 +2642,7 @@ module ipi-qos {
         description
             "Grouping for QoS Traffic-Class to Precedence profile";
         container queue-to-precedence-profiles {
+            if-feature feature-list:HAVE_CUSTOM1_QOS;
             description
                 "Configuration data for QoS Traffic-Class to Precedence profile";
 
@@ -2903,7 +2927,7 @@ module ipi-qos {
             "Grouping for QoS queue scheduler";
         container scheduler-mode {
             when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
-            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM4_QOS;
             description
                 "Configuration data for QoS queue scheduler";
             uses qos-queue-wrr-unicast-non-unicast;
@@ -3105,7 +3129,6 @@ module ipi-qos {
         } // END of strict-priority-enabled definition.
 
         leaf priority-level  {
-            // when " !ipi-qos:qos/global/policy-maps/policy-map/classes/class/queue-mode/config/weighted-fair-queueing-queue-weight ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "0..7"  {
@@ -3117,7 +3140,6 @@ module ipi-qos {
         } // END of priority-level definition.
 
         leaf weighted-fair-queueing-queue-weight  {
-            // when " !ipi-qos:qos/global/policy-maps/policy-map/classes/class/queue-mode/config/priority-level ";
             if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint8 {
                  range "1..63"  {
@@ -3168,7 +3190,7 @@ module ipi-qos {
         description
             "Grouping for QoS queue weighted random early detection";
         container wreds {
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             description
                 "Configuration data for QoS queue weighted random early detection";
 
@@ -3185,6 +3207,7 @@ module ipi-qos {
                 } // END of color definition.
 
                 container config {
+                    presence "QoS queue weighted random early detection";
                     description
                         "Configuration data for QoS queue weighted random early detection";
                     uses qos-queue-mode-wred-config;
@@ -3281,14 +3304,12 @@ module ipi-qos {
                     description "1..524288:Not Feature : HAVE_CUSTOM2_QOS  Supported range 1 - 524288";
                  }
             }
-            mandatory true;
             description "Use this attribute to set Weighted Random Early Detection minimum
                         threshold";
         } // END of min-threshold definition.
 
         leaf threshold-unit  {
             type  ipi-qos-types:qos_threshold_t;
-            mandatory true;
             description "Use this attribute to set minimum threshold unit";
         } // END of threshold-unit definition.
 
@@ -3298,7 +3319,6 @@ module ipi-qos {
                     description "1..524288: Supported range 1 - 524288";
                  }
             }
-            mandatory true;
             description "Use this attribute to set maximum threshold unit";
         } // END of max-threshold definition.
 
@@ -3775,7 +3795,6 @@ module ipi-qos {
                             - 2000000000";
                  }
             }
-            mandatory true;
             description "Use this attribute to set a Committed Information Rate. Default value
                         is 1.";
         } // END of cir definition.
@@ -3803,7 +3822,7 @@ module ipi-qos {
         } // END of bc-unit definition.
 
         leaf eir  {
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             type  uint64 {
                  range "1..2438400000"  {
                     description "1..2438400000:Feature : HAVE_POLICE_MAX_RATE_500GBPS Supported range 1
@@ -3817,7 +3836,7 @@ module ipi-qos {
 
         leaf eir-unit  {
             // when " ../eir ";
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             type  ipi-qos-types:qos_rate_unit_t;
             description "Use this attribute to set an Excess Information Rate unit";
         } // END of eir-unit definition.
@@ -4116,7 +4135,7 @@ module ipi-qos {
         } // END of cos definition.
 
         leaf dei  {
-            if-feature feature-list:NOT_HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM3_QOS;
             type  empty;
             description "Use this command to enable remarking of DEI set by the egress map";
         } // END of dei definition.
@@ -4151,13 +4170,13 @@ module ipi-qos {
         description
             "Grouping for QoS global configuration";
         leaf enable-qos  {
-            type  empty;
+            type  cml-data-types:cml_enable_disable_t;
             description "Use this attribute to globally enable or disable QoS";
         } // END of enable-qos definition.
 
         leaf red-drop-disabled  {
-            // when " ipi-qos:qos/global/config/enable-qos ";
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            // when " ipi-qos:qos/global/config/enable-qos == '1' ";
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             type  empty;
             description "Use this attribute to disable red packet drop in the system. Red
                         packets are dropped in the system by default to
@@ -4168,13 +4187,13 @@ module ipi-qos {
         } // END of red-drop-disabled definition.
 
         leaf statistics-enabled  {
-            // when " ipi-qos:qos/global/config/enable-qos ";
+            // when " ipi-qos:qos/global/config/enable-qos == '1' ";
             type  empty;
             description "Use this attribute to enable QoS statistics";
         } // END of statistics-enabled definition.
 
         leaf block-size  {
-            // when " ipi-qos:qos/global/config/enable-qos ";
+            // when " ipi-qos:qos/global/config/enable-qos == '1' ";
             if-feature feature-list:HAVE_FLEXPORT;
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {

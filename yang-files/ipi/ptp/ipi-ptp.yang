@@ -33,22 +33,22 @@ module ipi-ptp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-ptp-types {
         prefix ipi-ptp-types;
-        revision-date 2022-11-21;
+        revision-date 2023-08-07;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     include ipi-ptp-notifications { revision-date 2022-12-19;}
@@ -64,6 +64,41 @@ module ipi-ptp {
     description
         "Datamodel for PTP configurations";
 
+
+    revision "2023-10-06" {
+        description "Correct descriptions of utc-offset baseline";
+        reference " 0.9.13.";
+    }
+
+    revision "2023-08-18" {
+        description "clear-clock-id should have correct feature flags ";
+        reference " 0.9.12.";
+    }
+
+    revision "2023-08-16" {
+        description "Added util function in master-ipv6-address ";
+        reference " 0.9.11.";
+    }
+
+    revision "2023-08-07" {
+        description "Added ptp l3 mulitcast support for broadptp";
+        reference " 0.9.9.";
+    }
+
+    revision "2023-07-11" {
+        description "Marvell-PTP: Enabling PTP stats clear feature ";
+        reference " 0.9.10.";
+    }
+
+    revision "2023-07-06" {
+        description "Marvell-PTP: Enabling the PTP northbound configuration";
+        reference " 0.9.9.";
+    }
+
+    revision "2023-05-11" {
+        description "source-address ipv4,ipv6 support";
+        reference " 0.9.8.";
+    }
 
     revision "2023-05-04" {
         description "Added the include-input-for-set-as-optional flag for the system-clock-sync attribute ";
@@ -314,7 +349,7 @@ module ipi-ptp {
         description
             "Grouping for ptp port data set configuration";
         container ports {
-            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DUNE_OR_HAVE_MARVELL;
             description
                 "Top level container for ports data set of the clock";
 
@@ -333,6 +368,7 @@ module ipi-ptp {
                     description
                         "Configuration data";
                     uses ptp-port-config;
+                    uses ptp-port-config-linklocal;
                 } // END of config-container definition.
                 container state {
                     config false;
@@ -356,6 +392,33 @@ module ipi-ptp {
             } // End of port-list
         } // END of ports-container definition.
     } // END of ptp-port-data-set-top definition.
+    grouping ptp-port-config-linklocal {
+        description
+            "Grouping for ptp port configuration";
+        leaf source-ipv6-link-local-address  {
+            if-feature feature-list:HAVE_IPV6;
+            type  empty;
+            description "When set the clock source addrress is a linklocal address";
+        } // END of source-ipv6-link-local-address definition.
+
+        leaf source-ipv6-address  {
+            if-feature feature-list:HAVE_IPV6;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "When set the clock source addrress as ipv6";
+        } // END of source-ipv6-address definition.
+
+        leaf source-ipv4-address  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "When set the clock source addrress as ipv4";
+        } // END of source-ipv4-address definition.
+
+    } // END of ptp-port-config-linklocal definition.
     grouping ptp-port-config {
         description
             "Grouping for ptp port configuration";
@@ -395,12 +458,6 @@ module ipi-ptp {
             type  empty;
             description "Set dst mac as non forwardable mac 01:80:C2:00:00:0E";
         } // END of non-forwardable-mac-addr definition.
-
-        leaf source-ipv6-link-local-address  {
-            if-feature feature-list:HAVE_IPV6;
-            type  empty;
-            description "When set the clock source addrress is a linklocal address";
-        } // END of source-ipv6-link-local-address definition.
 
         leaf log-min-delay-req-interval  {
             type  int8 {
@@ -1390,7 +1447,7 @@ module ipi-ptp {
         description
             "Grouping for ptp default data set configuration";
         container default-data-set {
-            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DUNE_OR_HAVE_MARVELL;
             description
                 "The default data set of the clock";
             container config {
@@ -1831,7 +1888,7 @@ module ipi-ptp {
     } // END of ptp-utc-offset-date-config definition.
     grouping ptp-utc-offset-baseline-top {
         description
-            "Grouping for PTP UTC leap - baseline configuration top";
+            "Grouping for PTP UTC leap seconds baseline configuration top";
         container baseline {
             description
                 "Configuration data";
@@ -1850,7 +1907,7 @@ module ipi-ptp {
     } // END of ptp-utc-offset-baseline-top definition.
     grouping ptp-utc-offset-baseline-config {
         description
-            "Grouping for PTP UTC leap - baseline configuration";
+            "Grouping for PTP UTC leap seconds baseline configuration";
         leaf baseline-seconds  {
             type  uint8 {
                  range "0..99"  {
@@ -1858,7 +1915,7 @@ module ipi-ptp {
                  }
             }
             units "seconds";
-            description "UTC leap - baseline in seconds";
+            description "UTC leap seconds baseline";
         } // END of baseline-seconds definition.
 
     } // END of ptp-utc-offset-baseline-config definition.
@@ -2017,7 +2074,7 @@ module ipi-ptp {
         description
             "Grouping for PTP parent data set";
         container parent-data-set {
-            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DUNE_OR_HAVE_MARVELL;
             description
                 "PTP parent data set parameters";
             container state {
@@ -2298,8 +2355,8 @@ module ipi-ptp {
 
     rpc ptp-clear-statistics {
         if-feature feature-list:HAVE_PTP_HW_OFFLOAD;
-        if-feature feature-list:HAVE_DUNE;
         if-feature feature-list:HAVE_PTPD;
+        if-feature feature-list:HAVE_DUNE_OR_HAVE_MARVELL;
         description "PTP clear statistics RPC";
         input  {
             leaf clear-clock  {

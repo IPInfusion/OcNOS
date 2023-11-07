@@ -23,7 +23,7 @@ module ipi-routemap {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-routemap-types {
@@ -33,7 +33,7 @@ module ipi-routemap {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ietf-inet-types {
@@ -43,7 +43,7 @@ module ipi-routemap {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -58,6 +58,11 @@ module ipi-routemap {
     description
         "Layer-3 pbr configurations";
 
+
+    revision "2023-08-02" {
+        description "Route Map Data Model have lists without enclosing container";
+        reference " 0.8.0.";
+    }
 
     revision "2023-02-02" {
         description "Updated missing Description";
@@ -738,50 +743,54 @@ module ipi-routemap {
     grouping set-aggregator-list {
         description
             "set entry config data";
-
-        list bgp-aggregator-attribute {
-            key "as-number aggregator-ip-address";
-            max-elements 1;
+        container bgp-aggregator-attributes {
             description
-                "aggregator info";
-            leaf as-number  {
-                type  leafref {
-                    path  "../config/as-number";
-                }
-                description "Use this attribute to set the AS number for the route map and router
-                            ID. An Autonomous System (AS) is a collection of networks under a
-                            common administration sharing a common routing strategy. It is
-                            subdivided by areas, and is assigned a unique 16-bit number. Use the
-                            set aggregator command to assign an AS number for the aggregator.To
-                            use the set aggregator command, you must first have a match clause.
-                            Match and set commands set the conditions for redistributing routes
-                            from one routing protocol to another. The match command specifies the
-                            match criteria under which redistribution is allowed for the current
-                            route-map. The set command specifies the set redistribution actions to
-                            be performed, if the match criteria are met.If the packets do not
-                            match any of the defined criteria, they are routed through the normal
-                            routing process.";
-            } // END of as-number definition.
+                "Top level container for aggregator info";
 
-            leaf aggregator-ip-address  {
-                type  leafref {
-                    path  "../config/aggregator-ip-address";
-                }
-                description "IP address of aggregator.";
-            } // END of aggregator-ip-address definition.
+            list bgp-aggregator-attribute {
+                key "as-number aggregator-ip-address";
+                max-elements 1;
+                description
+                    "aggregator info";
+                leaf as-number  {
+                    type  leafref {
+                        path  "../config/as-number";
+                    }
+                    description "Use this attribute to set the AS number for the route map and router
+                                ID. An Autonomous System (AS) is a collection of networks under a
+                                common administration sharing a common routing strategy. It is
+                                subdivided by areas, and is assigned a unique 16-bit number. Use the
+                                set aggregator command to assign an AS number for the aggregator.To
+                                use the set aggregator command, you must first have a match clause.
+                                Match and set commands set the conditions for redistributing routes
+                                from one routing protocol to another. The match command specifies the
+                                match criteria under which redistribution is allowed for the current
+                                route-map. The set command specifies the set redistribution actions to
+                                be performed, if the match criteria are met.If the packets do not
+                                match any of the defined criteria, they are routed through the normal
+                                routing process.";
+                } // END of as-number definition.
 
-            container config {
-                description
-                    "aggregator list";
-                uses aggregator-info;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "aggregator Operational state data";
-                uses aggregator-info;
-            } // END of state-container definition.
-        } // End of bgp-aggregator-attribute-list
+                leaf aggregator-ip-address  {
+                    type  leafref {
+                        path  "../config/aggregator-ip-address";
+                    }
+                    description "IP address of aggregator.";
+                } // END of aggregator-ip-address definition.
+
+                container config {
+                    description
+                        "aggregator list";
+                    uses aggregator-info;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "aggregator Operational state data";
+                    uses aggregator-info;
+                } // END of state-container definition.
+            } // End of bgp-aggregator-attribute-list
+        } // END of bgp-aggregator-attributes-container definition.
     } // END of set-aggregator-list definition.
     grouping route-target-info {
         description
@@ -830,45 +839,49 @@ module ipi-routemap {
     grouping set-ext-cost-list {
         description
             "set extended community cost config data";
-
-        list cost {
-            key "comparison-type community-id cost-value";
-            max-elements 1;
+        container costs {
             description
-                "extened community cost info";
-            leaf comparison-type  {
-                type  leafref {
-                    path  "../config/comparison-type";
-                }
-                description "use this attribute to set Extended cost community.";
-            } // END of comparison-type definition.
+                "Top level container for cost info";
 
-            leaf community-id  {
-                type  leafref {
-                    path  "../config/community-id";
-                }
-                description "use this attribute to set Extended community-id";
-            } // END of community-id definition.
-
-            leaf cost-value  {
-                type  leafref {
-                    path  "../config/cost-value";
-                }
-                description "use this attribute to set Extended community cost value";
-            } // END of cost-value definition.
-
-            container config {
+            list cost {
+                key "comparison-type community-id cost-value";
+                max-elements 1;
                 description
-                    "cost list";
-                uses cost-info;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "cost Operational state data";
-                uses cost-info;
-            } // END of state-container definition.
-        } // End of cost-list
+                    "extened community cost info";
+                leaf comparison-type  {
+                    type  leafref {
+                        path  "../config/comparison-type";
+                    }
+                    description "use this attribute to set Extended cost community.";
+                } // END of comparison-type definition.
+
+                leaf community-id  {
+                    type  leafref {
+                        path  "../config/community-id";
+                    }
+                    description "use this attribute to set Extended community-id";
+                } // END of community-id definition.
+
+                leaf cost-value  {
+                    type  leafref {
+                        path  "../config/cost-value";
+                    }
+                    description "use this attribute to set Extended community cost value";
+                } // END of cost-value definition.
+
+                container config {
+                    description
+                        "cost list";
+                    uses cost-info;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "cost Operational state data";
+                    uses cost-info;
+                } // END of state-container definition.
+            } // End of cost-list
+        } // END of costs-container definition.
     } // END of set-ext-cost-list definition.
     grouping set-ext-list {
         description
@@ -890,31 +903,35 @@ module ipi-routemap {
     grouping set-ext-rt-list {
         description
             "set entry route target config data";
-
-        list route-target {
-            key "ext-community-rt";
-            max-elements 1;
+        container route-targets {
             description
-                "extened route target info";
-            leaf ext-community-rt  {
-                type  leafref {
-                    path  "../config/ext-community-rt";
-                }
-                description "use this attribute to set an Route target extended community";
-            } // END of ext-community-rt definition.
+                "Top level container for route target info";
 
-            container config {
+            list route-target {
+                key "ext-community-rt";
+                max-elements 1;
                 description
-                    "route target list";
-                uses route-target-info;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "route target Operational state data";
-                uses route-target-info;
-            } // END of state-container definition.
-        } // End of route-target-list
+                    "extened route target info";
+                leaf ext-community-rt  {
+                    type  leafref {
+                        path  "../config/ext-community-rt";
+                    }
+                    description "use this attribute to set an Route target extended community";
+                } // END of ext-community-rt definition.
+
+                container config {
+                    description
+                        "route target list";
+                    uses route-target-info;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "route target Operational state data";
+                    uses route-target-info;
+                } // END of state-container definition.
+            } // End of route-target-list
+        } // END of route-targets-container definition.
     } // END of set-ext-rt-list definition.
     grouping set-list {
         description

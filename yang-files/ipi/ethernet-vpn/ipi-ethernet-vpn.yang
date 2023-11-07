@@ -23,7 +23,7 @@ module ipi-ethernet-vpn {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ietf-inet-types {
@@ -38,17 +38,17 @@ module ipi-ethernet-vpn {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-03-14;
+        revision-date 2023-07-13;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ipi-evpn-mpls {
         prefix ipi-evpn-mpls;
-        revision-date 2023-08-25;
+        revision-date 2023-08-23;
     }
 
     import ipi-evpn-srv6 {
@@ -58,12 +58,17 @@ module ipi-ethernet-vpn {
 
     import ipi-if-extended {
         prefix ipi-if-extended;
-        revision-date 2023-06-26;
+        revision-date 2023-10-13;
+    }
+
+    import ipi-ethernet-vpn-types {
+        prefix ipi-ethernet-vpn-types;
+        revision-date 2023-10-27;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -79,9 +84,19 @@ module ipi-ethernet-vpn {
         "Datamodel for EVPN protocol";
 
 
-    revision "2023-09-27" {
-        description "garp-gna-enable attribute addition in evpn-access-interface-config grouping";
-        reference " 0.8.8.";
+    revision "2023-10-27" {
+        description "Disabling single active cli and ac-driven cli";
+        reference " 0.9.7.";
+    }
+
+    revision "2023-10-10" {
+        description "Disabling VXLAN IRB in Celestica E1070, Ufi Space S6301-56ST-2 boards";
+        reference " 0.9.6.";
+    }
+
+    revision "2023-09-13" {
+        description "Added dependentObject for global/config container";
+        reference " 0.9.5.";
     }
 
     revision "2023-09-11" {
@@ -89,9 +104,24 @@ module ipi-ethernet-vpn {
         reference " 0.9.4.";
     }
 
-    revision "2023-08-11" {
+    revision "2023-08-16" {
+        description "Added support for ESI load-balancing";
+        reference " 0.9.3.";
+    }
+
+    revision "2023-08-02" {
         description "Add UNSET_FIRST flag to evpn-identifier";
-        reference " 0.8.7.";
+        reference " 0.9.2.";
+    }
+
+    revision "2023-06-26" {
+        description "Added module-init-condition to disable the cli's for TH3 platform";
+        reference " 0.9.1.";
+    }
+
+    revision "2023-05-26" {
+        description "garp-gna-enable attribute addition in evpn-access-interface-config grouping";
+        reference " 0.9.0.";
     }
 
     revision "2023-04-20" {
@@ -342,6 +372,45 @@ module ipi-ethernet-vpn {
         } // END of name definition.
 
     } // END of evpn-interface-config definition.
+    grouping mh-load-balance-esi-top {
+        description
+            "Top-Level Grouping for MH Load-balancing";
+        container mh-load-balance-esi {
+            description
+                "Multihoming ESI and load-balancing";
+            container config {
+                presence "yes";
+                description
+                    "Configuration data related to EVPN multi-homing ESI load-balancing";
+                uses mh-load-balance-esi-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data related to EVPN multi-homing ESI load-balancing";
+                uses mh-load-balance-esi-config;
+            } // END of state-container definition.
+        } // END of mh-load-balance-esi-container definition.
+    } // END of mh-load-balance-esi-top definition.
+    grouping mh-load-balance-esi-config {
+        description
+            "MH interface configuration for ESI";
+        leaf service-carving  {
+            type  ipi-ethernet-vpn-types:evpn_esi_svc_carving_df_election_t;
+            mandatory true;
+            description "Use this attribute to create or delete service-carving configuration";
+        } // END of service-carving definition.
+
+        leaf preference-weight  {
+            type  uint16 {
+                 range "1..65535"  {
+                    description "1..65535: Supported range 1 - 65535";
+                 }
+            }
+            description "Use this attribute to add preference to which should be elected as DF";
+        } // END of preference-weight definition.
+
+    } // END of mh-load-balance-esi-config definition.
     grouping mh-interface-config {
         description
             "MH interface configuration for esi";
@@ -360,6 +429,11 @@ module ipi-ethernet-vpn {
             }
             description "This Object is used to configure evpn multi-homed system-mac";
         } // END of system-mac definition.
+
+        leaf redundancy-mode  {
+            type  ipi-ethernet-vpn-types:evpn_esi_load_balance_mode_t;
+            description "Use this attribute to configure load balancing type";
+        } // END of redundancy-mode definition.
 
     } // END of mh-interface-config definition.
     grouping evpn-irb-anycast-config {
@@ -408,7 +482,7 @@ module ipi-ethernet-vpn {
         description
             "Grouping for EVPN access interface configuration";
         leaf access-if  {
-            type  cml-data-types:evpn_acc_if_t;
+            type  ipi-ethernet-vpn-types:evpn_acc_if_t;
             description "evpn access port";
         } // END of access-if definition.
 
@@ -538,6 +612,7 @@ module ipi-ethernet-vpn {
                     uses evpn-interface-config;
                     uses mh-interface-config;
                 } // END of state-container definition.
+                uses mh-load-balance-esi-top;
                 uses evpn-access-interface-top;
             } // End of interface-list
         } // END of interfaces-container definition.

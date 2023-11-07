@@ -21,21 +21,21 @@ submodule ipi-bgp-peer-group {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-06-01;
+        revision-date 2023-09-22;
     }
 
-    include ipi-bgp-common { revision-date 2023-06-01;}
-    include ipi-bgp-address-family { revision-date 2023-08-23;}
+    include ipi-bgp-common { revision-date 2023-10-09;}
+    include ipi-bgp-address-family { revision-date 2023-09-12;}
     organization
         "IP Infusion Inc.";
 
@@ -49,8 +49,58 @@ submodule ipi-bgp-peer-group {
         "";
 
 
-    revision "2023-06-01" {
+    revision "2023-10-04" {
+        description "Updated cliFlag for attribute 'enable-dynamic-capability'";
+        reference " 0.10.13.";
+    }
+
+    revision "2023-09-22" {
+        description "Update datatype for attribute 'peer-type'";
+        reference " 0.10.12.";
+    }
+
+    revision "2023-09-12" {
+        description "Added enclosing container for all objectlists";
+        reference " 0.10.11.";
+    }
+
+    revision "2023-09-05" {
+        description "Updated When tag constraints for attribute 'peer-route-map-orig-name' and 'default-peer-route-map-name'";
+        reference " 0.10.10.";
+    }
+
+    revision "2023-08-31" {
+        description "When tag constraints for attribute 'fall-over bfd' and 'enable-peer-bfd-multihop'";
+        reference " 0.10.9.";
+    }
+
+    revision "2023-08-21" {
+        description "Implicit delete tag removed for 'local-as/config' container";
+        reference " 0.10.8.";
+    }
+
+    revision "2023-08-16" {
+        description "New patch Added option 'no-prepend' and 'replace-as' for BGP neighbor local-as";
+        reference " 0.10.7.";
+    }
+
+    revision "2023-08-15" {
+        description "Revert patch Added option 'no-prepend' and 'replace-as' for BGP neighbor local-as";
+        reference " 0.10.6.";
+    }
+
+    revision "2023-08-11" {
+        description "Added option 'no-prepend' and 'replace-as' for BGP neighbor local-as";
+        reference " 0.10.5.";
+    }
+
+    revision "2023-08-03" {
         description "Adding bgp-peer-group-state grouping with peer-type attribute under peer-group/state";
+        reference " 0.10.4.";
+    }
+
+    revision "2023-07-20" {
+        description "Added support for TCP Maximum Segment Size per BGP neighbor";
         reference " 0.10.3.";
     }
 
@@ -219,320 +269,11 @@ submodule ipi-bgp-peer-group {
         reference " 0.1.0.";
     }
 
-
-
-    grouping peer-group-grouping {
-    description
-        "List of BGP Peer groups configured";
-        list peer-group {
-            if-feature feature-list:HAVE_BGPD;
-            key "peer-group-tag";
-            description
-                "List of BGP Peer groups configured";
-            leaf peer-group-tag  {
-                type  leafref {
-                    path  "../config/peer-group-tag";
-                }
-                description "Creates a peer-group group. Neighbors with the same update policies
-                            are grouped into peer-group groups. This facilitates the updates of
-                            various policies, such as distribute and filter lists. The peer-group
-                            group is then configured easily with any of the neighbor attributes.
-                            Any changes made to the peer-group group affect all members.";
-            } // END of peer-group-tag definition.
-
-
-            list bgp-password {
-            // when " ipi-bgp-peer-group:peer-group/bgp-password/config/auth-key-encrypt + ipi-bgp-peer-group:peer-group/config/peer-as ";
-                key "password";
-                max-elements 1;
-                description
-                    "list for BGP password";
-                leaf password  {
-                    type  leafref {
-                        path  "../config/password";
-                    }
-                    description "Use this attribute to enable authentication-key";
-                } // END of password definition.
-
-                container config {
-                    description
-                        "Configuration parameters relating to the BGP password";
-                    uses bgp-password-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "State parameters relating to the BGP password";
-                    uses bgp-password-config;
-                } // END of state-container definition.
-            } // End of bgp-password-list
-            container config {
-                description
-                    "Configuration parameters relating to the BGP Peer Group";
-                uses bgp-peer-group-config;
-                uses bgp-peer-group-common-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "State parameters relating to the BGP";
-                uses bgp-peer-group-config;
-                uses bgp-peer-group-state;
-                uses bgp-peer-group-common-config;
-            } // END of state-container definition.
-            container timers {
-                // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
-                description
-                    "container for bgp timers";
-                container config {
-                    presence "To configure timers";
-                    description
-                        "configuration parameters relating to timers";
-                    uses bgp-peer-timers-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "state parameters relating to timers";
-                    uses bgp-peer-timers-config;
-                } // END of state-container definition.
-            } // END of timers-container definition.
-            container ebgp-multihop {
-                // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
-                description
-                    "container for EBGP multhop";
-                container config {
-                    presence "To configure EBGP multihop";
-                    description
-                        "configuration parameters relating to EBGP multihop";
-                    uses bgp-peer-ebgp-multhop-config;
-                } // END of config-container definition.
-                container state {
-                    config false;
-                    description
-                        "state parameters relating to timers";
-                    uses bgp-peer-ebgp-multhop-config;
-                } // END of state-container definition.
-            } // END of ebgp-multihop-container definition.
-            container optional-as-lists {
-                description
-                    "Container for List of optional AS";
-
-                list optional-as-list {
-                // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
-                    key "optional-as";
-                    description
-                        "List of optional AS";
-                    leaf optional-as  {
-                        type  leafref {
-                            path  "../config/optional-as";
-                        }
-                        description "Use this attribute to specify optional AS number of BGP dynamic
-                                    peer-group";
-                    } // END of optional-as definition.
-
-                    container config {
-                        description
-                            "Configuration of optional as list";
-                        uses bgp-optional-as-list-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters of optional as list";
-                        uses bgp-optional-as-list-config;
-                    } // END of state-container definition.
-                } // End of optional-as-list-list
-            } // END of optional-as-lists-container definition.
-            container address-families {
-                description
-                    "Container for list of address-families for BGP Peer";
-
-                list address-family {
-                // when " ipi-bgp-address-family:address-family/afi + ipi-bgp-address-family:address-family/safi ";
-                    key "afi safi";
-                    description
-                        "List for address-family for BGP Peer";
-                    leaf afi  {
-                        type  leafref {
-                            path  "../config/afi";
-                        }
-                        description "BGP address family identifier";
-                    } // END of afi definition.
-
-                    leaf safi  {
-                        type  leafref {
-                            path  "../config/safi";
-                        }
-                        description "BGP sub address family identifier";
-                    } // END of safi definition.
-
-
-                    list maximum-prefixes {
-                    // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
-                        key "prefix-count";
-                        max-elements 1;
-                        description
-                            "list for Prefix related configuration";
-                        leaf prefix-count  {
-                            type  leafref {
-                                path  "../config/prefix-count";
-                            }
-                            description "Use this attribute to specify maximum number of prefixes that can be
-                                        received from a neighbor";
-                        } // END of prefix-count definition.
-
-                        container config {
-                            description
-                                "Configuration parameters relating to the number of prefixes that can
-                                        be received from a neighbor";
-                            uses bgp-address-family-maximum-prefixes-config;
-                        } // END of config-container definition.
-                        container state {
-                            config false;
-                            description
-                                "State parameters relating to the VRF address family";
-                            uses bgp-address-family-maximum-prefixes-config;
-                        } // END of state-container definition.
-                    } // End of maximum-prefixes-list
-                    container config {
-                        description
-                            "Configuration parameters relating to the address-family for BGP Peer";
-                        uses bgp-address-family-peer-group-config;
-                        uses bgp-peer-group-address-family-common-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State parameters relating to the address-family for BGP Peer";
-                        uses bgp-address-family-peer-group-config;
-                        uses bgp-peer-group-address-family-common-config;
-                    } // END of state-container definition.
-                    container distribute-list-filters {
-                        description
-                            "Container for distribute list filters";
-
-                        list distribute-list-filter {
-                        // when " ipi-bgp-peer-group:peer-group/address-families/address-family/distribute-list-filters/distribute-list-filter/config/access-list-identifier ";
-                            key "filter-direction";
-                            description
-                                "List of Distribute list Filter";
-                            leaf filter-direction  {
-                                type  leafref {
-                                    path  "../config/filter-direction";
-                                }
-                                description "Use this attribute to specify distribute list filter direction";
-                            } // END of filter-direction definition.
-
-                            container config {
-                                description
-                                    "Configuration parameters relating to BGP Distribute list Filter";
-                                uses bgp-distribute-list-filter-config;
-                            } // END of config-container definition.
-                            container state {
-                                config false;
-                                description
-                                    "State parameters relating to BGP Distribute list Filter";
-                                uses bgp-distribute-list-filter-config;
-                            } // END of state-container definition.
-                        } // End of distribute-list-filter-list
-                    } // END of distribute-list-filters-container definition.
-                    container as-list-filters {
-                        description
-                            "Container for  AS list Filters";
-
-                        list as-list-filter {
-                        // when " ipi-bgp-peer-group:peer-group/address-families/address-family/as-list-filters/as-list-filter/config/as-access-list-identifier ";
-                            key "as-list-direction";
-                            description
-                                "List of AS list Filter";
-                            leaf as-list-direction  {
-                                type  leafref {
-                                    path  "../config/as-list-direction";
-                                }
-                                description "Use this attribute to specify access list filter direction";
-                            } // END of as-list-direction definition.
-
-                            container config {
-                                description
-                                    "Configuration parameters relating to BGP AS list Fileter";
-                                uses bgp-as-list-filter-config;
-                            } // END of config-container definition.
-                            container state {
-                                config false;
-                                description
-                                    "State parameters relating to BGP AS list Fileter";
-                                uses bgp-as-list-filter-config;
-                            } // END of state-container definition.
-                        } // End of as-list-filter-list
-                    } // END of as-list-filters-container definition.
-                    container prefix-list-filters {
-                        description
-                            "Container for Prefix list Filters";
-
-                        list prefix-list-filter {
-                        // when " ipi-bgp-peer-group:peer-group/address-families/address-family/prefix-list-filters/prefix-list-filter/config/prefix-list-name ";
-                            key "prefix-filter-direction";
-                            description
-                                "List of Prefix list Filter";
-                            leaf prefix-filter-direction  {
-                                type  leafref {
-                                    path  "../config/prefix-filter-direction";
-                                }
-                                description "Use this attribute to specify prefix list filter direction";
-                            } // END of prefix-filter-direction definition.
-
-                            container config {
-                                description
-                                    "Configuration parameters relating to BGP Prefix list Filter";
-                                uses bgp-prefix-list-filter-config;
-                            } // END of config-container definition.
-                            container state {
-                                config false;
-                                description
-                                    "State parameters relating to BGP Prefix list Filter";
-                                uses bgp-prefix-list-filter-config;
-                            } // END of state-container definition.
-                        } // End of prefix-list-filter-list
-                    } // END of prefix-list-filters-container definition.
-                    container route-map-filters {
-                        description
-                            "Container for Route map Filters";
-
-                        list route-map-filter {
-                        // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate + ipi-bgp-peer-group:peer-group/address-families/address-family/route-map-filters/route-map-filter/config/route-map-name ";
-                            key "route-map-direction";
-                            description
-                                "List of Route map Filter";
-                            leaf route-map-direction  {
-                                type  leafref {
-                                    path  "../config/route-map-direction";
-                                }
-                                description "Use this attribute to specify route-map direction";
-                            } // END of route-map-direction definition.
-
-                            container config {
-                                description
-                                    "Configuration parameters relating to BGP Route map Filter";
-                                uses bgp-route-map-filter-config;
-                            } // END of config-container definition.
-                            container state {
-                                config false;
-                                description
-                                    "State parameters relating to BGP Route map Filter";
-                                uses bgp-route-map-filter-config;
-                            } // END of state-container definition.
-                        } // End of route-map-filter-list
-                    } // END of route-map-filters-container definition.
-                } // End of address-family-list
-            } // END of address-families-container definition.
-        } // End of peer-group-list
-    } // END of peer-group-grouping definition.
     grouping bgp-peer-group-state {
         description
             "State parameters for BGP peer-group groups";
         leaf peer-type  {
-            type  ipi-bgp-types:bgp_as_t;
+            type  ipi-bgp-types:bgp_peer_type_t;
             description "Labels a peer or peer group as explicitly internal or external";
         } // END of peer-type definition.
 
@@ -572,7 +313,7 @@ submodule ipi-bgp-peer-group {
         description
             "Configuration parameters for peer";
         leaf bgp-port  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  uint16 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -583,14 +324,14 @@ submodule ipi-bgp-peer-group {
         } // END of bgp-port definition.
 
         leaf activate  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Activate/Deactivate neighbor. This attribute enables or disables the
                         exchange of AF information with a neighboring router.";
         } // END of activate definition.
 
         leaf default-peer-route-map-name  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate  +  !ipi-bgp-peer-group:peer-group/address-families/address-family/config/peer-route-map-orig-name ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  empty;
             description "This attribute allows a BGP local router to send the default route
                         0.0.0.0 to a neighbor for use as a default route for specified
@@ -598,7 +339,7 @@ submodule ipi-bgp-peer-group {
         } // END of default-peer-route-map-name definition.
 
         leaf peer-route-map-orig-name  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate  +  !ipi-bgp-peer-group:peer-group/address-families/address-family/config/default-peer-route-map-name ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  string {
                 length "1..63";
                 pattern "[^?' =,>|]+";
@@ -610,7 +351,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-route-map-orig-name definition.
 
         leaf weight  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  uint16 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -630,7 +371,7 @@ submodule ipi-bgp-peer-group {
         } // END of weight definition.
 
         leaf flowspec-validation-disable  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             if-feature feature-list:HAVE_BGP_FLOWSPEC;
             type  empty;
             description "This attribute specifies if FLOWSPEC validation should be disabled for
@@ -638,7 +379,7 @@ submodule ipi-bgp-peer-group {
         } // END of flowspec-validation-disable definition.
 
         leaf peer-route-reflector  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  empty;
             description "This attribute configures the router as a BGP route reflector and
                         configure the specified neighbor as its client for specified
@@ -652,7 +393,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-route-reflector definition.
 
         leaf peer-remove-private-as  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  empty;
             description "This attribute removes the private Autonomous System (AS) number from
                         outbound updates. Private AS numbers are not advertised to the
@@ -663,7 +404,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-remove-private-as definition.
 
         leaf no-send-community  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  empty;
             description "This attribute specifies if a community attribute should be sent to a
                         BGP neighbor for specified address-family. The community attribute
@@ -673,21 +414,21 @@ submodule ipi-bgp-peer-group {
         } // END of no-send-community definition.
 
         leaf no-send-community-type  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  ipi-bgp-types:bgp_send_commu_type_t;
             description "This attribute specifies the type of community attribute to be sent to
                         a BGP neighbor.";
         } // END of no-send-community-type definition.
 
         leaf neighbor-attribute-unchanged  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  ipi-bgp-types:bgp_attribute_unchanged_type_t;
             description "This attribute advertises unchanged BGP AS path, next hop and med to
                         the specified neighbor.";
         } // END of neighbor-attribute-unchanged definition.
 
         leaf orf-prefix-capability  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  ipi-bgp-types:bgp_orf_prefix_type_t;
             description "This attribute enables Outbound Router Filtering (ORF), and advertise
                         the ORF capability to its neighbors. The ORFs send and receive
@@ -707,7 +448,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-allow-ebgp-vpn definition.
 
         leaf allow-as-number  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  uint32 {
                  range "1..10"  {
                     description "1..10: Supported range 1 - 10";
@@ -736,7 +477,7 @@ submodule ipi-bgp-peer-group {
         } // END of allow-as-number definition.
 
         leaf capability-graceful-restart  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  empty;
             description "This attribute configures the router to advertise the Graceful Restart
                         Capability to the neighbors. This configuration indicates that the BGP
@@ -746,7 +487,7 @@ submodule ipi-bgp-peer-group {
         } // END of capability-graceful-restart definition.
 
         leaf unsuppress-route-map-name  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -783,14 +524,14 @@ submodule ipi-bgp-peer-group {
         } // END of graceful-shut definition.
 
         leaf enable-peer-bfd  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as + !ipi-bgp-peer-group:peer-groups/peer-group/config/enable-peer-bfd-multihop ";
             if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer-group";
         } // END of enable-peer-bfd definition.
 
         leaf enable-peer-bfd-multihop  {
-            // when " ipi-bgp-peer-group:peer-group/config/enable-peer-bfd ";
+            // when " !ipi-bgp-peer-group:peer-groups/peer-group/config/enable-peer-bfd ";
             if-feature feature-list:HAVE_BFD;
             type  empty;
             description "Enable bidirectional forwarding detection (BFD) for the BGP peer-group
@@ -798,7 +539,7 @@ submodule ipi-bgp-peer-group {
         } // END of enable-peer-bfd-multihop definition.
 
         leaf graceful-shutdown-timer  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  uint32 {
                  range "10..65535"  {
                     description "10..65535: Supported range 10 - 65535";
@@ -809,7 +550,7 @@ submodule ipi-bgp-peer-group {
         } // END of graceful-shutdown-timer definition.
 
         leaf peer-restart-time  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             if-feature feature-list:HAVE_RESTART;
             type  uint32 {
                  range "1..3600"  {
@@ -823,18 +564,8 @@ submodule ipi-bgp-peer-group {
                         default value is 120 seconds.";
         } // END of peer-restart-time definition.
 
-        leaf peer-local-as  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
-            type  uint32 {
-                 range "1..4294967295"  {
-                    description "1..4294967295: Supported range 1 - 4294967295";
-                 }
-            }
-            description "Specifies an AS (autonomous system) number to use with BGP neighbor.";
-        } // END of peer-local-as definition.
-
         leaf peer-description  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  cml-data-types:cml_line_t {
                 length "1..1965";
             }
@@ -844,7 +575,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-description definition.
 
         leaf peer-connect-interval  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535: Supported range 1 - 65535";
@@ -861,7 +592,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-connect-interval definition.
 
         leaf peer-as-origin-interval  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  uint32 {
                  range "1..65535"  {
                     description "1..65535: Supported range 1 - 65535";
@@ -873,7 +604,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-as-origin-interval definition.
 
         leaf min-route-advertisement-interval  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  uint32 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -887,7 +618,7 @@ submodule ipi-bgp-peer-group {
         } // END of min-route-advertisement-interval definition.
 
         leaf enable-dynamic-capability  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Use this attribute to enable the dynamic capability for a specific
                         peer-group. This attribute allows a BGP speaker to advertise or
@@ -896,14 +627,14 @@ submodule ipi-bgp-peer-group {
         } // END of enable-dynamic-capability definition.
 
         leaf collide-established  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Include a neighbor already in an established state for conflict
                         resolution when a TCP connection collision is detected.";
         } // END of collide-established definition.
 
         leaf source-identifier  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -919,27 +650,27 @@ submodule ipi-bgp-peer-group {
         } // END of source-identifier definition.
 
         leaf enforce-multi-hop  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Turns on the enforcement of eBGP neighbors perform multihop.";
         } // END of enforce-multi-hop definition.
 
         leaf neighbor-override-capability  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Override a capability negotiation result and use locally configured
                         values.";
         } // END of neighbor-override-capability definition.
 
         leaf neighbor-strict-capability-match  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Close the BGP connection if capability value does not match the remote
                         peer-group.";
         } // END of neighbor-strict-capability-match definition.
 
         leaf disallow-infinite-hold-time  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Disallow configuration of infinite hold-time. A hold-time of 0 seconds
                         from the peer-group (during exchange of open messages) or the user
@@ -947,7 +678,7 @@ submodule ipi-bgp-peer-group {
         } // END of disallow-infinite-hold-time definition.
 
         leaf disable-capability-negotiation  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Disable the capability negotiation. It allows compatibility with older
                         BGP versions that have no capability parameters used in open messages
@@ -955,13 +686,13 @@ submodule ipi-bgp-peer-group {
         } // END of disable-capability-negotiation definition.
 
         leaf neighbor-passive  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Sets a BGP neighbor as passive.";
         } // END of neighbor-passive definition.
 
         leaf peer-shutdown  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Disables a neighbor administratively. It will terminate any active
                         session for a specified neighbor and clear all related routing
@@ -970,7 +701,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-shutdown definition.
 
         leaf peer-shutdown-description  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as + ipi-bgp-peer-group:peer-group/config/peer-shutdown ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as + ipi-bgp-peer-group:peer-groups/peer-group/config/peer-shutdown ";
             type  cml-data-types:cml_line_t {
                 length "1..255";
             }
@@ -979,7 +710,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-shutdown-description definition.
 
         leaf peer-port  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  uint16 {
                  range "0..65535"  {
                     description "0..65535: Supported range 0 - 65535";
@@ -990,7 +721,7 @@ submodule ipi-bgp-peer-group {
         } // END of peer-port definition.
 
         leaf bgp-version  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  uint8;
             default "4";
             description "Configure router to accept only a particular BGP version. By default,
@@ -1001,11 +732,20 @@ submodule ipi-bgp-peer-group {
         } // END of bgp-version definition.
 
         leaf enable-ext-opt-param-len  {
-            // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
             type  empty;
             description "Use this attribute for a specific peer to encode extended optional
                         parameter length.";
         } // END of enable-ext-opt-param-len definition.
+
+        leaf tcp-adjust-mss  {
+            type  uint16 {
+                 range "40..1440"  {
+                    description "40..1440: Supported range 40 - 1440";
+                 }
+            }
+            description "Use this attribute to set the BGP TCP MSS value of a neighbor.";
+        } // END of tcp-adjust-mss definition.
 
     } // END of bgp-peer-group-common-config definition.
     grouping bgp-peer-group-address-family-common-config {
@@ -1022,21 +762,21 @@ submodule ipi-bgp-peer-group {
         } // END of safi definition.
 
         leaf additional-paths-mode  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  ipi-bgp-types:bgp_peer_additional_path_type_t;
             description "Adds additional paths in the BGP table";
         } // END of additional-paths-mode definition.
 
         leaf additional-path-select-all  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  empty;
             description "Attribute to select advertise additional path";
         } // END of additional-path-select-all definition.
 
         leaf additional-paths-best-select-count  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  uint8 {
                  range "2..3"  {
@@ -1047,14 +787,14 @@ submodule ipi-bgp-peer-group {
         } // END of additional-paths-best-select-count definition.
 
         leaf route-server-client  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  empty;
             description "This attribute configures a neighbor as the route server client for
                         specified address-family.";
         } // END of route-server-client definition.
 
         leaf next-hop-self  {
-            // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
             type  empty;
             description "This attribute configure the router as the next hop for a BGP-speaking
                         neighbor or peer-group group. This attribute allows a BGP router to
@@ -1064,6 +804,357 @@ submodule ipi-bgp-peer-group {
         } // END of next-hop-self definition.
 
     } // END of bgp-peer-group-address-family-common-config definition.
+
+    grouping  peer-groups-grouping {
+    description
+        "Top levle container for BGP Peer groups configured";
+    container peer-groups {
+        if-feature feature-list:HAVE_BGPD;
+        description
+            "Top levle container for BGP Peer groups configured";
+
+        list peer-group {
+            key "peer-group-tag";
+            description
+                "List of BGP Peer groups configured";
+            leaf peer-group-tag  {
+                type  leafref {
+                    path  "../config/peer-group-tag";
+                }
+                description "Creates a peer-group group. Neighbors with the same update policies
+                            are grouped into peer-group groups. This facilitates the updates of
+                            various policies, such as distribute and filter lists. The peer-group
+                            group is then configured easily with any of the neighbor attributes.
+                            Any changes made to the peer-group group affect all members.";
+            } // END of peer-group-tag definition.
+
+            container config {
+                description
+                    "Configuration parameters relating to the BGP Peer Group";
+                uses bgp-peer-group-config;
+                uses bgp-peer-group-common-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State parameters relating to the BGP";
+                uses bgp-peer-group-config;
+                uses bgp-peer-group-state;
+                uses bgp-peer-group-common-config;
+            } // END of state-container definition.
+            container timers {
+                // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
+                description
+                    "container for bgp timers";
+                container config {
+                    presence "To configure timers";
+                    description
+                        "configuration parameters relating to timers";
+                    uses bgp-peer-timers-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state parameters relating to timers";
+                    uses bgp-peer-timers-config;
+                } // END of state-container definition.
+            } // END of timers-container definition.
+            container ebgp-multihop {
+                // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
+                description
+                    "container for EBGP multhop";
+                container config {
+                    presence "To configure EBGP multihop";
+                    description
+                        "configuration parameters relating to EBGP multihop";
+                    uses bgp-peer-ebgp-multhop-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state parameters relating to timers";
+                    uses bgp-peer-ebgp-multhop-config;
+                } // END of state-container definition.
+            } // END of ebgp-multihop-container definition.
+            container bgp-passwords {
+                description
+                    "Top level container for BGP password";
+
+                list bgp-password {
+                // when " ipi-bgp-peer-group:peer-groups/peer-group/bgp-passwords/bgp-password/config/auth-key-encrypt + ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
+                    key "password";
+                    max-elements 1;
+                    description
+                        "List for BGP password";
+                    leaf password  {
+                        type  leafref {
+                            path  "../config/password";
+                        }
+                        description "Use this attribute to enable authentication-key";
+                    } // END of password definition.
+
+                    container config {
+                        description
+                            "Configuration parameters relating to the BGP password";
+                        uses bgp-password-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State parameters relating to the BGP password";
+                        uses bgp-password-config;
+                    } // END of state-container definition.
+                } // End of bgp-password-list
+            } // END of bgp-passwords-container definition.
+            container optional-as-lists {
+                description
+                    "Container for List of optional AS";
+
+                list optional-as-list {
+                // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
+                    key "optional-as";
+                    description
+                        "List of optional AS";
+                    leaf optional-as  {
+                        type  leafref {
+                            path  "../config/optional-as";
+                        }
+                        description "Use this attribute to specify optional AS number of BGP dynamic
+                                    peer-group";
+                    } // END of optional-as definition.
+
+                    container config {
+                        description
+                            "Configuration of optional as list";
+                        uses bgp-optional-as-list-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State parameters of optional as list";
+                        uses bgp-optional-as-list-config;
+                    } // END of state-container definition.
+                } // End of optional-as-list-list
+            } // END of optional-as-lists-container definition.
+            container local-as {
+                description
+                    "Container for Local AS";
+
+                list local-as-list {
+                // when " ipi-bgp-peer-group:peer-groups/peer-group/config/peer-as ";
+                    key "peer-local-as";
+                    max-elements 1;
+                    description
+                        "Objectlist for Local AS";
+                    leaf peer-local-as  {
+                        type  leafref {
+                            path  "../config/peer-local-as";
+                        }
+                        description "Specifies an AS (autonomous system) number to use with BGP neighbor.";
+                    } // END of peer-local-as definition.
+
+                    container config {
+                        description
+                            "Configuration parameters relating to Local AS";
+                        uses bgp-peer-local-as-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "state parameters relating to Local AS";
+                        uses bgp-peer-local-as-config;
+                    } // END of state-container definition.
+                } // End of local-as-list-list
+            } // END of local-as-container definition.
+            container address-families {
+                description
+                    "Container for list of address-families for BGP Peer";
+
+                list address-family {
+                // when " ipi-bgp-address-family:address-families/address-family/afi + ipi-bgp-address-family:address-families/address-family/safi ";
+                    key "afi safi";
+                    description
+                        "List for address-family for BGP Peer";
+                    leaf afi  {
+                        type  leafref {
+                            path  "../config/afi";
+                        }
+                        description "BGP address family identifier";
+                    } // END of afi definition.
+
+                    leaf safi  {
+                        type  leafref {
+                            path  "../config/safi";
+                        }
+                        description "BGP sub address family identifier";
+                    } // END of safi definition.
+
+                    container config {
+                        description
+                            "Configuration parameters relating to the address-family for BGP Peer";
+                        uses bgp-address-family-peer-group-config;
+                        uses bgp-peer-group-address-family-common-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "State parameters relating to the address-family for BGP Peer";
+                        uses bgp-address-family-peer-group-config;
+                        uses bgp-peer-group-address-family-common-config;
+                    } // END of state-container definition.
+                    container maximum-prefixes {
+                        description
+                            "Top level container for Prefix related configuration";
+
+                        list maximum-prefix {
+                        // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
+                            key "prefix-count";
+                            max-elements 1;
+                            description
+                                "List for Prefix related configuration";
+                            leaf prefix-count  {
+                                type  leafref {
+                                    path  "../config/prefix-count";
+                                }
+                                description "Use this attribute to specify maximum number of prefixes that can be
+                                            received from a neighbor";
+                            } // END of prefix-count definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to the number of prefixes that can
+                                            be received from a neighbor";
+                                uses bgp-address-family-maximum-prefixes-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to the VRF address family";
+                                uses bgp-address-family-maximum-prefixes-config;
+                            } // END of state-container definition.
+                        } // End of maximum-prefix-list
+                    } // END of maximum-prefixes-container definition.
+                    container distribute-list-filters {
+                        description
+                            "Container for distribute list filters";
+
+                        list distribute-list-filter {
+                        // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/distribute-list-filters/distribute-list-filter/config/access-list-identifier ";
+                            key "filter-direction";
+                            description
+                                "List of Distribute list Filter";
+                            leaf filter-direction  {
+                                type  leafref {
+                                    path  "../config/filter-direction";
+                                }
+                                description "Use this attribute to specify distribute list filter direction";
+                            } // END of filter-direction definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to BGP Distribute list Filter";
+                                uses bgp-distribute-list-filter-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to BGP Distribute list Filter";
+                                uses bgp-distribute-list-filter-config;
+                            } // END of state-container definition.
+                        } // End of distribute-list-filter-list
+                    } // END of distribute-list-filters-container definition.
+                    container as-list-filters {
+                        description
+                            "Container for  AS list Filters";
+
+                        list as-list-filter {
+                        // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/as-list-filters/as-list-filter/config/as-access-list-identifier ";
+                            key "as-list-direction";
+                            description
+                                "List of AS list Filter";
+                            leaf as-list-direction  {
+                                type  leafref {
+                                    path  "../config/as-list-direction";
+                                }
+                                description "Use this attribute to specify access list filter direction";
+                            } // END of as-list-direction definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to BGP AS list Fileter";
+                                uses bgp-as-list-filter-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to BGP AS list Fileter";
+                                uses bgp-as-list-filter-config;
+                            } // END of state-container definition.
+                        } // End of as-list-filter-list
+                    } // END of as-list-filters-container definition.
+                    container prefix-list-filters {
+                        description
+                            "Container for Prefix list Filters";
+
+                        list prefix-list-filter {
+                        // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/prefix-list-filters/prefix-list-filter/config/prefix-list-name ";
+                            key "prefix-filter-direction";
+                            description
+                                "List of Prefix list Filter";
+                            leaf prefix-filter-direction  {
+                                type  leafref {
+                                    path  "../config/prefix-filter-direction";
+                                }
+                                description "Use this attribute to specify prefix list filter direction";
+                            } // END of prefix-filter-direction definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to BGP Prefix list Filter";
+                                uses bgp-prefix-list-filter-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to BGP Prefix list Filter";
+                                uses bgp-prefix-list-filter-config;
+                            } // END of state-container definition.
+                        } // End of prefix-list-filter-list
+                    } // END of prefix-list-filters-container definition.
+                    container route-map-filters {
+                        description
+                            "Container for Route map Filters";
+
+                        list route-map-filter {
+                        // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate + ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/route-map-filters/route-map-filter/config/route-map-name ";
+                            key "route-map-direction";
+                            description
+                                "List of Route map Filter";
+                            leaf route-map-direction  {
+                                type  leafref {
+                                    path  "../config/route-map-direction";
+                                }
+                                description "Use this attribute to specify route-map direction";
+                            } // END of route-map-direction definition.
+
+                            container config {
+                                description
+                                    "Configuration parameters relating to BGP Route map Filter";
+                                uses bgp-route-map-filter-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "State parameters relating to BGP Route map Filter";
+                                uses bgp-route-map-filter-config;
+                            } // END of state-container definition.
+                        } // End of route-map-filter-list
+                    } // END of route-map-filters-container definition.
+                } // End of address-family-list
+            } // END of address-families-container definition.
+        } // End of peer-group-list
+    } // END of peer-groups-container definition.
+    } // END of peer-groups-grouping definition.
 
 
 }

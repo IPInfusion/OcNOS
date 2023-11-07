@@ -5,6 +5,14 @@ module ipi-oc-ni-augments {
   import openconfig-network-instance { prefix oc-netinst; }
   import openconfig-network-instance-types { prefix oc-ni-types; }
 
+  revision "2023-07-25" {
+    description "Add enabled leaf for LDP in config and state container";
+  }
+
+  revision "2023-06-06" {
+    description "Add missing bridge-protocol leaf for state container";
+  }
+
   revision "2023-02-14" {
     description "Remove route-target configuration due support on network-instance 'inter-instance-policies' container";
   }
@@ -21,17 +29,7 @@ module ipi-oc-ni-augments {
     description "Initial Revision";
   }
 
-  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:table-connections/oc-netinst:table-connection/oc-netinst:config" {
-
-    description "Adds protocol instance id support for table connections";
-
-    leaf dst-instance {
-        type string;
-        description "Instance ID of the destination protocol instance";
-    }
-  }
-
-  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:config" {
+  grouping bridge-protocol-leaf {
     leaf bridge-protocol {
       description "Bridge protocol type";
       when "../oc-netinst:type = 'oc-ni-types:L2L3'";
@@ -105,4 +103,48 @@ module ipi-oc-ni-augments {
       }
     }
   }
+
+  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:table-connections/oc-netinst:table-connection/oc-netinst:config" {
+
+    description "Adds protocol instance id support for table connections";
+
+    leaf dst-instance {
+        type string;
+        description "Instance ID of the destination protocol instance";
+    }
+  }
+
+  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:config" {
+    uses bridge-protocol-leaf;
+  }
+
+  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:state" {
+    uses bridge-protocol-leaf;
+  }
+
+  grouping ldp-config {
+    leaf enabled {
+      type boolean;
+      default "true";
+      must "(. = 'true')" {
+        error-message "The value must be true";
+      }
+      description "When set to true it indicates the LDP functionality is enabled and when set to false it is explicitly disabled";
+    }
+  }
+
+  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:mpls/oc-netinst:signaling-protocols/oc-netinst:ldp" {
+
+    container config {
+      description "LDP configuration attributes";
+      uses ldp-config;
+    }
+
+    container state {
+      description "LDP state attributes";
+      uses ldp-config;
+      config false;
+    }
+  }
+
 }

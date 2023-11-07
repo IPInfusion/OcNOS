@@ -21,12 +21,12 @@ submodule ipi-isis-sr {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-isis-types {
@@ -51,6 +51,31 @@ submodule ipi-isis-sr {
     description
         "Model for managing IS-IS SR Parameters";
 
+
+    revision "2023-10-07" {
+        description "Linking Segment Routing and entropy capabilty";
+        reference " 0.7.4.";
+    }
+
+    revision "2023-08-28" {
+        description "Added Segment Routing entropy capabilty";
+        reference " 0.7.3.";
+    }
+
+    revision "2023-08-10" {
+        description "JIRA-61800:Added remaining enclosing containers";
+        reference " 0.7.2.";
+    }
+
+    revision "2023-08-04" {
+        description "Added cliprependstr for segment-routing and prefix-sid-map";
+        reference " 0.7.1.";
+    }
+
+    revision "2023-06-15" {
+        description "JIRA-61800:Added enclosing containers";
+        reference " 0.7.0.";
+    }
 
     revision "2022-10-22" {
         description "Updation of SRGB default value";
@@ -334,12 +359,19 @@ submodule ipi-isis-sr {
             description "Use this attribute to receive label binding TLVs";
         } // END of receive-disable definition.
 
+        leaf entropy-capability  {
+            // when " ipi-isis-sr:segment-routing/config/enabled ";
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  empty;
+            description "Use this attribute to enable segment routing entropy capability.";
+        } // END of entropy-capability definition.
+
     } // END of isis-sr-config definition.
     grouping isis-sr-global-block-config {
         description
             "Configuration items for ISIS SR Global Block";
         leaf global-block-base  {
-            // when " ipi-isis-sr:segment-routing/global-block/config/global-block-range ";
+            // when " ipi-isis-sr:segment-routing/global-blocks/global-block/config/global-block-range ";
             type  int32 {
                  range "16..1048575"  {
                     description "16..1048575: Supported range 16 - 1048575";
@@ -349,7 +381,7 @@ submodule ipi-isis-sr {
         } // END of global-block-base definition.
 
         leaf global-block-range  {
-            // when " ipi-isis-sr:segment-routing/global-block/config/global-block-base ";
+            // when " ipi-isis-sr:segment-routing/global-blocks/global-block/config/global-block-base ";
             if-feature feature-list:HAVE_ISIS_SR;
             type  int32 {
                  range "16..1048575"  {
@@ -610,43 +642,6 @@ submodule ipi-isis-sr {
         if-feature feature-list:HAVE_ISIS_SR;
         description
             "This container defines the ISIS SR configurations.";
-
-        list global-block {
-            key "global-block-base global-block-range";
-            description
-                "This objectlist defines the ISIS SR Global Block configurations.";
-            leaf global-block-base  {
-                type  leafref {
-                    path  "../config/global-block-base";
-                }
-                description "Segment Node Base Value. Default value is 16000";
-            } // END of global-block-base definition.
-
-            leaf global-block-range  {
-                type  leafref {
-                    path  "../config/global-block-range";
-                }
-                description "Use this attribute to set the SRGB range at each node. If you do not
-                            specify a per-node range with the segmentrouting global block command,
-                            this range will be used by that ISIS instance. IGP protocols must use
-                            same SRGB range or use a different non-overlapping SRGB range. Note:
-                            For a segment routing trunk, all nodes on the path of the trunk should
-                            have same SRGB range for the trunk to be established.Default value is
-                            23999";
-            } // END of global-block-range definition.
-
-            container config {
-                description
-                    "This container defines the ISIS SR Global Block configurations.";
-                uses isis-sr-global-block-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "This container defines the ISIS SR state.";
-                uses isis-sr-global-block-config;
-            } // END of state-container definition.
-        } // End of global-block-list
         container config {
             presence "To enable MPLS based segment routing";
             description
@@ -659,6 +654,48 @@ submodule ipi-isis-sr {
                 "This container defines the ISIS SR state.";
             uses isis-sr-config;
         } // END of state-container definition.
+        container global-blocks {
+            description
+                "Enclosing container for ISIS SR Global Block configurations.";
+
+            list global-block {
+                key "global-block-base global-block-range";
+                max-elements 1;
+                description
+                    "This objectlist defines the ISIS SR Global Block configurations.";
+                leaf global-block-base  {
+                    type  leafref {
+                        path  "../config/global-block-base";
+                    }
+                    description "Segment Node Base Value. Default value is 16000";
+                } // END of global-block-base definition.
+
+                leaf global-block-range  {
+                    type  leafref {
+                        path  "../config/global-block-range";
+                    }
+                    description "Use this attribute to set the SRGB range at each node. If you do not
+                                specify a per-node range with the segmentrouting global block command,
+                                this range will be used by that ISIS instance. IGP protocols must use
+                                same SRGB range or use a different non-overlapping SRGB range. Note:
+                                For a segment routing trunk, all nodes on the path of the trunk should
+                                have same SRGB range for the trunk to be established.Default value is
+                                23999";
+                } // END of global-block-range definition.
+
+                container config {
+                    description
+                        "This container defines the ISIS SR Global Block configurations.";
+                    uses isis-sr-global-block-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container defines the ISIS SR state.";
+                    uses isis-sr-global-block-config;
+                } // END of state-container definition.
+            } // End of global-block-list
+        } // END of global-blocks-container definition.
     } // END of segment-routing-container definition.
     } // END of segment-routing-grouping definition.
 

@@ -23,7 +23,7 @@ module ipi-vlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-07-26;
+        revision-date 2023-08-10;
     }
 
     import ipi-vlan-types {
@@ -33,17 +33,17 @@ module ipi-vlan {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-06-30;
+        revision-date 2023-10-13;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-03-14;
+        revision-date 2023-07-13;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2023-04-17;
+        revision-date 2023-09-09;
     }
 
     import ipi-qos {
@@ -53,7 +53,7 @@ module ipi-vlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2023-11-04;
     }
 
     organization
@@ -74,9 +74,19 @@ module ipi-vlan {
         reference " 0.11.3.";
     }
 
+    revision "2023-05-25" {
+        description "Added enclosing container for different objectlists with missing enclosing containers";
+        reference " 0.11.2.";
+    }
+
     revision "2023-05-12" {
         description "container to presence container changes for adjacency";
         reference " 0.1.0.";
+    }
+
+    revision "2023-05-08" {
+        description "added support for dune port mode";
+        reference " 0.11.0.";
     }
 
     revision "2023-04-14" {
@@ -320,6 +330,11 @@ module ipi-vlan {
         description
             "Top level grouping for interface vlan mapping configuration and state
                         data";
+        container interfaces {
+            if-feature feature-list:HAVE_PBB_TE;
+            description
+                "Enclosing container for list of interfaces mapped with vlan";
+        } // END of interfaces-container definition.
     } // END of vlan-interface-top definition.
     grouping private-vlan-association-config {
         description
@@ -759,6 +774,13 @@ module ipi-vlan {
     grouping oep-config-top {
         description
             "Top level grouping for OVC configuration";
+        container oeps {
+            if-feature feature-list:HAVE_PROVIDER_BRIDGE;
+            if-feature feature-list:HAVE_SWFWDR;
+            description
+                "Enclosing container for list of OVC end point configuration and state
+                        data";
+        } // END of oeps-container definition.
     } // END of oep-config-top definition.
     grouping ovc-config {
         description
@@ -838,39 +860,43 @@ module ipi-vlan {
     grouping oep-vlan-top {
         description
             "Top level grouping for OVC end point mapping vlan configuration";
-
-        list vlan {
+        container vlans {
             if-feature feature-list:HAVE_PROVIDER_BRIDGE;
             if-feature feature-list:HAVE_SWFWDR;
-            key "type oep-vlan-id";
             description
-                "List for oep vlans";
-            leaf type  {
-                type  leafref {
-                    path  "../config/type";
-                }
-                description "OEP mapping vlan type";
-            } // END of type definition.
+                "Enclosing container for list of oep vlans";
 
-            leaf oep-vlan-id  {
-                type  leafref {
-                    path  "../config/oep-vlan-id";
-                }
-                description "OEP mapping vlan id";
-            } // END of oep-vlan-id definition.
+            list vlan {
+                key "type oep-vlan-id";
+                description
+                    "List for oep vlans";
+                leaf type  {
+                    type  leafref {
+                        path  "../config/type";
+                    }
+                    description "OEP mapping vlan type";
+                } // END of type definition.
 
-            container config {
-                description
-                    "Configuration data for oep vlan";
-                uses oep-vlan-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses oep-vlan-config;
-            } // END of state-container definition.
-        } // End of vlan-list
+                leaf oep-vlan-id  {
+                    type  leafref {
+                        path  "../config/oep-vlan-id";
+                    }
+                    description "OEP mapping vlan id";
+                } // END of oep-vlan-id definition.
+
+                container config {
+                    description
+                        "Configuration data for oep vlan";
+                    uses oep-vlan-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses oep-vlan-config;
+                } // END of state-container definition.
+            } // End of vlan-list
+        } // END of vlans-container definition.
     } // END of oep-vlan-top definition.
     grouping oep-config {
         description
@@ -904,37 +930,42 @@ module ipi-vlan {
     grouping access-group-top {
         description
             "Top level group for access group data";
-
-        list access-group {
-            key "group-name acl-type";
+        container access-groups {
             description
-                "List for access group configuration and state data";
-            leaf group-name  {
-                type  leafref {
-                    path  "../config/group-name";
-                }
-                description "Attribute specifies access list name to set match criteria";
-            } // END of group-name definition.
+                "Enclosing container for list of access group configuration and state
+                        data";
 
-            leaf acl-type  {
-                type  leafref {
-                    path  "../config/acl-type";
-                }
-                description "Attribute to associate access-list to vlan access-map name";
-            } // END of acl-type definition.
+            list access-group {
+                key "group-name acl-type";
+                description
+                    "List for access group configuration and state data";
+                leaf group-name  {
+                    type  leafref {
+                        path  "../config/group-name";
+                    }
+                    description "Attribute specifies access list name to set match criteria";
+                } // END of group-name definition.
 
-            container config {
-                description
-                    "Configuration data for access group";
-                uses access-group-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses access-group-config;
-            } // END of state-container definition.
-        } // End of access-group-list
+                leaf acl-type  {
+                    type  leafref {
+                        path  "../config/acl-type";
+                    }
+                    description "Attribute to associate access-list to vlan access-map name";
+                } // END of acl-type definition.
+
+                container config {
+                    description
+                        "Configuration data for access group";
+                    uses access-group-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses access-group-config;
+                } // END of state-container definition.
+            } // End of access-group-list
+        } // END of access-groups-container definition.
     } // END of access-group-top definition.
     grouping access-group-interface-config {
         description
@@ -955,37 +986,41 @@ module ipi-vlan {
     grouping access-group-interface-top {
         description
             "Top level grouping for access group port data";
-
-        list interface {
-            key "interface-name action";
+        container interfaces {
             description
-                "List for access group ports data";
-            leaf interface-name  {
-                type  leafref {
-                    path  "../config/interface-name";
-                }
-                description "The textual name of the interface";
-            } // END of interface-name definition.
+                "Enclosing container for list of access group ports data";
 
-            leaf action  {
-                type  leafref {
-                    path  "../config/action";
-                }
-                description "Attribute to perform action on ingress traffic";
-            } // END of action definition.
+            list interface {
+                key "interface-name action";
+                description
+                    "List for access group ports data";
+                leaf interface-name  {
+                    type  leafref {
+                        path  "../config/interface-name";
+                    }
+                    description "The textual name of the interface";
+                } // END of interface-name definition.
 
-            container config {
-                description
-                    "Configuration data for acess group intrface";
-                uses access-group-interface-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses access-group-interface-config;
-            } // END of state-container definition.
-        } // End of interface-list
+                leaf action  {
+                    type  leafref {
+                        path  "../config/action";
+                    }
+                    description "Attribute to perform action on ingress traffic";
+                } // END of action definition.
+
+                container config {
+                    description
+                        "Configuration data for acess group intrface";
+                    uses access-group-interface-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses access-group-interface-config;
+                } // END of state-container definition.
+            } // End of interface-list
+        } // END of interfaces-container definition.
     } // END of access-group-interface-top definition.
     grouping access-vlan-group {
         description
@@ -1019,38 +1054,43 @@ module ipi-vlan {
         description
             "Top level grouping for access vlan mapping configuration and state
                         data";
-
-        list mapping {
+        container mappings {
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:HAVE_VLAN_ACCESS_MAP;
-            key "mapping-name";
             description
-                "List for access vlan mapping configuration and state data";
-            leaf mapping-name  {
-                type  leafref {
-                    path  "../config/mapping-name";
-                }
-                description "Attribute to create, update or delete a vlan access-map with default
-                            sequenceID i.e. 10. There can be only one VLAN access-map with default
-                            sequenceID";
-            } // END of mapping-name definition.
+                "Enclosing container for list of access vlan mapping configuration and
+                        state data";
 
-            container config {
+            list mapping {
+                key "mapping-name";
                 description
-                    "Configuration data for access group mapping";
-                uses access-vlan-group;
-                uses access-vlan-mapping-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses access-vlan-group;
-                uses access-vlan-mapping-config;
-            } // END of state-container definition.
-            uses access-group-top;
-            uses access-group-interface-top;
-        } // End of mapping-list
+                    "List for access vlan mapping configuration and state data";
+                leaf mapping-name  {
+                    type  leafref {
+                        path  "../config/mapping-name";
+                    }
+                    description "Attribute to create, update or delete a vlan access-map with default
+                                sequenceID i.e. 10. There can be only one VLAN access-map with default
+                                sequenceID";
+                } // END of mapping-name definition.
+
+                container config {
+                    description
+                        "Configuration data for access group mapping";
+                    uses access-vlan-group;
+                    uses access-vlan-mapping-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses access-vlan-group;
+                    uses access-vlan-mapping-config;
+                } // END of state-container definition.
+                uses access-group-top;
+                uses access-group-interface-top;
+            } // End of mapping-list
+        } // END of mappings-container definition.
     } // END of access-vlan-mapping-top definition.
     grouping access-vlan-mapping-sequence-config {
         description
@@ -1080,47 +1120,51 @@ module ipi-vlan {
     grouping access-vlan-mapping-sequence-top {
         description
             "Top level grouping access vlan sequence mapping data";
-
-        list mapping-sequence {
+        container mapping-sequences {
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:HAVE_VLAN_ACCESS_MAP;
-            key "mapping-name sequence-number";
             description
-                "List for access sequence mapping";
-            leaf mapping-name  {
-                type  leafref {
-                    path  "../config/mapping-name";
-                }
-                description "Attribute to create, update or delete a vlan access-map with default
-                            sequenceID i.e. 10. There can be only one VLAN access-map with default
-                            sequenceID";
-            } // END of mapping-name definition.
+                "Enclosing container for list of access sequence mapping";
 
-            leaf sequence-number  {
-                type  leafref {
-                    path  "../config/sequence-number";
-                }
-                description "Attribute to create, update or deletes a vlan access-map with
-                            sequenceID. There can be multiple one VLAN access-map with sequenceID
-                            combination possible";
-            } // END of sequence-number definition.
+            list mapping-sequence {
+                key "mapping-name sequence-number";
+                description
+                    "List for access sequence mapping";
+                leaf mapping-name  {
+                    type  leafref {
+                        path  "../config/mapping-name";
+                    }
+                    description "Attribute to create, update or delete a vlan access-map with default
+                                sequenceID i.e. 10. There can be only one VLAN access-map with default
+                                sequenceID";
+                } // END of mapping-name definition.
 
-            container config {
-                description
-                    "Configuration data for access sequence mapping";
-                uses access-vlan-group;
-                uses access-vlan-mapping-sequence-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses access-vlan-group;
-                uses access-vlan-mapping-sequence-config;
-            } // END of state-container definition.
-            uses access-group-top;
-            uses access-group-interface-top;
-        } // End of mapping-sequence-list
+                leaf sequence-number  {
+                    type  leafref {
+                        path  "../config/sequence-number";
+                    }
+                    description "Attribute to create, update or deletes a vlan access-map with
+                                sequenceID. There can be multiple one VLAN access-map with sequenceID
+                                combination possible";
+                } // END of sequence-number definition.
+
+                container config {
+                    description
+                        "Configuration data for access sequence mapping";
+                    uses access-vlan-group;
+                    uses access-vlan-mapping-sequence-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses access-vlan-group;
+                    uses access-vlan-mapping-sequence-config;
+                } // END of state-container definition.
+                uses access-group-top;
+                uses access-group-interface-top;
+            } // End of mapping-sequence-list
+        } // END of mapping-sequences-container definition.
     } // END of access-vlan-mapping-sequence-top definition.
     grouping access-vlan-top {
         description
