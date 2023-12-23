@@ -38,7 +38,7 @@ module ipi-bridge-domain {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-11-04;
+        revision-date 2023-12-22;
     }
 
     organization
@@ -53,6 +53,11 @@ module ipi-bridge-domain {
     description
         "Bridge-domain configurations";
 
+
+    revision "2023-10-20" {
+        description "Changed member-interfaces nodes from leaf-list to list to ease dependency validations";
+        reference " 0.2.1.";
+    }
 
     revision "2023-09-26" {
         description "Added missing dependent objects for bridge-domain CLI with encap";
@@ -84,6 +89,49 @@ module ipi-bridge-domain {
         reference " 0.1.0.";
     }
 
+    grouping bridge-domain-interface-config {
+        description
+            "Grouping for Bridge-Domain interface configuration";
+        leaf name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "This attribute specifies the subif for bridge-domain";
+        } // END of name definition.
+
+    } // END of bridge-domain-interface-config definition.
+    grouping bridge-domain-interface-top {
+        description
+            "Grouping for Bridge-Domain interface";
+        container member-interfaces {
+            description
+                "Container for Bridge-Domain interfaces";
+
+            list member-interface {
+                key "name";
+                description
+                    "List of Bridge-Domain interfaces";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "This attribute specifies the subif for bridge-domain";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data for Bridge-Domain interface";
+                    uses bridge-domain-interface-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for Bridge-Domain interface";
+                    uses bridge-domain-interface-config;
+                } // END of state-container definition.
+            } // End of member-interface-list
+        } // END of member-interfaces-container definition.
+    } // END of bridge-domain-interface-top definition.
     grouping subif-bridge-config {
         description
             "Grouping for Sub-interface bridge-domain configurations";
@@ -93,13 +141,6 @@ module ipi-bridge-domain {
             }
             description "This attribute specifies the bridge domain id.";
         } // END of domain-id definition.
-
-        leaf-list member-interfaces  {
-            type  leafref {
-                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-            }
-            description "This attribute specifies the subif for bridge-domain";
-        } // END of member-interfaces definition.
 
         leaf description  {
             type  cml-data-types:cml_line_t {
@@ -177,11 +218,13 @@ module ipi-bridge-domain {
                 "State data for bridge-domain";
             uses subif-bridge-config;
         } // END of state-container definition.
+        uses bridge-domain-interface-top;
     } // END of bridge-domain-container definition.
     } // END of bridge-domain-grouping definition.
 
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance {
     when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-network-instance:instance-type = 'bridge-domain' ";
+    // when " ipi-bridge-domain:bridge-domain/config ";
         description
             "Global container for bridge domain";
         uses bridge-domain-grouping;

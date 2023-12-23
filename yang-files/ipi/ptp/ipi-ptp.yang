@@ -38,7 +38,7 @@ module ipi-ptp {
 
     import ipi-ptp-types {
         prefix ipi-ptp-types;
-        revision-date 2023-08-07;
+        revision-date 2023-12-07;
     }
 
     import ipi-interface {
@@ -48,7 +48,7 @@ module ipi-ptp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-11-04;
+        revision-date 2023-12-22;
     }
 
     include ipi-ptp-notifications { revision-date 2022-12-19;}
@@ -65,9 +65,24 @@ module ipi-ptp {
         "Datamodel for PTP configurations";
 
 
+    revision "2023-12-07" {
+        description "updated no form command for transport type";
+        reference " 0.9.15.";
+    }
+
+    revision "2023-11-16" {
+        description "priority1 command support for default and smpte profile";
+        reference " 0.9.14.";
+    }
+
     revision "2023-10-06" {
         description "Correct descriptions of utc-offset baseline";
         reference " 0.9.13.";
+    }
+
+    revision "2023-09-06" {
+        description "Added smpte profile ";
+        reference " 0.9.14.";
     }
 
     revision "2023-08-18" {
@@ -82,7 +97,7 @@ module ipi-ptp {
 
     revision "2023-08-07" {
         description "Added ptp l3 mulitcast support for broadptp";
-        reference " 0.9.9.";
+        reference " 0.9.13.";
     }
 
     revision "2023-07-11" {
@@ -274,6 +289,7 @@ module ipi-ptp {
                         "Configuration data";
                     uses ptp-instance-base-config;
                 } // END of config-container definition.
+                uses ptp-sm-tlv-top;
                 uses ptp-default-data-set-top;
                 uses ptp-port-data-set-top;
                 uses ptp-time-of-day-top;
@@ -287,6 +303,56 @@ module ipi-ptp {
             } // End of ptp-instance-list
         } // END of ptp-instances-container definition.
     } // END of ptp-instance-top definition.
+    grouping ptp-sm-tlv-rate-config {
+        description
+            "Groupin for ptp smpte profile config";
+        leaf numerator  {
+            type  uint32;
+            description "Setting numerator for the default system frame rate";
+        } // END of numerator definition.
+
+        leaf denominator  {
+            type  uint32;
+            description "Setting denominator for the default system frame rate";
+        } // END of denominator definition.
+
+    } // END of ptp-sm-tlv-rate-config definition.
+    grouping ptp-sm-tlv-config {
+        description
+            "Groupin for ptp smpte profile config";
+        leaf color-frame  {
+            type  empty;
+            description "setting color-frame";
+        } // END of color-frame definition.
+
+        leaf drop-frame  {
+            type  empty;
+            description "setting drop-frame";
+        } // END of drop-frame definition.
+
+    } // END of ptp-sm-tlv-config definition.
+    grouping ptp-sm-tlv-top {
+        description
+            "Groupin for ptp smpte profile config";
+        container tlv {
+            if-feature feature-list:HAVE_PTP_HW_OFFLOAD_CUSTOM1;
+            description
+                "Debugging functions";
+            container config {
+                description
+                    "Configuration data";
+                uses ptp-sm-tlv-config;
+                uses ptp-sm-tlv-rate-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ptp-sm-tlv-config;
+                uses ptp-sm-tlv-rate-config;
+            } // END of state-container definition.
+        } // END of tlv-container definition.
+    } // END of ptp-sm-tlv-top definition.
     grouping ptp-instance-base-config {
         description
             "Grouping for ptp instance configuration";
@@ -401,21 +467,32 @@ module ipi-ptp {
             description "When set the clock source addrress is a linklocal address";
         } // END of source-ipv6-link-local-address definition.
 
-        leaf source-ipv6-address  {
+        leaf source-ipv6-interface-address  {
             if-feature feature-list:HAVE_IPV6;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "When set the clock source addrress as ipv6";
-        } // END of source-ipv6-address definition.
+        } // END of source-ipv6-interface-address definition.
 
-        leaf source-ipv4-address  {
+        leaf source-ipv4-interface-address  {
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "When set the clock source addrress as ipv4";
+        } // END of source-ipv4-interface-address definition.
+
+        leaf source-ipv6-address  {
+            if-feature feature-list:HAVE_IPV6;
+            type  inet:ipv6-address;
+            description "set the absolute source addrress as ipv6 for clock-port";
+        } // END of source-ipv6-address definition.
+
+        leaf source-ipv4-address  {
+            type  inet:ipv4-address;
+            description "set the absolute source addrress as ipv4 for clock-port";
         } // END of source-ipv4-address definition.
 
     } // END of ptp-port-config-linklocal definition.
@@ -453,6 +530,11 @@ module ipi-ptp {
             type  ipi-ptp-types:ptp_encap_type_t;
             description "Set transport type";
         } // END of transport-type definition.
+
+        leaf transport-v6-multicast-type  {
+            type  ipi-ptp-types:ptp_v6_multicast_type_t;
+            description "Set transport type Ipv6 multicast";
+        } // END of transport-v6-multicast-type definition.
 
         leaf non-forwardable-mac-addr  {
             type  empty;
@@ -560,6 +642,18 @@ module ipi-ptp {
             default "128";
             description "The priority2 denotes priority2 attribute of grandmaster clock";
         } // END of grandmaster-priority-2 definition.
+
+        leaf append  {
+            if-feature feature-list:HAVE_PTP_HW_OFFLOAD_CUSTOM1;
+            type  empty;
+            description "Appending TLV";
+        } // END of append definition.
+
+        leaf process  {
+            if-feature feature-list:HAVE_PTP_HW_OFFLOAD_CUSTOM1;
+            type  empty;
+            description "Processing TLV";
+        } // END of process definition.
 
     } // END of ptp-port-config definition.
     grouping ptp-master-ipv4-address-top {
@@ -1593,6 +1687,17 @@ module ipi-ptp {
             description "1pps in SMX tod type";
         } // END of pps-in-smx-tod-type definition.
 
+        leaf priority-1  {
+            // when " !ipi-ptp:ptp/ptp-instances/ptp-instance/default-data-set/config/slave-only ";
+            type  uint8 {
+                 range "0..255"  {
+                    description "0..255: Supported range 0 - 255";
+                 }
+            }
+            default "128";
+            description "The priority1 attribute of the local clock";
+        } // END of priority-1 definition.
+
         leaf priority-2  {
             // when " !ipi-ptp:ptp/ptp-instances/ptp-instance/default-data-set/config/slave-only ";
             type  uint8 {
@@ -1629,6 +1734,17 @@ module ipi-ptp {
             description "The maximum number of communication paths between the local clock and
                         the grandmaster clock";
         } // END of max-steps-removed definition.
+
+        leaf start-boundary-hops  {
+            type  uint8 {
+                 range "0..255"  {
+                    description "0..255: Supported range 0 - 255";
+                 }
+            }
+            default "255";
+            description "The maximum number of communication paths between the local clock and
+                        the grandmaster clock";
+        } // END of start-boundary-hops definition.
 
     } // END of ptp-default-data-set-config definition.
     grouping ptp-servo-history-top {

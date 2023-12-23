@@ -36,11 +36,6 @@ module ipi-segment-routing {
         revision-date 2023-10-13;
     }
 
-    import ietf-yang-types {
-        prefix yang;
-        revision-date 2013-07-15;
-    }
-
     import ietf-inet-types {
         prefix inet;
         revision-date 2013-07-15;
@@ -48,7 +43,7 @@ module ipi-segment-routing {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-11-04;
+        revision-date 2023-12-22;
     }
 
     include ipi-segment-routing-odn { revision-date 2023-09-12;}
@@ -65,6 +60,16 @@ module ipi-segment-routing {
         "Model for managing segment-routing global configurations and state
                 which includes traffic-enireening for sr as well";
 
+
+    revision "2023-12-12" {
+        description "Added Segment Routing Policy Entropy configuration ";
+        reference " 0.11.5.";
+    }
+
+    revision "2023-11-03" {
+        description "Changed datatype from CML_DATE_TIME to CML_TIME for up/down time ";
+        reference " 0.11.5.";
+    }
 
     revision "2023-10-16" {
         description "Added CML_RUNTIME tag for include-hop state container ";
@@ -1012,6 +1017,16 @@ module ipi-segment-routing {
                         segment list of a dynamic candidate path using CSPF";
         } // END of cspf-retry-interval definition.
 
+        leaf entropy-erld  {
+            if-feature feature-list:HAVE_SR_POLICY;
+            type  uint8 {
+                 range "3..255"  {
+                    description "3..255: Supported range 3 - 255";
+                 }
+            }
+            description "Setting Policy Entropy ERLD Value to Enable Policy Entropy Capability";
+        } // END of entropy-erld definition.
+
         leaf pce-lsp-delegate  {
             if-feature feature-list:HAVE_PCEP_SR_OR_HAVE_PCEP_SRV6;
             type  empty;
@@ -1067,31 +1082,33 @@ module ipi-segment-routing {
         } // END of transition-count definition.
 
         leaf up-time  {
-            type  yang:date-and-time {
-                pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
-                }
-                description "Policy up time in seconds";
-            } // END of up-time definition.
+            type  string {
+                length "1..1965";
+                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
+            }
+            description "Policy up time in seconds";
+        } // END of up-time definition.
 
-            leaf down-time  {
-                type  yang:date-and-time {
-                    pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
-                    }
-                    description "Policy down time in seconds";
-                } // END of down-time definition.
+        leaf down-time  {
+            type  string {
+                length "1..1965";
+                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
+            }
+            description "Policy down time in seconds";
+        } // END of down-time definition.
 
-                leaf bsid-alloc-mode  {
-                    type  string {
-                        length "1..1965";
-                        pattern "[^?' =,>|]+";
-                    }
-                    description "SR Policy Binding SID alloc mode";
-                } // END of bsid-alloc-mode definition.
+        leaf bsid-alloc-mode  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "SR Policy Binding SID alloc mode";
+        } // END of bsid-alloc-mode definition.
 
-                leaf bsid-oper-state  {
-                    type  ipi-sr-types:sr_policy_bsid_oper_state;
-                    description "SR Policy Binding SID operational state";
-                } // END of bsid-oper-state definition.
+        leaf bsid-oper-state  {
+            type  ipi-sr-types:sr_policy_bsid_oper_state;
+            description "SR Policy Binding SID operational state";
+        } // END of bsid-oper-state definition.
 
     } // END of policy-properties-state definition.
     grouping sr-policy-stats-state {
