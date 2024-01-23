@@ -21,7 +21,7 @@ submodule ipi-bgp-peer {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2024-01-22;
     }
 
     import cml-data-types {
@@ -31,11 +31,11 @@ submodule ipi-bgp-peer {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-06-01;
+        revision-date 2023-12-29;
     }
 
-    include ipi-bgp-common { revision-date 2023-06-01;}
-    include ipi-bgp-address-family { revision-date 2023-08-23;}
+    include ipi-bgp-common { revision-date 2024-01-11;}
+    include ipi-bgp-address-family { revision-date 2024-01-10;}
     include ipi-bgp-epe { revision-date 2023-05-12;}
     organization
         "IP Infusion Inc.";
@@ -49,6 +49,21 @@ submodule ipi-bgp-peer {
     description
         "";
 
+
+    revision "2024-01-11" {
+        description "Added support for TCP Maximum Segment Size per BGP neighbor";
+        reference " 0.14.2.";
+    }
+
+    revision "2023-12-30" {
+        description "RPC Implementation to clear bgp for l2vpn evpn";
+        reference " 0.14.1.";
+    }
+
+    revision "2023-12-29" {
+        description "Added soft-reconfig attribute";
+        reference " 0.14.0.";
+    }
 
     revision "2023-06-01" {
         description "Added new runtime attributes to bgp-peer-common-state and new groupings bgp-peer-notification-state";
@@ -814,7 +829,7 @@ submodule ipi-bgp-peer {
         leaf source-identifier  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             default "NULL";
             description "Allows internal BGP sessions to use any operational interface for TCP
@@ -912,7 +927,7 @@ submodule ipi-bgp-peer {
             // when " ipi-bgp-peer:peer/config/peer-as  +  ipi-bgp-peer:peer/config/mapped-peer-group-tag ";
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "Configure the interface name of a BGP neighbor.";
         } // END of interface-name definition.
@@ -921,7 +936,7 @@ submodule ipi-bgp-peer {
             // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "Adds a neighbor to an existing peer group. Neighbors with the same
                         update policies are grouped into peer groups. This facilitates the
@@ -936,6 +951,15 @@ submodule ipi-bgp-peer {
             description "Use this attribute for a specific peer to encode extended optional
                         parameter length.";
         } // END of enable-ext-opt-param-len definition.
+
+        leaf tcp-adjust-mss  {
+            type  uint16 {
+                 range "40..1440"  {
+                    description "40..1440: Supported range 40 - 1440";
+                 }
+            }
+            description "Use this attribute to set the BGP TCP MSS value of a neighbor.";
+        } // END of tcp-adjust-mss definition.
 
     } // END of bgp-peer-common-config definition.
     grouping bgp-peer-notification-state {

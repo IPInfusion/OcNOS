@@ -28,7 +28,7 @@ module ipi-bgp {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-06-01;
+        revision-date 2023-12-29;
     }
 
     import ipi-network-instance {
@@ -43,17 +43,17 @@ module ipi-bgp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2024-01-22;
     }
 
-    include ipi-bgp-instance { revision-date 2023-06-01;}
+    include ipi-bgp-instance { revision-date 2023-10-11;}
     include ipi-bgp-flowspec { revision-date 2023-03-12;}
-    include ipi-bgp-common { revision-date 2023-06-01;}
-    include ipi-bgp-address-family { revision-date 2023-08-23;}
+    include ipi-bgp-common { revision-date 2024-01-11;}
+    include ipi-bgp-address-family { revision-date 2024-01-10;}
     include ipi-bgp-evpn-rib { revision-date 2023-04-25;}
-    include ipi-bgp-peer-group { revision-date 2023-06-01;}
-    include ipi-bgp-peer { revision-date 2023-06-01;}
-    include ipi-bgp-address-family-vrf { revision-date 2023-05-06;}
+    include ipi-bgp-peer-group { revision-date 2024-01-11;}
+    include ipi-bgp-peer { revision-date 2024-01-11;}
+    include ipi-bgp-address-family-vrf { revision-date 2024-01-11;}
     include ipi-bgp-link-state { revision-date 2022-06-01;}
     include ipi-bgp-epe { revision-date 2023-05-12;}
     organization
@@ -68,6 +68,46 @@ module ipi-bgp {
     description
         "YANG version of the ipi-bgp";
 
+
+    revision "2024-01-11" {
+        description "Added support for TCP Maximum Segment Size per BGP neighbor";
+        reference " 0.14.4.";
+    }
+
+    revision "2024-01-10" {
+        description "Removed 'ebgp-max-path' cli for address-family l2vpn evpn";
+        reference " 0.14.3.";
+    }
+
+    revision "2024-01-02" {
+        description "RPC Implementation to clear bgp peer-group for l2vpn evpn";
+        reference " 0.14.2.";
+    }
+
+    revision "2023-12-30" {
+        description "RPC Implementation to clear bgp for l2vpn evpn";
+        reference " 0.14.1.";
+    }
+
+    revision "2023-12-29" {
+        description "Added soft-reconfig attribute";
+        reference " 0.14.0.";
+    }
+
+    revision "2023-12-28" {
+        description "Added installtion mode suppported for attribute 'additional-paths-mode', 'additional-path-select-all' and 'additional-paths-best-select-count'";
+        reference " 0.13.6.";
+    }
+
+    revision "2023-12-27" {
+        description "Removed installtion mode not suppported for attribute 'additional-paths-mode', 'additional-path-select-all' and 'additional-paths-best-select-count'";
+        reference " 0.13.5.";
+    }
+
+    revision "2023-10-11" {
+        description "Updated attribute 'graceful-shutdown-capable' and 'graceful-shutdown' ";
+        reference " 0.13.4.";
+    }
 
     revision "2023-08-23" {
         description "Removed installtion mode not suppported for attribute 'enable-additional-path-pic'";
@@ -202,6 +242,11 @@ module ipi-bgp {
     revision "2023-01-21" {
         description "Updated validate api for threshold percentage for 6PE";
         reference " 0.10.9.";
+    }
+
+    revision "2023-01-12" {
+        description "Added support for configuring multi-path relax option for BGP peer under VRF address family";
+        reference " 0.14.5.";
     }
 
     revision "2023-01-09" {
@@ -858,7 +903,7 @@ tion' and rd_string/IP-VRF";
         leaf community-value-standard  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "Use this attribute to specify standard community";
         } // END of community-value-standard definition.
@@ -954,7 +999,7 @@ tion' and rd_string/IP-VRF";
         leaf name  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "Community list standard name";
         } // END of name definition.
@@ -1212,7 +1257,7 @@ tion' and rd_string/IP-VRF";
         leaf value  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "Use this attribute to create an entry for a standard extended
                         community list for rt (Route target extended community) or soo
@@ -1271,7 +1316,7 @@ tion' and rd_string/IP-VRF";
         leaf name  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "extcommunity Community list name";
         } // END of name definition.
@@ -1440,7 +1485,7 @@ tion' and rd_string/IP-VRF";
         leaf access-list-name  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "Use this attribute to define a BGP Autonomous System (AS) path access
                         list. A named community list is a filter based on regular expressions.
@@ -1641,6 +1686,27 @@ tion' and rd_string/IP-VRF";
         }
     }
 
+    rpc clear-peer-group-l2vpn-evpn-soft-all {
+        if-feature feature-list:HAVE_BGP_EVPN;
+        if-feature feature-list:HAVE_BGPD;
+        description "use this RPC to clear the bgp peer-group l2vpn evpn";
+        input  {
+            leaf peer-group-tag  {
+                type string {
+                    length "1..255";
+                }
+                mandatory true;
+                description "This attribute creates a peer-group";
+            }
+            leaf soft-reconfig  {
+                type ipi-bgp-types:bgp_update_clear_t;
+                mandatory true;
+                description "This attribute is used to store the updates for soft
+                            inbound and outbound configuration.";
+            }
+        }
+    }
+
     rpc clear-ip-bgp-all-peer {
         if-feature feature-list:HAVE_BGPD;
         description "clear all bgp peers";
@@ -1651,6 +1717,60 @@ tion' and rd_string/IP-VRF";
                 }
                 description "Use this attribute to send shutdown communication message to inform
                             peer the reason for the reset of the BGP session.";
+            }
+        }
+    }
+
+    rpc clear-bgp-l2vpn-evpn-soft-all {
+        if-feature feature-list:HAVE_BGP_EVPN;
+        if-feature feature-list:HAVE_BGPD;
+        description "use this RPC to clear all the bgp l2vpn evpn peers";
+        input  {
+            leaf soft-reconfig  {
+                type ipi-bgp-types:bgp_update_clear_t;
+                mandatory true;
+                description "This attribute is used to store the updates for soft
+                            inbound and outbound configuration.";
+            }
+        }
+    }
+
+    rpc clear-bgp-remote-as-l2vpn-evpn-soft-all {
+        if-feature feature-list:HAVE_BGP_EVPN;
+        if-feature feature-list:HAVE_BGPD;
+        description "use this RPC to clear all the bgp remote-as l2vpn evpn peers";
+        input  {
+            leaf peer-as  {
+                type uint32 {
+                    range "1..4294967295";
+                }
+                mandatory true;
+                description "This attribute specifies a neighbors autonomous system number";
+            }
+            leaf soft-reconfig  {
+                type ipi-bgp-types:bgp_update_clear_t;
+                mandatory true;
+                description "This attribute is used to store the updates for soft
+                            inbound and outbound configuration.";
+            }
+        }
+    }
+
+    rpc clear-bgp-peer-address-l2vpn-evpn-soft {
+        if-feature feature-list:HAVE_BGP_EVPN;
+        if-feature feature-list:HAVE_BGPD;
+        description "Use this RPC to clear the bgp peer-address l2vpn evpn";
+        input  {
+            leaf peer-address  {
+                type ipi-bgp-types:bgp_ip_addr_t;
+                mandatory true;
+                description "Address of the BGP peer, either in IPv4 or IPv6";
+            }
+            leaf soft-reconfig  {
+                type ipi-bgp-types:bgp_update_clear_t;
+                mandatory true;
+                description "This attribute is used to store the updates for soft
+                            inbound and outbound configuration.";
             }
         }
     }

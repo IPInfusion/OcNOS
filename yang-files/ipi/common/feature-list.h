@@ -2,7 +2,7 @@
 #define _H_feature_list
 
 #define y_feature_list_M_feature_list (const xmlChar  *)"feature-list"
-#define y_feature_list_R_feature_list (const xmlChar *)"2023-10-20"
+#define y_feature_list_R_feature_list (const xmlChar *)"2024-01-22"
 
 #include <xmlstring.h>
 #include "dlq.h"
@@ -198,7 +198,6 @@ extern "C" {
 #define u_feature_list_F_HAVE_MSTPD 1
 #define u_feature_list_F_HAVE_MTU_PROFILE 1
 #define u_feature_list_F_HAVE_MULTIPATH 1
-#define u_feature_list_F_HAVE_NAT 1
 #define u_feature_list_F_HAVE_NDD 1
 #define u_feature_list_F_HAVE_NETCONF 1
 #define u_feature_list_F_HAVE_NETCONF_OC_TRANSLATION 1
@@ -469,6 +468,7 @@ extern "C" {
 #define u_feature_list_F_NOT_HAVE_RTAG7 1
 #define u_feature_list_F_NOT_HAVE_NVGRE 1
 #define u_feature_list_F_NOT_HAVE_LACPV2 1
+#define u_feature_list_F_NOT_HAVE_NAT 1
 #define u_feature_list_F_NOT_HAVE_NVO3_OAM 1
 #define u_feature_list_F_NOT_HAVE_BFD_MAIN 1
 #define u_feature_list_F_NOT_HAVE_MPLS_TP 1

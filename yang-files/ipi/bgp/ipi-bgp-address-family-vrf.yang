@@ -21,7 +21,7 @@ submodule ipi-bgp-address-family-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2024-01-22;
     }
 
     import ietf-inet-types {
@@ -36,11 +36,11 @@ submodule ipi-bgp-address-family-vrf {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-06-01;
+        revision-date 2023-12-29;
     }
 
-    include ipi-bgp-common { revision-date 2023-06-01;}
-    include ipi-bgp-address-family { revision-date 2023-08-23;}
+    include ipi-bgp-common { revision-date 2024-01-11;}
+    include ipi-bgp-address-family { revision-date 2024-01-10;}
     organization
         "IP Infusion Inc.";
 
@@ -53,6 +53,16 @@ submodule ipi-bgp-address-family-vrf {
     description
         "";
 
+
+    revision "2024-01-11" {
+        description "Added support for TCP Maximum Segment Size per BGP neighbor";
+        reference " 0.13.3.";
+    }
+
+    revision "2024-01-10" {
+        description "Removed 'ebgp-max-path' cli for address-family l2vpn evpn";
+        reference " 0.13.2.";
+    }
 
     revision "2023-05-06" {
         description "address-family ipv4 flowspec vrf support";
@@ -107,6 +117,11 @@ submodule ipi-bgp-address-family-vrf {
     revision "2023-02-02" {
         description "Updated missing Description";
         reference " 0.12.0.";
+    }
+
+    revision "2023-01-12" {
+        description "Added support for configuring multi-path relax option for BGP peer under VRF address family";
+        reference " 0.13.4.";
     }
 
     revision "2023-01-09" {
@@ -874,7 +889,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf access-list-identifier  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             mandatory true;
             description "Access List information";
@@ -914,7 +929,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf as-access-list-identifier  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             mandatory true;
             description "Access-list number. This attribute sets a BGP filter. This attribute
@@ -935,7 +950,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf prefix-list-name  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             mandatory true;
             description "This attribute specify a prefix list for filtering BGP advertisements
@@ -963,7 +978,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf route-map-name  {
             type  string {
                 length "1..63";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             mandatory true;
             description "Use this attribute to apply a route map to incoming or outgoing
@@ -1067,7 +1082,7 @@ submodule ipi-bgp-address-family-vrf {
             // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/default-peer-route-map-name ";
             type  string {
                 length "1..63";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "This attribute configures route map to be used for a BGP local router
                         to send the default route 0.0.0.0 to a neighbor for use as a default
@@ -1215,7 +1230,7 @@ submodule ipi-bgp-address-family-vrf {
         leaf mapped-peer-group-tag-af  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "BGP peer group name. Adds  a neighbor to an existing peer group.
                         Neighbors with the same update policies are grouped into peer groups.
@@ -1229,7 +1244,7 @@ submodule ipi-bgp-address-family-vrf {
             // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/activate  +  !ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "unsuppress map name. This attribute is used to selectively leak
                         more-specific routes to a particular neighbor.";
@@ -1267,6 +1282,15 @@ submodule ipi-bgp-address-family-vrf {
             description "Attribute to select best advertise additional path";
         } // END of additional-paths-best-select-count definition.
 
+        leaf tcp-adjust-mss  {
+            type  uint16 {
+                 range "40..1440"  {
+                    description "40..1440: Supported range 40 - 1440";
+                 }
+            }
+            description "Use this attribute to set the BGP TCP MSS value of a neighbor.";
+        } // END of tcp-adjust-mss definition.
+
     } // END of bgp-address-family-peer-vrf-config definition.
     grouping bgp-address-family-vrf-table-map-config {
         description
@@ -1275,7 +1299,7 @@ submodule ipi-bgp-address-family-vrf {
             if-feature feature-list:HAVE_BGP_TABLE_MAP;
             type  string {
                 length "1..63";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             mandatory true;
             description "Use this attribute to enable or disable suppression/modification of
@@ -1624,7 +1648,7 @@ submodule ipi-bgp-address-family-vrf {
             // when " ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrf/vrf-peer/config/mapped-peer-group-tag-af ";
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             default "NULL";
             description "This attribute allows internal BGP sessions to use any operational
@@ -1773,7 +1797,7 @@ submodule ipi-bgp-address-family-vrf {
             if-feature feature-list:HAVE_VRF;
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "Interface name. Configures IP address or IPv6 address on interface";
         } // END of peer-interface-name definition.
@@ -1810,7 +1834,7 @@ submodule ipi-bgp-address-family-vrf {
             if-feature feature-list:HAVE_VRF;
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "Use this attribute to enable the site-of-origin (SOO) feature. If the
                         customer AS is multi-homed to the ISP, this attribute ensures that the
@@ -1873,10 +1897,15 @@ submodule ipi-bgp-address-family-vrf {
         leaf vrf-name  {
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "vrf name";
         } // END of vrf-name definition.
+
+        leaf multipath-relax  {
+            type  empty;
+            description "This attribute to specifies a BGP as-path relax configuration.";
+        } // END of multipath-relax definition.
 
         leaf graceful-shutdown  {
             type  empty;

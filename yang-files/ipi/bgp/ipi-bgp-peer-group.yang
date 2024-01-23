@@ -21,7 +21,7 @@ submodule ipi-bgp-peer-group {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-10-20;
+        revision-date 2024-01-22;
     }
 
     import cml-data-types {
@@ -31,11 +31,11 @@ submodule ipi-bgp-peer-group {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-06-01;
+        revision-date 2023-12-29;
     }
 
-    include ipi-bgp-common { revision-date 2023-06-01;}
-    include ipi-bgp-address-family { revision-date 2023-08-23;}
+    include ipi-bgp-common { revision-date 2024-01-11;}
+    include ipi-bgp-address-family { revision-date 2024-01-10;}
     organization
         "IP Infusion Inc.";
 
@@ -48,6 +48,21 @@ submodule ipi-bgp-peer-group {
     description
         "";
 
+
+    revision "2024-01-11" {
+        description "Added support for TCP Maximum Segment Size per BGP neighbor";
+        reference " 0.11.2.";
+    }
+
+    revision "2024-01-02" {
+        description "RPC Implementation to clear bgp peer-group for l2vpn evpn";
+        reference " 0.11.1.";
+    }
+
+    revision "2023-12-29" {
+        description "Added soft-reconfig attribute";
+        reference " 0.11.0.";
+    }
 
     revision "2023-06-01" {
         description "Adding bgp-peer-group-state grouping with peer-type attribute under peer-group/state";
@@ -543,7 +558,7 @@ submodule ipi-bgp-peer-group {
         leaf peer-group-tag  {
             type  string {
                 length "1..255";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "This attribute creates a peer-group group. Neighbors with the same
                         update policies are grouped into peer-group groups. This facilitates
@@ -601,7 +616,7 @@ submodule ipi-bgp-peer-group {
             // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate  +  !ipi-bgp-peer-group:peer-group/address-families/address-family/config/default-peer-route-map-name ";
             type  string {
                 length "1..63";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "This attribute configures route map to be used for a BGP local router
                         to send the default route 0.0.0.0 to a neighbor for use as a default
@@ -749,7 +764,7 @@ submodule ipi-bgp-peer-group {
             // when " ipi-bgp-peer-group:peer-group/address-families/address-family/config/activate ";
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             description "unsuppress map name. This attribute is used to selectively leak
                         more-specific routes to a particular neighbor.";
@@ -906,7 +921,7 @@ submodule ipi-bgp-peer-group {
             // when " ipi-bgp-peer-group:peer-group/config/peer-as ";
             type  string {
                 length "1..1965";
-                pattern "[^?' =,>|]+";
+                pattern "[^?]*";
             }
             default "NULL";
             description "Allows internal BGP sessions to use any operational interface for TCP
@@ -1006,6 +1021,15 @@ submodule ipi-bgp-peer-group {
             description "Use this attribute for a specific peer to encode extended optional
                         parameter length.";
         } // END of enable-ext-opt-param-len definition.
+
+        leaf tcp-adjust-mss  {
+            type  uint16 {
+                 range "40..1440"  {
+                    description "40..1440: Supported range 40 - 1440";
+                 }
+            }
+            description "Use this attribute to set the BGP TCP MSS value of a neighbor.";
+        } // END of tcp-adjust-mss definition.
 
     } // END of bgp-peer-group-common-config definition.
     grouping bgp-peer-group-address-family-common-config {
