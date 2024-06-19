@@ -28,32 +28,22 @@ module ipi-bgp {
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-12-29;
-    }
-
-    import ipi-network-instance {
-        prefix ipi-network-instance;
-        revision-date 2023-03-14;
-    }
-
-    import ipi-vrf {
-        prefix ipi-vrf;
-        revision-date 2023-08-08;
+        revision-date 2024-06-03;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-01-22;
+        revision-date 2024-06-19;
     }
 
     include ipi-bgp-instance { revision-date 2023-10-11;}
     include ipi-bgp-flowspec { revision-date 2023-03-12;}
     include ipi-bgp-common { revision-date 2024-01-11;}
-    include ipi-bgp-address-family { revision-date 2024-01-10;}
+    include ipi-bgp-address-family { revision-date 2024-05-17;}
     include ipi-bgp-evpn-rib { revision-date 2023-04-25;}
-    include ipi-bgp-peer-group { revision-date 2024-01-11;}
-    include ipi-bgp-peer { revision-date 2024-01-11;}
-    include ipi-bgp-address-family-vrf { revision-date 2024-01-11;}
+    include ipi-bgp-peer-group { revision-date 2024-05-17;}
+    include ipi-bgp-peer { revision-date 2024-05-17;}
+    include ipi-bgp-address-family-vrf { revision-date 2024-05-10;}
     include ipi-bgp-link-state { revision-date 2022-06-01;}
     include ipi-bgp-epe { revision-date 2023-05-12;}
     organization
@@ -68,6 +58,81 @@ module ipi-bgp {
     description
         "YANG version of the ipi-bgp";
 
+
+    revision "2024-06-10" {
+        description "Changed the datatype for Regular expression";
+        reference " 0.14.20.";
+    }
+
+    revision "2024-06-03" {
+        description "Introduced new bgp debug option 'debug bgp route-scan'";
+        reference " 0.14.19.";
+    }
+
+    revision "2024-05-20" {
+        description "Added CML no delete api tag for address-family attributes";
+        reference " 0.14.18.";
+    }
+
+    revision "2024-05-17" {
+        description "Updated When tag constraints for attribute 'additional-path-select-all' and 'additional-paths-best-select-count'";
+        reference " 0.14.17.";
+    }
+
+    revision "2024-05-15" {
+        description "Added When tag constraints for attribute 'additional-path-select-all' and 'additional-paths-best-select-count'";
+        reference " 0.14.16.";
+    }
+
+    revision "2024-05-10" {
+        description "Updated cliFlag for  attribute 'ibgp-max-path' and 'ebgp-max-path'";
+        reference " 0.14.15.";
+    }
+
+    revision "2024-05-06" {
+        description "Updated cliFlag for attribute 'peer-address'";
+        reference " 0.14.14.";
+    }
+
+    revision "2024-04-19" {
+        description "Introduced a new bgp debug option 'debug bgp adj-out'";
+        reference " 0.14.13.";
+    }
+
+    revision "2024-03-26" {
+        description "Commented leafref for vrf-name for future merge conflict avoidance and keeping branches(6.3.x) in sync";
+        reference " 0.14.12.";
+    }
+
+    revision "2024-03-25" {
+        description "Updated When tag constraints for attribute 'password'";
+        reference " 0.14.11.";
+    }
+
+    revision "2024-03-15" {
+        description "Added BGP add-path option under BGP_DEBUG_T";
+        reference " 0.14.10.";
+    }
+
+    revision "2024-03-13" {
+        description "changed the datatype for Regular expression";
+        reference " 0.14.9.";
+    }
+
+    revision "2024-02-27" {
+        description "Removed installtion mode not suppported for attribute 'additional-paths-mode', 'additional-path-select-all' and 'additional-paths-best-select-count'";
+        reference " 0.14.8.";
+    }
+
+    revision "2024-02-12" {
+        description "Added Nexthop delay measurement unit (sec)";
+        reference " 0.14.7.";
+    }
+
+    revision "2024-02-07" {
+        description "Updated debug bgp cli options.Removed datatype 'BGP_UPDATE_DEBUG_T' and updated option for datatype 'BGP_DEBUG_T'";
+        reference " 0.14.6.";
+    }
 
     revision "2024-01-11" {
         description "Added support for TCP Maximum Segment Size per BGP neighbor";
@@ -680,9 +745,7 @@ tion' and rd_string/IP-VRF";
 
         leaf vrf-name  {
             if-feature feature-list:HAVE_MPLS;
-            type  leafref {
-                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
-            }
+            type  ipi-bgp-types:bgp_vrf_type_t;
             description "Use this attribute to specify vrf name";
         } // END of vrf-name definition.
 
@@ -1594,13 +1657,6 @@ tion' and rd_string/IP-VRF";
                         information.";
         } // END of options definition.
 
-        leaf update-options  {
-            type  ipi-bgp-types:bgp_update_debug_t;
-            description "Use this attribute to enable all BGP troubleshooting functions. Use
-                        this attribute without any parameters to turn on normal bgp debug
-                        information.";
-        } // END of update-options definition.
-
     } // END of bgp-global-debug-config definition.
     grouping bgp-global-terminal-debug-state {
         description
@@ -1609,11 +1665,6 @@ tion' and rd_string/IP-VRF";
             type  ipi-bgp-types:bgp_debug_t;
             description "Terminal debug option";
         } // END of terminal-debug-status definition.
-
-        leaf terminal-debug-update-status  {
-            type  ipi-bgp-types:bgp_update_debug_t;
-            description "Terminal debug update type option";
-        } // END of terminal-debug-update-status definition.
 
     } // END of bgp-global-terminal-debug-state definition.
     grouping bgp-global-debug {
@@ -1856,18 +1907,6 @@ tion' and rd_string/IP-VRF";
                 type ipi-bgp-types:bgp_debug_t;
                 mandatory true;
                 description "Use this command to turn off, BGP debugging at various levels.";
-            }
-        }
-    }
-
-    rpc bgp-debug-updates-type-on {
-        if-feature feature-list:HAVE_BGPD;
-        description "Use this RPC to enable BGP update debug";
-        input  {
-            leaf terminal-debug-options  {
-                type ipi-bgp-types:bgp_update_debug_t;
-                mandatory true;
-                description "Use this attribute to turn on debugging for BGP update";
             }
         }
     }

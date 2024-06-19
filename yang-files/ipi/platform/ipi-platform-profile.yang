@@ -21,7 +21,7 @@ submodule ipi-platform-profile {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-01-22;
+        revision-date 2024-06-19;
     }
 
     import cml-data-types {
@@ -31,7 +31,7 @@ submodule ipi-platform-profile {
 
     import ipi-platform-types {
         prefix ipi-platform-types;
-        revision-date 2023-02-11;
+        revision-date 2023-08-21;
     }
 
     include ipi-platform-profile-extended { revision-date 2023-03-17;}
@@ -48,6 +48,16 @@ submodule ipi-platform-profile {
         "Datamodel for Platform profile object";
 
 
+    revision "2024-06-03" {
+        description "Added small field groups at last in hardware-profile-filters-config";
+        reference " 0.27.2.";
+    }
+
+    revision "2024-04-21" {
+        description "Moved evpn-mpls-multi-homing profile to new grouping to add the dependency on other profiles";
+        reference " 0.23.0.";
+    }
+
     revision "2023-09-19" {
         description "Implementation of CLI hardware filter ingress-l2-subif and inghress-ipv4-subif";
         reference " 0.22.9.";
@@ -55,6 +65,11 @@ submodule ipi-platform-profile {
 
     revision "2023-08-01" {
         description "Adding trident chipset for lpm-128bit-profile";
+        reference " 0.22.5.";
+    }
+
+    revision "2023-07-30" {
+        description "support bgp-flowspec-mode attribute";
         reference " 0.22.5.";
     }
 
@@ -332,6 +347,14 @@ submodule ipi-platform-profile {
                         service-queue profile support.";
         } // END of custom-service-queue-profile definition.
 
+        leaf bgp-flowspec-mode  {
+            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/ipv4-bgp-flowspec + !ipi-platform-profile:profiles/hardware-profile/filters/config/ipv6-bgp-flowspec ";
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_BGP_FLOWSPEC;
+            type  ipi-platform-types:platform_bgp_flowspec_mode_t;
+            description "use this attribute to set bgp-flowspce-mode";
+        } // END of bgp-flowspec-mode definition.
+
     } // END of hardware-profile-config definition.
     grouping hardware-profile-filters-config {
         description
@@ -410,14 +433,6 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of ingress-ipv4-custom0 definition.
 
-        leaf ingress-ipv4  {
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable Ingress IPv4 filter groups.
-                        Disabling filter groups increases the configurable filter entries.";
-        } // END of ingress-ipv4 definition.
-
         leaf ingress-ipv4-extended  {
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:HAVE_DUNE;
@@ -479,15 +494,6 @@ submodule ipi-platform-profile {
                         filter groups. Disabling filter groups increases the configurable
                         filter entries.";
         } // END of ipv6-bgp-flowspec definition.
-
-        leaf qos  {
-            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-extended + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-policer ";
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable QoS filter groups. Disabling
-                        filter groups increases the configurable filter entries.";
-        } // END of qos definition.
 
         leaf qos-extended  {
             // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-policer ";
@@ -586,15 +592,6 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-layer2-ext definition.
 
-        leaf ingress-layer2  {
-            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/ingress-layer2-extended ";
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable Ingress L2 filter groups.
-                        Disabling filter groups increases the configurable filter entries.";
-        } // END of ingress-layer2 definition.
-
         leaf ingress-layer2-extended  {
             // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/ingress-layer2 ";
             if-feature feature-list:HAVE_ACL;
@@ -661,16 +658,6 @@ submodule ipi-platform-profile {
                         filter groups. Disabling filter groups increases the configurable
                         filter entries.";
         } // END of vxlan-multi-homing definition.
-
-        leaf evpn-mpls-multi-homing  {
-            if-feature feature-list:HAVE_NVO;
-            if-feature feature-list:HAVE_MPLS;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable EVPN-MPLS Multi Homing
-                        Forwarding filter groups. Disabling filter groups increases the
-                        configurable filter entries.";
-        } // END of evpn-mpls-multi-homing definition.
 
         leaf vxlan-short-pkt  {
             if-feature feature-list:HAVE_VXLAN;
@@ -741,7 +728,47 @@ submodule ipi-platform-profile {
                         filter groups increases the configurable filter entries.";
         } // END of isolation definition.
 
+        leaf ingress-ipv4  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress IPv4 filter groups.
+                        Disabling filter groups increases the configurable filter entries.";
+        } // END of ingress-ipv4 definition.
+
+        leaf ingress-layer2  {
+            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/ingress-layer2-extended ";
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress L2 filter groups.
+                        Disabling filter groups increases the configurable filter entries.";
+        } // END of ingress-layer2 definition.
+
+        leaf qos  {
+            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-extended + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-policer ";
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable QoS filter groups. Disabling
+                        filter groups increases the configurable filter entries.";
+        } // END of qos definition.
+
     } // END of hardware-profile-filters-config definition.
+    grouping hardware-profile-filter-evpn-mpls-multi-homing {
+        description
+            "Grouping for hardware profile filter evpn mpls multi-homing.";
+        leaf evpn-mpls-multi-homing  {
+            if-feature feature-list:HAVE_NVO;
+            if-feature feature-list:HAVE_MPLS;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable EVPN-MPLS Multi Homing
+                        Forwarding filter groups. Disabling filter groups increases the
+                        configurable filter entries.";
+        } // END of evpn-mpls-multi-homing definition.
+
+    } // END of hardware-profile-filter-evpn-mpls-multi-homing definition.
     grouping hardware-profiles-statistics-config {
         description
             "Grouping for hardware-profile statistics config objects.";
@@ -961,6 +988,50 @@ submodule ipi-platform-profile {
         } // END of shared-entries definition.
 
     } // END of hardware-tcam-filter-group-state definition.
+    grouping hardware-tcam-filter-top {
+        description
+            "Grouping for hardware tcam filter";
+        container tcam-utilization {
+            if-feature feature-list:HAVE_ACL;
+            config false;
+            description
+                "This container defines TCAM Utilization information.";
+            container state {
+                config false;
+                description
+                    "This container defines TCAM Utilization information Operational
+                            states.";
+                uses hardware-tcam-state;
+            } // END of state-container definition.
+            container filter-groups {
+                config false;
+                description
+                    "This container defines TCAM Utilization filter-groups information.";
+
+                list filter-group {
+                    key "group-id";
+                    config false;
+                    description
+                        "The list of named filter-group.";
+                    leaf group-id  {
+                        type  leafref {
+                            path  "../state/group-id";
+                        }
+                        description "A unique number corresponding to each TCAM group. This attribute is
+                                    used solely for defining the key for the TCAM utilization filter
+                                    groups object list. It's value shouldn't be interpreted.";
+                    } // END of group-id definition.
+
+                    container state {
+                        config false;
+                        description
+                            "This container defines filter-group information Operational states.";
+                        uses hardware-tcam-filter-group-state;
+                    } // END of state-container definition.
+                } // End of filter-group-list
+            } // END of filter-groups-container definition.
+        } // END of tcam-utilization-container definition.
+    } // END of hardware-tcam-filter-top definition.
     grouping platform-kaps-config {
         description
             "Grouping for forwarding-profiles kaps config objects.";
@@ -1274,47 +1345,27 @@ submodule ipi-platform-profile {
                         "This container defines hardware-profile filter Operational states.";
                     uses hardware-profile-filters-config;
                 } // END of state-container definition.
-                container tcam-utilization {
-                    if-feature feature-list:HAVE_ACL;
+                uses hardware-tcam-filter-top;
+            } // END of filters-container definition.
+            container filter-evpn-mpls-mh {
+                description
+                    "This container defined hardware profile-filter evpn-mpls-mh
+                            configuration and state information.";
+                container config {
+                    description
+                        "This container defines hardware-profile filter evpn-mpls-mh
+                                configuration";
+                    uses hardware-profile-filter-evpn-mpls-multi-homing;
+                } // END of config-container definition.
+                container state {
                     config false;
                     description
-                        "This container defines TCAM Utilization information.";
-                    container state {
-                        config false;
-                        description
-                            "This container defines TCAM Utilization information Operational
-                                    states.";
-                        uses hardware-tcam-state;
-                    } // END of state-container definition.
-                    container filter-groups {
-                        config false;
-                        description
-                            "This container defines TCAM Utilization filter-groups information.";
-
-                        list filter-group {
-                            key "group-id";
-                            config false;
-                            description
-                                "The list of named filter-group.";
-                            leaf group-id  {
-                                type  leafref {
-                                    path  "../state/group-id";
-                                }
-                                description "A unique number corresponding to each TCAM group. This attribute is
-                                            used solely for defining the key for the TCAM utilization filter
-                                            groups object list. It's value shouldn't be interpreted.";
-                            } // END of group-id definition.
-
-                            container state {
-                                config false;
-                                description
-                                    "This container defines filter-group information Operational states.";
-                                uses hardware-tcam-filter-group-state;
-                            } // END of state-container definition.
-                        } // End of filter-group-list
-                    } // END of filter-groups-container definition.
-                } // END of tcam-utilization-container definition.
-            } // END of filters-container definition.
+                        "This container defines hardware-profile filter evpn-mpls-mh
+                                Operational states";
+                    uses hardware-profile-filter-evpn-mpls-multi-homing;
+                } // END of state-container definition.
+                uses hardware-tcam-filter-top;
+            } // END of filter-evpn-mpls-mh-container definition.
             container statistics {
                 description
                     "This container defines hardware-profile statistics configuration and
