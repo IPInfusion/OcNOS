@@ -21,7 +21,7 @@ submodule ipi-bgp-instance {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ietf-inet-types {
@@ -31,22 +31,22 @@ submodule ipi-bgp-instance {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-11-27;
+        revision-date 2024-06-20;
     }
 
-    include ipi-bgp-common { revision-date 2023-11-27;}
+    include ipi-bgp-common { revision-date 2024-01-05;}
     include ipi-bgp-evpn-rib { revision-date 2023-09-12;}
     include ipi-bgp-link-state { revision-date 2023-09-12;}
-    include ipi-bgp-address-family { revision-date 2023-11-02;}
-    include ipi-bgp-peer-group { revision-date 2023-11-28;}
-    include ipi-bgp-peer { revision-date 2023-11-27;}
-    include ipi-bgp-address-family-vrf { revision-date 2023-11-30;}
-    include ipi-bgp-epe { revision-date 2023-09-12;}
+    include ipi-bgp-address-family { revision-date 2024-08-02;}
+    include ipi-bgp-peer-group { revision-date 2024-05-16;}
+    include ipi-bgp-peer { revision-date 2024-06-13;}
+    include ipi-bgp-address-family-vrf { revision-date 2024-06-06;}
+    include ipi-bgp-epe { revision-date 2024-02-08;}
     organization
         "IP Infusion Inc.";
 
@@ -59,6 +59,26 @@ submodule ipi-bgp-instance {
     description
         "";
 
+
+    revision "2024-06-06" {
+        description "Added dependency between g-shut-capable and g-shut-local-preferences";
+        reference " 0.13.1.";
+    }
+
+    revision "2024-05-20" {
+        description "Added utils functions for source ip prefix list";
+        reference " 0.13.0.";
+    }
+
+    revision "2024-03-20" {
+        description "Removed state attributes for dampenning ";
+        reference " 0.12.1.";
+    }
+
+    revision "2024-03-19" {
+        description "Updated attribute 'inbound-route-filter-enable' to 'inbound-route-filter-disable' ";
+        reference " 0.12.0.";
+    }
 
     revision "2023-10-11" {
         description "Updated attribute 'graceful-shutdown-capable' and 'graceful-shutdown' ";
@@ -302,24 +322,6 @@ submodule ipi-bgp-instance {
         } // END of access-list-name definition.
 
     } // END of bgp-administrative-distance-config definition.
-    grouping bgp-route-flap-dampening-state {
-        description
-            "attributes having bgp route flap dampening state";
-        leaf maximum-penalty-ceil  {
-            type  int32;
-            default "0";
-            config false;
-            description "dampening penalty ceil";
-        } // END of maximum-penalty-ceil definition.
-
-        leaf minimum-penalty-ceil  {
-            type  int32;
-            default "0";
-            config false;
-            description "dampening penalty floor";
-        } // END of minimum-penalty-ceil definition.
-
-    } // END of bgp-route-flap-dampening-state definition.
     grouping bgp-route-selection-config {
         description
             "attributes having route seletion configuration";
@@ -438,6 +440,7 @@ submodule ipi-bgp-instance {
         } // END of graceful-shutdown definition.
 
         leaf graceful-shutdown-local-preference  {
+            // when " ipi-bgp-instance:bgp-instances/bgp-instance/config/graceful-shutdown-capable ";
             type  uint32 {
                  range "0..4294967295"  {
                     description "0..4294967295: Supported range 0 - 4294967295";
@@ -452,7 +455,7 @@ submodule ipi-bgp-instance {
                         access servers in the local  autonomous system.";
         } // END of graceful-shutdown-local-preference definition.
 
-        leaf inbound-route-filter-enable  {
+        leaf inbound-route-filter-disable  {
             if-feature feature-list:HAVE_VRF;
             type  empty;
             description "Use this attribute to enable the MPLS (Multiprotocol Label Switching)
@@ -464,7 +467,7 @@ submodule ipi-bgp-instance {
                         installed. When the local box has two VRFs where each routing
                         distinguisher value is 10:100 and 20:200, routing information with
                         routing distinguisher 10:200 is not installed into BGP table.";
-        } // END of inbound-route-filter-enable definition.
+        } // END of inbound-route-filter-disable definition.
 
         leaf log-neighbor-changes  {
             type  empty;
@@ -893,17 +896,6 @@ submodule ipi-bgp-instance {
                     uses bgp-route-selection-config;
                 } // END of state-container definition.
             } // END of route-selection-container definition.
-            container route-flap-dampening {
-                config false;
-                description
-                    "container for bgp route flap dampening";
-                container state {
-                    config false;
-                    description
-                        "state parameters relating to route flap dampening";
-                    uses bgp-route-flap-dampening-state;
-                } // END of state-container definition.
-            } // END of route-flap-dampening-container definition.
             container administrative-distances {
                 description
                     "Top level container for bgp administrative distance prameters";

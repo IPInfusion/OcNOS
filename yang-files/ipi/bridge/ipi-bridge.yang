@@ -23,17 +23,17 @@ module ipi-bridge {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-bridge-types {
         prefix ipi-bridge-types;
-        revision-date 2022-06-01;
+        revision-date 2024-04-28;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ipi-network-instance {
@@ -48,7 +48,7 @@ module ipi-bridge {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -64,9 +64,44 @@ module ipi-bridge {
         "Layer-2 bridge configurations";
 
 
+    revision "2024-06-21" {
+        description "Added Platform check for TH4 which does not supports provider bridge";
+        reference " 0.14.5.";
+    }
+
+    revision "2024-05-20" {
+        description "Added depenentObject tag for xst datamodel";
+        reference " 0.14.4.";
+    }
+
+    revision "2024-04-28" {
+        description "Mask RPVST+ CLIs for Marvell platform";
+        reference " 0.14.3.";
+    }
+
+    revision "2024-03-04" {
+        description "Added global bridge vlan check enable display helpstring";
+        reference " 0.14.2.";
+    }
+
+    revision "2024-02-13" {
+        description "Added global bridge vlan check cli";
+        reference " 0.14.1.";
+    }
+
+    revision "2024-01-30" {
+        description "Added a when tag on bridge pointing to intra-domain-link IFNAME";
+        reference " 0.14.0.";
+    }
+
+    revision "2023-10-24" {
+        description "Add the proper dependencies for FlexE objects";
+        reference " 0.13.1.";
+    }
+
     revision "2023-09-09" {
         description "Convert user entered MAC address to lower case";
-        reference " 0.12.8.";
+        reference " 0.13.0.";
     }
 
     revision "2023-06-13" {
@@ -571,6 +606,45 @@ module ipi-bridge {
             "Top level grouping for ethernet virtual conneciton configuration and
                         state data";
     } // END of evc-top definition.
+    grouping bridge-vlan-check-global-config {
+        description
+            "Grouping for bridge vlan Global configuration data";
+        leaf enable  {
+            type  empty;
+            description "Use this attribute to enable global bridge vlan check";
+        } // END of enable definition.
+
+    } // END of bridge-vlan-check-global-config definition.
+    grouping global-bridge-vlan-check-top {
+        description
+            "Grouping for global bridge vlan check configuration data";
+        container global {
+            description
+                "Container for vlan database check Global configuration";
+            container config {
+                description
+                    "Configuration data for Global vlan check";
+                uses bridge-vlan-check-global-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for Global bridge vlan check";
+                uses bridge-vlan-check-global-config;
+            } // END of state-container definition.
+        } // END of global-container definition.
+    } // END of global-bridge-vlan-check-top definition.
+
+    grouping  global-bridge-vlan-check-grouping {
+    description
+        "global bridge vlan check data model";
+    container global-bridge-vlan-check {
+        if-feature feature-list:HAVE_L2;
+        description
+            "global bridge vlan check data model";
+        uses global-bridge-vlan-check-top;
+    } // END of global-bridge-vlan-check-container definition.
+    } // END of global-bridge-vlan-check-grouping definition.
 
     grouping  bridge-grouping {
     description
@@ -597,6 +671,7 @@ module ipi-bridge {
     } // END of bridge-container definition.
     } // END of bridge-grouping definition.
 
+    uses global-bridge-vlan-check-grouping;
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance {
     when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-network-instance:instance-type = 'l2ni' ";
     // when " ipi-bridge:bridge/config/protocol ";

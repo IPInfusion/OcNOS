@@ -21,7 +21,7 @@ submodule ipi-cfm-common {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ietf-yang-types {
@@ -36,12 +36,12 @@ submodule ipi-cfm-common {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-cfm-data-types {
         prefix ipi-cfm-data-types;
-        revision-date 2023-08-11;
+        revision-date 2024-03-22;
     }
 
     import ipi-network-instance {
@@ -51,7 +51,7 @@ submodule ipi-cfm-common {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     organization
@@ -66,6 +66,31 @@ submodule ipi-cfm-common {
     description
         "Data model for IPI CFM common Configuration and Operational state";
 
+
+    revision "2024-05-15" {
+        description " Added support for configuring RMEP under MEP";
+        reference " 0.11.3.";
+    }
+
+    revision "2024-05-14" {
+        description "Added when tag for vlan-id";
+        reference " 0.11.2.";
+    }
+
+    revision "2024-05-12" {
+        description "Enable rmep auto-discovery CLI for Marvell";
+        reference " 0.11.1.";
+    }
+
+    revision "2024-05-08" {
+        description "Added MEP vlan cli support";
+        reference " 0.11.0.";
+    }
+
+    revision "2024-05-02" {
+        description "Removed the include-input-for-unset for enable-lm-responder";
+        reference " 0.10.0.";
+    }
 
     revision "2023-06-05" {
         description "Removed when tag for vlan-id attribute";
@@ -620,7 +645,7 @@ submodule ipi-cfm-common {
         } // END of ccm-interval definition.
 
         leaf enable-rmep-auto-discovery  {
-            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DUNE_OR_HAVE_MARVELL;
             type  empty;
             description "This attribute tells whether remote MEPs can be learnt from the peer";
         } // END of enable-rmep-auto-discovery definition.
@@ -725,6 +750,24 @@ submodule ipi-cfm-common {
             description "The administrative state of the MEP";
         } // END of administrative-state definition.
 
+        leaf mep-outer-vlan  {
+            type  uint16 {
+                 range "1..4094"  {
+                    description "1..4094: Supported range 1 - 4094";
+                 }
+            }
+            description "Outer vlan of the MEP";
+        } // END of mep-outer-vlan definition.
+
+        leaf mep-inner-vlan  {
+            type  uint16 {
+                 range "1..4094"  {
+                    description "1..4094: Supported range 1 - 4094";
+                 }
+            }
+            description "Inner vlan of the MEP";
+        } // END of mep-inner-vlan definition.
+
     } // END of cfm-mep-common-config definition.
     grouping cfm-mep-bandwidth-shaping-config {
         description
@@ -819,6 +862,22 @@ submodule ipi-cfm-common {
                         The non-existence of this leaf means that no defects are to be
                         reported";
         } // END of lowest-fault-priority-defect definition.
+
+        leaf mep-rmep-auto-discovery  {
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "This attribute tells whether remote MEPs can be learnt from the peer";
+        } // END of mep-rmep-auto-discovery definition.
+
+        leaf-list mep-rmep-cross-check  {
+            if-feature feature-list:HAVE_DUNE;
+            type  uint16 {
+                 range "1..8191"  {
+                    description "1..8191: Supported range 1 - 8191";
+                 }
+            }
+            description "A list of static remote MEPs in a specified MA.";
+        } // END of mep-rmep-cross-check definition.
 
     } // END of cfm-mep-ccm-config definition.
     grouping cfm-mep-ccm-state {

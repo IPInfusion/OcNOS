@@ -21,7 +21,7 @@ submodule ipi-bgp-flowspec {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ipi-bgp-flowspec-types {
@@ -46,6 +46,16 @@ submodule ipi-bgp-flowspec {
     description
         "BGP FLow Specification (FLOWSPEC)";
 
+
+    revision "2024-06-25" {
+        description "added needed dependacies to contorller and vrf ";
+        reference " 0.2.1.";
+    }
+
+    revision "2024-02-08" {
+        description "Added enclosing containers for objectlists";
+        reference " 0.2.0.";
+    }
 
     revision "2023-03-12" {
         description "packet-length attribute corrections";
@@ -170,6 +180,7 @@ submodule ipi-bgp-flowspec {
             "Top-level grouping for FLOWSPEC";
 
         list controller {
+        // when " ipi-bgp-instance:bgp-instances/bgp-instance/bgp-as ";
             key "enable-flowspec-controller";
             description
                 "Configuration data for FLOWSPEC";
@@ -207,38 +218,6 @@ submodule ipi-bgp-flowspec {
                         description "specify AFI_TYPE for an address-family";
                     } // END of afi-type definition.
 
-
-                    list service-policy {
-                        key "attached-policy-map-name service-policy-type";
-                        description
-                            "Attach service-policy for BGP_FLOWSPEC";
-                        leaf attached-policy-map-name  {
-                            type  leafref {
-                                path  "../config/attached-policy-map-name";
-                            }
-                            description "Use this attribute to specify attached-policy-map-name";
-                        } // END of attached-policy-map-name definition.
-
-                        leaf service-policy-type  {
-                            type  leafref {
-                                path  "../config/service-policy-type";
-                            }
-                            description "Use this attribute to specify service-policy-type";
-                        } // END of service-policy-type definition.
-
-                        container config {
-                            description
-                                "config";
-                            uses flowspec-default_vrf_service_policy-config;
-                        } // END of config-container definition.
-                        container state {
-                            config false;
-                            description
-                                "Operational state data for class for FLOWSPEC default vrf
-                                        address-family";
-                            uses flowspec-default_vrf_service_policy-config;
-                        } // END of state-container definition.
-                    } // End of service-policy-list
                     container config {
                         description
                             "configuring for address-family";
@@ -251,6 +230,42 @@ submodule ipi-bgp-flowspec {
                                     address-family";
                         uses flowspec-default-vrf_address-family-config;
                     } // END of state-container definition.
+                    container service-policies {
+                        description
+                            "Enclosing container of  service-policy for BGP_FLOWSPEC";
+
+                        list service-policy {
+                            key "attached-policy-map-name service-policy-type";
+                            description
+                                "Attach service-policy for BGP_FLOWSPEC";
+                            leaf attached-policy-map-name  {
+                                type  leafref {
+                                    path  "../config/attached-policy-map-name";
+                                }
+                                description "Use this attribute to specify attached-policy-map-name";
+                            } // END of attached-policy-map-name definition.
+
+                            leaf service-policy-type  {
+                                type  leafref {
+                                    path  "../config/service-policy-type";
+                                }
+                                description "Use this attribute to specify service-policy-type";
+                            } // END of service-policy-type definition.
+
+                            container config {
+                                description
+                                    "config";
+                                uses flowspec-default_vrf_service_policy-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "Operational state data for class for FLOWSPEC default vrf
+                                            address-family";
+                                uses flowspec-default_vrf_service_policy-config;
+                            } // END of state-container definition.
+                        } // End of service-policy-list
+                    } // END of service-policies-container definition.
                 } // End of address-family-list
             } // END of address-families-container definition.
             container vrfs {
@@ -258,6 +273,7 @@ submodule ipi-bgp-flowspec {
                     "Configuration data for vrfs of FLOWSPEC";
 
                 list vrf {
+                // when " ipi-bgp-vrf:bgp-vrf/config/rd-string ";
                     key "vrf-name";
                     description
                         "Configuratoin data list for BGP_FLOWSPEC VRF";
@@ -294,37 +310,6 @@ submodule ipi-bgp-flowspec {
                                 description "specify afi type for an address-family";
                             } // END of afi-type definition.
 
-
-                            list service-policy {
-                                key "attached-policy-map-name service-policy-type";
-                                description
-                                    "Attach service-policy for BGP_FLOWSPEC";
-                                leaf attached-policy-map-name  {
-                                    type  leafref {
-                                        path  "../config/attached-policy-map-name";
-                                    }
-                                    description "Use this attribute to specify attached-policy-map-name";
-                                } // END of attached-policy-map-name definition.
-
-                                leaf service-policy-type  {
-                                    type  leafref {
-                                        path  "../config/service-policy-type";
-                                    }
-                                    description "Use this attribute to specify service-policy-type";
-                                } // END of service-policy-type definition.
-
-                                container config {
-                                    description
-                                        "config";
-                                    uses flowspec-vrf-service-policy_config;
-                                } // END of config-container definition.
-                                container state {
-                                    config false;
-                                    description
-                                        "Operational state data for FLOWSPEC vrf service-policy config";
-                                    uses flowspec-vrf-service-policy_config;
-                                } // END of state-container definition.
-                            } // End of service-policy-list
                             container config {
                                 description
                                     "config";
@@ -336,6 +321,41 @@ submodule ipi-bgp-flowspec {
                                     "Operational state data for FLOWSPEC vrf address-family config";
                                 uses flowspec-vrf-address-family_config;
                             } // END of state-container definition.
+                            container service-policies {
+                                description
+                                    "Enclosing container of service-policy for BGP_FLOWSPEC";
+
+                                list service-policy {
+                                    key "attached-policy-map-name service-policy-type";
+                                    description
+                                        "Attach service-policy for BGP_FLOWSPEC";
+                                    leaf attached-policy-map-name  {
+                                        type  leafref {
+                                            path  "../config/attached-policy-map-name";
+                                        }
+                                        description "Use this attribute to specify attached-policy-map-name";
+                                    } // END of attached-policy-map-name definition.
+
+                                    leaf service-policy-type  {
+                                        type  leafref {
+                                            path  "../config/service-policy-type";
+                                        }
+                                        description "Use this attribute to specify service-policy-type";
+                                    } // END of service-policy-type definition.
+
+                                    container config {
+                                        description
+                                            "config";
+                                        uses flowspec-vrf-service-policy_config;
+                                    } // END of config-container definition.
+                                    container state {
+                                        config false;
+                                        description
+                                            "Operational state data for FLOWSPEC vrf service-policy config";
+                                        uses flowspec-vrf-service-policy_config;
+                                    } // END of state-container definition.
+                                } // End of service-policy-list
+                            } // END of service-policies-container definition.
                         } // End of address-family-list
                     } // END of address-families-container definition.
                 } // End of vrf-list

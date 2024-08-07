@@ -21,14 +21,29 @@ module ipi-streaming-telemetry {
 
     prefix "ipi-streaming-telemetry";
 
-    import cml-data-types {
-        prefix cml-data-types;
-        revision-date 2023-08-10;
+    import ipi-streaming-telemetry-types {
+        prefix ipi-streaming-telemetry-types;
+        revision-date 2024-05-23;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+
+    import ipi-network-instance {
+        prefix ipi-network-instance;
+        revision-date 2023-07-13;
+    }
+
+    import ipi-vrf {
+        prefix ipi-vrf;
+        revision-date 2024-03-11;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -43,6 +58,56 @@ module ipi-streaming-telemetry {
     description
         "Data model for management streaming telemetry configurations";
 
+
+    revision "2024-07-08" {
+        description "Added dependent object in telemetry enable object";
+        reference " 0.2.8.";
+    }
+
+    revision "2024-05-29" {
+        description "Support default, user-defined VRFs in addition to management vrf that is currently supported";
+        reference " 0.2.7.";
+    }
+
+    revision "2024-05-23" {
+        description "Inclusion of platform-type leaf under streaming-telemetry/state";
+        reference " 0.2.6.";
+    }
+
+    revision "2024-05-02" {
+        description "Inclusion of state atributes under streaming-telemetry/state";
+        reference " 0.2.5.";
+    }
+
+    revision "2024-02-26" {
+        description "Pattern update for persistent subscription sensor-path";
+        reference " 0.2.4.";
+    }
+
+    revision "2024-01-23" {
+        description "Modified retry-interval range and default value";
+        reference " 0.2.3.";
+    }
+
+    revision "2024-01-19" {
+        description "Encoding CLI added";
+        reference " 0.2.2.";
+    }
+
+    revision "2023-12-13" {
+        description "Modified sample-interval min range from 5 to 10";
+        reference " 0.2.1.";
+    }
+
+    revision "2023-11-08" {
+        description "Inclusion of dial-out CLI's";
+        reference " 0.2.0.";
+    }
+
+    revision "2023-10-26" {
+        description "Inclusion of streaming telemetry data-types yang";
+        reference " 0.1.3.";
+    }
 
     revision "2023-10-06" {
         description "Adding client-address attr in dynamic subscription show command";
@@ -121,8 +186,13 @@ module ipi-streaming-telemetry {
             description "Time in seconds between the device's sample of a telemetry data source";
         } // END of sample-interval definition.
 
+        leaf stream-mode  {
+            type  ipi-streaming-telemetry-types:cml_streaming_mode_types_t;
+            description "Specifies the mode of streaming request whether once or poll";
+        } // END of stream-mode definition.
+
         leaf encoding  {
-            type  cml-data-types:cml_data_encode_t;
+            type  ipi-streaming-telemetry-types:cml_data_encode_t;
             description "Selection of the specific encoding or RPC framework for telemetry
                         messages to and from the network element. The encoding method controls
                         specifically the wire format of the telemetry data, and also controls
@@ -166,14 +236,14 @@ module ipi-streaming-telemetry {
         description
             "Parameters related to debug";
         leaf gnmi-debug  {
-            when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+            when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
             type  empty;
             description "Enable or Disable device's debug telemetry";
         } // END of gnmi-debug definition.
 
         leaf gnmi-severity  {
-            // when " ipi-streaming-telemetry:telemetry-system/streaming-telemetry/debug/config/gnmi-debug ";
-            type  cml-data-types:cml_gnmi_debug_severity_t;
+            // when " ipi-streaming-telemetry:telemetry-system/vrfs/vrf/streaming-telemetry/debug/config/gnmi-debug ";
+            type  ipi-streaming-telemetry-types:cml_gnmi_debug_severity_t;
             default "error";
             description "device's debug telemetry severity level";
         } // END of gnmi-severity definition.
@@ -198,15 +268,120 @@ module ipi-streaming-telemetry {
             } // END of state-container definition.
         } // END of debug-container definition.
     } // END of streaming-telemetry-debug definition.
+    grouping streaming-telemetry-state-details {
+        description
+            "State information related to streaming telemetry";
+        leaf maximum-sensor-paths  {
+            type  uint8;
+            description "Maximum number of sensor-paths supported for this device";
+        } // END of maximum-sensor-paths definition.
+
+        leaf minimum-sample-interval  {
+            type  uint8;
+            description "Minimum sample-interval supported for this device";
+        } // END of minimum-sample-interval definition.
+
+        leaf platform-type  {
+            type  ipi-streaming-telemetry-types:cml_telemetry_platform_type_t;
+            description "Specifies type of patform whether high range or low - medium range";
+        } // END of platform-type definition.
+
+        leaf default-retry-interval  {
+            type  uint8;
+            description "If the grpc-tunnel-server is unreachable, the gnmi-server retries to
+                        connect with gnmi-client after the default retry-interval";
+        } // END of default-retry-interval definition.
+
+        leaf active-sensor-paths  {
+            type  uint8;
+            description "Count of active number of sensor-paths in the device, which is
+                        including both dial-in and dial-out";
+        } // END of active-sensor-paths definition.
+
+        leaf active-dial-in-sensor-paths  {
+            type  uint8;
+            description "Count of active number of dial-in sensor-paths in the device";
+        } // END of active-dial-in-sensor-paths definition.
+
+        leaf active-dial-out-sensor-paths  {
+            type  uint8;
+            description "Count of active number of dial-out sensor-paths in the device";
+        } // END of active-dial-out-sensor-paths definition.
+
+    } // END of streaming-telemetry-state-details definition.
     grouping streaming-telemetry-feature-config {
         description
             "Configuration parameters related to streaming telemetry";
         leaf feature-enabled  {
             type  empty;
-            description "Enable or Disable device's telemetry system";
+            description "Use this attribute to enable or disable Telemetry feature";
         } // END of feature-enabled definition.
 
+        leaf retry-interval  {
+            type  uint32 {
+                 range "30..3000"  {
+                    description "30..3000: Supported range 30 - 3000";
+                 }
+            }
+            units "seconds";
+            default "60";
+            description "If the grpc-tunnel-server is unreachable, the gnmi-server retries to
+                        connect with gnmi-client after the retry-interval";
+        } // END of retry-interval definition.
+
     } // END of streaming-telemetry-feature-config definition.
+    grouping streaming-telemetry-subsystem-config {
+        description
+            "gNMI server configuration";
+        leaf vrf-name  {
+            if-feature feature-list:HAVE_VRF;
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
+            }
+            description "VRF Name associated with this instance";
+        } // END of vrf-name definition.
+
+    } // END of streaming-telemetry-subsystem-config definition.
+    grouping streaming-telemetry-subsystem-top {
+        description
+            "Grouping for gNMI subsystem related configuration";
+        container vrfs {
+            if-feature feature-list:HAVE_VRF;
+            description
+                "gNMI server VRF configurations";
+
+            list vrf {
+            // when " ipi-streaming-telemetry:telemetry-system/vrfs/vrf/streaming-telemetry/config/feature-enabled ";
+                key "vrf-name";
+                max-elements 1;
+                description
+                    "gNMI server VRF instance configurations";
+                leaf vrf-name  {
+                    type  leafref {
+                        path  "../config/vrf-name";
+                    }
+                    description "Use this attribute to specify the VRF for which STREAMING-TELEMETRY
+                                feature is enabled";
+                } // END of vrf-name definition.
+
+                container config {
+                    description
+                        "config container for gNMI Server VRF instance configurations";
+                    uses streaming-telemetry-subsystem-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "state container for STREAMING-TELEMETRY VRF instance configurations";
+                    uses streaming-telemetry-subsystem-config;
+                } // END of state-container definition.
+                uses streaming-telemetry-top;
+                uses streaming-telemetry-subscription-groups;
+                uses streaming-telemetry-sensor-groups;
+                uses streaming-telemetry-destination-groups;
+            } // End of vrf-list
+        } // END of vrfs-container definition.
+    } // END of streaming-telemetry-subsystem-top definition.
     grouping streaming-telemetry-top {
         description
             "Top level grouping for streaming telemetry configuration and
@@ -215,6 +390,7 @@ module ipi-streaming-telemetry {
             description
                 "Top level container for enable or disable telemetry configurations";
             container config {
+                // when " ipi-streaming-telemetry:telemetry-system/vrfs/vrf/streaming-telemetry/config/feature-enabled ";
                 description
                     "Configuration parameters related to streaming telemetry enable or
                             disable";
@@ -225,10 +401,399 @@ module ipi-streaming-telemetry {
                 description
                     "state information related to streaming telemetry enable or disable";
                 uses streaming-telemetry-feature-config;
+                uses streaming-telemetry-state-details;
             } // END of state-container definition.
             uses streaming-telemetry-debug;
         } // END of streaming-telemetry-container definition.
     } // END of streaming-telemetry-top definition.
+    grouping telemetry-sensor-path-config {
+        description
+            "Configuration parameters relating to the grouping of data model paths
+                        comprising a sensor grouping";
+        leaf path  {
+            type  string {
+                length "1..1965";
+                pattern "[^?',>|]+";
+            }
+            description "Path to a section of operational state of interest (the sensor)";
+        } // END of path definition.
+
+    } // END of telemetry-sensor-path-config definition.
+    grouping telemetry-sensor-group-config {
+        description
+            "Config parameters related to the sensor groups on the device";
+        leaf sensor-group-id  {
+            type  string {
+                length "1..64";
+                pattern "[^?' =,>|]+";
+            }
+            description "Name or identifier for the sensor group itself.Will be referenced by
+                        other configuration specifying a sensor group";
+        } // END of sensor-group-id definition.
+
+    } // END of telemetry-sensor-group-config definition.
+    grouping streaming-telemetry-sensor-groups {
+        description
+            "Top level grouping for sensor-groups";
+        container sensor-groups {
+            description
+                "Top level container for sensor-groups";
+
+            list sensor-group {
+            when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+                key "sensor-group-id";
+                description
+                    "List of telemetry sensor- groups information";
+                leaf sensor-group-id  {
+                    type  leafref {
+                        path  "../config/sensor-group-id";
+                    }
+                    description "Name or identifier for the sensor group itself.Will be referenced by
+                                other configuration specifying a sensor group";
+                } // END of sensor-group-id definition.
+
+                container config {
+                    description
+                        "Configuration parameters relating to the telemetry sensor grouping";
+                    uses telemetry-sensor-group-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State information relating to the telemetry sensor grouping";
+                    uses telemetry-sensor-group-config;
+                } // END of state-container definition.
+                container sensor-paths {
+                    description
+                        "Top level container to hold a set of sensor paths grouped together";
+
+                    list sensor-path {
+                        key "path";
+                        description
+                            "List of paths in the model which together comprise a sensor grouping";
+                        leaf path  {
+                            type  leafref {
+                                path  "../config/path";
+                            }
+                            description "Reference to the path of interest";
+                        } // END of path definition.
+
+                        container config {
+                            description
+                                "Configuration parameters to configure a set of data model paths as a
+                                        sensor grouping";
+                            uses telemetry-sensor-path-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State information relating to set of data model paths as a sensor
+                                        grouping";
+                            uses telemetry-sensor-path-config;
+                        } // END of state-container definition.
+                    } // End of sensor-path-list
+                } // END of sensor-paths-container definition.
+            } // End of sensor-group-list
+        } // END of sensor-groups-container definition.
+    } // END of streaming-telemetry-sensor-groups definition.
+    grouping telemetry-stream-destination-config {
+        description
+            "Configuration parameters for the stream destinations";
+        leaf destination-address  {
+            type  inet:ipv4-address;
+            description "IP address of the telemetry stream destination";
+        } // END of destination-address definition.
+
+        leaf destination-port  {
+            type  uint16 {
+                 range "1..65535"  {
+                    description "1..65535: Supported range 1 - 65535";
+                 }
+            }
+            description "Protocol (udp or tcp) port number for the telemetry stream destination";
+        } // END of destination-port definition.
+
+    } // END of telemetry-stream-destination-config definition.
+    grouping telemetry-destination-groups-config {
+        description
+            "Top level state container for destination groups";
+        leaf group-id  {
+            type  string {
+                length "1..64";
+                pattern "[^?' =,>|]+";
+            }
+            description "Unique identifier for the destination group";
+        } // END of group-id definition.
+
+    } // END of telemetry-destination-groups-config definition.
+    grouping streaming-telemetry-destination-groups {
+        description
+            "Top level grouping for destination groups";
+        container destination-groups {
+            description
+                "Top level container for destination group configuration and state";
+
+            list destination-group {
+            when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+                key "group-id";
+                description
+                    "List of destination-groups.A destination group may contain one or more
+                                telemetry destinations";
+                leaf group-id  {
+                    type  leafref {
+                        path  "../config/group-id";
+                    }
+                    description "Unique identifier for the destination group";
+                } // END of group-id definition.
+
+                container config {
+                    description
+                        "Top level config container for destination groups";
+                    uses telemetry-destination-groups-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Top level state container for destination groups";
+                    uses telemetry-destination-groups-config;
+                } // END of state-container definition.
+                container destinations {
+                    description
+                        "The destination container lists the destination information such as IP
+                                address and port of the telemetry messages from the network element";
+
+                    list destination {
+                        key "destination-address destination-port";
+                        description
+                            "List of telemetry stream destinatios";
+                        leaf destination-address  {
+                            type  leafref {
+                                path  "../config/destination-address";
+                            }
+                            description "Reference to the destination address of the telemetry stream";
+                        } // END of destination-address definition.
+
+                        leaf destination-port  {
+                            type  leafref {
+                                path  "../config/destination-port";
+                            }
+                            description "Reference to the port number of the stream destination";
+                        } // END of destination-port definition.
+
+                        container config {
+                            description
+                                "Configuration parameters relating to telemetry destinations";
+                            uses telemetry-stream-destination-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State information associated with telemetry destinations";
+                            uses telemetry-stream-destination-config;
+                        } // END of state-container definition.
+                    } // End of destination-list
+                } // END of destinations-container definition.
+            } // End of destination-group-list
+        } // END of destination-groups-container definition.
+    } // END of streaming-telemetry-destination-groups definition.
+    grouping telemetry-subscription-config {
+        description
+            "This grouping holds information related to persistent configurations";
+        leaf name  {
+            type  string {
+                length "1..64";
+                pattern "[^?' =,>|]+";
+            }
+            description "User configured identifier of the telemetry subscription. This value
+                        is used primarily for subscriptions configured locally on the network
+                        element";
+        } // END of name definition.
+
+        leaf encoding  {
+            type  ipi-streaming-telemetry-types:cml_data_encode_t;
+            description "Selection of the specific encoding or RPC framework for telemetry
+                        messages to and from the network element. The encoding method controls
+                        specifically the wire format of the telemetry data, and also controls
+                        which RPC framework may be in use to exchange telemetry data";
+        } // END of encoding definition.
+
+    } // END of telemetry-subscription-config definition.
+    grouping telemetry-subscription-state-configs {
+        description
+            "This grouping holds information related to persistent state info";
+        leaf id  {
+            type  uint64;
+            description "System generated identifer of the telemetry subscription";
+        } // END of id definition.
+
+        leaf subscription-status  {
+            type  ipi-streaming-telemetry-types:cml_telemetry_status_t;
+            description "Status of the subscription";
+        } // END of subscription-status definition.
+
+        leaf inactive-cause  {
+            type  string {
+                length "1..1965";
+            }
+            description "Reason for inactive subscriptions";
+        } // END of inactive-cause definition.
+
+        leaf protocol  {
+            type  ipi-streaming-telemetry-types:cml_telemetry_protocol_t;
+            description "Selection of the transport protocol for the telemetry stream";
+        } // END of protocol definition.
+
+    } // END of telemetry-subscription-state-configs definition.
+    grouping telemetry-sensor-profile-config {
+        description
+            "Configuration parameters relating to the sensor groups used in the
+                        sensor profile";
+        leaf sensor-group  {
+            type  leafref {
+                path  "/telemetry-system/vrfs/vrf/sensor-groups/sensor-group/sensor-group-id";
+            }
+            description "Reference to the sensor group which is used in the profile";
+        } // END of sensor-group definition.
+
+        leaf sample-interval  {
+            type  uint64 {
+                 range "10..3600"  {
+                    description "10..3600: Supported range 10 - 3600";
+                 }
+            }
+            units "seconds";
+            mandatory true;
+            description "Time in seconds between the device's sample of a telemetry data source";
+        } // END of sample-interval definition.
+
+    } // END of telemetry-sensor-profile-config definition.
+    grouping telemetry-destination-profile-config {
+        description
+            "Configuration parameters related to telemetry destinations";
+        leaf group-id  {
+            type  leafref {
+                path  "/telemetry-system/vrfs/vrf/destination-groups/destination-group/group-id";
+            }
+            description "The destination group id references a reusable group of destination
+                        addresses and ports for the telemetry stream";
+        } // END of group-id definition.
+
+    } // END of telemetry-destination-profile-config definition.
+    grouping streaming-telemetry-dial-out-top {
+        description
+            "This grouping holds information relating to persistent telemetry
+                        subscriptions";
+        container persistent-subscriptions {
+            description
+                "A persistent telemetry subscription is configued locally on the device
+                        through configuration, and is persistent across device restarts or
+                        other redundancy changes";
+
+            list persistent-subscription {
+            when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+                key "name";
+                description
+                    "List of telemetry subscriptions. A telemetry subscription consists of
+                                a set of collection destinations, stream attributes, and associated
+                                paths to state information in the model";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Reference to the identifier of the subscription itself. The id will be
+                                the handle to refer to the subscription once created";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Config parameters relating to the telemetry subscriptions on the local
+                                device";
+                    uses telemetry-subscription-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State parameters relating to the telemetry subscriptions on the local
+                                device";
+                    uses telemetry-subscription-config;
+                    uses telemetry-subscription-state-configs;
+                } // END of state-container definition.
+                container sensor-profiles {
+                    description
+                        "A sensor profile is a set of sensor groups or individual sensor paths
+                                which are associated with a telemetry subscription";
+
+                    list sensor-profile {
+                        key "sensor-group";
+                        description
+                            "List of telemetry sensor groups used in the subscription";
+                        leaf sensor-group  {
+                            type  leafref {
+                                path  "../config/sensor-group";
+                            }
+                            description "Reference to the telemetry sensor group name";
+                        } // END of sensor-group definition.
+
+                        container config {
+                            description
+                                "Configuration parameters related to the sensor profile for a
+                                        subscription";
+                            uses telemetry-sensor-profile-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State information relating to the sensor profile for a subscription";
+                            uses telemetry-sensor-profile-config;
+                        } // END of state-container definition.
+                    } // End of sensor-profile-list
+                } // END of sensor-profiles-container definition.
+                container destination-groups {
+                    description
+                        "A subscription may specify destination addresses.If the subscription
+                                supplies destination addresses, the network element will be the
+                                initiator of the telemetry streaming, sending it to the destination(s)
+                                specified.";
+
+                    list destination-group {
+                        key "group-id";
+                        description
+                            "Identifier of the previously defined destination group";
+                        leaf group-id  {
+                            type  leafref {
+                                path  "../config/group-id";
+                            }
+                            description "The destination group id references a configured group of destinations
+                                        for the telemetry stream";
+                        } // END of group-id definition.
+
+                        container config {
+                            description
+                                "Configuration parameters related to telemetry destinations";
+                            uses telemetry-destination-profile-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State information related to telemetry destinations";
+                            uses telemetry-destination-profile-config;
+                        } // END of state-container definition.
+                    } // End of destination-group-list
+                } // END of destination-groups-container definition.
+            } // End of persistent-subscription-list
+        } // END of persistent-subscriptions-container definition.
+    } // END of streaming-telemetry-dial-out-top definition.
+    grouping streaming-telemetry-subscription-groups {
+        description
+            "Grouping related to stream subscriptions";
+        container subscriptions {
+            description
+                "This container holds information for both persistent and dynamic
+                        telemetry subscriptions";
+            uses streaming-telemetry-dial-in-top;
+            uses streaming-telemetry-dial-out-top;
+        } // END of subscriptions-container definition.
+    } // END of streaming-telemetry-subscription-groups definition.
 
     grouping  telemetry-system-grouping {
     description
@@ -238,8 +803,7 @@ module ipi-streaming-telemetry {
         if-feature feature-list:HAVE_TELEMETRY;
         description
             "Top level container for device's streaming telemetry configurations";
-        uses streaming-telemetry-top;
-        uses streaming-telemetry-dial-in-top;
+        uses streaming-telemetry-subsystem-top;
     } // END of telemetry-system-container definition.
     } // END of telemetry-system-grouping definition.
 

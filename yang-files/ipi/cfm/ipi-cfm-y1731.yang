@@ -21,7 +21,7 @@ submodule ipi-cfm-y1731 {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ietf-yang-types {
@@ -31,15 +31,15 @@ submodule ipi-cfm-y1731 {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-cfm-data-types {
         prefix ipi-cfm-data-types;
-        revision-date 2023-08-11;
+        revision-date 2024-03-22;
     }
 
-    include ipi-cfm-common { revision-date 2023-06-05;}
+    include ipi-cfm-common { revision-date 2024-05-15;}
     organization
         "IP Infusion Inc.";
 
@@ -52,6 +52,21 @@ submodule ipi-cfm-y1731 {
     description
         "Data model for IPI CFM Y.1731 Configuration and Operational state";
 
+
+    revision "2024-03-19" {
+        description "Adding missing attributes for ETH-CSF";
+        reference " 0.8.4.";
+    }
+
+    revision "2024-01-17" {
+        description "adaptive bandwidth disable cli implementation";
+        reference " 0.8.3.";
+    }
+
+    revision "2023-10-25" {
+        description "Enable ETH-TST, LCK, AIS, CSF and BN CLIs for Marvell platform";
+        reference " 0.8.2.";
+    }
 
     revision "2023-02-13" {
         description "Added if-feature for LM, DM, Abort and Clear RPCs";
@@ -291,6 +306,11 @@ submodule ipi-cfm-y1731 {
                         frame";
         } // END of peer-port-id definition.
 
+        leaf adaptive-bandwidth-disable  {
+            type  empty;
+            description "This attribute will disbale the adaptive bandwidth";
+        } // END of adaptive-bandwidth-disable definition.
+
     } // END of bandwidth-notification-parameters-config definition.
     grouping bandwidth-notification-state {
         description
@@ -421,6 +441,12 @@ submodule ipi-cfm-y1731 {
                         received";
         } // END of messages-received definition.
 
+        leaf messages-dropped  {
+            type  yang:zero-based-counter32;
+            description "This attribute contains the count of the total number of CSF messages
+                        dropped";
+        } // END of messages-dropped definition.
+
         leaf last-message-received-time  {
             type  string {
                 length "1..1965";
@@ -428,6 +454,12 @@ submodule ipi-cfm-y1731 {
             }
             description "This attribute specifies the last CSF message received";
         } // END of last-message-received-time definition.
+
+        leaf wait-to-restore-time-remaining  {
+            type  uint32;
+            units "seconds";
+            description "This attribute specifies the wait-to-restore-time remaining";
+        } // END of wait-to-restore-time-remaining definition.
 
         leaf message-rx-interval  {
             type  uint8;
@@ -901,9 +933,9 @@ submodule ipi-cfm-y1731 {
     description
         "Augments to support the ETH-BN functionality";
     container ethernet-bandwidth-notification {
-        if-feature feature-list:HAVE_DUNE;
-        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:Y1731_HW_OFFLOAD;
         if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_CFM_Y1731;
         if-feature feature-list:HAVE_ONMD;
         description
             "Augments to support the ETH-BN functionality";
@@ -929,9 +961,9 @@ submodule ipi-cfm-y1731 {
     description
         "Augments to support the CSF functionality";
     container ethernet-client-signal-fail {
-        if-feature feature-list:HAVE_DUNE;
-        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:Y1731_HW_OFFLOAD;
         if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_CFM_Y1731;
         if-feature feature-list:HAVE_ONMD;
         description
             "Augments to support the CSF functionality";
@@ -955,9 +987,9 @@ submodule ipi-cfm-y1731 {
     description
         "Augments to support the Locked Signal functionality";
     container ethernet-locked-signal {
-        if-feature feature-list:HAVE_DUNE;
-        if-feature feature-list:HAVE_CFM_Y1731;
+        if-feature feature-list:Y1731_HW_OFFLOAD;
         if-feature feature-list:HAVE_CFM;
+        if-feature feature-list:HAVE_CFM_Y1731;
         if-feature feature-list:HAVE_ONMD;
         description
             "Augments to support the Locked Signal functionality";
@@ -1029,7 +1061,6 @@ submodule ipi-cfm-y1731 {
     description
         "This container contains definitions of ETH-Test Signal state counters";
     container ethernet-test-signal {
-        if-feature feature-list:HAVE_DUNE;
         if-feature feature-list:Y1731_HW_OFFLOAD;
         if-feature feature-list:HAVE_CFM;
         if-feature feature-list:HAVE_CFM_Y1731;
@@ -1052,7 +1083,6 @@ submodule ipi-cfm-y1731 {
         "This container contains definitions related to the on-demand OAM Fault
                 Management Test function (ETH-Test)";
     container ethernet-test-signal-profiles {
-        if-feature feature-list:HAVE_DUNE;
         if-feature feature-list:Y1731_HW_OFFLOAD;
         if-feature feature-list:HAVE_CFM;
         if-feature feature-list:HAVE_CFM_Y1731;

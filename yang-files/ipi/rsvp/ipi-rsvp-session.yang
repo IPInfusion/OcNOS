@@ -21,12 +21,12 @@ submodule ipi-rsvp-session {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ipi-rsvp-types {
         prefix ipi-rsvp-types;
-        revision-date 2023-03-21;
+        revision-date 2024-06-14;
     }
 
     import ietf-inet-types {
@@ -36,7 +36,7 @@ submodule ipi-rsvp-session {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     organization
@@ -52,9 +52,29 @@ submodule ipi-rsvp-session {
         "Resource Reservation Protocol";
 
 
+    revision "2024-04-15" {
+        description "removed 'egress' from the session/state container";
+        reference " 0.10.0.";
+    }
+
+    revision "2024-03-29" {
+        description "sget changes for RSVP Auto bandwidth";
+        reference " 0.9.0.";
+    }
+
+    revision "2024-03-14" {
+        description "Added notifications for RSVP auto bandwidth";
+        reference " 0.7.1.";
+    }
+
     revision "2022-06-01" {
         description "Updated the yang file with feature";
         reference " 0.7.0.";
+    }
+
+    revision "2022-03-05" {
+        description "Add missing .../trunk/state container";
+        reference " 0.8.0.";
     }
 
     revision "2021-09-03" {
@@ -100,39 +120,24 @@ submodule ipi-rsvp-session {
                 "Top level list for rsvp trunk";
             leaf trunk-id  {
                 type  leafref {
-                    path  "../sessions/session/state/trunk-id";
+                    path  "../state/trunk-id";
                 }
                 description "Trunk identifier";
             } // END of trunk-id definition.
 
             leaf extended-tunnel-id  {
                 type  leafref {
-                    path  "../sessions/session/state/extended-tunnel-id";
+                    path  "../state/extended-tunnel-id";
                 }
                 description "Extended-tunnel identifier of the trunk";
             } // END of extended-tunnel-id definition.
 
             leaf egress  {
                 type  leafref {
-                    path  "../sessions/session/state/egress";
+                    path  "../state/egress";
                 }
                 description "Egress endpoint address for the trunk";
             } // END of egress definition.
-
-            leaf multipath-group-name  {
-                if-feature feature-list:HAVE_RSVP_MULTIPATH;
-                type  string {
-                    length "1..1965";
-                    pattern "[^?' =,>|]+";
-                }
-                description "Multipath group name associated with the trunk";
-            } // END of multipath-group-name definition.
-
-            leaf multipath-group-identifier  {
-                if-feature feature-list:HAVE_RSVP_MULTIPATH;
-                type  uint16;
-                description "Multipath group identifier associated with the trunk";
-            } // END of multipath-group-identifier definition.
 
             container sessions {
                 config false;
@@ -159,6 +164,24 @@ submodule ipi-rsvp-session {
                     } // END of state-container definition.
                 } // End of session-list
             } // END of sessions-container definition.
+            container state {
+                config false;
+                description
+                    "State Attributes for trunk";
+                uses rsvp-trunk-state;
+            } // END of state-container definition.
+            container auto-bandwidth {
+                if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+                config false;
+                description
+                    "Operational state data for auto-bandwidth";
+                container state {
+                    config false;
+                    description
+                        "State attributes for auto-bandwidth";
+                    uses rsvp-auto-bandwidth-state;
+                } // END of state-container definition.
+            } // END of auto-bandwidth-container definition.
         } // End of trunk-list
     } // END of trunk-grouping definition.
     grouping rsvp-trunk-state {
@@ -174,7 +197,191 @@ submodule ipi-rsvp-session {
             description "Extended-tunnel identifier of the trunk";
         } // END of extended-tunnel-id definition.
 
+        leaf egress  {
+            type  inet:ip-address;
+            description "Egress endpoint address for the trunk";
+        } // END of egress definition.
+
+        leaf trunk-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "The value of the trunk-name attribute in the ingress-trunk";
+        } // END of trunk-name definition.
+
+        leaf multipath-group-name  {
+            if-feature feature-list:HAVE_RSVP_MULTIPATH;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Multipath group name associated with the trunk";
+        } // END of multipath-group-name definition.
+
+        leaf multipath-group-identifier  {
+            if-feature feature-list:HAVE_RSVP_MULTIPATH;
+            type  uint16;
+            description "Multipath group identifier associated with the trunk";
+        } // END of multipath-group-identifier definition.
+
     } // END of rsvp-trunk-state definition.
+    grouping rsvp-auto-bandwidth-state {
+        description
+            "Operational parameters for rsvp auto-bandwidth";
+        leaf last-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify last bandwidth";
+        } // END of last-bandwidth definition.
+
+        leaf requested-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify requested bandwidth";
+        } // END of requested-bandwidth definition.
+
+        leaf signaled-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify signaled bandwidth";
+        } // END of signaled-bandwidth definition.
+
+        leaf current-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify last adjusted bandwidth";
+        } // END of current-bandwidth definition.
+
+        leaf highest-watermark-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify highest bandwidth";
+        } // END of highest-watermark-bandwidth definition.
+
+        leaf last-adjusted-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify last adjusted bandwidth";
+        } // END of last-adjusted-bandwidth definition.
+
+        leaf total-bandwidth-adjustments  {
+            type  uint32;
+            description "Use this attribute to specify total bandwidth adjustments";
+        } // END of total-bandwidth-adjustments definition.
+
+        leaf successful-adjustments  {
+            type  uint32;
+            description "Use this attribute to specify successful bandwidth adjustments";
+        } // END of successful-adjustments definition.
+
+        leaf failed-adjustments  {
+            type  uint32;
+            description "Use this attribute to specify failed adjustments";
+        } // END of failed-adjustments definition.
+
+        leaf minimum-average-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify minimum average bandwidth";
+        } // END of minimum-average-bandwidth definition.
+
+        leaf maximum-average-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify maximum average bandwidth";
+        } // END of maximum-average-bandwidth definition.
+
+        leaf overflow-sample-count  {
+            type  uint16;
+            description "Use this attribute to specify overflow sample count";
+        } // END of overflow-sample-count definition.
+
+        leaf underflow-sample-count  {
+            type  uint16;
+            description "Use this attribute to specify underflow sample count";
+        } // END of underflow-sample-count definition.
+
+        leaf maxbw-exceed-sample-count  {
+            type  uint16;
+            description "Use this attribute to specify maximum bandwidth exceed sample count";
+        } // END of maxbw-exceed-sample-count definition.
+
+        leaf teardown-count  {
+            type  uint32;
+            description "Use this attribute to specify teardown count";
+        } // END of teardown-count definition.
+
+        leaf sample-request-due-time  {
+            type  uint32;
+            description "Use this attribute to specify sample request due time";
+        } // END of sample-request-due-time definition.
+
+        leaf next-adjustment-due-time  {
+            type  uint32;
+            description "Use this attribute to specify next adjustment due time";
+        } // END of next-adjustment-due-time definition.
+
+        leaf last-bandwidth-request-time  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to specify last bandiwtdh request time";
+        } // END of last-bandwidth-request-time definition.
+
+        leaf last-bandwidth-signal-time  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to specify last bandiwtdh signal time";
+        } // END of last-bandwidth-signal-time definition.
+
+        leaf last-adjustment-time  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to specify last adjustment time";
+        } // END of last-adjustment-time definition.
+
+        leaf highest-watermark-time  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to specify highest watermark time";
+        } // END of highest-watermark-time definition.
+
+        leaf total-force-adjustments  {
+            type  uint32;
+            description "Use this attribute to specify total force adjustments";
+        } // END of total-force-adjustments definition.
+
+        leaf successful-force-adjustments  {
+            type  uint32;
+            description "Use this attribute to specify successful force adjustments";
+        } // END of successful-force-adjustments definition.
+
+        leaf failed-force-adjustments  {
+            type  uint32;
+            description "Use this attribute to specify failed force adjustments";
+        } // END of failed-force-adjustments definition.
+
+    } // END of rsvp-auto-bandwidth-state definition.
     grouping rsvp-trunk-common-state {
         description
             "Operational parameters for rsvp neighbor session";
@@ -236,6 +443,26 @@ submodule ipi-rsvp-session {
             }
             description "Name of the session";
         } // END of session-name definition.
+
+        leaf lsp-id  {
+            type  uint16;
+            description "Label switch path id";
+        } // END of lsp-id definition.
+
+        leaf session-frr-type  {
+            type  ipi-rsvp-types:rsvp_session_frr_type_t;
+            description "Type of the rsvp session (main session/detour session)";
+        } // END of session-frr-type definition.
+
+        leaf ingress  {
+            type  inet:ip-address;
+            description "Source address of the trunk";
+        } // END of ingress definition.
+
+        leaf trunk-session-type  {
+            type  ipi-rsvp-types:rsvp_sess_type_t;
+            description "Type of the session is either primary or secondary";
+        } // END of trunk-session-type definition.
 
         leaf session-role  {
             type  ipi-rsvp-types:rsvp_session_role_t;
@@ -731,8 +958,6 @@ submodule ipi-rsvp-session {
                 uses rsvp-session-route-record-state;
             } // END of state-container definition.
         } // END of downstream-route-record-object-container definition.
-        uses rsvp-trunk-state;
-        uses rsvp-trunk-common-state;
         uses rsvp-session-global-state;
     } // END of rsvp-session-param definition.
 

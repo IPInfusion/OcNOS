@@ -21,17 +21,17 @@ submodule ipi-isis-sr {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-isis-types {
         prefix ipi-isis-types;
-        revision-date 2023-02-14;
+        revision-date 2024-05-10;
     }
 
     import ietf-inet-types {
@@ -52,7 +52,32 @@ submodule ipi-isis-sr {
         "Model for managing IS-IS SR Parameters";
 
 
-    revision "2023-11-29" {
+    revision "2024-05-25" {
+        description "Change of metric-style cli structure from objectlist to container";
+        reference " 0.8.4.";
+    }
+
+    revision "2024-04-24" {
+        description "Remove old Segment Routing entropy CLI";
+        reference " 0.8.3.";
+    }
+
+    revision "2024-04-15" {
+        description "Added custom error code for non-configured SRGB deletion attempts";
+        reference " 0.8.2.";
+    }
+
+    revision "2024-03-13" {
+        description "Update Segment Routing and entropy CLI dependency";
+        reference " 0.8.1.";
+    }
+
+    revision "2024-01-24" {
+        description "Updation of SR-Algorithm to multi-valued";
+        reference " 0.8.0.";
+    }
+
+    revision "2023-10-07" {
         description "Linking Segment Routing and entropy capabilty";
         reference " 0.7.4.";
     }
@@ -336,6 +361,16 @@ submodule ipi-isis-sr {
         } // END of adj-hop-address6 definition.
 
     } // END of isis-sr-path-ipv6-ero-adjacent-config definition.
+    grouping isis-segment-routing-entropy-config {
+        description
+            "Grouping for ISIS segment routing entropy capability configuration
+                        data";
+        leaf entropy-label  {
+            type  empty;
+            description "Use this attribute to enable segment routing entropy capability.";
+        } // END of entropy-label definition.
+
+    } // END of isis-segment-routing-entropy-config definition.
     grouping isis-sr-config {
         description
             "Configuration items for ISIS SR";
@@ -358,13 +393,6 @@ submodule ipi-isis-sr {
             type  empty;
             description "Use this attribute to receive label binding TLVs";
         } // END of receive-disable definition.
-
-        leaf entropy-capability  {
-            // when " ipi-isis-sr:segment-routing/config/enabled ";
-            if-feature feature-list:HAVE_ISIS_SR;
-            type  empty;
-            description "Use this attribute to enable segment routing entropy capability.";
-        } // END of entropy-capability definition.
 
     } // END of isis-sr-config definition.
     grouping isis-sr-global-block-config {
@@ -405,10 +433,10 @@ submodule ipi-isis-sr {
             description "Advertising Router";
         } // END of advertising-router-ip definition.
 
-        leaf algoritm  {
-            type  ipi-isis-types:isis_spf_t;
-            description "Segment Routing Algorithm";
-        } // END of algoritm definition.
+        leaf-list sr-algorithm-vector  {
+            type  ipi-isis-types:isis_sr_algo_choice_t;
+            description "Segment Routing Algorithms to calculate reachability to other nodes.";
+        } // END of sr-algorithm-vector definition.
 
         leaf mapping-server-preference  {
             type  uint32;
@@ -696,6 +724,23 @@ submodule ipi-isis-sr {
                 } // END of state-container definition.
             } // End of global-block-list
         } // END of global-blocks-container definition.
+        container sr-capability-entropy {
+            if-feature feature-list:HAVE_ISIS_SR;
+            description
+                "ISIS segment routing entropy capability";
+            container config {
+                // when " ipi-isis-sr:segment-routing/sr-capability-entropy/config/entropy-label ";
+                description
+                    "Configuration data for ISIS segment routing entropy capability";
+                uses isis-segment-routing-entropy-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for ISIS segment routing entropy capability";
+                uses isis-segment-routing-entropy-config;
+            } // END of state-container definition.
+        } // END of sr-capability-entropy-container definition.
     } // END of segment-routing-container definition.
     } // END of segment-routing-grouping definition.
 

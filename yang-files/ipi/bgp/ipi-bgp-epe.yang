@@ -21,7 +21,7 @@ submodule ipi-bgp-epe {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ietf-inet-types {
@@ -41,6 +41,11 @@ submodule ipi-bgp-epe {
     description
         "";
 
+
+    revision "2024-02-08" {
+        description "Added enclosing container for missing objectlists";
+        reference " 0.4.0.";
+    }
 
     revision "2023-09-12" {
         description "Added enclosing container for all objectlists";
@@ -236,68 +241,6 @@ submodule ipi-bgp-epe {
         if-feature feature-list:HAVE_BGP_EPE;
         description
             "Egrees Peer Engineering";
-
-        list peer-adjacency {
-            key "hop-address";
-            description
-                "Paramters for Peer-Adj SIDs";
-            leaf hop-address  {
-                type  leafref {
-                    path  "../config/hop-address";
-                }
-                description "Use this attribute for the hop-address";
-            } // END of hop-address definition.
-
-            container config {
-                description
-                    "Config for Peer-adj";
-                uses bgp-epe-peer-adjacency-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "State of Peer-adj";
-                uses bgp-epe-peer-adjacency-config;
-                uses bgp-epe-peer-adjacency-state;
-            } // END of state-container definition.
-            container backup {
-                description
-                    "Backup configs for Peer-Adj SIDs";
-                container peer-node {
-                    description
-                        "Backup peer address";
-                    container config {
-                        description
-                            "Configs for Backup for Peer-Adjacency";
-                        uses bgp-epe-backup-peer-node-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State of backup EPE for peer Adjacency";
-                        uses bgp-epe-backup-peer-node-config;
-                        uses bgp-epe-backup-peer-state;
-                    } // END of state-container definition.
-                } // END of peer-node-container definition.
-                container adjacency {
-                    description
-                        "Backup peer address for peer-adjacency";
-                    container config {
-                        presence "Enabling Backup for Peer-adjacency";
-                        description
-                            "Configs for Backup for Peer-adjacency";
-                        uses bgp-epe-backup-peer-adjacency-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "State of backup EPE for peer";
-                        uses bgp-epe-backup-peer-adjacency-config;
-                        uses bgp-epe-backup-peer-state;
-                    } // END of state-container definition.
-                } // END of adjacency-container definition.
-            } // END of backup-container definition.
-        } // End of peer-adjacency-list
         container config {
             description
                 "Config for Egrees Peer Engineering";
@@ -365,6 +308,72 @@ submodule ipi-bgp-epe {
                 } // END of state-container definition.
             } // END of adjacency-container definition.
         } // END of backup-container definition.
+        container peer-adjacencies {
+            description
+                "Enclosing container of parameters for Peer-Adj SIDs";
+
+            list peer-adjacency {
+                key "hop-address";
+                description
+                    "Parameters for Peer-Adj SIDs";
+                leaf hop-address  {
+                    type  leafref {
+                        path  "../config/hop-address";
+                    }
+                    description "Use this attribute for the hop-address";
+                } // END of hop-address definition.
+
+                container config {
+                    description
+                        "Config for Peer-adj";
+                    uses bgp-epe-peer-adjacency-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State of Peer-adj";
+                    uses bgp-epe-peer-adjacency-config;
+                    uses bgp-epe-peer-adjacency-state;
+                } // END of state-container definition.
+                container backup {
+                    description
+                        "Backup configs for Peer-Adj SIDs";
+                    container peer-node {
+                        description
+                            "Backup peer address";
+                        container config {
+                            description
+                                "Configs for Backup for Peer-Adjacency";
+                            uses bgp-epe-backup-peer-node-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State of backup EPE for peer Adjacency";
+                            uses bgp-epe-backup-peer-node-config;
+                            uses bgp-epe-backup-peer-state;
+                        } // END of state-container definition.
+                    } // END of peer-node-container definition.
+                    container adjacency {
+                        description
+                            "Backup peer address for peer-adjacency";
+                        container config {
+                            presence "Enabling Backup for Peer-adjacency";
+                            description
+                                "Configs for Backup for Peer-adjacency";
+                            uses bgp-epe-backup-peer-adjacency-config;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "State of backup EPE for peer";
+                            uses bgp-epe-backup-peer-adjacency-config;
+                            uses bgp-epe-backup-peer-state;
+                        } // END of state-container definition.
+                    } // END of adjacency-container definition.
+                } // END of backup-container definition.
+            } // End of peer-adjacency-list
+        } // END of peer-adjacencies-container definition.
     } // END of egress-engineering-container definition.
     } // END of egress-engineering-grouping definition.
 

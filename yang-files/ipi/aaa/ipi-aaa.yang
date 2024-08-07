@@ -23,17 +23,17 @@ module ipi-aaa {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-aaa-types {
         prefix ipi-aaa-types;
-        revision-date 2022-06-01;
+        revision-date 2024-07-15;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2023-08-08;
+        revision-date 2024-03-11;
     }
 
     import ipi-network-instance {
@@ -43,7 +43,7 @@ module ipi-aaa {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -59,7 +59,67 @@ module ipi-aaa {
         "Layer-3 aaa configurations";
 
 
-    revision "2023-10-09" {
+    revision "2024-07-15" {
+        description "Removed pattern tag validation from AAA group Server name";
+        reference " 0.8.0.";
+    }
+
+    revision "2024-06-07" {
+        description "Added when tag for attr disable-usercheck and modified autoPopulate-custom condition tag for /aaa/aaa-user/password-policy/config";
+        reference " 0.7.4.";
+    }
+
+    revision "2024-05-28" {
+        description "Added autoPopulate-custom condition tag for /aaa/aaa-user/password-policy/config";
+        reference " 0.7.3.";
+    }
+
+    revision "2024-05-21" {
+        description "Introduced new CLI to enable/disable password policy features";
+        reference " 0.7.2.";
+    }
+
+    revision "2024-05-20" {
+        description "Added trim whitespaces from group attr for authorization and accounting";
+        reference " 0.7.0.";
+    }
+
+    revision "2024-05-08" {
+        description "Added autoPopulate-custom tag for /aaa/aaa-user/password-policy/config";
+        reference " 0.6.9.";
+    }
+
+    revision "2024-04-15" {
+        description "Added pattern tag to resolve AAA group Server name";
+        reference " 0.6.8.";
+    }
+
+    revision "2024-04-10" {
+        description "Added trim whitespaces from group attr";
+        reference " 0.6.7.";
+    }
+
+    revision "2024-02-28" {
+        description "Introduced new CLIS to unconfigure the authentication local none";
+        reference " 0.6.6.";
+    }
+
+    revision "2024-02-21" {
+        description "Added role for clear-aaa-lockout cli";
+        reference " 0.6.5.";
+    }
+
+    revision "2024-02-07" {
+        description "Introduced new CLIS to support console authorization and accounting";
+        reference " 0.6.4.";
+    }
+
+    revision "2023-11-29" {
+        description "Introduced new CLI to configure password policy";
+        reference " 0.6.3.";
+    }
+
+    revision "2023-10-10" {
         description "Added implicit delete tag to reslove db-sync issue";
         reference " 0.6.2.";
     }
@@ -245,6 +305,20 @@ module ipi-aaa {
                         authentication is configured and all AAA servers are unreachable";
         } // END of enable-fallback definition.
 
+        leaf authorization-method-rule  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to set AAA methods for console authorization";
+        } // END of authorization-method-rule definition.
+
+        leaf accounting-method-rule  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to set AAA methods for  console accounting";
+        } // END of accounting-method-rule definition.
+
         leaf user-non-existent  {
             // when " ../enable-fallback ";
             type  boolean;
@@ -318,6 +392,101 @@ module ipi-aaa {
         } // END of local-user-unlock-timeout definition.
 
     } // END of aaa-user-config definition.
+    grouping password-policy-config {
+        description
+            "Password policy parameters";
+        leaf enable  {
+            type  empty;
+            description "Enable feature of applying policy to update password";
+        } // END of enable definition.
+
+        leaf numeric-count  {
+            // when " ../enable ";
+            type  uint8 {
+                 range "1..32"  {
+                    description "1..32: Supported range 1 - 32";
+                 }
+            }
+            description "The minimum number of digits";
+        } // END of numeric-count definition.
+
+        leaf uppercase-count  {
+            // when " ../enable ";
+            type  uint8 {
+                 range "1..32"  {
+                    description "1..32: Supported range 1 - 32";
+                 }
+            }
+            description "The minimum number of upper letters";
+        } // END of uppercase-count definition.
+
+        leaf lowercase-count  {
+            // when " ../enable ";
+            type  uint8 {
+                 range "1..32"  {
+                    description "1..32: Supported range 1 - 32";
+                 }
+            }
+            description "The minimum number of lower letters";
+        } // END of lowercase-count definition.
+
+        leaf special-count  {
+            // when " ../enable ";
+            type  uint8 {
+                 range "1..32"  {
+                    description "1..32: Supported range 1 - 32";
+                 }
+            }
+            description "The minimum number of special characters";
+        } // END of special-count definition.
+
+        leaf history  {
+            // when " ../enable ";
+            type  uint16 {
+                 range "1..400"  {
+                    description "1..400: Supported range 1 - 400";
+                 }
+            }
+            description "history";
+        } // END of history definition.
+
+        leaf maxsequence  {
+            // when " ../enable ";
+            type  uint8 {
+                 range "1..32"  {
+                    description "1..32: Supported range 1 - 32";
+                 }
+            }
+            description "The maximum number of monotonic character sequences to be accepted.";
+        } // END of maxsequence definition.
+
+        leaf disable-usercheck  {
+            // when " ../enable ";
+            type  empty;
+            description "Disable the check if password contains username";
+        } // END of disable-usercheck definition.
+
+        leaf maxrepeat  {
+            // when " ../enable ";
+            type  uint8 {
+                 range "1..32"  {
+                    description "1..32: Supported range 1 - 32";
+                 }
+            }
+            description "The maximum number of same consecutive characters to be accepted";
+        } // END of maxrepeat definition.
+
+        leaf min-length  {
+            // when " ../enable ";
+            type  uint8 {
+                 range "8..32"  {
+                    description "8..32: Supported range 8 - 32";
+                 }
+            }
+            description "Minimum password length";
+        } // END of min-length definition.
+
+    } // END of password-policy-config definition.
     grouping aaa-debug-config {
         description
             "Configuration data for AAA debugging in Config Mode";
@@ -438,6 +607,21 @@ module ipi-aaa {
                     "Operational state data for AAA users";
                 uses aaa-user-config;
             } // END of state-container definition.
+            container password-policy {
+                description
+                    "password policy parameters";
+                container config {
+                    description
+                        "Configuration data for password policy";
+                    uses password-policy-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for password policy";
+                    uses password-policy-config;
+                } // END of state-container definition.
+            } // END of password-policy-container definition.
         } // END of aaa-user-container definition.
         container debug {
             description

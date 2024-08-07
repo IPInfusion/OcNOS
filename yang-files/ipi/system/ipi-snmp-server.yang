@@ -28,7 +28,7 @@ module ipi-snmp-server {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-network-instance {
@@ -38,12 +38,12 @@ module ipi-snmp-server {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2023-08-08;
+        revision-date 2024-03-11;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -58,6 +58,11 @@ module ipi-snmp-server {
     description
         "This module provides Simple Network Management Protocol configuration";
 
+
+    revision "2024-03-20" {
+        description "Added logical and physical interface tables command";
+        reference " 0.6.5.";
+    }
 
     revision "2023-08-28" {
         description "Added a new datatype for String without spaces";
@@ -264,6 +269,17 @@ module ipi-snmp-server {
             uses snmp-server-global-top;
         } // End of server-list
     } // END of snmp-server-top definition.
+    grouping snmp-custom-top {
+        description
+            "Grouping for SNMP config objects.";
+        leaf ent-ipi-ifxtable  {
+            if-feature feature-list:HAVE_SNMP_AGENT;
+            type  empty;
+            description "Use this attribute to enable separate logical/physical interface
+                        tables";
+        } // END of ent-ipi-ifxtable definition.
+
+    } // END of snmp-custom-top definition.
 
     grouping  servers-grouping {
     description
@@ -276,6 +292,26 @@ module ipi-snmp-server {
     } // END of servers-container definition.
     } // END of servers-grouping definition.
 
+    grouping  custom-grouping {
+    description
+        "Grouping for custom SNMP settings.";
+    container custom {
+        description
+            "Grouping for custom SNMP settings.";
+        container config {
+            description
+                "This container defines custom snmp configuration.";
+            uses snmp-custom-top;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "This container defines snmp Operational states.";
+            uses snmp-custom-top;
+        } // END of state-container definition.
+    } // END of custom-container definition.
+    } // END of custom-grouping definition.
+
     augment /ipi-snmp:snmp {
         if-feature feature-list:HAVE_SNMP_AGENT;
         description
@@ -283,5 +319,6 @@ module ipi-snmp-server {
         uses servers-grouping;
     }
 
+    uses custom-grouping;
 
 }

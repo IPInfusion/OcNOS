@@ -23,7 +23,7 @@ module ipi-global-te {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -38,6 +38,16 @@ module ipi-global-te {
     description
         "Data model for Global Te";
 
+
+    revision "2024-04-11" {
+        description "Changed Extended Administrative Group CLI to hidden";
+        reference " 0.3.1.";
+    }
+
+    revision "2022-09-30" {
+        description "Added data model for Extended Administrative Groups(EAG)";
+        reference " 0.3.0.";
+    }
 
     revision "2022-07-11" {
         description "Updated data model name";
@@ -71,6 +81,50 @@ module ipi-global-te {
         } // END of id definition.
 
     } // END of admin-group-config definition.
+    grouping extended-admin-group-config {
+        description
+            "Extended Administrative Group (EAG) Configurations";
+        leaf name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to create a name-to-value binding for an extended
+                        administrative group";
+        } // END of name definition.
+
+        leaf id  {
+            type  uint32 {
+                 range "32..95"  {
+                    description "32..95: Supported range 32 - 95";
+                 }
+            }
+            description "identifier value for the extended administrative group";
+        } // END of id definition.
+
+    } // END of extended-admin-group-config definition.
+    grouping extended-admin-group-range-config {
+        description
+            "Extended Administrative Group (EAG) Range Configurations";
+        leaf minimum-id  {
+            type  uint32 {
+                 range "32..95"  {
+                    description "32..95: Supported range 32 - 95";
+                 }
+            }
+            description "Minimum identifier value for the extended administrative group range";
+        } // END of minimum-id definition.
+
+        leaf maximum-id  {
+            type  uint32 {
+                 range "32..95"  {
+                    description "32..95: Supported range 32 - 95";
+                 }
+            }
+            description "Maximum identifier value for the extended administrative group range";
+        } // END of maximum-id definition.
+
+    } // END of extended-admin-group-range-config definition.
 
     grouping  admin-groups-grouping {
     description
@@ -116,6 +170,95 @@ module ipi-global-te {
     } // END of admin-groups-container definition.
     } // END of admin-groups-grouping definition.
 
+    grouping  extended-admin-groups-grouping {
+    description
+        "This defines a YANG data model for Extended Admin Group config for
+                MPLS and TE configuration and operation.";
+    container extended-admin-groups {
+        if-feature feature-list:HAVE_MPLS_OR_HAVE_SRV6;
+        description
+            "This defines a YANG data model for Extended Admin Group config for
+                    MPLS and TE configuration and operation.";
+
+        list extended-admin-group {
+            key "name id";
+            description
+                "Extended Administrative Group (EAG) Configurations";
+            leaf name  {
+                type  leafref {
+                    path  "../config/name";
+                }
+                description "Use this attribute to create a name-to-value binding for an extended
+                            administrative group";
+            } // END of name definition.
+
+            leaf id  {
+                type  leafref {
+                    path  "../config/id";
+                }
+                description "identifier value for the extended administrative group";
+            } // END of id definition.
+
+            container config {
+                description
+                    "Config Container for Extended Administrative Groups (EAG)";
+                uses extended-admin-group-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State Contatiner for Extended Administrative Groups (EAG)";
+                uses extended-admin-group-config;
+            } // END of state-container definition.
+        } // End of extended-admin-group-list
+    } // END of extended-admin-groups-container definition.
+    } // END of extended-admin-groups-grouping definition.
+
+    grouping  extended-admin-group-ranges-grouping {
+    description
+        "This defines a YANG data model for Extended Admin Group Range config
+                for MPLS and TE configuration and operation.";
+    container extended-admin-group-ranges {
+        if-feature feature-list:HAVE_MPLS_OR_HAVE_SRV6;
+        description
+            "This defines a YANG data model for Extended Admin Group Range config
+                    for MPLS and TE configuration and operation.";
+
+        list extended-admin-group-range {
+            key "minimum-id maximum-id";
+            description
+                "Extended Administrative Group (EAG) Range Configurations";
+            leaf minimum-id  {
+                type  leafref {
+                    path  "../config/minimum-id";
+                }
+                description "Minimum identifier value for the extended administrative group range";
+            } // END of minimum-id definition.
+
+            leaf maximum-id  {
+                type  leafref {
+                    path  "../config/maximum-id";
+                }
+                description "Maximum identifier value for the extended administrative group range";
+            } // END of maximum-id definition.
+
+            container config {
+                description
+                    "Config Container for Extended Administrative Group (EAG) Range";
+                uses extended-admin-group-range-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State Contatiner for Extended Administrative Group (EAG) Range";
+                uses extended-admin-group-range-config;
+            } // END of state-container definition.
+        } // End of extended-admin-group-range-list
+    } // END of extended-admin-group-ranges-container definition.
+    } // END of extended-admin-group-ranges-grouping definition.
+
     uses admin-groups-grouping;
+    uses extended-admin-groups-grouping;
+    uses extended-admin-group-ranges-grouping;
 
 }

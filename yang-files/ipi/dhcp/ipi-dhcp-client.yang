@@ -21,17 +21,17 @@ submodule ipi-dhcp-client {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     organization
@@ -46,6 +46,36 @@ submodule ipi-dhcp-client {
     description
         "dhcp_client_configuration";
 
+
+    revision "2024-07-15" {
+        description "Removed pattern tag validation from ipv6 prefix-delegation name";
+        reference " 0.13.0.";
+    }
+
+    revision "2024-04-15" {
+        description "Added pattern tag to ipv6 prefix-delegation name";
+        reference " 0.12.0.";
+    }
+
+    revision "2024-03-26" {
+        description "Added when tag for interfaces config";
+        reference " 0.11.1.";
+    }
+
+    revision "2024-03-05" {
+        description "Added When tag in datamodel to resolve db-sync issue";
+        reference " 0.11.0.";
+    }
+
+    revision "2024-01-18" {
+        description "DHCPv6 Learnt prefix list";
+        reference " 0.10.3.";
+    }
+
+    revision "2023-12-18" {
+        description "DHCPv6 Relay Prefix requirements";
+        reference " 0.10.3.";
+    }
 
     revision "2023-04-12" {
         description "Added autoPopulated tag in datamodel to resolve db-sync issue";
@@ -207,6 +237,17 @@ submodule ipi-dhcp-client {
             description "Use this attribute to configure duid type(ll or llt).";
         } // END of ipv6-client-duid-type definition.
 
+        leaf ipv6-max-delegated-prefix  {
+            if-feature feature-list:HAVE_IPV6;
+            type  uint16 {
+                 range "1..64"  {
+                    description "1..64: Supported range 1 - 64";
+                 }
+            }
+            description "Use this attribute to configure the maximum number of simultaneous
+                        prefixes delegated to a single client";
+        } // END of ipv6-max-delegated-prefix definition.
+
         leaf request-ipv6-prefix  {
             if-feature feature-list:HAVE_IPV6;
             type  string {
@@ -217,28 +258,48 @@ submodule ipi-dhcp-client {
         } // END of request-ipv6-prefix definition.
 
     } // END of client-interface-config definition.
-    grouping learned-prefix-state {
+    grouping learned-prefix-list {
+        description
+            "DHCPv6 Prefix Delegation learnt prefix details";
+
+        list learned-prefixes {
+            if-feature feature-list:HAVE_IPV6;
+            key "learnt-prefix";
+            config false;
+            description
+                "DHCPv6 learnt prefixes";
+            leaf learnt-prefix  {
+                type  cml-data-types:cml_ipv6_prefix_t;
+                description "Learnt prefix addr from DHCP server";
+            } // END of learnt-prefix definition.
+
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses learned-prefix-state-attrs;
+            } // END of state-container definition.
+        } // End of learned-prefixes-list
+    } // END of learned-prefix-list definition.
+    grouping learned-prefix-state-attrs {
         description
             "Learnt prefix parameters";
         leaf learnt-prefix  {
             type  cml-data-types:cml_ipv6_prefix_t;
-            config false;
             description "Learnt prefix addr from DHCP server";
         } // END of learnt-prefix definition.
 
         leaf max-lifetime  {
             type  uint32;
-            config false;
             description "Learnt Prefix Max lifetime in secs";
         } // END of max-lifetime definition.
 
         leaf preferred-lifetime  {
             type  uint32;
-            config false;
             description "Learnt Prefix Preffered life time in secs";
         } // END of preferred-lifetime definition.
 
-    } // END of learned-prefix-state definition.
+    } // END of learned-prefix-state-attrs definition.
     grouping prefix-ipv6-addr-config {
         description
             "IPv6 address configured using learnt Prefix from DHCP Server";
@@ -340,18 +401,8 @@ submodule ipi-dhcp-client {
                         "Operational state data";
                     uses client-interface-config;
                 } // END of state-container definition.
-                container learned-prefix {
-                    config false;
-                    description
-                        "Learnt prefix parameters";
-                    container state {
-                        config false;
-                        description
-                            "Operational state data";
-                        uses learned-prefix-state;
-                    } // END of state-container definition.
-                } // END of learned-prefix-container definition.
                 uses prefix-ipv6-addr-list-entry;
+                uses learned-prefix-list;
             } // End of interface-list
         } // END of interfaces-container definition.
     } // END of dhcp-interface-top definition.

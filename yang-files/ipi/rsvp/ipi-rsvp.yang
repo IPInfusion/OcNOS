@@ -23,17 +23,17 @@ module ipi-rsvp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-rsvp-types {
         prefix ipi-rsvp-types;
-        revision-date 2023-03-21;
+        revision-date 2024-06-14;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ietf-inet-types {
@@ -43,12 +43,12 @@ module ipi-rsvp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
-    include ipi-rsvp-trunk { revision-date 2023-08-01;}
-    include ipi-rsvp-interface { revision-date 2023-01-09;}
-    include ipi-rsvp-session { revision-date 2022-06-01;}
+    include ipi-rsvp-trunk { revision-date 2024-07-18;}
+    include ipi-rsvp-interface { revision-date 2024-04-03;}
+    include ipi-rsvp-session { revision-date 2024-04-15;}
     organization
         "IP Infusion Inc.";
 
@@ -61,6 +61,126 @@ module ipi-rsvp {
     description
         "Resource Reservation Protocol";
 
+
+    revision "2024-07-18" {
+        description "When tag checking multipath destination removed";
+        reference " 0.14.11.";
+    }
+
+    revision "2024-07-15" {
+        description "Bandwidth range increased as per the pattern check";
+        reference " 0.14.10.";
+    }
+
+    revision "2024-06-28" {
+        description "Added dependentobject tag inside config container of rsvp-auto-bandwidth";
+        reference " 0.14.9.";
+    }
+
+    revision "2024-06-24" {
+        description "Added minimum sample attributes for auto bandwidth feature";
+        reference " 0.14.8.";
+    }
+
+    revision "2024-06-14" {
+        description "Removed ipv6 and gmpls parameter from rsvp trunk family datatype";
+        reference " 0.14.7.";
+    }
+
+    revision "2024-06-09" {
+        description "Reverting fix for removing ipv6 and gmpls option from rsvp trunk family datatype";
+        reference " 0.14.6.";
+    }
+
+    revision "2024-06-07" {
+        description "Removed ipv6 and gmpls option from rsvp trunk family datatype";
+        reference " 0.14.5.";
+    }
+
+    revision "2024-05-23" {
+        description "Fix to guarantee the exclusivity for lsp-metric type configuration";
+        reference " 0.14.4.";
+    }
+
+    revision "2024-05-20" {
+        description "Changed lsp absolute-metric to be in the same pattern as relative-metric";
+        reference " 0.14.3.";
+    }
+
+    revision "2024-05-16" {
+        description "Remove the configure_dependency tag from the auto-bandwidth attribute";
+        reference " 0.14.2.";
+    }
+
+    revision "2024-05-09" {
+        description "Added mode for auto-bandwidth clear command";
+        reference " 0.14.1.";
+    }
+
+    revision "2024-04-15" {
+        description "removed 'egress' from the session/state container";
+        reference " 0.14.0.";
+    }
+
+    revision "2024-04-12" {
+        description "Removed implicit delete for config container of bypass-trunk objectlist";
+        reference " 0.13.11.";
+    }
+
+    revision "2024-04-11" {
+        description "Fix netconf operation replace for trunks configuration";
+        reference " 0.13.10.";
+    }
+
+    revision "2024-04-09" {
+        description "Fixed delete order for srlg and rsvp-instance";
+        reference " 0.13.9.";
+    }
+
+    revision "2024-04-03" {
+        description "Added dependentObject to interface";
+        reference " 0.13.8.";
+    }
+
+    revision "2024-04-02" {
+        description "Shutdown option support for RSVP tunnels";
+        reference " 0.13.7.";
+    }
+
+    revision "2024-03-29" {
+        description "Added default values for auto bandwidth attributes";
+        reference " 0.13.6.";
+    }
+
+    revision "2024-03-19" {
+        description "CLI support for LDP over RSVP";
+        reference " 0.13.5.";
+    }
+
+    revision "2024-03-15" {
+        description "Added clear command for RSVP auto bandwidth and renamed few attributes";
+        reference " 0.13.4.";
+    }
+
+    revision "2024-03-14" {
+        description "CLI support for RSVP auto bandwidth";
+        reference " 0.13.3.";
+    }
+
+    revision "2024-02-15" {
+        description "Added new mode for auto-bypass";
+        reference " 0.13.2.";
+    }
+
+    revision "2024-02-09" {
+        description "Added new hidden-cli for interop bypass";
+        reference " 0.13.1.";
+    }
+
+    revision "2023-12-21" {
+        description "Added auto bypass feature related container, objectlist and attributes";
+        reference " 0.13.0.";
+    }
 
     revision "2023-08-01" {
         description "Adding description option for rsvp path/trunk/bypass";
@@ -563,6 +683,46 @@ module ipi-rsvp {
                         messages.";
         } // END of ingress-ipv6 definition.
 
+        leaf on-boot-sample-interval  {
+            if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+            type  uint16 {
+                 range "1..10080"  {
+                    description "1..10080: Supported range 1 - 10080";
+                 }
+            }
+            units "minutes";
+            default "1";
+            description "Use this attribute to specify the sample interval for an RSVP auto
+                        bandwidth on-boot profile";
+        } // END of on-boot-sample-interval definition.
+
+        leaf on-boot-adjust-interval  {
+            // when " ../on-boot-sample-interval ";
+            if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+            type  uint16 {
+                 range "5..10080"  {
+                    description "5..10080: Supported range 5 - 10080";
+                 }
+            }
+            units "minutes";
+            default "5";
+            description "Use this attribute to specify the adjust interval for an RSVP auto
+                        bandwidth on-boot profile";
+        } // END of on-boot-adjust-interval definition.
+
+        leaf on-boot-adjust-multiplier  {
+            // when " ../on-boot-sample-interval ";
+            if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+            type  uint8 {
+                 range "1..10"  {
+                    description "1..10: Supported range 1 - 10";
+                 }
+            }
+            default "1";
+            description "Use this attribute to specify the adjust multiplier for an RSVP auto
+                        bandwidth on-boot profile";
+        } // END of on-boot-adjust-multiplier definition.
+
     } // END of rsvp-global-config definition.
     grouping rsvp-global-state {
         description
@@ -981,6 +1141,197 @@ module ipi-rsvp {
         } // END of detour-allow-primary-upstream-path definition.
 
     } // END of rsvp-global-frr-config definition.
+    grouping rsvp-auto-bypass {
+        description
+            "global configuration parameters for auto bypass";
+        container auto-bypass {
+            description
+                "Auto bypass configuration";
+            container config {
+                presence "Enable Rsvp Auto-bypass";
+                description
+                    "configuration container for auto bypass";
+                uses rsvp-auto-bypass-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational container for auto bypass";
+                uses rsvp-auto-bypass-config;
+            } // END of state-container definition.
+            container attributes {
+                description
+                    "Container for auto bypass attributes";
+
+                list attribute {
+                when " /ipi-rsvp:rsvp-te/ipi-rsvp:rsvp-instance/ipi-rsvp:fast-reroute/ipi-rsvp:auto-bypass/ipi-rsvp:config ";
+                    key "type";
+                    description
+                        "Object list for auto bypass attributes";
+                    leaf type  {
+                        type  leafref {
+                            path  "../config/type";
+                        }
+                        description "Use this attribute to configure a set of attributes for auto bypass
+                                    LSPs.";
+                    } // END of type definition.
+
+                    container config {
+                        description
+                            "configuration container for auto bypass attributes";
+                        uses rsvp-auto-bypass-attributes-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational container for auto bypass attributes";
+                        uses rsvp-auto-bypass-attributes-config;
+                    } // END of state-container definition.
+                    container exclude-addresses {
+                        description
+                            "Container for auto bypass exclude address";
+
+                        list exclude-address {
+                            key "address";
+                            description
+                                "Object list for auto bypass exclude address";
+                            leaf address  {
+                                type  leafref {
+                                    path  "../config/address";
+                                }
+                                description "This attribute is used to configure auto bypass with exclude address
+                                            criteria";
+                            } // END of address definition.
+
+                            container config {
+                                description
+                                    "Configuration container for exclude address";
+                                uses rsvp-exclude-address-config;
+                            } // END of config-container definition.
+                            container state {
+                                config false;
+                                description
+                                    "Operational container for exclude address";
+                                uses rsvp-exclude-address-config;
+                            } // END of state-container definition.
+                        } // End of exclude-address-list
+                    } // END of exclude-addresses-container definition.
+                } // End of attribute-list
+            } // END of attributes-container definition.
+        } // END of auto-bypass-container definition.
+    } // END of rsvp-auto-bypass definition.
+    grouping rsvp-auto-bypass-config {
+        description
+            "global configuration parameters for auto bypass";
+        leaf auto-bypass  {
+            type  empty;
+            mandatory true;
+            description "Auto bypass configuration";
+        } // END of auto-bypass definition.
+
+        leaf enable  {
+            type  empty;
+            description "Use this attribute to enable automatic formation of bypass tunnels
+                        when facility backup protected sessions come up.";
+        } // END of enable definition.
+
+        leaf inactivity-timer  {
+            type  uint32 {
+                 range "1..240"  {
+                    description "1..240: Supported range 1 - 240";
+                 }
+            }
+            default "60";
+            description "Use this attribute to configure timer for auto bypass tunnel
+                        inactivity period post which stale auto bypass tunnels will be
+                        deleted.";
+        } // END of inactivity-timer definition.
+
+    } // END of rsvp-auto-bypass-config definition.
+    grouping rsvp-auto-bypass-attributes-config {
+        description
+            "global configuration parameters for auto bypass attributes";
+        leaf type  {
+            type  ipi-rsvp-types:rsvp_bypass_attr_type_t;
+            description "Use this attribute to configure a set of attributes for auto bypass
+                        LSPs.";
+        } // END of type definition.
+
+        leaf protection-capability  {
+            type  ipi-rsvp-types:rsvp_exclude_path_type_t;
+            default "node";
+            description "Use this attribute to configure the type of auto bypass tunnel allowed
+                        to create. Node option will ensure both link and node protection
+                        bypass tunnels created when there is demand and this option is enabled
+                        by default. Link option will restrict the bypass tunnel formation to
+                        link protection type even when there is demand.";
+        } // END of protection-capability definition.
+
+        leaf bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
+            }
+            description "Use this attribute to set the bandwidth requirement for auto bypass
+                        LSPs.";
+        } // END of bandwidth definition.
+
+        leaf setup-priority  {
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7: Supported range 0 - 7";
+                 }
+            }
+            default "7";
+            description "Use this attribute to configure the setup priority requirement for
+                        auto bypass LSPs.";
+        } // END of setup-priority definition.
+
+        leaf hold-priority  {
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7: Supported range 0 - 7";
+                 }
+            }
+            default "0";
+            description "Use this attribute to configure the hold priority requirement for auto
+                        bypass LSPs.";
+        } // END of hold-priority definition.
+
+        leaf hop-limit  {
+            type  uint16 {
+                 range "1..255"  {
+                    description "1..255: Supported range 1 - 255";
+                 }
+            }
+            default "255";
+            description "Use this attribute to configure the hop limit requirement for auto
+                        bypass LSPs.";
+        } // END of hop-limit definition.
+
+        leaf reoptimize  {
+            type  empty;
+            description "Use this attribute to enable re-optimization for auto bypass LSPs.";
+        } // END of reoptimize definition.
+
+    } // END of rsvp-auto-bypass-attributes-config definition.
+    grouping rsvp-exclude-address-config {
+        description
+            "Configuration parameters for exclude address";
+        leaf exclude-type  {
+            type  ipi-rsvp-types:rsvp_exclude_path_type_t;
+            mandatory true;
+            description "Use this attribute to exclude address type as either link or node
+                        protection";
+        } // END of exclude-type definition.
+
+        leaf address  {
+            type  inet:ipv4-address;
+            description "This attribute is used to configure auto bypass with exclude address
+                        criteria";
+        } // END of address definition.
+
+    } // END of rsvp-exclude-address-config definition.
     grouping rsvp-global-gmpls-config {
         description
             "global configuration parameters for gmpls";
@@ -1460,6 +1811,7 @@ module ipi-rsvp {
                         "state container for fast-reroute";
                     uses rsvp-global-frr-config;
                 } // END of state-container definition.
+                uses rsvp-auto-bypass;
             } // END of fast-reroute-container definition.
             container cspf {
                 when " /ipi-rsvp:rsvp-te/ipi-rsvp:rsvp-instance/ipi-rsvp:config ";
@@ -1592,6 +1944,7 @@ module ipi-rsvp {
         uses rsvp-paths-grouping;
         uses multipaths-grouping;
         uses trunks-grouping;
+        uses rsvp-auto-bandwidths-grouping;
         uses interfaces-grouping;
     } // END of rsvp-te-container definition.
     } // END of rsvp-te-grouping definition.
@@ -1730,6 +2083,59 @@ module ipi-rsvp {
                 type inet:ipv4-address;
                 mandatory true;
                 description "Egress IP address of the Session";
+            }
+        }
+    }
+
+    rpc rsvp-trunk-force-auto-bandwidth-adjustment {
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+        if-feature feature-list:HAVE_RSVPD;
+        description "RPC to do the automatic bandwidth adjustment value";
+        input  {
+            leaf trunk-name  {
+                type string;
+                mandatory true;
+                description "Name of RSVP Trunk to be specified";
+            }
+            leaf force-auto-bandwidth-adjustment  {
+                type boolean;
+                mandatory true;
+                description "Use this attribute to force the auto bandwidth adjustment";
+            }
+            leaf bandwidth  {
+                type string {
+                    pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
+                }
+                mandatory true;
+                description "Use this attribute to do automatic bandwidth adjustment value. The
+                            bandwidth attribute takes input ranges from 1 to 999 kbps, 1 to 999
+                            mbps and 1 to 100 gbps.";
+            }
+        }
+    }
+
+    rpc rsvp-clear-auto-bandwidth {
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+        if-feature feature-list:HAVE_RSVPD;
+        description "Clear RSVP auto-bandwidth";
+        input  {
+            leaf autobw-profile  {
+                type string;
+                mandatory true;
+                description "Name of auto bandwidth profile to be reset";
+            }
+        }
+    }
+
+    rpc clear-rsvp-trunk-auto-bandwidth-statistics {
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+        if-feature feature-list:HAVE_RSVPD;
+        description "RPC to clear auto bandwidth statistics for given trunk";
+        input  {
+            leaf trunk-name  {
+                type string;
+                mandatory true;
+                description "Name of RSVP Trunk to be reset";
             }
         }
     }
@@ -2004,6 +2410,160 @@ module ipi-rsvp {
             type ipi-rsvp-types:rsvp_sess_type_t;
         description
             "Type of the session is either primary or secondary";
+        }
+    }
+
+    notification rsvp-auto-bw-subceed-minimum-bandwidth {
+        if-feature feature-list:HAVE_RSVPD;
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+
+        description "Trigger the notification when new bandwidth is lesser than minimum bandwidth.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: MESSAGE)";
+        }
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
+    notification rsvp-auto-bw-exceed-maximum-bandwidth {
+        if-feature feature-list:HAVE_RSVPD;
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+
+        description "Trigger the notification when new bandwidth is greater than maximum bandwidth.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: MESSAGE)";
+        }
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
+    notification rsvp-auto-bw-adjust-time-expiry {
+        if-feature feature-list:HAVE_RSVPD;
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+
+        description "Trigger the notification when adjustment cycle completed without taking any action.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: MESSAGE)";
+        }
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
+    notification rsvp-auto-bw-overflow {
+        if-feature feature-list:HAVE_RSVPD;
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+
+        description "Trigger the notification when overflow detected.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: MESSAGE)";
+        }
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
+    notification rsvp-auto-bw-underflow {
+        if-feature feature-list:HAVE_RSVPD;
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+
+        description "Trigger the notification when underflow detected.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: MESSAGE)";
+        }
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
+    notification rsvp-auto-bw-exceed-limit {
+        if-feature feature-list:HAVE_RSVPD;
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+
+        description "Trigger the notification when new bandwidth exceeds maximum bandwidth limit.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: MESSAGE)";
+        }
+
+        leaf message {
+            type string;
+            description " alarm message notification";
+        }
+    }
+
+    notification rsvp-auto-bw-teardown {
+        if-feature feature-list:HAVE_RSVPD;
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+
+        description "Trigger the notification when teardown action is taken.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: MESSAGE)";
+        }
+
+        leaf message {
+            type string;
+            description " alarm message notification";
         }
     }
 

@@ -28,12 +28,12 @@ module ipi-mpls-rib {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ipi-network-instance {
@@ -43,12 +43,12 @@ module ipi-mpls-rib {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2023-08-08;
+        revision-date 2024-03-11;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2023-07-14;
+        revision-date 2024-07-18;
     }
 
     import ipi-mpls-types {
@@ -58,7 +58,7 @@ module ipi-mpls-rib {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -73,6 +73,21 @@ module ipi-mpls-rib {
     description
         "Data model for MPLS RIB";
 
+
+    revision "2024-07-18" {
+        description "Added state attributes inside nhlfe-entry and ipv4-ftn-entry";
+        reference " 0.11.5.";
+    }
+
+    revision "2024-07-16" {
+        description "Added cross-connect index as key to nhlfe-entry";
+        reference " 0.11.4.";
+    }
+
+    revision "2023-08-24" {
+        description "Removing interface option CLI commands under static-ilm-entry objectlist";
+        reference " 0.11.3.";
+    }
 
     revision "2023-06-20" {
         description "CLI support for MPLS FTN and ILM ECMP";
@@ -521,6 +536,51 @@ module ipi-mpls-rib {
             description "RSVP multipath group name associated with RSVP FTN";
         } // END of rsvp-multipath-name definition.
 
+        leaf row-status  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify row status";
+        } // END of row-status definition.
+
+        leaf state  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify state";
+        } // END of state definition.
+
+        leaf create-time  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to specify create time";
+        } // END of create-time definition.
+
+        leaf up-time  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to specify up time";
+        } // END of up-time definition.
+
+        leaf last-update  {
+            type  cml-data-types:cml_line_t {
+                length "1..1965";
+            }
+            description "Use this attribute to specify last update";
+        } // END of last-update definition.
+
+        leaf description  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify description";
+        } // END of description definition.
+
     } // END of mpls-rib-ip-ftn-entry-state definition.
     grouping mpls-rib-ipv4-ftn-nhlfe-entry-state {
         description
@@ -546,6 +606,11 @@ module ipi-mpls-rib {
             type  ipi-mpls-types:mpls_rib_nhlfe_type_t;
             description "Type of the next hop";
         } // END of nhlfe-type definition.
+
+        leaf xc-index  {
+            type  uint32;
+            description "Cross connect index of the next hop";
+        } // END of xc-index definition.
 
     } // END of mpls-rib-ipv4-ftn-nhlfe-entry-state definition.
     grouping mpls-rib-ipv6-ftn-nhlfe-entry-state {
@@ -606,6 +671,19 @@ module ipi-mpls-rib {
             type  ipi-mpls-types:mpls_rib_label_op_code_t;
             description "Action to be performed on the MPLS label stack";
         } // END of label-op-code definition.
+
+        leaf in-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specify in interface";
+        } // END of in-interface definition.
+
+        leaf in-label  {
+            type  uint32;
+            description "Use this attribute to specify in label";
+        } // END of in-label definition.
 
     } // END of mpls-rib-ip-ftn-nhlfe-entry-state definition.
     grouping mpls-rib-ip-ilm-nhlfe-entry-state {
@@ -1036,7 +1114,7 @@ module ipi-mpls-rib {
 
 
                 list nhlfe-entry {
-                    key "out-interface out-label administrative-status";
+                    key "out-interface out-label administrative-status xc-index";
                     config false;
                     description
                         "NHLFE entry";
@@ -1060,6 +1138,13 @@ module ipi-mpls-rib {
                         }
                         description "Administrative status of this FTN NHLFE entry";
                     } // END of administrative-status definition.
+
+                    leaf xc-index  {
+                        type  leafref {
+                            path  "../state/xc-index";
+                        }
+                        description "Cross connect index of this FTN NHLFE entry";
+                    } // END of xc-index definition.
 
                     container state {
                         config false;

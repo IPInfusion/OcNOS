@@ -34,6 +34,16 @@ module ipi-sr-types {
         "YANG version of the ipi-sr-types";
 
 
+    revision "2024-03-09" {
+        description "Added debug options for Flexible Algorithm features";
+        reference " 0.7.1.";
+    }
+
+    revision "2023-09-29" {
+        description "Added data-types for Flexible Algorithm features";
+        reference " 0.7.0.";
+    }
+
     revision "2022-06-01" {
         description "Updated the yang file with feature";
         reference " 0.6.0.";
@@ -80,16 +90,6 @@ module ipi-sr-types {
         description "type definition for SR_SID_VALUE_TYPE_T";
     }
 
-    typedef  srte_segment_type_t {
-        type enumeration {
-            enum segment-type-1 {
-                value 1;
-                description "Segment-descriptor type: SR-MPLS Label";
-            }
-        }
-        description "type definition for SRTE_SEGMENT_TYPE_T";
-    }
-
     typedef  srte_segment_type_2_t {
         type enumeration {
             enum segment-type-2 {
@@ -98,6 +98,99 @@ module ipi-sr-types {
             }
         }
         description "type definition for SRTE_SEGMENT_TYPE_2_T";
+    }
+
+    typedef  srte_segment_type_mpls_t {
+        type enumeration {
+            enum segment-type-1 {
+                value 1;
+                description "Segment-descriptor type: SR-MPLS Label";
+            }
+        }
+        description "type definition for SRTE_SEGMENT_TYPE_MPLS_T";
+    }
+
+    typedef  srte_segment_type_3_mpls_t {
+        type enumeration {
+            enum segment-type-3 {
+                value 3;
+                description "Segment-descriptor type: IPv4 Prefix with optional SR Algorithm";
+            }
+        }
+        description "type definition for SRTE_SEGMENT_TYPE_3_MPLS_T";
+    }
+
+    typedef  srte_segment_type_4_mpls_t {
+        type enumeration {
+            enum segment-type-4 {
+                value 4;
+                description "Segment-descriptor type: IPv6 Global Prefix with optional SR Algorithm for SR-MPLS";
+            }
+        }
+        description "type definition for SRTE_SEGMENT_TYPE_4_MPLS_T";
+    }
+
+    typedef  srte_segment_type_9_srv6_t {
+        type enumeration {
+            enum segment-type-9 {
+                value 9;
+                description "Segment-descriptor type: IPv6 Global Prefix with optional SR Algorithm for SRv6";
+            }
+        }
+        description "type definition for SRTE_SEGMENT_TYPE_9_SRV6_T";
+    }
+
+    typedef  srte_segment_type_10_srv6_t {
+        type enumeration {
+            enum segment-type-10 {
+                value 10;
+                description "Segment-descriptor type: IPv6 Prefix and Interface ID for link endpoints as Local and Remote pair with optional SR Algorithm for SRv6";
+            }
+        }
+        description "type definition for SRTE_SEGMENT_TYPE_10_SRV6_T";
+    }
+
+    typedef  srte_segment_type_11_srv6_t {
+        type enumeration {
+            enum segment-type-11 {
+                value 11;
+                description "Segment-descriptor type: IPv6 global addresses for link endpoints as Local and Remote pair with optional SR Algorithm for SRv6";
+            }
+        }
+        description "type definition for SRTE_SEGMENT_TYPE_11_SRV6_T";
+    }
+
+    typedef  sr_strict_spf_algo_t {
+        type enumeration {
+            enum spf {
+                value 0;
+                description "Segment Routing Shortest Path Algorithm";
+            }
+            enum strict-spf {
+                value 1;
+                description "Segment Routing Strict Shortest Path Algorithm";
+            }
+        }
+        description "datatype for SPF/Strict-SPF SR Algorithm";
+    }
+
+    typedef  sr_flex_algo_t {
+        type uint32 {
+             range 0..4294967295;
+        }
+        description "datatype for Flexible Algorithm Number";
+    }
+
+    typedef  sr_algo_choice_t {
+        type union {
+            type sr_strict_spf_algo_t {
+
+            }
+            type sr_flex_algo_t {
+
+            }
+        }
+        description "datatype for segment routing algorithm number";
     }
 
     typedef  srte_policy_oper_state_t {
@@ -166,6 +259,10 @@ module ipi-sr-types {
                 value 2;
                 description "TE-Metric";
             }
+            enum latency {
+                value 3;
+                description "Latency-Metric";
+            }
         }
         description "type definition for SRTE_CP_METRIC_TYPE_T";
     }
@@ -183,6 +280,14 @@ module ipi-sr-types {
             bit pce {
                 position 2;
                 description "PCE related information";
+            }
+            bit mpls {
+                position 3;
+                description "SR-policy MPLS information";
+            }
+            bit flexalgo {
+                position 4;
+                description "SR-policy Flexible Algorithm information";
             }
         }
         description "type definition for SR_TE_DEBUG_T";
@@ -260,6 +365,64 @@ module ipi-sr-types {
             }
         }
         description "datatype for segment routing N flag";
+    }
+
+    typedef  sr_dyn_cp_dataplane_type_t {
+        type enumeration {
+            enum mpls {
+                value 1;
+                description "MPLS Data-plane";
+            }
+            enum srv6 {
+                value 2;
+                description "SRv6 Data-plane";
+            }
+        }
+        description "type definition for SR_DYN_CP_DATAPLANE_TYPE_T";
+    }
+
+    typedef  sr_dyn_cp_protection_type_t {
+        type enumeration {
+            enum protected-only {
+                value 1;
+                description "SID list must be encoded using protected segments";
+            }
+            enum protected-prefered {
+                value 2;
+                description "SID list encoding uses segments preferably protected";
+            }
+            enum unprotected-only {
+                value 3;
+                description "SID list must be encoded using unprotected segments";
+            }
+            enum unprotected-prefered {
+                value 4;
+                description "SID list encoding uses segments preferably unprotected";
+            }
+        }
+        description "type definition for SR_DYN_CP_PROTECTION_TYPE_T";
+    }
+
+    typedef  sr_dyn_cp_disjoint_path_type_t {
+        type enumeration {
+            enum link {
+                value 1;
+                description "Computed path is Link-disjoint with the existing path";
+            }
+            enum node {
+                value 2;
+                description "Computed path is Node-disjoint with the existing path";
+            }
+            enum srlg {
+                value 3;
+                description "Computed path is SRLG-disjoint with the existing path";
+            }
+            enum srlg-node {
+                value 4;
+                description "Computed path is both Node and SRLG disjoint with the existing path";
+            }
+        }
+        description "type definition for SR_DYN_CP_DISJOINT_PATH_TYPE_T";
     }
 
 }

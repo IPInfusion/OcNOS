@@ -21,17 +21,27 @@ submodule ipi-g8031-elps {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ipi-g8031-elps-types {
         prefix ipi-g8031-elps-types;
-        revision-date 2022-06-28;
+        revision-date 2023-12-20;
     }
 
     import ietf-yang-types {
         prefix yang;
         revision-date 2013-07-15;
+    }
+
+    import ipi-interface {
+        prefix ipi-interface;
+        revision-date 2024-07-24;
+    }
+
+    import cml-data-types {
+        prefix cml-data-types;
+        revision-date 2024-06-17;
     }
 
     organization
@@ -46,6 +56,21 @@ submodule ipi-g8031-elps {
     description
         "Ethernet Linear Protection Switching";
 
+
+    revision "2024-06-06" {
+        description "Renamed few attributes names and description";
+        reference " 0.8.1.";
+    }
+
+    revision "2023-11-24" {
+        description "Renamed few attributes with repeated parent node name";
+        reference " 0.8.0.";
+    }
+
+    revision "2023-11-15" {
+        description "New ELPS CLI Restructuring Support";
+        reference " 0.7.0.";
+    }
 
     revision "2023-09-19" {
         description "Added implicit_delete tag under timer container";
@@ -303,6 +328,326 @@ submodule ipi-g8031-elps {
         uses elps-timers-top;
         uses elps-traffic-switch-top;
     } // END of elps-top definition.
+    grouping g8031-control-vlan-config {
+        description
+            "Grouping for ELPS control VLAN configuration data";
+        leaf vlan-id  {
+            // when " ipi-g8031-elps:g8031-elps/eps-instances/eps-instance/config/eps-protection-group ";
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094: Supported range 2 - 4094";
+                 }
+            }
+            description "Control VLAN-ID used by ELPS instance to send and receive the RAPS
+                        messages";
+        } // END of vlan-id definition.
+
+        leaf inner-vlan-id  {
+            // when " ipi-g8031-elps:g8031-elps/eps-instances/eps-instance/config/eps-protection-group ";
+            type  uint16 {
+                 range "2..4094"  {
+                    description "2..4094: Supported range 2 - 4094";
+                 }
+            }
+            description "Control inner VLAN-ID used by ELPS instance to send and receive the
+                        RAPS messages";
+        } // END of inner-vlan-id definition.
+
+    } // END of g8031-control-vlan-config definition.
+    grouping g8031-control-vlan-top {
+        description
+            "Grouping for ELPS  channel VLAN";
+        container control-vlans {
+            description
+                "Container for ELPS channel VLAN";
+
+            list control-vlan {
+            // when " ipi-g8031-elps:g8031-elps/eps-instances/eps-instance/config/eps-protection-group ";
+                key "vlan-id";
+                max-elements 1;
+                description
+                    "List of ELPS control VLANs";
+                leaf vlan-id  {
+                    type  leafref {
+                        path  "../config/vlan-id";
+                    }
+                    description "Control vlan-id used by ELPS instance to send and receive the RAPS
+                                messages";
+                } // END of vlan-id definition.
+
+                container config {
+                    description
+                        "Configuration data for ELPS control VLAN";
+                    uses g8031-control-vlan-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for ELPS control VLAN";
+                    uses g8031-control-vlan-config;
+                } // END of state-container definition.
+            } // End of control-vlan-list
+        } // END of control-vlans-container definition.
+    } // END of g8031-control-vlan-top definition.
+    grouping g8031-aps-channel-config {
+        description
+            "Grouping for ELPS APS channel configuration data";
+        leaf level  {
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7: Supported range 0 - 7";
+                 }
+            }
+            description "APS level value.";
+        } // END of level definition.
+
+    } // END of g8031-aps-channel-config definition.
+    grouping g8031-aps-channel-top {
+        description
+            "Grouping for ELPS APS channel";
+        container aps-channel {
+            description
+                "Container for ELPS APS channel";
+            container config {
+                description
+                    "Configuration data for ELPS APS channel";
+                uses g8031-aps-channel-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for ELPS APS channel";
+                uses g8031-aps-channel-config;
+            } // END of state-container definition.
+        } // END of aps-channel-container definition.
+    } // END of g8031-aps-channel-top definition.
+    grouping g8031-data-vlan-config {
+        description
+            "Grouping for ELPS data VLAN configuration data grouping";
+        leaf data-vlan  {
+            type  cml-data-types:cml_range_t;
+            description "List of VLAN-IDs, protected by ring instance. For
+                        example '2, 3-7, 9, 10-100'
+                        VLAN-IDs MUST not overlap with VLAN-IDs of any other
+                        instance of the same ring.";
+        } // END of data-vlan definition.
+
+    } // END of g8031-data-vlan-config definition.
+    grouping g8031-data-vlan-top {
+        description
+            "Grouping for ELPS data VLAN";
+        container data {
+            // when " ipi-g8031-elps:g8031-elps/eps-instances/eps-instance/config/eps-protection-group ";
+            description
+                "Container for ELPS data VLAN";
+            container config {
+                description
+                    "Configuration data for ELPS data VLAN";
+                uses g8031-data-vlan-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for ELPS data VLAN";
+                uses g8031-data-vlan-config;
+            } // END of state-container definition.
+        } // END of data-container definition.
+    } // END of g8031-data-vlan-top definition.
+    grouping eps-instance-config {
+        description
+            "Configuration for EPS instance configuration data";
+        leaf name  {
+            type  string {
+                length "1..255";
+                pattern "[^?' =,>|]+";
+            }
+            description "Instance name to identify the EPS protection group";
+        } // END of name definition.
+
+        leaf eps-protection-group  {
+            type  leafref {
+                path  "/ipi-g8031:g8031/g8031-elps/protections/protection/group-name";
+            }
+            description "Group name for protection EPS";
+        } // END of eps-protection-group definition.
+
+        leaf g8031-profile-name  {
+            type  leafref {
+                path  "/ipi-g8031:g8031/g8031-elps/profiles/profile/name";
+            }
+            description "G8031 profile name";
+        } // END of g8031-profile-name definition.
+
+    } // END of eps-instance-config definition.
+    grouping g8031-eps-instance-top {
+        description
+            "Top level grouping for EPS instance configuration data";
+        container eps-instances {
+            description
+                "Container for EPS instances configuration data";
+
+            list eps-instance {
+                key "name";
+                description
+                    "List of EPS instance configuration data";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Instance name to identify the EPS protection group";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data for EPS instance";
+                    uses eps-instance-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operation data for Eps instance";
+                    uses eps-instance-config;
+                } // END of state-container definition.
+                uses g8031-aps-channel-top;
+                uses g8031-control-vlan-top;
+                uses g8031-data-vlan-top;
+            } // End of eps-instance-list
+        } // END of eps-instances-container definition.
+    } // END of g8031-eps-instance-top definition.
+    grouping eps-protection-config {
+        description
+            "Grouping for ELPS protection configuration data";
+        leaf group-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "G.8031 ELPS protection group name";
+        } // END of group-name definition.
+
+        leaf working-port  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Port for working ELPS path";
+        } // END of working-port definition.
+
+        leaf protection-port  {
+            // when " ../working-port ";
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Port for the protection ELPS path";
+        } // END of protection-port definition.
+
+    } // END of eps-protection-config definition.
+    grouping g8031-eps-protection-top {
+        description
+            "Grouping for ELPS protection top grouping";
+        container protections {
+            description
+                "Container for ELPS protection";
+
+            list protection {
+                if-feature feature-list:HAVE_G8031;
+                key "group-name";
+                description
+                    "Lis of ELPS protection";
+                leaf group-name  {
+                    type  leafref {
+                        path  "../config/group-name";
+                    }
+                    description "G.8031 ELPS protection group name";
+                } // END of group-name definition.
+
+                container config {
+                    description
+                        "Configuration data for ELPS profile";
+                    uses eps-protection-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for ELPS profile";
+                    uses eps-protection-config;
+                } // END of state-container definition.
+            } // End of protection-list
+        } // END of protections-container definition.
+    } // END of g8031-eps-protection-top definition.
+    grouping g8031-profile-config {
+        description
+            "Grouping for ELPS profile configuration data";
+        leaf name  {
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "G.8031 profile name";
+        } // END of name definition.
+
+        leaf mode  {
+            type  ipi-g8031-elps-types:g8031_mode_type_t;
+            description "G.8031 mode";
+        } // END of mode definition.
+
+        leaf switching-mode  {
+            type  ipi-g8031-elps-types:g8031_switching_mode_type_t;
+            description "Use this attribute to set/unset switching mode";
+        } // END of switching-mode definition.
+
+        leaf timer-hold-off  {
+            type  uint8 {
+                 range "1..10"  {
+                    description "1..10: Supported range 1 - 10";
+                 }
+            }
+            description "The hold-off timer is used to coordinate the timing of protection
+                        switches";
+        } // END of timer-hold-off definition.
+
+        leaf timer-wait-to-restore  {
+            type  uint32 {
+                 range "300..720"  {
+                    description "300..720: Supported range 300 - 720";
+                 }
+            }
+            description "Use this attribute to set/unset the timer wait to restore";
+        } // END of timer-wait-to-restore definition.
+
+    } // END of g8031-profile-config definition.
+    grouping g8031-profile-top {
+        description
+            "Grouping for ELPS profile";
+        container profiles {
+            description
+                "Container for ELPS profiles";
+
+            list profile {
+                if-feature feature-list:HAVE_G8031;
+                key "name";
+                description
+                    "List of ELPS profile";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "G.8031 profile name";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data for ELPS profile";
+                    uses g8031-profile-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for ELPS profile";
+                    uses g8031-profile-config;
+                } // END of state-container definition.
+            } // End of profile-list
+        } // END of profiles-container definition.
+    } // END of g8031-profile-top definition.
 
     grouping  elps-grouping {
     description
@@ -315,6 +660,20 @@ submodule ipi-g8031-elps {
         uses elps-top;
     } // END of elps-container definition.
     } // END of elps-grouping definition.
+
+    grouping  g8031-elps-grouping {
+    description
+        "Top level container for g8031 elps";
+    container g8031-elps {
+        if-feature feature-list:HAVE_G8031;
+        if-feature feature-list:HAVE_ONMD;
+        description
+            "Top level container for g8031 elps";
+        uses g8031-profile-top;
+        uses g8031-eps-protection-top;
+        uses g8031-eps-instance-top;
+    } // END of g8031-elps-container definition.
+    } // END of g8031-elps-grouping definition.
 
     grouping  debug-grouping {
     description

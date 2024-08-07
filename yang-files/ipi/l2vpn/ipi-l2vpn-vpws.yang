@@ -23,12 +23,12 @@ module ipi-l2vpn-vpws {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ipi-network-instance-types {
@@ -43,7 +43,7 @@ module ipi-l2vpn-vpws {
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2023-07-14;
+        revision-date 2024-07-18;
     }
 
     import ipi-vpws-types {
@@ -53,7 +53,7 @@ module ipi-l2vpn-vpws {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2023-11-02;
+        revision-date 2024-07-23;
     }
 
     import ietf-inet-types {
@@ -68,7 +68,7 @@ module ipi-l2vpn-vpws {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -84,7 +84,42 @@ module ipi-l2vpn-vpws {
         "Datamodel for VPWS pseudowire";
 
 
-    revision "2023-10-11" {
+    revision "2024-07-20" {
+        description "Removed the hidden cli tag from control-word";
+        reference " 5.0.3.";
+    }
+
+    revision "2024-06-03" {
+        description "Removed max-elements as 1 from vc config";
+        reference " 5.0.2.";
+    }
+
+    revision "2024-05-28" {
+        description "Blocking the fec129 cli options";
+        reference " 5.0.1.";
+    }
+
+    revision "2024-05-09" {
+        description "Added mode for clear commands";
+        reference " 5.0.0.";
+    }
+
+    revision "2024-02-15" {
+        description "Added when tag for control verification type attribute";
+        reference " 4.0.11.";
+    }
+
+    revision "2024-01-29" {
+        description "Revert masking of service template commands for Marvell platform";
+        reference " 4.0.10.";
+    }
+
+    revision "2024-01-15" {
+        description "Mask service template commands for Marvell platform";
+        reference " 4.0.9.";
+    }
+
+    revision "2023-10-05" {
         description "Adding skip-delete for one of encap when expression";
         reference " 4.0.8.";
     }
@@ -319,6 +354,74 @@ module ipi-l2vpn-vpws {
         } // END of target-attachment-individual-identifier definition.
 
     } // END of vpws-pseudowire-fec129-config definition.
+    grouping vpws-pseudowire-fec129-common-config {
+        description
+            "Grouping for common attributes of fec129 pseudowire";
+        leaf group-name  {
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to create a group name with default available
+                        group-identifier for MPLS Layer-2 Virtual Circuit.";
+        } // END of group-name definition.
+
+        leaf group-identifier  {
+            // when " ../group-name ";
+            type  uint32 {
+                 range "1..4294967295"  {
+                    description "1..4294967295: Supported range 1 - 4294967295";
+                 }
+            }
+            description "Use this attribute to create a group with specific group-identifier
+                        for MPLS Layer-2 Virtual Circuit.";
+        } // END of group-identifier definition.
+
+        leaf enable-control-word  {
+            type  empty;
+            description "Use this attribute to enable control word for MPLS Layer-2 Virtual
+                        Circuit.";
+        } // END of enable-control-word definition.
+
+        leaf service-tpid  {
+            type  ipi-vpws-types:vpws_svc_tpid_t;
+            description "Use this attribute to specify tunneling ethertype to be used for an
+                        instance of an MPLS layer 2 virtual circuit";
+        } // END of service-tpid definition.
+
+        leaf tunnel-name  {
+            // when " not(../tunnel-identifier) ";
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specificy the transport tunnel-name to be used
+                        for MPLS Layer-2 Virtual Circuit.";
+        } // END of tunnel-name definition.
+
+        leaf tunnel-policy  {
+            // when " not(../tunnel-identifier) + not(../tunnel-name) ";
+            if-feature feature-list:HAVE_SERVICE_MAPPING;
+            type  string {
+                length "1..127";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to specificy transport tunnel-policy to be used for
+                        MPLS Layer-2 Virtual Circuit.";
+        } // END of tunnel-policy definition.
+
+        leaf tunnel-identifier  {
+            // when " not(../tunnel-name) ";
+            type  uint32 {
+                 range "1..5000"  {
+                    description "1..5000: Supported range 1 - 5000";
+                 }
+            }
+            description "Use this attribute to specificy the static tunnel-identifier to be
+                        used for MPLS Layer-2 Virtual Circuit.";
+        } // END of tunnel-identifier definition.
+
+    } // END of vpws-pseudowire-fec129-common-config definition.
     grouping vpws-pseudowire-common-config {
         description
             "Grouping for common attributes of  pseudowire";
@@ -1171,7 +1274,6 @@ module ipi-l2vpn-vpws {
             list pseudowire {
             // when " ipi-l2vpn-vpws:vpws-instance/pseudowires/pseudowire/raw/config/enable-raw-mode || ipi-l2vpn-vpws:vpws-instance/pseudowires/pseudowire/tagged/config/enable-tagged-mode || ipi-l2vpn-vpws:vpws-instance/pseudowires/pseudowire/default-tagged/config/enable-default-tagged-mode ";
                 key "pseudowire-identifier peer-address";
-                max-elements 1;
                 description
                     "Object list for FEC-128 pseudowire";
                 leaf pseudowire-identifier  {

@@ -23,7 +23,7 @@ module ipi-vxlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ietf-inet-types {
@@ -33,22 +33,32 @@ module ipi-vxlan {
 
     import ipi-vxlan-types {
         prefix ipi-vxlan-types;
-        revision-date 2023-08-23;
+        revision-date 2024-06-21;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
+    }
+
+    import ipi-bridge {
+        prefix ipi-bridge;
+        revision-date 2024-06-21;
+    }
+
+    import ipi-vlan {
+        prefix ipi-vlan;
+        revision-date 2024-03-13;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2023-08-08;
+        revision-date 2024-03-11;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2023-11-02;
+        revision-date 2024-07-23;
     }
 
     import ipi-network-instance {
@@ -63,7 +73,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -79,13 +89,93 @@ module ipi-vxlan {
         "Datamodel for VxLAN protocol";
 
 
+    revision "2024-07-24" {
+        description "Enabled the access-if-vxlan and vxlan bridge-vlan CLI only for TR3 boards";
+        reference " 0.12.4.";
+    }
+
+    revision "2024-07-08" {
+        description "Added the dependency of bridge-vlan-id with global vlan";
+        reference " 0.12.3.";
+    }
+
+    revision "2024-06-28" {
+        description "Added the XGS flag for new cli vxlan-access-if";
+        reference " 0.12.2.";
+    }
+
+    revision "2024-06-21" {
+        description "Added the new cli vxlan-access-if inside interface mode";
+        reference " 0.12.1.";
+    }
+
+    revision "2024-06-19" {
+        description "Added length for vxlan access-port 'description' attribute";
+        reference " 0.11.2.";
+    }
+
+    revision "2024-06-13" {
+        description "Changed vxlan-qos-global-top when condition";
+        reference " 0.12.0.";
+    }
+
+    revision "2024-05-30" {
+        description "Added utils_func 'cml_ipv6_format' for ipv6-address attribute";
+        reference " 0.11.1.";
+    }
+
+    revision "2024-04-24" {
+        description "Added mode for clear commands";
+        reference " 0.11.0.";
+    }
+
+    revision "2024-03-11" {
+        description "Add force-unset to vtep-ipv4 attribute";
+        reference " 0.10.0.";
+    }
+
+    revision "2024-02-13" {
+        description "Unset first vxlan-name before setting the new value";
+        reference " 0.9.15.";
+    }
+
+    revision "2024-02-09" {
+        description "add skip-yang for when tag";
+        reference " 0.9.14.";
+    }
+
+    revision "2024-02-05" {
+        description "Changed the helpString for port-vlan of single and double tagged access interface";
+        reference " 0.9.13.";
+    }
+
+    revision "2024-02-01" {
+        description "Changed the helpstring for interface-name of vxlan access-if";
+        reference " 0.9.12.";
+    }
+
+    revision "2024-01-06" {
+        description "Added support for EVPN ETREE";
+        reference " 0.9.11.";
+    }
+
+    revision "2024-01-02" {
+        description "Attribute bridge-vlan-id added under vxlan-tenant-global-config grouping to create tenant with ingress-replication bridge-vlan tunnel and changes for CLI support";
+        reference " 0.9.10.";
+    }
+
     revision "2023-12-15" {
         description "Added flag BGP_EVPN in mac address attr for arp-nd refresh timer cli";
-        reference " 0.9.8.";
+        reference " 0.9.9.";
     }
 
     revision "2023-12-12" {
         description "Added mac address into arp-nd refresh timer cli";
+        reference " 0.9.8.";
+    }
+
+    revision "2023-10-16" {
+        description "Added streaming telemetry yaml file";
         reference " 0.9.7.";
     }
 
@@ -416,6 +506,26 @@ module ipi-vxlan {
             type  ipi-vxlan-types:vxlan_tenant_type_t;
             description "Use this attribute to create tenant with multicast tunnel";
         } // END of tenant-type definition.
+
+        leaf tenant-type-bridge  {
+            type  ipi-vxlan-types:vxlan_tenant_type_bridge_t;
+            description "Use this attribute to create tenant with multicast tunnel and Bridge
+                        id";
+        } // END of tenant-type-bridge definition.
+
+        leaf bridge-vlan-id  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-bridge:bridge/ipi-vlan:vlans/ipi-vlan:vlan/ipi-vlan:vlan-id";
+            }
+            description "Use this attribute to create tenant with ingress-replication
+                        bridge-vlan tunnel";
+        } // END of bridge-vlan-id definition.
+
+        leaf etree-leaf  {
+            type  empty;
+            description "Use this attribute to select the particular vpn-id as leaf";
+        } // END of etree-leaf definition.
 
         leaf xconnect-identifier  {
             if-feature feature-list:HAVE_EVPN_VPWS;
@@ -917,7 +1027,7 @@ module ipi-vxlan {
 
         leaf description  {
             type  cml-data-types:cml_line_t {
-                length "1..1965";
+                length "1..32";
             }
             description "Use this attribute to set description of access interface";
         } // END of description definition.
@@ -2239,6 +2349,59 @@ module ipi-vxlan {
             } // End of vtep-entry-list
         } // END of vtep-entries-container definition.
     } // END of vtep-entries-top definition.
+    grouping vxlan-access-if-config {
+        description
+            "VXLAN access-if details";
+        leaf name  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Use this attribute to map a physical interface to create VXLAN logical
+                        access port";
+        } // END of name definition.
+
+        leaf access-if  {
+            type  empty;
+            description "VXLAN logical access port per physical interface";
+        } // END of access-if definition.
+
+    } // END of vxlan-access-if-config definition.
+    grouping vxlan-access-if-top {
+        description
+            "Top level grouping for VXLAN access-if";
+        container interfaces {
+            description
+                "Top level container for VXLAN access-if";
+
+            list interface {
+            when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan and /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
+                if-feature feature-list:HAVE_XGS5;
+                if-feature feature-list:NOT_HAVE_DUNE;
+                key "name";
+                description
+                    "VXLAN access port related configurations";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Use this attribute to map a physical interface to create VXLAN logical
+                                access port";
+                } // END of name definition.
+
+                container config {
+                    description
+                        "Configuration data for VXLAN access-if";
+                    uses vxlan-access-if-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for VXLAN access-if";
+                    uses vxlan-access-if-config;
+                } // END of state-container definition.
+            } // End of interface-list
+        } // END of interfaces-container definition.
+    } // END of vxlan-access-if-top definition.
 
     grouping  vxlan-grouping {
     description
@@ -2270,6 +2433,7 @@ module ipi-vxlan {
         uses vxlan-access-interface-top;
         uses vxlan-access-interface-counters-top;
         uses vtep-entries-top;
+        uses vxlan-access-if-top;
     } // END of vxlan-container definition.
     } // END of vxlan-grouping definition.
 

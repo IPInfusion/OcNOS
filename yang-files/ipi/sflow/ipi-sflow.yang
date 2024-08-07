@@ -33,12 +33,22 @@ module ipi-sflow {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
+    }
+
+    import ipi-network-instance {
+        prefix ipi-network-instance;
+        revision-date 2023-07-13;
+    }
+
+    import ipi-vrf {
+        prefix ipi-vrf;
+        revision-date 2024-03-11;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -54,6 +64,16 @@ module ipi-sflow {
         "sFlow module provides user with the possibility to configure sFlow
                 parameters";
 
+
+    revision "2024-01-23" {
+        description "Added HAVE_VRF flag";
+        reference " 0.10.0.";
+    }
+
+    revision "2024-01-10" {
+        description "Added collector ID attribute";
+        reference " 0.9.0.";
+    }
 
     revision "2023-05-29" {
         description "Added When tag for no-debug-all command";
@@ -238,6 +258,24 @@ module ipi-sflow {
                         the sFlow datagrams.";
         } // END of max-datagram-size definition.
 
+        leaf collector-id  {
+            type  uint8 {
+                 range "1..5"  {
+                    description "1..5: Supported range 1 - 5";
+                 }
+            }
+            description "The ID of the collector to be used (1-5). The default value is 1.";
+        } // END of collector-id definition.
+
+        leaf vrf-name  {
+            if-feature feature-list:HAVE_VRF;
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
+            }
+            mandatory true;
+            description "The VRF name from which this collector is reachable.";
+        } // END of vrf-name definition.
+
     } // END of sflow-collector-config definition.
     grouping sflow-collectors-top {
         description
@@ -248,8 +286,8 @@ module ipi-sflow {
                 "sFlow collectors parameters";
 
             list collector {
-                key "address port";
-                max-elements 1;
+                key "address port collector-id";
+                max-elements 5;
                 description
                     "sFlow collectors parameters";
                 leaf address  {
@@ -266,6 +304,13 @@ module ipi-sflow {
                     }
                     description "The destination port for sFlow datagrams.Default port number is 6343.";
                 } // END of port definition.
+
+                leaf collector-id  {
+                    type  leafref {
+                        path  "../config/collector-id";
+                    }
+                    description "The ID of the collector to be used (1-5). The default value is 1.";
+                } // END of collector-id definition.
 
                 container config {
                     description

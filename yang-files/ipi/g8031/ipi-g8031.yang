@@ -23,7 +23,7 @@ module ipi-g8031 {
 
     import ipi-g8031-elps-types {
         prefix ipi-g8031-elps-types;
-        revision-date 2022-06-28;
+        revision-date 2023-12-20;
     }
 
     import ipi-network-instance {
@@ -33,30 +33,30 @@ module ipi-g8031 {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2023-09-09;
+        revision-date 2024-06-21;
     }
 
     import ipi-vlan {
         prefix ipi-vlan;
-        revision-date 2023-07-04;
+        revision-date 2024-03-13;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
-    include ipi-g8031-elps { revision-date 2023-09-19;}
+    include ipi-g8031-elps { revision-date 2024-06-06;}
     organization
         "IP Infusion Inc.";
 
@@ -69,6 +69,31 @@ module ipi-g8031 {
     description
         "Ethernet Linear Protection Switching";
 
+
+    revision "2024-06-06" {
+        description "Renamed few attributes and Description";
+        reference " 0.7.4.";
+    }
+
+    revision "2024-04-24" {
+        description "Suppress the old ELPS CLI";
+        reference " 0.7.3.";
+    }
+
+    revision "2023-12-20" {
+        description "ELPS Manual switch CLI improvement";
+        reference " 0.7.2.";
+    }
+
+    revision "2023-11-24" {
+        description "Renamed few attributes with repeated parent node name";
+        reference " 0.7.1.";
+    }
+
+    revision "2023-11-15" {
+        description "New ELPS CLI Restructuring support";
+        reference " 0.7.0.";
+    }
 
     revision "2023-09-19" {
         description "Added implicit_delete tag under timer container";
@@ -266,6 +291,7 @@ module ipi-g8031 {
         description
             "Top level container for Ethernet Linear Protection Switching";
         uses g8031-instances-top;
+        uses g8031-elps-grouping;
         uses debug-grouping;
     } // END of g8031-container definition.
     } // END of g8031-grouping definition.
@@ -277,57 +303,12 @@ module ipi-g8031 {
         if-feature feature-list:HAVE_ONMD;
         description "Enable G8031 lockout";
         input  {
-            leaf bridge-id  {
-                type string;
-                mandatory true;
-                description "Bridge group number for the lockout on G8031 Protection Group";
-            }
-            leaf eps-id  {
-                type uint8 {
-                    range "1..32";
+            leaf instance-name  {
+                type string {
+                    length "1..255";
                 }
                 mandatory true;
-                description "unique ID to identify a EPS Protection Group";
-            }
-        }
-    }
-
-    rpc g8031-force-switch {
-        if-feature feature-list:HAVE_G8031;
-        if-feature feature-list:HAVE_ONMD;
-        description "Trigger force-switch";
-        input  {
-            leaf bridge-id  {
-                type string;
-                mandatory true;
-                description "Bridge group number for the lockout on G8031 Protection Group";
-            }
-            leaf eps-id  {
-                type uint8 {
-                    range "1..32";
-                }
-                mandatory true;
-                description "unique ID to identify a EPS Protection Group";
-            }
-        }
-    }
-
-    rpc g8031-manual-switch {
-        if-feature feature-list:HAVE_G8031;
-        if-feature feature-list:HAVE_ONMD;
-        description "Trigger manual-switch";
-        input  {
-            leaf bridge-id  {
-                type string;
-                mandatory true;
-                description "Bridge group number for the lockout on G8031 Protection Group";
-            }
-            leaf eps-id  {
-                type uint8 {
-                    range "1..32";
-                }
-                mandatory true;
-                description "unique ID to identify a EPS Protection Group";
+                description "ELPS instance identifier";
             }
         }
     }
@@ -337,17 +318,12 @@ module ipi-g8031 {
         if-feature feature-list:HAVE_ONMD;
         description "Perform G8031 exercise";
         input  {
-            leaf bridge-id  {
-                type string;
-                mandatory true;
-                description "Bridge group number for the lockout on G8031 Protection Group";
-            }
-            leaf eps-id  {
-                type uint8 {
-                    range "1..32";
+            leaf instance-name  {
+                type string {
+                    length "1..255";
                 }
                 mandatory true;
-                description "unique ID to identify a EPS Protection Group";
+                description "ELPS instance identifier";
             }
         }
     }
@@ -357,17 +333,12 @@ module ipi-g8031 {
         if-feature feature-list:HAVE_ONMD;
         description "G8031 clear operation";
         input  {
-            leaf bridge-id  {
-                type string;
-                mandatory true;
-                description "Bridge group number for the lockout on G8031 Protection Group";
-            }
-            leaf eps-id  {
-                type uint8 {
-                    range "1..32";
+            leaf instance-name  {
+                type string {
+                    length "1..255";
                 }
                 mandatory true;
-                description "unique ID to identify a EPS Protection Group";
+                description "ELPS instance identifier";
             }
         }
     }
@@ -394,6 +365,46 @@ module ipi-g8031 {
                 type ipi-g8031-elps-types:g8031_debug_t;
                 mandatory true;
                 description "Use this attribute to debug g8031 feature.";
+            }
+        }
+    }
+
+    rpc elps-switch-elp-instance {
+        if-feature feature-list:HAVE_G8031;
+        if-feature feature-list:HAVE_ONMD;
+        description "Perform Administrative action on the instance";
+        input  {
+            leaf instance-name  {
+                type string {
+                    length "1..255";
+                }
+                mandatory true;
+                description "ELPS instance identifier";
+            }
+            leaf operation  {
+                type ipi-g8031-elps-types:g8031_eps_instance_switch;
+                mandatory true;
+                description "G.8031 administrative operation types.";
+            }
+        }
+    }
+
+    rpc eps-clear-ring-instance {
+        if-feature feature-list:HAVE_G8031;
+        if-feature feature-list:HAVE_ONMD;
+        description "Clear an existing Forced-Switch (FS) or Manual-Switch (MS).";
+        input  {
+            leaf instance-name  {
+                type string {
+                    length "1..255";
+                }
+                mandatory true;
+                description "EPS instance identifier";
+            }
+            leaf eps-type  {
+                type ipi-g8031-elps-types:g8031_eps_instance_type;
+                mandatory true;
+                description "EPS instance type";
             }
         }
     }

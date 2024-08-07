@@ -23,17 +23,17 @@ module ipi-qos {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-qos-types {
         prefix ipi-qos-types;
-        revision-date 2022-06-01;
+        revision-date 2024-02-06;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -49,13 +49,153 @@ module ipi-qos {
         "Quality of Service (QoS)";
 
 
+    revision "2024-07-23" {
+        description "Removed vlan-range from TD4 as it is unsupported by both APIs";
+        reference " 6.0.7.";
+    }
+
+    revision "2024-07-17" {
+        description "Fixed vlan-range in TD4";
+        reference " 6.0.6.";
+    }
+
+    revision "2024-07-12" {
+        description "update random detect weight range for CUSTOM3";
+        reference " 6.0.5.";
+    }
+
+    revision "2024-07-08" {
+        description "Unblock QoS Remark Layer L2 in Trident 4 as support was added";
+        reference " 6.0.4.";
+    }
+
+    revision "2024-07-04" {
+        description "Fixed netconf for vlan match operations in TH4 and TD4";
+        reference " 6.0.3.";
+    }
+
+    revision "2024-06-26" {
+        description "Updated the utils_func tag for matcha-any ethertype";
+        reference " 6.0.1.";
+    }
+
+    revision "2024-06-25" {
+        description "Block QoS Remark Layer L2 in Trident 4";
+        reference " 5.0.12.";
+    }
+
+    revision "2024-06-24" {
+        description "Block CLIs cos inner and vlan inner for trident4. Also blocked match vlan range for tomahawk3/4 and trident4.";
+        reference " 5.0.11.";
+    }
+
+    revision "2024-05-27" {
+        description "Block CLIs cos inner and vlan inner for tomahawk4";
+        reference " 5.0.10.";
+    }
+
+    revision "2024-05-17" {
+        description "Revert mask priority QoS CLIs for Marvell platform";
+        reference " 1.0.9.";
+    }
+
+    revision "2024-05-07" {
+        description "Reverted 5.0.8 revision";
+        reference " 5.0.9.";
+    }
+
+    revision "2024-04-28" {
+        description "Mask priority QoS CLIs for Marvell platform";
+        reference " 1.0.8.";
+    }
+
+    revision "2024-04-26" {
+        description "Mask vlan-queue QoS CLIs for Marvell platform";
+        reference " 1.0.7.";
+    }
+
+    revision "2024-04-20" {
+        description "Added !HAVE_CUSTOM2_QOS to remove queue-color-to-dscp from Q1/Q2 boards";
+        reference " 5.0.8.";
+    }
+
+    revision "2024-04-09" {
+        description "Enable PIR for Marvell platform";
+        reference " 1.0.6.";
+    }
+
+    revision "2024-04-03" {
+        description "Mask certain QoS CLIs for Marvell platform";
+        reference " 1.0.5.";
+    }
+
+    revision "2024-02-06" {
+        description "Masked a redundant option for QOS_TRAFFIC_TYPE_T datatype for Marvell platform";
+        reference " 1.0.4.";
+    }
+
+    revision "2024-01-17" {
+        description "Added HAVE_CUSTOM4_QOS flag to enable queue-to-precedence for Marvell";
+        reference " 5.0.7.";
+    }
+
+    revision "2023-11-27" {
+        description "Changed WRED CLI using HAVE_CUSTOM1_QOS option for Marvell";
+        reference " 5.0.6.";
+    }
+
+    revision "2023-11-21" {
+        description "Revert HAVE_CUSTOM4_QOS flag for priority-level attribute";
+        reference " 1.0.3.";
+    }
+
+    revision "2023-11-14" {
+        description "Added HAVE_CUSTOM4_QOS flag for priority-level attribute";
+        reference " 1.0.2.";
+    }
+
+    revision "2023-11-09" {
+        description "Added HAVE_CUSTOM4_QOS flag for QOS_TRAFFIC_TYPE_T datatype";
+        reference " 1.0.1.";
+    }
+
+    revision "2023-11-06" {
+        description "Added HAVE_CUSTOM4_QOS flag for WRED";
+        reference " 5.0.5.";
+    }
+
     revision "2023-11-02" {
+        description "Enable match ipv6 DSCP/Precedence option for Marvell";
+        reference " 5.0.4.";
+    }
+
+    revision "2023-10-17" {
+        description "Reorganized enable-qos statistics, red-drop and vlan-queuing dependencies";
+        reference " 5.0.3.";
+    }
+
+    revision "2023-09-30" {
+        description "Added CML_FORCE_SET flags to qos-policer types";
+        reference " 5.0.2.";
+    }
+
+    revision "2023-09-27" {
         description "Add CML_SET_ONLY to enable-qos";
+        reference " 4.0.8.";
+    }
+
+    revision "2023-09-21" {
+        description "Enable color option for queue-to-exp profile";
+        reference " 5.0.1.";
+    }
+
+    revision "2023-09-08" {
+        description "Added HAVE_CUSTOM4_QOS flag for label-switching";
         reference " 4.0.7.";
     }
 
-    revision "2023-10-09" {
-        description "Added CML_FORCE_SET flags to qos-policer types";
+    revision "2023-09-06" {
+        description "Hide inner-cos and inner-vlan match CLIs for tomahawk3";
         reference " 4.0.6.";
     }
 
@@ -727,12 +867,36 @@ module ipi-qos {
                         1-4094 or range of VLAN ID's.";
         } // END of vlan definition.
 
+        leaf vlan-id  {
+            // when " !ipi-qos:qos/global/class-maps/class-map/match-any-conditions/config/access-control-list-name ";
+            if-feature feature-list:HAVE_BROADCOM;
+            type  uint16 {
+                 range "1..4094"  {
+                    description "1..4094: Supported range 1 - 4094";
+                 }
+            }
+            description "Use this attribute to classify traffic based on VLAN ID. Enter VLAN ID
+                        1-4094.";
+        } // END of vlan-id definition.
+
         leaf inner-vlan  {
             // when " !ipi-qos:qos/global/class-maps/class-map/match-any-conditions/config/access-control-list-name ";
             type  cml-data-types:cml_range_t;
             description "Use this attribute to classify traffic based on inner VLAN ID. Enter
                         VLAN ID 1-4094 or range of VLAN ID's.";
         } // END of inner-vlan definition.
+
+        leaf inner-vlan-id  {
+            // when " !ipi-qos:qos/global/class-maps/class-map/match-any-conditions/config/access-control-list-name ";
+            if-feature feature-list:HAVE_BROADCOM;
+            type  uint16 {
+                 range "1..4094"  {
+                    description "1..4094: Supported range 1 - 4094";
+                 }
+            }
+            description "Use this attribute to classify traffic based on inner VLAN ID. Enter
+                        VLAN ID 1-4094.";
+        } // END of inner-vlan-id definition.
 
         leaf rtp  {
             // when " !ipi-qos:qos/global/class-maps/class-map/match-any-conditions/config/access-control-list-name ";
@@ -910,7 +1074,7 @@ module ipi-qos {
         } // END of dscp-all definition.
 
         leaf ipv6-dscp-all  {
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             type  string {
                 length "1..8";
                 pattern "[^?' =,>|]+";
@@ -938,7 +1102,7 @@ module ipi-qos {
         } // END of precedence-all definition.
 
         leaf ipv6-precedence-all  {
-            if-feature feature-list:HAVE_CUSTOM2_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             type  string {
                 length "1..13";
                 pattern "[^?' =,>|]+";
@@ -980,6 +1144,7 @@ module ipi-qos {
         description
             "Grouping for QoS class-map-queuing configuration";
         leaf vlan-queue  {
+            if-feature feature-list:NOT_HAVE_MARVELL;
             type  uint16 {
                  range "1..4094"  {
                     description "1..4094: Supported range 1 - 4094";
@@ -1000,6 +1165,7 @@ module ipi-qos {
 
         leaf service-template-name  {
             if-feature feature-list:HAVE_SERVICE_QUEUING_2;
+            if-feature feature-list:NOT_HAVE_MARVELL;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -1009,6 +1175,7 @@ module ipi-qos {
 
         leaf interface  {
             if-feature feature-list:HAVE_SERVICE_QUEUING_2;
+            if-feature feature-list:NOT_HAVE_MARVELL;
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
@@ -2275,7 +2442,7 @@ module ipi-qos {
             "Grouping for QoS MPLS Traffic-Class to exp profile";
         container queue-to-exp-profiles {
             if-feature feature-list:HAVE_DIFFSERV;
-            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM3_QOS;
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM3_QOS_OR_HAVE_CUSTOM4_QOS;
             description
                 "Configuration data for QoS MPLS Traffic-Class to exp profile";
 
@@ -2352,7 +2519,7 @@ module ipi-qos {
             } // End of queue-to-exp-list
         } // END of queues-to-exp-container definition.
         container queues-color-to-exp {
-            if-feature feature-list:HAVE_CUSTOM3_QOS;
+            if-feature feature-list:HAVE_CUSTOM3_QOS_OR_HAVE_CUSTOM4_QOS;
             description
                 "Configuration data for QoS MPLS Traffic-Class to exp";
 
@@ -2647,7 +2814,7 @@ module ipi-qos {
         description
             "Grouping for QoS Traffic-Class to Precedence profile";
         container queue-to-precedence-profiles {
-            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM4_QOS;
             description
                 "Configuration data for QoS Traffic-Class to Precedence profile";
 
@@ -3183,8 +3350,8 @@ module ipi-qos {
         leaf weight  {
             type  uint8 {
                  range "0..31"  {
-                    description "0..31:Feature : HAVE_CUSTOM1_QOS Supported range 0 - 15Feature :
-                            HAVE_CUSTOM2_QOS Supported range 0 - 31";
+                    description "0..31:Feature : HAVE_CUSTOM1_QOS or HAVE_CUSTOM3_QOS Supported range 0
+                            - 15Not Feature : HAVE_CUSTOM3_QOS  Supported range 0 - 31";
                  }
             }
             description "Use this attribute to set weight for Weighted Random Early Detection";
@@ -3195,7 +3362,7 @@ module ipi-qos {
         description
             "Grouping for QoS queue weighted random early detection";
         container wreds {
-            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
             description
                 "Configuration data for QoS queue weighted random early detection";
 
@@ -3284,7 +3451,7 @@ module ipi-qos {
         description
             "Grouping for QoS queue weighted random early detection";
         container wred {
-            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM4_QOS;
             description
                 "Configuration data for QoS queue weighted random early detection";
             container config {
@@ -3827,7 +3994,7 @@ module ipi-qos {
         } // END of bc-unit definition.
 
         leaf eir  {
-            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  uint64 {
                  range "1..2438400000"  {
                     description "1..2438400000:Feature : HAVE_POLICE_MAX_RATE_500GBPS Supported range 1
@@ -3841,13 +4008,13 @@ module ipi-qos {
 
         leaf eir-unit  {
             // when " ../eir ";
-            if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  ipi-qos-types:qos_rate_unit_t;
             description "Use this attribute to set an Excess Information Rate unit";
         } // END of eir-unit definition.
 
         leaf pir  {
-            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM4_QOS;
             type  uint64 {
                  range "1..2000000000"  {
                     description "1..2000000000: Supported range 1 - 2000000000";
@@ -3858,7 +4025,7 @@ module ipi-qos {
 
         leaf pir-unit  {
             // when " ../pir ";
-            if-feature feature-list:HAVE_CUSTOM1_QOS;
+            if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM4_QOS;
             type  ipi-qos-types:qos_rate_unit_t;
             description "Use this attribute to set a Peak Information Rate unit";
         } // END of pir-unit definition.
@@ -4171,16 +4338,39 @@ module ipi-qos {
             } // END of state-container definition.
         } // END of remark-container definition.
     } // END of qos-remark-top definition.
-    grouping qos-global-config {
+    grouping qos-statistics-config {
         description
-            "Grouping for QoS global configuration";
-        leaf enable-qos  {
-            type  cml-data-types:cml_enable_disable_t;
-            description "Use this attribute to globally enable or disable QoS";
-        } // END of enable-qos definition.
+            "Grouping for QoS statistics configuration";
+        leaf enabled  {
+            type  empty;
+            description "Use this attribute to enable QoS statistics";
+        } // END of enabled definition.
 
-        leaf red-drop-disabled  {
-            // when " ipi-qos:qos/global/config/enable-qos == '1' ";
+    } // END of qos-statistics-config definition.
+    grouping qos-statistics-top {
+        description
+            "Grouping for QoS statistics";
+        container statistics {
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+            description
+                "Configuration data for QoS statistics";
+            container config {
+                description
+                    "Configuration data for QoS statistics";
+                uses qos-statistics-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for QoS statistics";
+                uses qos-statistics-config;
+            } // END of state-container definition.
+        } // END of statistics-container definition.
+    } // END of qos-statistics-top definition.
+    grouping qos-red-drop-config {
+        description
+            "Grouping for QoS red-drop configuration";
+        leaf disabled  {
             if-feature feature-list:HAVE_CUSTOM2_QOS_OR_HAVE_CUSTOM4_QOS;
             type  empty;
             description "Use this attribute to disable red packet drop in the system. Red
@@ -4189,16 +4379,33 @@ module ipi-qos {
                         this command is used when there is no use-case
                         for rate limiting traffic and red packets need to be allowed in the
                         system";
-        } // END of red-drop-disabled definition.
+        } // END of disabled definition.
 
-        leaf statistics-enabled  {
-            // when " ipi-qos:qos/global/config/enable-qos == '1' ";
-            type  empty;
-            description "Use this attribute to enable QoS statistics";
-        } // END of statistics-enabled definition.
-
+    } // END of qos-red-drop-config definition.
+    grouping qos-red-drop-top {
+        description
+            "Grouping for QoS red-drop";
+        container red-drop {
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+            description
+                "Configuration data for QoS red-drop";
+            container config {
+                description
+                    "Configuration data for QoS red-drop";
+                uses qos-red-drop-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for QoS red-drop";
+                uses qos-red-drop-config;
+            } // END of state-container definition.
+        } // END of red-drop-container definition.
+    } // END of qos-red-drop-top definition.
+    grouping qos-vlan-queuing-config {
+        description
+            "Grouping for QoS vlan queuing configuration";
         leaf block-size  {
-            // when " ipi-qos:qos/global/config/enable-qos == '1' ";
             if-feature feature-list:HAVE_FLEXPORT;
             if-feature feature-list:HAVE_CUSTOM1_QOS;
             type  uint8 {
@@ -4209,6 +4416,35 @@ module ipi-qos {
             default "1";
             description "Use this attribute to configure block-size for vlan-queuing";
         } // END of block-size definition.
+
+    } // END of qos-vlan-queuing-config definition.
+    grouping qos-vlan-queuing-top {
+        description
+            "Grouping for QoS vlan-queuing";
+        container vlan-queuing {
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+            description
+                "Configuration data for QoS vlan-queuing";
+            container config {
+                description
+                    "Configuration data for QoS vlan-queuing";
+                uses qos-vlan-queuing-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for QoS vlan-queuing";
+                uses qos-vlan-queuing-config;
+            } // END of state-container definition.
+        } // END of vlan-queuing-container definition.
+    } // END of qos-vlan-queuing-top definition.
+    grouping qos-global-config {
+        description
+            "Grouping for QoS global configuration";
+        leaf enable-qos  {
+            type  cml-data-types:cml_enable_disable_t;
+            description "Use this attribute to globally enable or disable QoS";
+        } // END of enable-qos definition.
 
     } // END of qos-global-config definition.
     grouping qos-global-top {
@@ -4236,6 +4472,9 @@ module ipi-qos {
             uses qos-policy-map-top;
             uses qos-aggregate-police-top;
             uses qos-queue-scheduler-top;
+            uses qos-statistics-top;
+            uses qos-red-drop-top;
+            uses qos-vlan-queuing-top;
         } // END of global-container definition.
     } // END of qos-global-top definition.
 

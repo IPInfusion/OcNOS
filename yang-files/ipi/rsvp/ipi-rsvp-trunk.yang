@@ -21,17 +21,17 @@ submodule ipi-rsvp-trunk {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-rsvp-types {
         prefix ipi-rsvp-types;
-        revision-date 2023-03-21;
+        revision-date 2024-06-14;
     }
 
     import ietf-inet-types {
@@ -39,7 +39,7 @@ submodule ipi-rsvp-trunk {
         revision-date 2013-07-15;
     }
 
-    include ipi-rsvp-session { revision-date 2022-06-01;}
+    include ipi-rsvp-session { revision-date 2024-04-15;}
     organization
         "IP Infusion Inc.";
 
@@ -52,6 +52,86 @@ submodule ipi-rsvp-trunk {
     description
         "Resource Reservation Protocol";
 
+
+    revision "2024-07-18" {
+        description "When tag checking multipath destination removed";
+        reference " 0.11.7.";
+    }
+
+    revision "2024-07-15" {
+        description "Bandwidth range increased as per the pattern check";
+        reference " 0.11.6.";
+    }
+
+    revision "2024-06-28" {
+        description "Added dependentobject tag inside config container of rsvp-auto-bandwidth";
+        reference " 0.11.5.";
+    }
+
+    revision "2024-06-24" {
+        description "Added minimum sample attributes for auto bandwidth feature";
+        reference " 0.11.4.";
+    }
+
+    revision "2024-05-23" {
+        description "Fix to guarantee the exclusivity for lsp-metric type configuration";
+        reference " 0.11.3.";
+    }
+
+    revision "2024-05-20" {
+        description "Changed lsp absolute-metric to be in the same pattern as relative-metric";
+        reference " 0.11.2.";
+    }
+
+    revision "2024-05-16" {
+        description "Remove the configure_dependency tag from the auto-bandwidth attribute";
+        reference " 0.11.1.";
+    }
+
+    revision "2024-05-09" {
+        description "Added mode for auto-bandwidth clear command";
+        reference " 0.11.0.";
+    }
+
+    revision "2024-04-12" {
+        description "Removed implicit delete for config container of bypass-trunk objectlist";
+        reference " 0.10.7.";
+    }
+
+    revision "2024-04-11" {
+        description "Fix netconf operation replace for trunks configuration";
+        reference " 0.10.6.";
+    }
+
+    revision "2024-04-02" {
+        description "Shutdown option support for RSVP tunnels";
+        reference " 0.10.5.";
+    }
+
+    revision "2024-03-29" {
+        description "Added default values for auto bandwidth attributes";
+        reference " 0.10.4.";
+    }
+
+    revision "2024-03-19" {
+        description "CLI support for LDP over RSVP";
+        reference " 0.10.3.";
+    }
+
+    revision "2024-03-15" {
+        description "Added clear command for RSVP auto bandwidth and renamed few attributes";
+        reference " 0.10.2.";
+    }
+
+    revision "2024-03-14" {
+        description "CLI support for RSVP auto bandwidth";
+        reference " 0.10.1.";
+    }
+
+    revision "2023-12-21" {
+        description "Moving enable-reoptimize attribute from trunk to common grouping";
+        reference " 0.10.0.";
+    }
 
     revision "2023-08-01" {
         description "Adding description option for rsvp path/trunk/bypass";
@@ -329,6 +409,16 @@ submodule ipi-rsvp-trunk {
             }
             description "Use this attribute to add description for rsvp tunnel";
         } // END of description definition.
+
+        leaf enable-reoptimize  {
+            type  empty;
+            description "Use this attribute to enable the reoptimization for the RSVP tunnel";
+        } // END of enable-reoptimize definition.
+
+        leaf shutdown  {
+            type  empty;
+            description "Use this attribute to administratively shutdown the RSVP tunnel";
+        } // END of shutdown definition.
 
     } // END of rsvp-trunk-common-config definition.
     grouping rsvp-trunk-bypass-config {
@@ -897,7 +987,6 @@ submodule ipi-rsvp-trunk {
         description
             "configuration parameters for rsvp multipath config";
         leaf multipath-group  {
-            // when " ipi-rsvp-trunk:multipaths/multipath/config/destination ";
             if-feature feature-list:HAVE_RSVP_MULTIPATH;
             type  leafref {
                 path  "/ipi-rsvp:rsvp-te/multipaths/multipath/config/multipath-name";
@@ -997,10 +1086,21 @@ submodule ipi-rsvp-trunk {
                         RSVP session";
         } // END of revert-timer definition.
 
-        leaf enable-reoptimize  {
+        leaf auto-bandwidth  {
+            // when " ipi-rsvp-trunk:rsvp-auto-bandwidths/rsvp-auto-bandwidth/config/profile-name ";
+            if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+            type  leafref {
+                path  "/ipi-rsvp:rsvp-te/rsvp-auto-bandwidths/rsvp-auto-bandwidth/config/profile-name";
+            }
+            description "Use this attribute to configure a RSVP auto bandwidth profile to this
+                        RSVP Trunk";
+        } // END of auto-bandwidth definition.
+
+        leaf ldp-tunneling  {
+            if-feature feature-list:HAVE_LDP_TUNNELING;
             type  empty;
-            description "Use this attribute to enable the reoptimization for the RSVP Trunk";
-        } // END of enable-reoptimize definition.
+            description "Use this attribute to enable LDP tunneling for a TE tunnel";
+        } // END of ldp-tunneling definition.
 
     } // END of rsvp-trunk-config definition.
     grouping rsvp-trunk-ip-map-route {
@@ -1361,6 +1461,217 @@ submodule ipi-rsvp-trunk {
         } // END of reverse-direction definition.
 
     } // END of rsvp-explicit-label-rev-config definition.
+    grouping rsvp-auto-bandwidth-config {
+        description
+            "configuration parameters for rsvp auto bandwidth";
+        leaf profile-name  {
+            type  string {
+                length "1..64";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to create a new RSVP auto bandwidth profile.";
+        } // END of profile-name definition.
+
+        leaf sample-interval  {
+            type  uint16 {
+                 range "1..10080"  {
+                    description "1..10080: Supported range 1 - 10080";
+                 }
+            }
+            units "minutes";
+            default "5";
+            description "Use this attribute to specify the sample interval for an RSVP auto
+                        bandwidth profile";
+        } // END of sample-interval definition.
+
+        leaf adjust-interval  {
+            type  uint16 {
+                 range "5..10080"  {
+                    description "5..10080: Supported range 5 - 10080";
+                 }
+            }
+            units "minutes";
+            default "30";
+            description "Use this attribute to specify the adjust interval for an RSVP auto
+                        bandwidth profile";
+        } // END of adjust-interval definition.
+
+        leaf minimum-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
+            }
+            description "Use this attribute to specify a minimum bandwidth value for the rsvp
+                        auto bandwidth profile. The bandwidth attribute takes input ranges
+                        from 1 to 999 kbps, 1 to 999 mbps and 1 to 100 gbps.";
+        } // END of minimum-bandwidth definition.
+
+        leaf maximum-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
+            }
+            description "Use this attribute to specify a maximum bandwidth value for the rsvp
+                        auto bandwidth profile. The bandwidth attribute takes input ranges
+                        from 1 to 999 kbps, 1 to 999 mbps and 1 to 100 gbps.";
+        } // END of maximum-bandwidth definition.
+
+        leaf overflow-threshold-percent  {
+            // when " not(../overflow-threshold-bandwidth) ";
+            type  uint8 {
+                 range "1..100"  {
+                    description "1..100: Supported range 1 - 100";
+                 }
+            }
+            description "Use this attribute to specify the overflow threshold bandwidth in
+                        percentage for an RSVP auto bandwidth profile";
+        } // END of overflow-threshold-percent definition.
+
+        leaf underflow-threshold-percent  {
+            // when " not(../underflow-threshold-bandwidth) ";
+            type  uint8 {
+                 range "1..100"  {
+                    description "1..100: Supported range 1 - 100";
+                 }
+            }
+            description "Use this attribute to specify the underflow threshold bandwidth in
+                        percentage for an RSVP auto bandwidth profile";
+        } // END of underflow-threshold-percent definition.
+
+        leaf overflow-threshold-bandwidth  {
+            // when " not(../overflow-threshold-percent) ";
+            type  string {
+                length "1..1965";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
+            }
+            description "Use this attribute to specify the upper adjust threshold bandwidth for
+                        an RSVP auto bandwidth profile. The bandwidth attribute takes input
+                        ranges from 1 to 999 kbps, 1 to 999 mbps and 1 to 100 gbps.";
+        } // END of overflow-threshold-bandwidth definition.
+
+        leaf underflow-threshold-bandwidth  {
+            // when " not(../underflow-threshold-percent) ";
+            type  string {
+                length "1..1965";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
+            }
+            description "Use this attribute to specify the lower adjust threshold bandwidth for
+                        an RSVP auto bandwidth profile. The bandwidth attribute takes input
+                        ranges from 1 to 999 kbps, 1 to 999 mbps and 1 to 100 gbps.";
+        } // END of underflow-threshold-bandwidth definition.
+
+        leaf underflow-threshold-activate-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
+            }
+            description "Use this attribute to specify the lower adjust threshold activate
+                        bandwidth for an RSVP auto bandwidth profile. The bandwidth attribute
+                        takes input ranges from 1 to 999 kbps, 1 to 999 mbps and 1 to 100
+                        gbps.";
+        } // END of underflow-threshold-activate-bandwidth definition.
+
+        leaf overflow-threshold-activate-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
+            }
+            description "Use this attribute to specify the upper adjust threshold activate
+                        bandwidth for an RSVP auto bandwidth profile. The bandwidth attribute
+                        takes input ranges from 1 to 999 kbps, 1 to 999 mbps and 1 to 100
+                        gbps.";
+        } // END of overflow-threshold-activate-bandwidth definition.
+
+        leaf overflow-limit  {
+            type  uint16 {
+                 range "1..10080"  {
+                    description "1..10080: Supported range 1 - 10080";
+                 }
+            }
+            description "Use this attribute to specify the adjust threshold overflow limit for
+                        an RSVP auto bandwidth profile";
+        } // END of overflow-limit definition.
+
+        leaf underflow-limit  {
+            type  uint16 {
+                 range "1..10080"  {
+                    description "1..10080: Supported range 1 - 10080";
+                 }
+            }
+            description "Use this attribute to specify the adjust threshold underflow limit for
+                        an RSVP auto bandwidth profile";
+        } // END of underflow-limit definition.
+
+        leaf initial-bandwidth  {
+            type  string {
+                length "1..1965";
+                pattern "(([1-9]{1}[0-9]{0,2}[m|M|k|K]{1})|([1-9]{1}.[0-9]{1}[g|G|m|M|k|K]{1})|([1-9]{1}[0-9]{0,1}[g|G]{1})|(100[g|G]{1}))+";
+            }
+            description "Use this attribute to specify an initial bandwidth value for the rsvp
+                        auto bandwidth profile. The bandwidth attribute takes input ranges
+                        from 1 to 999 kbps, 1 to 999 mbps and 1 to 100 gbps.";
+        } // END of initial-bandwidth definition.
+
+        leaf maximum-bandwidth-exceed-limit  {
+            type  uint16 {
+                 range "1..10080"  {
+                    description "1..10080: Supported range 1 - 10080";
+                 }
+            }
+            default "1";
+            description "Use this attribute to specify the maximum bandwidth exceed limit for
+                        an RSVP auto bandwidth profile";
+        } // END of maximum-bandwidth-exceed-limit definition.
+
+        leaf maximum-bandwidth-exceed-action  {
+            type  ipi-rsvp-types:rsvp_auto_bandwidth_action_type_t;
+            description "Use this attribute to teardown if maximum bandwidth exceeds for an
+                        RSVP auto bandwidth profile";
+        } // END of maximum-bandwidth-exceed-action definition.
+
+        leaf resignal-failure-action  {
+            type  ipi-rsvp-types:rsvp_auto_bandwidth_action_type_t;
+            description "Use this attribute to teardown if resignalling fails for an RSVP auto
+                        bandwidth profile";
+        } // END of resignal-failure-action definition.
+
+        leaf sync-bandwidth  {
+            type  empty;
+            description "Use this attribute to sync bandwidth for an RSVP auto bandwidth
+                        profile";
+        } // END of sync-bandwidth definition.
+
+        leaf monitor-bandwidth  {
+            type  empty;
+            description "Use this attribute to monitor bandwidth for an RSVP auto bandwidth
+                        profile";
+        } // END of monitor-bandwidth definition.
+
+        leaf minimum-samples-percent  {
+            // when " not(../minimum-samples-absolute) ";
+            type  uint8 {
+                 range "1..100"  {
+                    description "1..100: Supported range 1 - 100";
+                 }
+            }
+            description "Use this attribute to specify the minimum percentage of rate samples
+                        to be collected in an adjustment cycle to be eligible for bandwidth
+                        processing. Minimum of one sample considered by default.";
+        } // END of minimum-samples-percent definition.
+
+        leaf minimum-samples-absolute  {
+            // when " not(../minimum-samples-percent) ";
+            type  uint16 {
+                 range "1..10080"  {
+                    description "1..10080: Supported range 1 - 10080";
+                 }
+            }
+            description "Use this attribute to specify the minimum number of rate samples to be
+                        collected in an adjustment cycle to be eligible for bandwidth
+                        processing. Minimum of one sample considered by default.";
+        } // END of minimum-samples-absolute definition.
+
+    } // END of rsvp-auto-bandwidth-config definition.
 
     grouping  rsvp-paths-grouping {
     description
@@ -2103,6 +2414,42 @@ submodule ipi-rsvp-trunk {
         uses trunk-grouping;
     } // END of trunks-container definition.
     } // END of trunks-grouping definition.
+
+    grouping  rsvp-auto-bandwidths-grouping {
+    description
+        "auto bandwidth";
+    container rsvp-auto-bandwidths {
+        // when " ipi-rsvp:rsvp-te/rsvp-instance/config ";
+        if-feature feature-list:HAVE_AUTO_BANDWIDTH;
+        if-feature feature-list:HAVE_RSVPD;
+        description
+            "auto bandwidth";
+
+        list rsvp-auto-bandwidth {
+            key "profile-name";
+            description
+                "list of the rsvp auto bandwidths";
+            leaf profile-name  {
+                type  leafref {
+                    path  "../config/profile-name";
+                }
+                description "rsvp auto bandwidth profile name";
+            } // END of profile-name definition.
+
+            container config {
+                description
+                    "configuration container for rsvp auto bandwidth";
+                uses rsvp-auto-bandwidth-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "state container for rsvp ingress trunk";
+                uses rsvp-auto-bandwidth-config;
+            } // END of state-container definition.
+        } // End of rsvp-auto-bandwidth-list
+    } // END of rsvp-auto-bandwidths-container definition.
+    } // END of rsvp-auto-bandwidths-grouping definition.
 
 
 }

@@ -21,20 +21,20 @@ submodule ipi-bgp-address-family {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2023-11-27;
+        revision-date 2024-06-20;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
-    include ipi-bgp-common { revision-date 2023-11-27;}
+    include ipi-bgp-common { revision-date 2024-01-05;}
     organization
         "IP Infusion Inc.";
 
@@ -47,6 +47,41 @@ submodule ipi-bgp-address-family {
     description
         "Datamodel for bgp network list";
 
+
+    revision "2024-08-02" {
+        description "Removed autopopulate for bgp implicit null command'";
+        reference " 0.12.1.";
+    }
+
+    revision "2024-05-16" {
+        description "Added When tag constraints for attribute 'additional-path-select-all' and 'additional-paths-best-select-count'";
+        reference " 0.12.0.";
+    }
+
+    revision "2024-03-20" {
+        description "Added state attribute for dampening";
+        reference " 0.11.4.";
+    }
+
+    revision "2024-02-28" {
+        description "Removed installtion mode not suppported for attribute 'additional-paths-mode', 'additional-path-select-all' and 'additional-paths-best-select-count'";
+        reference " 0.11.3.";
+    }
+
+    revision "2024-02-08" {
+        description "Added enclosing container for missing objectlists";
+        reference " 0.11.2.";
+    }
+
+    revision "2024-01-05" {
+        description "Removed 'ebgp-max-path' cli for address-family l2vpn evpn";
+        reference " 0.11.1.";
+    }
+
+    revision "2024-01-02" {
+        description "Added new attribute 'enable-bgp-implicit-null'for BGP-LU Implicit Null support";
+        reference " 0.11.0.";
+    }
 
     revision "2023-11-02" {
         description "Updated cliFlag for attribute 'ibgp-max-path' and 'ebgp-max-path'";
@@ -195,12 +230,14 @@ submodule ipi-bgp-address-family {
         } // END of additional-paths-mode definition.
 
         leaf additional-path-select-all  {
+            // when " ipi-bgp-address-family:address-families/address-family/config/additional-paths-mode ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  empty;
             description "Use this attribute to select criteria to pick the paths";
         } // END of additional-path-select-all definition.
 
         leaf additional-paths-best-select-count  {
+            // when " ipi-bgp-address-family:address-families/address-family/config/additional-paths-mode ";
             if-feature feature-list:HAVE_BGP_ADD_PATH;
             type  uint8 {
                  range "2..3"  {
@@ -316,6 +353,11 @@ submodule ipi-bgp-address-family {
                         the routers in an autonomous system do not speak BGP, and the
                         autonomous system is a transit for other autonomous systems.";
         } // END of enable-igp-sync definition.
+
+        leaf enable-bgp-implicit-null  {
+            type  empty;
+            description "Use this attribute to enable BGP LU implicit null.";
+        } // END of enable-bgp-implicit-null definition.
 
     } // END of address-family-common-config definition.
     grouping bgp-af-distance-config {
@@ -545,6 +587,24 @@ submodule ipi-bgp-address-family {
             } // End of bgp-redistribute-ospf-list
         } // END of bgp-redistributes-ospf-container definition.
     } // END of bgp-redistribute-ospf-top definition.
+    grouping route-flap-dampening-state {
+        description
+            "attributes having bgp route flap dampening state";
+        leaf maximum-penalty-ceil  {
+            type  int32;
+            default "0";
+            config false;
+            description "dampening penalty ceil";
+        } // END of maximum-penalty-ceil definition.
+
+        leaf minimum-penalty-ceil  {
+            type  int32;
+            default "0";
+            config false;
+            description "dampening penalty floor";
+        } // END of minimum-penalty-ceil definition.
+
+    } // END of route-flap-dampening-state definition.
     grouping route-flap-dampening-param-config {
         description
             "BGP Route Flap Dampening User Configurable Parameters";
@@ -675,31 +735,35 @@ submodule ipi-bgp-address-family {
     grouping bgp-srv6-locator-lists-config {
         description
             "Locator";
-
-        list locator {
-        // when " ipi-bgp-address-family:address-families/address-family/bgp-srv6/config/bgpSRv6enable ";
-            key "bgpSRv6LocatorName";
+        container locators {
             description
-                "Properties of a locator list";
-            leaf bgpSRv6LocatorName  {
-                type  leafref {
-                    path  "../config/bgpSRv6LocatorName";
-                }
-                description "Locator name";
-            } // END of bgpSRv6LocatorName definition.
+                "Container for locator list";
 
-            container config {
+            list locator {
+            // when " ipi-bgp-address-family:address-families/address-family/bgp-srv6/config/bgpSRv6enable ";
+                key "bgpSRv6LocatorName";
                 description
-                    "Config parameters for locator-list configuration";
-                uses bgp-locator-name-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "State parameters for locator-list configuration";
-                uses bgp-locator-name-config;
-            } // END of state-container definition.
-        } // End of locator-list
+                    "Properties of a locator list";
+                leaf bgpSRv6LocatorName  {
+                    type  leafref {
+                        path  "../config/bgpSRv6LocatorName";
+                    }
+                    description "Locator name";
+                } // END of bgpSRv6LocatorName definition.
+
+                container config {
+                    description
+                        "Config parameters for locator-list configuration";
+                    uses bgp-locator-name-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State parameters for locator-list configuration";
+                    uses bgp-locator-name-config;
+                } // END of state-container definition.
+            } // End of locator-list
+        } // END of locators-container definition.
     } // END of bgp-srv6-locator-lists-config definition.
     grouping bgp-srv6-config {
         description
@@ -753,6 +817,7 @@ submodule ipi-bgp-address-family {
                     description
                         "Operational state data related to BGP Route Flap Dampening";
                     uses route-flap-dampening-param-config;
+                    uses route-flap-dampening-state;
                 } // END of state-container definition.
             } // End of route-flap-dampening-list
         } // END of route-flap-dampenings-container definition.

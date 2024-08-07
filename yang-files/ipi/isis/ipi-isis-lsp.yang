@@ -21,17 +21,17 @@ submodule ipi-isis-lsp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-isis-types {
         prefix ipi-isis-types;
-        revision-date 2023-02-14;
+        revision-date 2024-05-10;
     }
 
     import ietf-inet-types {
@@ -39,6 +39,7 @@ submodule ipi-isis-lsp {
         revision-date 2013-07-15;
     }
 
+    include ipi-isis-lsp-flxalg { revision-date 2024-04-22;}
     organization
         "IP Infusion Inc.";
 
@@ -51,6 +52,31 @@ submodule ipi-isis-lsp {
     description
         "Model for managing IS-IS LSP";
 
+
+    revision "2024-04-22" {
+        description "Commented out all Flex-Algo state container group uses for now";
+        reference " 0.10.3.";
+    }
+
+    revision "2024-04-17" {
+        description "Added Get API header file name for generation";
+        reference " 0.10.2.";
+    }
+
+    revision "2024-02-13" {
+        description "MT IPv6 reachability tlv";
+        reference " 0.10.0.";
+    }
+
+    revision "2024-02-09" {
+        description "Updated MT IS Reachability with SRV6 attributes";
+        reference " 0.10.1.";
+    }
+
+    revision "2023-09-29" {
+        description "Flexible Algorithm related Get API in ISIS LSP";
+        reference " 0.10.0.";
+    }
 
     revision "2023-08-10" {
         description "JIRA-61800:Added remaining enclosing containers";
@@ -1145,6 +1171,32 @@ submodule ipi-isis-lsp {
                                     uses isis-level-lspdb-mismatch-state;
                                 } // END of state-container definition.
                             } // END of link-switch-capability-container definition.
+                            container endx-sid {
+                                if-feature feature-list:HAVE_SRV6;
+                                config false;
+                                description
+                                    "This container defines the ISIS Level LSP DB Stlv EndX SID";
+                                container state {
+                                    config false;
+                                    description
+                                        "This container defines the ISIS Level LSP DB Stlv EndX SID";
+                                    uses isis-level-lspdb-endx-sid-state;
+                                    uses isis-level-lspdb-mismatch-state;
+                                } // END of state-container definition.
+                            } // END of endx-sid-container definition.
+                            container lan-endx-sid {
+                                if-feature feature-list:HAVE_SRV6;
+                                config false;
+                                description
+                                    "This container defines the ISIS Level LSP DB Stlv LAN EndX SID";
+                                container state {
+                                    config false;
+                                    description
+                                        "This container defines the ISIS Level LSP DB Stlv LAN EndX SID";
+                                    uses isis-level-lspdb-lan-endx-sid-state;
+                                    uses isis-level-lspdb-mismatch-state;
+                                } // END of state-container definition.
+                            } // END of lan-endx-sid-container definition.
                         } // End of subtlv-list
                         container state {
                             config false;
@@ -1158,17 +1210,17 @@ submodule ipi-isis-lsp {
                     list multi-topology-ipv6-reachability {
                         if-feature feature-list:HAVE_MULTI_TOPOLOGY;
                         if-feature feature-list:HAVE_IPV6;
-                        key "id";
+                        key "multi-ipv6-reach-index";
                         config false;
                         description
                             "This objectlist defines the ISIS Level LSP DB MultiTopology Ipv6
                                         reachability TLV";
-                        leaf id  {
+                        leaf multi-ipv6-reach-index  {
                             type  leafref {
-                                path  "../state/id";
+                                path  "../state/multi-ipv6-reach-index";
                             }
                             description "MT Index";
-                        } // END of id definition.
+                        } // END of multi-ipv6-reach-index definition.
 
 
                         list subtlv {
@@ -1205,7 +1257,7 @@ submodule ipi-isis-lsp {
                                 if-feature feature-list:HAVE_ISIS_SR;
                                 config false;
                                 description
-                                    "Admin tag STLV";
+                                    "Prefix segment Identifier STLV";
                                 container state {
                                     config false;
                                     description
@@ -2163,15 +2215,6 @@ submodule ipi-isis-lsp {
         } // END of admin-group definition.
 
     } // END of isis-level-lspdb-admin-group-stlv-state definition.
-    grouping isis-level-lspdb-mismatch-state {
-        description
-            "State items for ISIS Level LSPDB Mismatch";
-        leaf mismatch-length  {
-            type  uint16;
-            description "stlv Mismatch in Length";
-        } // END of mismatch-length definition.
-
-    } // END of isis-level-lspdb-mismatch-state definition.
     grouping isis-level-lspdb-local-ipv4-addr-state {
         description
             "State items for ISIS Level LSPDB Local IPv4 Address";
@@ -2719,7 +2762,9 @@ submodule ipi-isis-lsp {
         description
             "State items for ISIS Level LSPDB TLV IPv6 Multi Reach";
         leaf prefix  {
-            type  inet:ipv6-address;
+            type  string {
+                length "1..1965";
+            }
             description "Prefix";
         } // END of prefix definition.
 
@@ -2735,6 +2780,11 @@ submodule ipi-isis-lsp {
             type  boolean;
             description "Up/Down Status";
         } // END of up-down definition.
+
+        leaf multi-ipv6-reach-index  {
+            type  uint16;
+            description "MT Index";
+        } // END of multi-ipv6-reach-index definition.
 
         leaf id  {
             type  uint16;
@@ -2911,10 +2961,10 @@ submodule ipi-isis-lsp {
         description
             "State items for ISIS Level LSPDB TLV Router Capability STLV SR
                         Algorithm";
-        leaf algorithm-type  {
-            type  ipi-isis-types:isis_spf_t;
-            description "Type";
-        } // END of algorithm-type definition.
+        leaf-list sr-algorithm-vector  {
+            type  ipi-isis-types:isis_sr_algo_choice_t;
+            description "Segment Routing Algorithms to calculate reachability to other nodes.";
+        } // END of sr-algorithm-vector definition.
 
     } // END of isis-level-lspdb-tlv-router-cap-stlv-sr-algo-state definition.
     grouping isis-level-lspdb-tlv-router-cap-stlv-srms-preference-state {

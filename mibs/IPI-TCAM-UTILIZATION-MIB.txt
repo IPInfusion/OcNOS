@@ -6,7 +6,7 @@ HW-TCAM-UTILIZATION DEFINITIONS ::= BEGIN
 --
 
 IMPORTS
-    OBJECT-TYPE,
+    OBJECT-TYPE, MODULE-IDENTITY,
     Gauge32, Counter32, Unsigned32,
     TimeTicks, NOTIFICATION-TYPE
         FROM SNMPv2-SMI
@@ -27,13 +27,16 @@ hwTCAMutilization MODULE-IDENTITY
    DESCRIPTION
       "The Structure of NSM Management for TCAM Utilization Information for
         the IPI enterprise."
+   REVISION "201603301200Z"
+   DESCRIPTION
+      "Complying to level 3 of SMILINT"
    ::= { ipi 108 }
 
 
 -- ### Groups ###
 
-TCAMUtilizationObjects             OBJECT IDENTIFIER ::={ hwTCAMutilization 1 }
-TCAMUtilizationAlarmObjects        OBJECT IDENTIFIER ::={ hwTCAMutilization 2 }
+tcamUtilizationObjects             OBJECT IDENTIFIER ::={ hwTCAMutilization 1 }
+tcamUtilizationAlarmObjects        OBJECT IDENTIFIER ::={ hwTCAMutilization 2 }
 
 -- ### Textual Convention
 
@@ -62,7 +65,7 @@ UnitType ::= TEXTUAL-CONVENTION
         DESCRIPTION
               "A Table displaying the free, used and total entries
                of filter groups."
-        ::= { TCAMUtilizationObjects 1 }
+        ::= { tcamUtilizationObjects 1 }
 
         hwTCAMUtilizationEntry          OBJECT-TYPE
             SYNTAX                      HwTCAMUtilizationEntry
@@ -86,7 +89,7 @@ UnitType ::= TEXTUAL-CONVENTION
             }
 
         groupId             OBJECT-TYPE
-            SYNTAX          INTEGER
+            SYNTAX          INTEGER (1..128)
             MAX-ACCESS      read-only
             STATUS          current
             DESCRIPTION
@@ -175,8 +178,8 @@ UnitType ::= TEXTUAL-CONVENTION
         DESCRIPTION
             "Warning TCAM threshold level in percentage.
              Value of -1 means the field is not applicable."
-        ::= { TCAMUtilizationObjects 2 }
- 
+        ::= { tcamUtilizationObjects 2 }
+
     alertThresholdLevel           OBJECT-TYPE
         SYNTAX                    INTEGER
         MAX-ACCESS                read-only
@@ -184,24 +187,38 @@ UnitType ::= TEXTUAL-CONVENTION
         DESCRIPTION
             "Alert TCAM threshold level in percentage.
              Value of -1 means the field is not applicable."
-        ::= { TCAMUtilizationObjects 3 }
+        ::= { tcamUtilizationObjects 3 }
 
 
-TCAMUtilizationAlarmNotifications  OBJECT IDENTIFIER ::= { TCAMUtilizationAlarmObjects 1 }
+tcamUtilizationAlarmNotifications  OBJECT IDENTIFIER ::= { tcamUtilizationAlarmObjects 1 }
 
-    hwTCAMWarningThresholdTrap    NOTIFICATION-TYPE
+    hwTCAMMinorThresholdTrap    NOTIFICATION-TYPE
         OBJECTS                   {groupName, usedPercent, freeEntries}
         STATUS                    current
         DESCRIPTION
-            "Trap to send information for Warning Threshold."
-        ::= { TCAMUtilizationAlarmNotifications 1 }
+            "Trap to send information for Minor Threshold."
+        ::= { tcamUtilizationAlarmNotifications 1 }
 
-    hwTCAMCriticalThresholdTrap   NOTIFICATION-TYPE
+    hwTCAMMajorThresholdTrap   NOTIFICATION-TYPE
         OBJECTS                   {groupName, usedPercent, freeEntries}
         STATUS                    current
         DESCRIPTION
-            "Trap to send information for Critical Threshold."
-        ::= { TCAMUtilizationAlarmNotifications 2 }
+            "Trap to send information for Major Threshold."
+        ::= { tcamUtilizationAlarmNotifications 2 }
+
+    hwTCAMMinorThresholdRecoveryTrap   NOTIFICATION-TYPE
+        OBJECTS                   {groupName, usedPercent, freeEntries}
+        STATUS                    current
+        DESCRIPTION
+            "Trap to send information for recovery of Minor Threshold."
+        ::= { tcamUtilizationAlarmNotifications 3 }
+
+    hwTCAMMajorThresholdRecoveryTrap   NOTIFICATION-TYPE
+        OBJECTS                   {groupName, usedPercent, freeEntries}
+        STATUS                    current
+        DESCRIPTION
+            "Trap to send information for recovery of Major Threshold."
+        ::= { tcamUtilizationAlarmNotifications 4 }
 
 
 END

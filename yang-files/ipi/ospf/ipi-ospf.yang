@@ -23,7 +23,7 @@ module ipi-ospf {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ietf-inet-types {
@@ -38,7 +38,7 @@ module ipi-ospf {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ipi-network-instance {
@@ -53,21 +53,21 @@ module ipi-ospf {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2023-08-08;
+        revision-date 2024-03-11;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     include ipi-ospf-redistribute { revision-date 2022-06-01;}
     include ipi-ospf-global { revision-date 2022-06-01;}
-    include ipi-ospf-multi-area-interface { revision-date 2023-07-25;}
+    include ipi-ospf-multi-area-interface { revision-date 2024-05-24;}
     include ipi-ospf-processes-state { revision-date 2023-02-02;}
     include ipi-ospf-distribute-lists { revision-date 2022-06-01;}
     include ipi-ospf-timers { revision-date 2022-06-01;}
-    include ipi-ospf-area { revision-date 2023-06-13;}
+    include ipi-ospf-area { revision-date 2024-06-27;}
     include ipi-ospf-te-link { revision-date 2022-06-01;}
     include ipi-ospf-debug { revision-date 2023-05-25;}
     include ipi-ospf-interface { revision-date 2023-10-09;}
@@ -86,14 +86,44 @@ module ipi-ospf {
         "Layer-3 Open Shortest Path First (OSPF)";
 
 
-    revision "2023-11-29" {
-        description "Linking Segment Routing and entropy capabilty";
-        reference " 0.9.5.";
+    revision "2024-06-27" {
+        description "Added implicit_delete osfp-area config container";
+        reference " 0.8.4.";
+    }
+
+    revision "2024-05-24" {
+        description "Added dependentObjects for multi-area neighbors ";
+        reference " 0.8.3.";
+    }
+
+    revision "2024-04-25" {
+        description "Update Segment Routing entropy CLI, Removing SR dependency for entropy";
+        reference " 0.9.6.";
+    }
+
+    revision "2024-04-19" {
+        description "Added implicit_delete config to ospf config container";
+        reference " 0.8.2.";
+    }
+
+    revision "2024-03-25" {
+        description "Added implicit_delete area to sham-links container";
+        reference " 0.8.1.";
+    }
+
+    revision "2024-02-15" {
+        description "Added implicit delete tag for config of distribute-bgp-ls cli";
+        reference " 0.8.0.";
     }
 
     revision "2023-10-09" {
         description "CLI command updated for unconfiguration message-digest-key";
         reference " 0.7.1.";
+    }
+
+    revision "2023-10-07" {
+        description "Linking Segment Routing and entropy capabilty";
+        reference " 0.9.5.";
     }
 
     revision "2023-08-09" {
@@ -644,37 +674,35 @@ module ipi-ospf {
             } // End of global-block-list
         } // END of global-blocks-container definition.
     } // END of ospfv2-segment-routing-global-block-top definition.
-    grouping ospfv2-segment-routing-entropy-config {
+    grouping ospfv2-mpls-entropy-config {
         description
-            "Grouping for OSPF segment routing entropy capability configuration
-                        data";
+            "Grouping for OSPF entropy capability configuration data";
         leaf entropy-capability  {
             type  empty;
-            description "Use this attribute to enable segment routing entropy capability.";
+            description "Use this attribute to enable segment routing entropy label.";
         } // END of entropy-capability definition.
 
-    } // END of ospfv2-segment-routing-entropy-config definition.
-    grouping ospfv2-segment-routing-entropy-top {
+    } // END of ospfv2-mpls-entropy-config definition.
+    grouping ospfv2-mpls-entropy-top {
         description
             "Grouping for OSPF segment routing entropy capability";
-        container sr-capability-entropy {
+        container capability-entropy {
             if-feature feature-list:HAVE_SR_MPLS;
             description
-                "OSPF segment routing entropy capability";
+                "OSPF MPLS entropy capability";
             container config {
-                when " /ipi-ospf:ospfv2/ipi-ospf:processes/ipi-ospf:process/ipi-ospf:segment-routing/ipi-ospf:config/ipi-ospf:mpls ";
                 description
-                    "Configuration data for OSPF segment routing entropy capability";
-                uses ospfv2-segment-routing-entropy-config;
+                    "Configuration data for OSPF MPLS entropy capability";
+                uses ospfv2-mpls-entropy-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operational state data for OSPF segment routing entropy capability";
-                uses ospfv2-segment-routing-entropy-config;
+                uses ospfv2-mpls-entropy-config;
             } // END of state-container definition.
-        } // END of sr-capability-entropy-container definition.
-    } // END of ospfv2-segment-routing-entropy-top definition.
+        } // END of capability-entropy-container definition.
+    } // END of ospfv2-mpls-entropy-top definition.
     grouping ospfv2-segment-routing-config {
         description
             "Grouping for OSPF segment routing configuration data";
@@ -1145,7 +1173,6 @@ module ipi-ospf {
             uses ospfv2-segment-routing-prefix-sid-map-top;
             uses ospfv2-segment-routing-announce-lists-top;
             uses ospfv2-segment-routing-mapping-servers-top;
-            uses ospfv2-segment-routing-entropy-top;
             uses ospfv2-segment-routing-capabilities-top;
         } // END of segment-routing-container definition.
     } // END of ospfv2-segment-routing-top definition.
@@ -2388,6 +2415,7 @@ module ipi-ospf {
                 uses ospfv2-originate-lsa;
                 uses ospfv2-max-metric-router-lsa-top;
                 uses ospfv2-max-metric-on-startup-top;
+                uses ospfv2-mpls-entropy-top;
             } // End of process-list
         } // END of processes-container definition.
     } // END of ospfv2-processes-top definition.

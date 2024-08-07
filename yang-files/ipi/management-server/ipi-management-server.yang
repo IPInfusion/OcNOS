@@ -23,7 +23,7 @@ module ipi-management-server {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ietf-inet-types {
@@ -33,7 +33,7 @@ module ipi-management-server {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ipi-management-server-types {
@@ -48,12 +48,12 @@ module ipi-management-server {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2023-08-08;
+        revision-date 2024-03-11;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     include ipi-management-server-notification { revision-date 2023-05-05;}
@@ -69,6 +69,21 @@ module ipi-management-server {
     description
         "Data model for management server related configurations";
 
+
+    revision "2024-04-19" {
+        description "Corrected the unset of callhome feature cli";
+        reference " 0.1.28.";
+    }
+
+    revision "2024-02-23" {
+        description "Corrected when statement condition for callhome, translation and notification-cache feature";
+        reference " 0.1.27.";
+    }
+
+    revision "2023-12-21" {
+        description "Added notification cache configuration";
+        reference " 0.1.26.";
+    }
 
     revision "2023-10-16" {
         description "Added implicit delete tag for db-sync issue";
@@ -557,6 +572,60 @@ module ipi-management-server {
             } // End of vrf-list
         } // END of vrfs-container definition.
     } // END of netconf-server-subsystem-top definition.
+    grouping notification-cache-config {
+        description
+            "Grouping for notification cache configuration data";
+        leaf feature-enabled  {
+            type  empty;
+            mandatory true;
+            description "Enable notification cache feature on the NETCONF server";
+        } // END of feature-enabled definition.
+
+        leaf max-cache-notifications  {
+            type  uint16 {
+                 range "0..10000"  {
+                    description "0..10000: Supported range 0 - 10000";
+                 }
+            }
+            default "100";
+            description "Specifies the maximum number of notifications those can be stored in
+                        cache. Set 0 for infinite notifications.";
+        } // END of max-cache-notifications definition.
+
+        leaf cache-period  {
+            type  uint32 {
+                 range "1..3600"  {
+                    description "1..3600: Supported range 1 - 3600";
+                 }
+            }
+            units "seconds";
+            default "1200";
+            description "Specifies the number of seconds, cmld store notification messages in
+                        cache since it started";
+        } // END of cache-period definition.
+
+    } // END of notification-cache-config definition.
+    grouping notification-cache-top {
+        description
+            "Grouping for notification cache";
+        container notification-cache {
+            if-feature feature-list:HAVE_NETCONF;
+            description
+                "notification cache related data";
+            container config {
+                presence "yes";
+                description
+                    "Configuration data for notification cache attributes";
+                uses notification-cache-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for notification cache related attributes";
+                uses notification-cache-config;
+            } // END of state-container definition.
+        } // END of notification-cache-container definition.
+    } // END of notification-cache-top definition.
 
     grouping  netconf-server-grouping {
     description
@@ -570,6 +639,7 @@ module ipi-management-server {
         uses netconf-translation-top;
         uses debug-top;
         uses netconf-server-subsystem-top;
+        uses notification-cache-top;
     } // END of netconf-server-container definition.
     } // END of netconf-server-grouping definition.
 

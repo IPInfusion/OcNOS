@@ -23,7 +23,7 @@ module ipi-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-mpls-types {
@@ -33,12 +33,12 @@ module ipi-mpls {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ipi-global-te {
         prefix ipi-global-te;
-        revision-date 2022-07-11;
+        revision-date 2024-04-11;
     }
 
     import ietf-yang-types {
@@ -48,7 +48,7 @@ module ipi-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -63,6 +63,61 @@ module ipi-mpls {
     description
         "Data model for MPLS";
 
+
+    revision "2024-07-18" {
+        description "Updated the dependentobject tag present inside the label-switching container";
+        reference " 0.8.4.";
+    }
+
+    revision "2024-04-22" {
+        description "Added new attribute lsp-encap-dscp-preserve under mpls-global-config grouping";
+        reference " 0.8.3.";
+    }
+
+    revision "2024-04-11" {
+        description "Changed Extended-Admin-Group CLI to hidden";
+        reference " 0.8.2.";
+    }
+
+    revision "2024-02-21" {
+        description "Added missing state container for MPLS interface";
+        reference " 0.8.1.";
+    }
+
+    revision "2024-02-09" {
+        description "Added Extended Administrative Groups for MPLS-TE on Interface";
+        reference " 0.8.0.";
+    }
+
+    revision "2024-01-29" {
+        description "Revert masking of service template commands for Marvell platform";
+        reference " 0.7.12.";
+    }
+
+    revision "2024-01-15" {
+        description "Mask service template commands for Marvell platform";
+        reference " 0.7.11.";
+    }
+
+    revision "2023-12-18" {
+        description "when expression added for LBG db-sync issue";
+        reference " 0.7.10.";
+    }
+
+    revision "2023-11-29" {
+        description "Added a new attribute entropy-label-capability under mpls-global-config grouping";
+        reference " 0.7.9.";
+    }
+
+    revision "2023-11-13" {
+        description "fix for XP sku's build failures in ocnos-sp-master";
+        reference " 0.7.8.";
+    }
+
+    revision "2023-10-26" {
+        description "Added dependentObject tag for label-switching over sub-intf encapsulation";
+        reference " 0.7.7.";
+    }
 
     revision "2023-07-14" {
         description "Updated proper help-string for vlan identifiers";
@@ -340,6 +395,12 @@ module ipi-mpls {
     grouping mpls-global-config {
         description
             "MPLS global configuration";
+        leaf entropy-label-capability  {
+            if-feature feature-list:HAVE_MARVELL;
+            type  empty;
+            description "Use this attribute to enable termination of entropy labeled packets";
+        } // END of entropy-label-capability definition.
+
         leaf local-packet-handling  {
             type  empty;
             description "Use this attribute to enable the labeling of locally generated TCP
@@ -384,6 +445,14 @@ module ipi-mpls {
             type  empty;
             description "Use this attribute to configure the MPLS LSP model as Uniform.";
         } // END of lsp-model-uniform definition.
+
+        leaf lsp-encap-dscp-preserve  {
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
+            type  empty;
+            description "Use this attribute to allow dscp update for IP packets encapsulated
+                        into MPLS frame";
+        } // END of lsp-encap-dscp-preserve definition.
 
     } // END of mpls-global-config definition.
     grouping mpls-debug-config {
@@ -432,6 +501,18 @@ module ipi-mpls {
                         name is the name of the group previously configured. There can be
                         multiple groups per interface.";
         } // END of admin-group-name definition.
+
+        leaf-list extended-admin-group-name  {
+            if-feature feature-list:HAVE_TE;
+            type  leafref {
+                path  "/ipi-global-te:extended-admin-groups/ipi-global-te:extended-admin-group/ipi-global-te:name";
+            }
+            description "Use this attribute to create an extended administrative group to be
+                        used for links. Each link can be a member of one or more, or no
+                        extended administrative groups. This attribute adds link between an
+                        interface and a group. The name is the name of the group previously
+                        configured. There can be multiple groups per interface.";
+        } // END of extended-admin-group-name definition.
 
         leaf bandwidth  {
             if-feature feature-list:HAVE_TE;
@@ -1004,6 +1085,12 @@ module ipi-mpls {
                         "Interface configuration";
                     uses mpls-interface-config;
                 } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for MPLS interface";
+                    uses mpls-interface-config;
+                } // END of state-container definition.
                 container label-switching {
                     // when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
                     description

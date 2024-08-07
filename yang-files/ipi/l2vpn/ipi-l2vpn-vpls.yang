@@ -23,17 +23,17 @@ module ipi-l2vpn-vpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-if-types {
         prefix ipi-if-types;
-        revision-date 2023-10-10;
+        revision-date 2024-07-03;
     }
 
     import ipi-vpls-types {
         prefix ipi-vpls-types;
-        revision-date 2022-06-01;
+        revision-date 2024-05-06;
     }
 
     import ietf-inet-types {
@@ -48,7 +48,7 @@ module ipi-l2vpn-vpls {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ipi-network-instance {
@@ -58,22 +58,22 @@ module ipi-l2vpn-vpls {
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2023-07-14;
+        revision-date 2024-07-18;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2023-11-02;
+        revision-date 2024-07-23;
     }
 
     import ipi-l2vpn-vpws {
         prefix ipi-l2vpn-vpws;
-        revision-date 2023-10-11;
+        revision-date 2024-07-20;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -89,13 +89,93 @@ module ipi-l2vpn-vpls {
         "YANG version of the ipi-l2vpn-vpls";
 
 
-    revision "2023-10-11" {
-        description "Adding skip-delete for one of encap when expression";
-        reference " 0.10.8.";
+    revision "2024-07-03" {
+        description "Added UCMP CLI option";
+        reference " 0.12.3.";
+    }
+
+    revision "2024-06-18" {
+        description "Added BVI element in hardware type datatype";
+        reference " 0.12.2.";
+    }
+
+    revision "2024-05-24" {
+        description "Removing restriction for split-horizon commands for DNX";
+        reference " 0.12.1.";
+    }
+
+    revision "2024-05-06" {
+        description "Added new attribute peer-vpls-type for sget of vpls type signaling";
+        reference " 0.12.0.";
+    }
+
+    revision "2024-03-27" {
+        description "Added limited autonegotiation support";
+        reference " 0.11.10.";
+    }
+
+    revision "2024-03-05" {
+        description "Remove default from mac-learning-limit";
+        reference " 0.11.9.";
+    }
+
+    revision "2024-02-20" {
+        description "Remove spoke type";
+        reference " 0.11.8.";
+    }
+
+    revision "2024-01-29" {
+        description "Revert masking of service template commands for Marvell platform";
+        reference " 0.11.7.";
+    }
+
+    revision "2024-01-25" {
+        description "Change Spoke Cli and added new split-horizon attribute";
+        reference " 0.11.6.";
+    }
+
+    revision "2024-01-24" {
+        description "Remove implicit delete from interface service template";
+        reference " 0.11.5.";
+    }
+
+    revision "2024-01-15" {
+        description "Mask service template commands for Marvell platform";
+        reference " 0.11.4.";
+    }
+
+    revision "2024-01-06" {
+        description "Added storm-control errdisable";
+        reference " 0.11.3.";
+    }
+
+    revision "2023-12-27" {
+        description "VPLS redundancy";
+        reference " 0.11.2.";
+    }
+
+    revision "2023-12-20" {
+        description "Added a new datatype IF_RAON_AODU_STATE";
+        reference " 0.11.1.";
+    }
+
+    revision "2023-11-15" {
+        description "VPLS AC treatment";
+        reference " 0.11.0.";
+    }
+
+    revision "2023-10-27" {
+        description "CLI support for vpls type signaling per peer";
+        reference " 0.11.1.";
     }
 
     revision "2023-10-10" {
         description "Change storm-control maximum level to 99%";
+        reference " 0.10.8.";
+    }
+
+    revision "2023-10-05" {
+        description "Adding skip-delete for one of encap when expression";
         reference " 0.10.7.";
     }
 
@@ -426,7 +506,6 @@ module ipi-l2vpn-vpls {
 
         leaf split-horizon  {
             if-feature feature-list:HAVE_CUSTOM2_MPLS;
-            if-feature feature-list:NOT_HAVE_DNX;
             type  ipi-if-types:if_split_horizon_t;
             description "Specify split-horizon for VPLS";
         } // END of split-horizon definition.
@@ -606,6 +685,11 @@ module ipi-l2vpn-vpls {
             type  ipi-vpls-types:vpls_pseudowire_status_t;
             description "Attribute to acquire pseudowire status of a VPLS instance";
         } // END of pseudowire-status definition.
+
+        leaf peer-vpls-type  {
+            type  ipi-vpls-types:vpls_vc_type_t;
+            description "This attribute acquires Peer VPLS type as ethernet or vlan";
+        } // END of peer-vpls-type definition.
 
         leaf network-interface  {
             type  string {
@@ -958,7 +1042,6 @@ module ipi-l2vpn-vpls {
                     description "5..32767: Supported range 5 - 32767";
                  }
             }
-            default "32767";
             description "Specify mac learning limit";
         } // END of mac-learning-limit definition.
 
@@ -1007,17 +1090,25 @@ module ipi-l2vpn-vpls {
             "Grouping for H-VPLS spoke-pseudowire configuration attributes";
         leaf pseudowire-name  {
             type  string {
-                length "1..1965";
+                length "1..255";
                 pattern "[^?' =,>|]+";
             }
             description "Specify pseudowire name to be added";
         } // END of pseudowire-name definition.
 
-        leaf pseudowire-type  {
-            type  ipi-vpls-types:vpls_vc_spoke_type_t;
-            default "ethernet";
-            description "Specify pseudowire type";
-        } // END of pseudowire-type definition.
+        leaf secondary-pseudowire-name  {
+            type  string {
+                length "1..255";
+                pattern "[^?' =,>|]+";
+            }
+            description "Specify secondary pseudowire name to be added";
+        } // END of secondary-pseudowire-name definition.
+
+        leaf split-horizon  {
+            if-feature feature-list:HAVE_CUSTOM2_MPLS;
+            type  ipi-if-types:if_split_horizon_t;
+            description "Specify split-horizon for VPLS";
+        } // END of split-horizon definition.
 
     } // END of vpls-spoke-pseudowire-config definition.
     grouping vpls-peer-top {
@@ -1082,6 +1173,11 @@ module ipi-l2vpn-vpls {
             description "Specify mac address withdrawal disable";
         } // END of disable-mac-withdrawal definition.
 
+        leaf vpls-ac-treatment-type  {
+            type  ipi-vpls-types:cml_nsm_vpls_ac_treat_type_t;
+            description "Customaizations for access state treatment";
+        } // END of vpls-ac-treatment-type definition.
+
         leaf vpls-encapsulation-type  {
             type  ipi-vpls-types:vpls_vc_type_t;
             description "Specify encapsulation type";
@@ -1132,6 +1228,11 @@ module ipi-l2vpn-vpls {
             description "Specify that peer type is manual and  no signaling is used to set-up
                         the Virtual Circuit";
         } // END of peer-type definition.
+
+        leaf vpls-type  {
+            type  ipi-vpls-types:vpls_vc_type_t;
+            description "Specify Peer VPLS Type";
+        } // END of vpls-type definition.
 
     } // END of vpls-peer-config definition.
     grouping vpls-fat-config {

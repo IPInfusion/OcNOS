@@ -23,7 +23,7 @@ module ipi-if-aggregate {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ipi-lag-types {
@@ -33,12 +33,12 @@ module ipi-if-aggregate {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -53,6 +53,36 @@ module ipi-if-aggregate {
     description
         "Interface level configurations for LAG";
 
+
+    revision "2024-07-24" {
+        description "Fixed circular dependencies";
+        reference " 0.10.4.";
+    }
+
+    revision "2024-07-08" {
+        description "Fixed port mirror / interface dependencies";
+        reference " 0.10.3.";
+    }
+
+    revision "2024-05-28" {
+        description "Updated max port channel weight to 32 for Marvell Platform";
+        reference " 0.10.2.";
+    }
+
+    revision "2024-04-05" {
+        description "Handled range validation for Q1 Q2 and marvel platform for the CLI port-channel weight";
+        reference " 0.10.1.";
+    }
+
+    revision "2024-01-03" {
+        description "Updated max port channel weight to 64";
+        reference " 0.10.0.";
+    }
+
+    revision "2023-12-15" {
+        description "Added port-channel-weight command for Marvell";
+        reference " 0.9.1.";
+    }
 
     revision "2023-09-19" {
         description "Added implicit_delete tag under port-channel-weight container";
@@ -109,8 +139,10 @@ module ipi-if-aggregate {
             "Configuration data for port channel weight";
         leaf weight  {
             type  uint16 {
-                 range "1..16"  {
-                    description "1..16: Supported range 1 - 16";
+                 range "1..64"  {
+                    description "1..64:Feature : HAVE_DNX Supported range 1 - 16Feature : HAVE_MARVELL
+                            Supported range 1 - 32Not Feature : HAVE_DNX,HAVE_MARVELL  Supported
+                            range 1 - 64";
                  }
             }
             description "Set the port channel weight";
@@ -256,7 +288,7 @@ module ipi-if-aggregate {
             uses aggregated-interface-config;
         } // END of state-container definition.
         container port-channel-weight {
-            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_DUNE_OR_HAVE_MARVELL;
             description
                 "configure port channel weight";
             container config {

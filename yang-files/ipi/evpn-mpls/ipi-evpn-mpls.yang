@@ -23,7 +23,7 @@ module ipi-evpn-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2023-08-10;
+        revision-date 2024-06-17;
     }
 
     import ietf-inet-types {
@@ -38,12 +38,12 @@ module ipi-evpn-mpls {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2023-08-08;
+        revision-date 2024-03-11;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2023-10-13;
+        revision-date 2024-07-24;
     }
 
     import ipi-network-instance {
@@ -58,7 +58,7 @@ module ipi-evpn-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -73,6 +73,36 @@ module ipi-evpn-mpls {
     description
         "Datamodel for EVPN-MPLS protocol";
 
+
+    revision "2024-06-11" {
+        description "Mask evpn enable command for Marvell platform";
+        reference " 0.12.1.";
+    }
+
+    revision "2024-04-24" {
+        description "Added mode for clear commands";
+        reference " 0.12.0.";
+    }
+
+    revision "2024-04-10" {
+        description "Added skip-yang and removed import for xp sku fail";
+        reference " 0.11.1.";
+    }
+
+    revision "2024-03-11" {
+        description "Added force-unset to vtep-ipv4 attribute";
+        reference " 0.11.0.";
+    }
+
+    revision "2024-02-09" {
+        description "Added import for xp for when tag";
+        reference " 0.10.1.";
+    }
+
+    revision "2024-01-03" {
+        description "Added support for EVPN ETREE";
+        reference " 0.10.0.";
+    }
 
     revision "2023-08-23" {
         description "RPC Implementation for clear nvo vxlan mac address-table with evid and mac+evid combination";
@@ -228,6 +258,7 @@ module ipi-evpn-mpls {
         description
             "Grouping for global evpn-mpls configuration";
         leaf enable-evpn-mpls  {
+            if-feature feature-list:NOT_HAVE_MARVELL;
             type  empty;
             mandatory true;
             description "Use this attribute to enable EVPN-MPLS module. Without this
@@ -235,14 +266,12 @@ module ipi-evpn-mpls {
         } // END of enable-evpn-mpls definition.
 
         leaf vtep-ipv4  {
-            // when " ipi-evpn-mpls:evpn-mpls/global/config/enable-evpn-mpls ";
             type  inet:ipv4-address;
             description "Use this attribute to set source vtep global ip address.
                         This will be treated at evpn mpls tunnel source address";
         } // END of vtep-ipv4 definition.
 
         leaf mac-ageing-timer  {
-            // when " ipi-evpn-mpls:evpn-mpls/global/config/enable-evpn-mpls ";
             type  uint32 {
                  range "10..572"  {
                     description "10..572: Supported range 10 - 572";
@@ -474,6 +503,11 @@ module ipi-evpn-mpls {
             type  empty;
             description "Use this attribute to set control word for EVI";
         } // END of control-word definition.
+
+        leaf etree-leaf  {
+            type  empty;
+            description "Use this attribute to select particular vpn-id as leaf.";
+        } // END of etree-leaf definition.
 
     } // END of evpn-mpls-tenant-global-config definition.
     grouping evpn-mpls-tenant-irb-config {
@@ -892,7 +926,6 @@ module ipi-evpn-mpls {
         description
             "Grouping for configuring global ARP-ND configs";
         leaf arp-nd-refresh-time  {
-            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
             type  uint32 {
                  range "3..190"  {
                     description "3..190: Supported range 3 - 190";

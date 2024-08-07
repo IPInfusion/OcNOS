@@ -21,17 +21,17 @@ submodule ipi-platform-cmis {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     import ipi-platform-cmis-types {
         prefix ipi-platform-cmis-types;
-        revision-date 2023-06-22;
+        revision-date 2024-05-21;
     }
 
     import ipi-platform-sff8024-types {
         prefix ipi-platform-sff8024-types;
-        revision-date 2022-07-07;
+        revision-date 2023-10-16;
     }
 
     organization
@@ -48,13 +48,83 @@ submodule ipi-platform-cmis {
                 datamodel";
 
 
+    revision "2024-04-08" {
+        description "Added host-config attribute to host side application advertisement";
+        reference " 0.7.4.";
+    }
+
+    revision "2024-03-28" {
+        description "Changed modsel-wait-time type to CML_UINT32_T";
+        reference " 0.7.3.";
+    }
+
+    revision "2024-03-01" {
+        description "Added CDR bypass HW status information and SI advertisement";
+        reference " 0.7.2.";
+    }
+
+    revision "2024-02-26" {
+        description "Added CDR control support";
+        reference " 0.7.1.";
+    }
+
+    revision "2024-02-06" {
+        description "Added transceiver-application-change-host and transceiver-application-change-media notification";
+        reference " 0.7.0.";
+    }
+
+    revision "2024-01-31" {
+        description "Added support for CMIS SI and user thresholds HW config status";
+        reference " 0.6.10.";
+    }
+
+    revision "2024-01-08" {
+        description "Added CMIS modules paths for Streaming Telemetry";
+        reference " 0.6.9.";
+    }
+
+    revision "2023-12-27" {
+        description "Add CLI to configure QSFP-DD SI parameters";
+        reference " 0.6.8.";
+    }
+
     revision "2023-12-12" {
         description "Removed mandatory high-alarm and low-alarm in user threshold configs";
         reference " 0.6.7.";
     }
 
+    revision "2023-10-30" {
+        description "Added CMIS module advertisements";
+        reference " 0.6.6.";
+    }
+
+    revision "2023-10-27" {
+        description "Added CMIS module datapath assigned interface name state info";
+        reference " 0.6.5.";
+    }
+
+    revision "2023-10-19" {
+        description "Added additional state attributes for datapaths in the cmis-modules model";
+        reference " 0.6.4.";
+    }
+
     revision "2023-10-18" {
         description "Handle QSFP-DD media and host lane emtpy config cases";
+        reference " 0.6.3.";
+    }
+
+    revision "2023-10-16" {
+        description "TIBIT Build Issue Handling";
+        reference " 0.6.2.";
+    }
+
+    revision "2023-09-27" {
+        description "Supressed cmis-module runtime container for TIBIT VM";
+        reference " 0.6.1.";
+    }
+
+    revision "2023-09-06" {
+        description "Moved container cmis-modules under /components/component/transceiver";
         reference " 0.6.0.";
     }
 
@@ -446,6 +516,862 @@ submodule ipi-platform-cmis {
             uses ipi-platform-cmis-module-eeprom-state;
         } // END of state-container definition.
     } // END of ipi-platform-cmis-module-eeprom-top definition.
+    grouping ipi-platform-cmis-module-advertisement-application-side-state {
+        description
+            "ipi-platform-cmis-module-advertisement-application-side-state";
+        leaf interface-type  {
+            type  ipi-platform-cmis-types:cmm_cmis_interface_type_t;
+            description "Interface type";
+        } // END of interface-type definition.
+
+        leaf application-bitrate  {
+            type  ipi-platform-cmis-types:cmm_cmis_bit_rate_t;
+            description "Application bit rate";
+        } // END of application-bitrate definition.
+
+        leaf lane-count  {
+            type  uint8;
+            description "Lane count";
+        } // END of lane-count definition.
+
+        leaf signal-bitrate  {
+            type  ipi-platform-cmis-types:cmm_cmis_bit_rate_t;
+            description "Signal bit rate";
+        } // END of signal-bitrate definition.
+
+        leaf modulation-format  {
+            type  ipi-platform-cmis-types:cmm_cmis_modulation_format_t;
+            description "Modulation format";
+        } // END of modulation-format definition.
+
+        leaf bits-per-unit-interval  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Number of bits per unit interval";
+        } // END of bits-per-unit-interval definition.
+
+        leaf lane-assignment  {
+            type  ipi-platform-cmis-types:cmm_cmis_lane_assignment_t;
+            description "Lane assignment bitmap";
+        } // END of lane-assignment definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-application-side-state definition.
+    grouping ipi-platform-cmis-module-advertisement-application-host-info {
+        description
+            "ipi-platform-cmis-module-advertisement-application-host-info";
+        leaf host-config  {
+            type  string {
+                length "1..1965";
+            }
+            description "Application host interface configuration details";
+        } // END of host-config definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-application-host-info definition.
+    grouping ipi-platform-cmis-module-advertisement-application-state {
+        description
+            "ipi-platform-cmis-module-advertisement-application-state";
+        leaf id  {
+            type  uint8 {
+                 range "1..15"  {
+                    description "1..15: Supported range 1 - 15";
+                 }
+            }
+            description "Application id number";
+        } // END of id definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-application-state definition.
+    grouping ipi-platform-cmis-module-advertisement-applications-top {
+        description
+            "ipi-platform-cmis-module-advertisement-applications-top";
+
+        list application {
+            key "id";
+            config false;
+            description
+                "List of applications";
+            leaf id  {
+                type  leafref {
+                    path  "../state/id";
+                }
+                description "Application id number";
+            } // END of id definition.
+
+            container state {
+                config false;
+                description
+                    "State data for CMIS advertised application";
+                uses ipi-platform-cmis-module-advertisement-application-state;
+            } // END of state-container definition.
+            container host {
+                config false;
+                description
+                    "Container for application host side information";
+                container state {
+                    config false;
+                    description
+                        "Application state data for host side";
+                    uses ipi-platform-cmis-module-advertisement-application-side-state;
+                    uses ipi-platform-cmis-module-advertisement-application-host-info;
+                } // END of state-container definition.
+            } // END of host-container definition.
+            container media {
+                config false;
+                description
+                    "Container for application media side information";
+                container state {
+                    config false;
+                    description
+                        "Application state data for media side";
+                    uses ipi-platform-cmis-module-advertisement-application-side-state;
+                } // END of state-container definition.
+            } // END of media-container definition.
+        } // End of application-list
+    } // END of ipi-platform-cmis-module-advertisement-applications-top definition.
+    grouping ipi-platform-cmis-module-advertisement-controls-top {
+        description
+            "ipi-platform-cmis-module-advertisement-controls-top";
+        container state {
+            config false;
+            description
+                "State data for CMIS advertised controls";
+            leaf wavelength-control  {
+                type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+                description "Indicates whether wavelength control is supported or not";
+            } // END of wavelength-control definition.
+
+            leaf tunable-transmitter  {
+                type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+                description "Indicates whether the transmitter is tunnable or not";
+            } // END of tunable-transmitter definition.
+
+            leaf tx-output-squelching-method  {
+                type  ipi-platform-cmis-types:cmm_cmis_tx_squelch_method_t;
+                description "Indicates the method of used for Tx output squelching";
+            } // END of tx-output-squelching-method definition.
+
+            leaf forced-tx-output-squelching  {
+                type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+                description "Indicates whether the host can force squelching of the Tx outputs or
+                            not";
+            } // END of forced-tx-output-squelching definition.
+
+            leaf tx-output-squelching-disable  {
+                type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+                description "Indicates whether the host can disable automatic squelching of the Tx
+                            outputs or not";
+            } // END of tx-output-squelching-disable definition.
+
+            leaf tx-output-disable  {
+                type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+                description "Indicates whether the host can disable the Tx outputs or not";
+            } // END of tx-output-disable definition.
+
+            leaf input-polarity-flip-tx  {
+                type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+                description "Indicates whether InputPolarityFlipTx is supported or not";
+            } // END of input-polarity-flip-tx definition.
+
+            leaf rx-output-squelching-disable  {
+                type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+                description "Indicates whether the host can disable automatic squelching of the Rx
+                            outputs or not";
+            } // END of rx-output-squelching-disable definition.
+
+            leaf rx-output-disable  {
+                type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+                description "Indicates whether the host can disable the Rx outputs or not";
+            } // END of rx-output-disable definition.
+
+            leaf output-polarity-flip-rx  {
+                type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+                description "Indicates whether OutputPolarityFlipRx is supported or not";
+            } // END of output-polarity-flip-rx definition.
+
+        } // END of state-container definition.
+    } // END of ipi-platform-cmis-module-advertisement-controls-top definition.
+    grouping ipi-platform-cmis-module-advertisement-diagnostics-module-state {
+        description
+            "ipi-platform-cmis-module-advertisement-diagnostics-module-state";
+        leaf simultaneous-host-and-media-loobpack  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether simultaneous host and media side loopback is
+                        supported or not";
+        } // END of simultaneous-host-and-media-loobpack definition.
+
+        leaf report-bit-error-ratio  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether reporting of bit error ratio is supported or not";
+        } // END of report-bit-error-ratio definition.
+
+        leaf count-bits-and-errors  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether counting of bits and bit erros is supported or not";
+        } // END of count-bits-and-errors definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-diagnostics-module-state definition.
+    grouping ipi-platform-cmis-module-advertisement-diagnostics-state {
+        description
+            "ipi-platform-cmis-module-advertisement-diagnostics-state";
+        leaf output-loopack  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether output loopback is supported or not";
+        } // END of output-loopack definition.
+
+        leaf input-loopack  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether input loopback is supported or not";
+        } // END of input-loopack definition.
+
+        leaf per-lane-loopack  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether per lane loopback is supported or not";
+        } // END of per-lane-loopack definition.
+
+        leaf report-input-snr  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether input SNR reporting is supported or not";
+        } // END of report-input-snr definition.
+
+        leaf report-fec  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether PRBS error information is available or not";
+        } // END of report-fec definition.
+
+        leaf prbs-checker-post-fec  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether post FEC PRBS checker is supported or not";
+        } // END of prbs-checker-post-fec definition.
+
+        leaf prbs-checker-pre-fec  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether pre FEC PRBS checker is supported or not";
+        } // END of prbs-checker-pre-fec definition.
+
+        leaf prbs-checker-types  {
+            type  ipi-platform-cmis-types:cmm_cmis_prbs_support_type_t;
+            description "Show supported PRBS checker pattern types";
+        } // END of prbs-checker-types definition.
+
+        leaf prbs-generator-post-fec  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether post FEC PRBS generator is supported or not";
+        } // END of prbs-generator-post-fec definition.
+
+        leaf prbs-generator-pre-fec  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether pre FEC PRBS generator is supported or not";
+        } // END of prbs-generator-pre-fec definition.
+
+        leaf prbs-generator-types  {
+            type  ipi-platform-cmis-types:cmm_cmis_prbs_support_type_t;
+            description "Show supported PRBS generator pattern types";
+        } // END of prbs-generator-types definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-diagnostics-state definition.
+    grouping ipi-platform-cmis-module-advertisement-diagnostics-top {
+        description
+            "ipi-platform-cmis-module-advertisement-diagnostics-top";
+        container module {
+            config false;
+            description
+                "CMIS module wise advertised diagnostics";
+            container state {
+                config false;
+                description
+                    "State data for CMIS module wise advertised diagnostics";
+                uses ipi-platform-cmis-module-advertisement-diagnostics-module-state;
+            } // END of state-container definition.
+        } // END of module-container definition.
+        container host {
+            config false;
+            description
+                "CMIS host side advertised diagnostics";
+            container state {
+                config false;
+                description
+                    "State data for CMIS host side advertised diagnostics";
+                uses ipi-platform-cmis-module-advertisement-diagnostics-state;
+            } // END of state-container definition.
+        } // END of host-container definition.
+        container media {
+            config false;
+            description
+                "CMIS media side advertised diagnostics";
+            container state {
+                config false;
+                description
+                    "State data for CMIS media side advertised diagnostics";
+                uses ipi-platform-cmis-module-advertisement-diagnostics-state;
+            } // END of state-container definition.
+        } // END of media-container definition.
+    } // END of ipi-platform-cmis-module-advertisement-diagnostics-top definition.
+    grouping ipi-platform-cmis-module-advertisement-durations-top {
+        description
+            "ipi-platform-cmis-module-advertisement-durations-top";
+        container state {
+            config false;
+            description
+                "State data for CMIS advertised durations";
+            leaf modsel-wait-time  {
+                type  uint32;
+                units "us";
+                description "ModSel wait time in micro seconds";
+            } // END of modsel-wait-time definition.
+
+            leaf dpinit-maximun-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "DPInit state maximum duration";
+            } // END of dpinit-maximun-duration definition.
+
+            leaf dpdeinit-maximun-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "DPDeinit state maximum duration";
+            } // END of dpdeinit-maximun-duration definition.
+
+            leaf dptxturnon-maximum-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "DPTxTurnOn state maximum duration";
+            } // END of dptxturnon-maximum-duration definition.
+
+            leaf dptxturnoff-maximum-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "DPTxTurnOff state maximum duration";
+            } // END of dptxturnoff-maximum-duration definition.
+
+            leaf modulepwrup-maximum-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "ModulePwrUp state maximum duration";
+            } // END of modulepwrup-maximum-duration definition.
+
+            leaf modulepwrdn-maximum-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "MoudulePwrDn state maximum duration";
+            } // END of modulepwrdn-maximum-duration definition.
+
+            leaf npinit-maximum-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "NPInit state maximum duration";
+            } // END of npinit-maximum-duration definition.
+
+            leaf npdeinit-maximum-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "NPDeinit state maximum duration";
+            } // END of npdeinit-maximum-duration definition.
+
+            leaf nptxturnon-maximum-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "NPTxTurnOn state maximum duration";
+            } // END of nptxturnon-maximum-duration definition.
+
+            leaf nptxturnoff-maximum-duration  {
+                type  ipi-platform-cmis-types:cmm_cmis_durations_t;
+                description "NPTxTurnOff state maximum duration";
+            } // END of nptxturnoff-maximum-duration definition.
+
+        } // END of state-container definition.
+    } // END of ipi-platform-cmis-module-advertisement-durations-top definition.
+    grouping ipi-platform-cmis-module-advertisement-laser-state {
+        description
+            "ipi-platform-cmis-module-advertisement-laser-state";
+        leaf supported-grids  {
+            type  ipi-platform-cmis-types:cmm_cmis_laser_grid_support_t;
+            description "Shows supported laser grids";
+        } // END of supported-grids definition.
+
+        leaf fine-tune-supported  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether laser fine tuning is supported or not";
+        } // END of fine-tune-supported definition.
+
+        leaf fine-tune-resolution  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            units "GHz";
+            description "Fine tune resolution in GHz";
+        } // END of fine-tune-resolution definition.
+
+        leaf fine-tune-low-offset  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            units "GHz";
+            description "Fine tune low offset in GHz";
+        } // END of fine-tune-low-offset definition.
+
+        leaf fine-tune-high-offset  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            units "GHz";
+            description "Fine tune high offset in GHz";
+        } // END of fine-tune-high-offset definition.
+
+        leaf per-lane-programmable-output-power  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether programming of output power per lane is supported or
+                        not";
+        } // END of per-lane-programmable-output-power definition.
+
+        leaf minimum-programmable-output-power  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            units "dBm";
+            description "Minimum value for programmable output power in dBm";
+        } // END of minimum-programmable-output-power definition.
+
+        leaf maximum-programmable-output-power  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            units "dBm";
+            description "Maximum value for programmable output power in dBm";
+        } // END of maximum-programmable-output-power definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-laser-state definition.
+    grouping ipi-platform-cmis-module-advertisement-laser-grid-state {
+        description
+            "ipi-platform-cmis-module-advertisement-laser-grid-state";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_cmis_laser_grid_spacing_t;
+            description "Grid spacing ID";
+        } // END of id definition.
+
+        leaf lowest-channel-frequency  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            units "THz";
+            description "Grid lowest channel frequency in THz";
+        } // END of lowest-channel-frequency definition.
+
+        leaf highest-channel-frequency  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            units "THz";
+            description "Grid highest channel frequency in THz";
+        } // END of highest-channel-frequency definition.
+
+        leaf channel-count  {
+            type  uint16;
+            description "Total number of grid channels";
+        } // END of channel-count definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-laser-grid-state definition.
+    grouping ipi-platform-cmis-module-advertisement-laser-top {
+        description
+            "ipi-platform-cmis-module-advertisement-laser-top";
+        container state {
+            config false;
+            description
+                "State data for CMIS advertised laser tuning support";
+            uses ipi-platform-cmis-module-advertisement-laser-state;
+        } // END of state-container definition.
+        container grids {
+            config false;
+            description
+                "High level container for list of supported grids";
+
+            list grid {
+                key "id";
+                config false;
+                description
+                    "List of grid spacing details";
+                leaf id  {
+                    type  leafref {
+                        path  "../state/id";
+                    }
+                    description "Grid spacing ID";
+                } // END of id definition.
+
+                container state {
+                    config false;
+                    description
+                        "State data for laser grid spacing information";
+                    uses ipi-platform-cmis-module-advertisement-laser-grid-state;
+                } // END of state-container definition.
+            } // End of grid-list
+        } // END of grids-container definition.
+    } // END of ipi-platform-cmis-module-advertisement-laser-top definition.
+    grouping ipi-platform-cmis-module-advertisement-monitoring-module-state {
+        description
+            "ipi-platform-cmis-module-advertisement-monitoring-module-state";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_cmis_module_monitor_id_t;
+            description "Module monitor ID";
+        } // END of id definition.
+
+        leaf supported  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether this monitor ID is supported or not";
+        } // END of supported definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-monitoring-module-state definition.
+    grouping ipi-platform-cmis-module-advertisement-host-monitor-state {
+        description
+            "ipi-platform-cmis-module-advertisement-host-monitor-state";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_cmis_host_monitor_id_t;
+            description "Host side monitor ID";
+        } // END of id definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-host-monitor-state definition.
+    grouping ipi-platform-cmis-module-advertisement-host-flag-state {
+        description
+            "ipi-platform-cmis-module-advertisement-host-flag-state";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_cmis_host_flag_id_t;
+            description "Host side flag ID";
+        } // END of id definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-host-flag-state definition.
+    grouping ipi-platform-cmis-module-advertisement-media-monitor-state {
+        description
+            "ipi-platform-cmis-module-advertisement-media-monitor-state";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_cmis_media_monitor_id_t;
+            description "Media side monitor ID";
+        } // END of id definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-media-monitor-state definition.
+    grouping ipi-platform-cmis-module-advertisement-media-flag-state {
+        description
+            "ipi-platform-cmis-module-advertisement-media-flag-state";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_cmis_media_flag_id_t;
+            description "Media side flag ID";
+        } // END of id definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-media-flag-state definition.
+    grouping ipi-platform-cmis-module-advertisement-monitor-state-details {
+        description
+            "ipi-platform-cmis-module-advertisement-monitor-state-details";
+        leaf supported  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether this monitor/flag ID is supported or not";
+        } // END of supported definition.
+
+        leaf lanes-assigned  {
+            type  ipi-platform-cmis-types:cmm_cmis_lane_assignment_t;
+            description "Bitmap of which lanes support this monitor/flag ID";
+        } // END of lanes-assigned definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-monitor-state-details definition.
+    grouping ipi-platform-cmis-module-advertisement-monitoring-top {
+        description
+            "ipi-platform-cmis-module-advertisement-monitoring-top";
+        container module {
+            config false;
+            description
+                "State data for advertised module monitors";
+            container monitors {
+                config false;
+                description
+                    "High level container for the list of advertised module monitors";
+
+                list monitor {
+                    key "id";
+                    config false;
+                    description
+                        "List of advertised module monitors";
+                    leaf id  {
+                        type  leafref {
+                            path  "../state/id";
+                        }
+                        description "Module monitor ID";
+                    } // END of id definition.
+
+                    container state {
+                        config false;
+                        description
+                            "State data for advertised module monitors";
+                        uses ipi-platform-cmis-module-advertisement-monitoring-module-state;
+                    } // END of state-container definition.
+                } // End of monitor-list
+            } // END of monitors-container definition.
+        } // END of module-container definition.
+        container host {
+            config false;
+            description
+                "State data for advertised host side monitors";
+            container monitors {
+                config false;
+                description
+                    "High level container for the list of advertised host side monitors";
+
+                list monitor {
+                    key "id";
+                    config false;
+                    description
+                        "List of advertised host side monitors";
+                    leaf id  {
+                        type  leafref {
+                            path  "../state/id";
+                        }
+                        description "Host side monitor ID";
+                    } // END of id definition.
+
+                    container state {
+                        config false;
+                        description
+                            "State data for advertised host side monitors";
+                        uses ipi-platform-cmis-module-advertisement-host-monitor-state;
+                        uses ipi-platform-cmis-module-advertisement-monitor-state-details;
+                    } // END of state-container definition.
+                } // End of monitor-list
+            } // END of monitors-container definition.
+            container flags {
+                config false;
+                description
+                    "High level container for the list of advertised host side flags";
+
+                list flag {
+                    key "id";
+                    config false;
+                    description
+                        "List of advertised host side flags";
+                    leaf id  {
+                        type  leafref {
+                            path  "../state/id";
+                        }
+                        description "Host side flag ID";
+                    } // END of id definition.
+
+                    container state {
+                        config false;
+                        description
+                            "State data for advertised host side flags";
+                        uses ipi-platform-cmis-module-advertisement-host-flag-state;
+                        uses ipi-platform-cmis-module-advertisement-monitor-state-details;
+                    } // END of state-container definition.
+                } // End of flag-list
+            } // END of flags-container definition.
+        } // END of host-container definition.
+        container media {
+            config false;
+            description
+                "State data for advertised media side monitors";
+            container monitors {
+                config false;
+                description
+                    "High level container for the list of advertised media side monitors";
+
+                list monitor {
+                    key "id";
+                    config false;
+                    description
+                        "List of advertised media side monitors";
+                    leaf id  {
+                        type  leafref {
+                            path  "../state/id";
+                        }
+                        description "Media side monitor ID";
+                    } // END of id definition.
+
+                    container state {
+                        config false;
+                        description
+                            "State data for advertised media side monitors";
+                        uses ipi-platform-cmis-module-advertisement-media-monitor-state;
+                        uses ipi-platform-cmis-module-advertisement-monitor-state-details;
+                    } // END of state-container definition.
+                } // End of monitor-list
+            } // END of monitors-container definition.
+            container flags {
+                config false;
+                description
+                    "High level container for the list of advertised media side flags";
+
+                list flag {
+                    key "id";
+                    config false;
+                    description
+                        "List of advertised media side flags";
+                    leaf id  {
+                        type  leafref {
+                            path  "../state/id";
+                        }
+                        description "Media side flag ID";
+                    } // END of id definition.
+
+                    container state {
+                        config false;
+                        description
+                            "State data for advertised media side monitors";
+                        uses ipi-platform-cmis-module-advertisement-media-flag-state;
+                        uses ipi-platform-cmis-module-advertisement-monitor-state-details;
+                    } // END of state-container definition.
+                } // End of flag-list
+            } // END of flags-container definition.
+        } // END of media-container definition.
+    } // END of ipi-platform-cmis-module-advertisement-monitoring-top definition.
+    grouping ipi-platform-cmis-module-advertisement-pages-state {
+        description
+            "ipi-platform-cmis-module-advertisement-pages-state";
+        leaf network-path-pages-supported  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether network path pages are supported or not";
+        } // END of network-path-pages-supported definition.
+
+        leaf vdm-pages-supported  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether VDM pages are supported or not";
+        } // END of vdm-pages-supported definition.
+
+        leaf vdm-groups  {
+            type  ipi-platform-cmis-types:cmm_cmis_vdm_pages_support_t;
+            description "Shows which VDM groups are supported in case VDM pages are supported";
+        } // END of vdm-groups definition.
+
+        leaf diagnostics-pages-supported  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether diagnostics pages are supported or not";
+        } // END of diagnostics-pages-supported definition.
+
+        leaf user-page-supported  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether user eeprom page (page 03h) is supported or not";
+        } // END of user-page-supported definition.
+
+        leaf banks-per-page  {
+            type  ipi-platform-cmis-types:cmm_cmis_bank_per_page_support_t;
+            description "Shows which banks are supported for pages 10h to 2Fh";
+        } // END of banks-per-page definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-pages-state definition.
+    grouping ipi-platform-cmis-module-advertisement-pages-top {
+        description
+            "ipi-platform-cmis-module-advertisement-pages-top";
+        container state {
+            config false;
+            description
+                "State data for CMIS advertised pages";
+            uses ipi-platform-cmis-module-advertisement-pages-state;
+        } // END of state-container definition.
+    } // END of ipi-platform-cmis-module-advertisement-pages-top definition.
+    grouping ipi-platform-cmis-module-advertisement-si-state {
+        description
+            "ipi-platform-cmis-module-advertisement-si-state";
+        leaf tx-input-manual-eq  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether manual Tx input equalizer is supported or not";
+        } // END of tx-input-manual-eq definition.
+
+        leaf tx-input-eq-max  {
+            type  uint8;
+            description "Maximum supported value for Tx input equalizer";
+        } // END of tx-input-eq-max definition.
+
+        leaf rx-output-eq-pre-cursor  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether manual Rx output equalizer pre cursor is supported
+                        or not";
+        } // END of rx-output-eq-pre-cursor definition.
+
+        leaf rx-output-eq-pre-cursor-max  {
+            type  uint8;
+            description "Maximum supported value for Rx output equalizer pre cursor";
+        } // END of rx-output-eq-pre-cursor-max definition.
+
+        leaf rx-output-eq-post-cursor  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether manual Rx output equalizer post cursor is supported
+                        or not";
+        } // END of rx-output-eq-post-cursor definition.
+
+        leaf rx-output-eq-post-cursor-max  {
+            type  uint8;
+            description "Maximum supported value for Rx output equalizer post cursor";
+        } // END of rx-output-eq-post-cursor-max definition.
+
+        leaf rx-output-amp  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether manual Rx output amplitude is supported or not";
+        } // END of rx-output-amp definition.
+
+        leaf rx-output-amp-codes  {
+            type  ipi-platform-cmis-types:cmm_cmis_si_amp_codes_t;
+            description "Supported manual Rx output amplitude codes";
+        } // END of rx-output-amp-codes definition.
+
+        leaf tx-cdr  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether Tx CDR is supported or not";
+        } // END of tx-cdr definition.
+
+        leaf tx-cdr-bypass  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether Tx CDR bypass is supported or not";
+        } // END of tx-cdr-bypass definition.
+
+        leaf rx-cdr  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether Rx CDR is supported or not";
+        } // END of rx-cdr definition.
+
+        leaf rx-cdr-bypass  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether Rx CDR bypass is supported or not";
+        } // END of rx-cdr-bypass definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-si-state definition.
+    grouping ipi-platform-cmis-module-advertisement-si-top {
+        description
+            "ipi-platform-cmis-module-advertisement-si-top";
+        container state {
+            config false;
+            description
+                "State data for CMIS advertised SI support";
+            uses ipi-platform-cmis-module-advertisement-si-state;
+        } // END of state-container definition.
+    } // END of ipi-platform-cmis-module-advertisement-si-top definition.
+    grouping ipi-platform-cmis-module-advertisement-top {
+        description
+            "ipi-platform-cmis-module-advertisement-top";
+        container applications {
+            config false;
+            description
+                "CMIS transceiver advertised applications";
+            uses ipi-platform-cmis-module-advertisement-applications-top;
+        } // END of applications-container definition.
+        container controls {
+            config false;
+            description
+                "CMIS transceiver advertised controls";
+            uses ipi-platform-cmis-module-advertisement-controls-top;
+        } // END of controls-container definition.
+        container diagnostics {
+            config false;
+            description
+                "CMIS transceiver advertised diagnostics";
+            uses ipi-platform-cmis-module-advertisement-diagnostics-top;
+        } // END of diagnostics-container definition.
+        container durations {
+            config false;
+            description
+                "CMIS transceiver advertised durations";
+            uses ipi-platform-cmis-module-advertisement-durations-top;
+        } // END of durations-container definition.
+        container laser {
+            config false;
+            description
+                "CMIS transceiver advertised laser tuning features";
+            uses ipi-platform-cmis-module-advertisement-laser-top;
+        } // END of laser-container definition.
+        container monitoring {
+            config false;
+            description
+                "CMIS transceiver advertised monitoring capabilities";
+            uses ipi-platform-cmis-module-advertisement-monitoring-top;
+        } // END of monitoring-container definition.
+        container pages {
+            config false;
+            description
+                "CMIS transceiver advertised supported pages";
+            uses ipi-platform-cmis-module-advertisement-pages-top;
+        } // END of pages-container definition.
+        container signal-integrity {
+            config false;
+            description
+                "CMIS transceiver advertised SI support";
+            uses ipi-platform-cmis-module-advertisement-si-top;
+        } // END of signal-integrity-container definition.
+    } // END of ipi-platform-cmis-module-advertisement-top definition.
     grouping ipi-platform-cmis-module-datapath-state {
         description
             "ipi-platform-cmis-module-datapath-state";
@@ -462,6 +1388,25 @@ submodule ipi-platform-cmis {
             type  ipi-platform-cmis-types:cmm_cmis_datapath_states_t;
             description "Current datapath state";
         } // END of current-state definition.
+
+        leaf host-rate  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Current datapath instance bit rate";
+        } // END of host-rate definition.
+
+        leaf media-rate  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "Current media side bit rate";
+        } // END of media-rate definition.
+
+        leaf interface-name  {
+            type  string {
+                length "1..1965";
+            }
+            description "Name of the interface assigned to this datapath";
+        } // END of interface-name definition.
 
     } // END of ipi-platform-cmis-module-datapath-state definition.
     grouping ipi-platform-cmis-module-datapath-top {
@@ -488,9 +1433,9 @@ submodule ipi-platform-cmis {
             } // END of state-container definition.
         } // End of datapath-list
     } // END of ipi-platform-cmis-module-datapath-top definition.
-    grouping ipi-platform-cmis-module-module-state-top {
+    grouping ipi-platform-cmis-module-module-state-state {
         description
-            "ipi-platform-cmis-module-module-state-top";
+            "ipi-platform-cmis-module-module-state-state";
         leaf fault-state  {
             type  ipi-platform-cmis-types:cmm_cmis_module_fault_state_t;
             description "CMIS transceiver module fault state";
@@ -501,6 +1446,16 @@ submodule ipi-platform-cmis {
             description "CMIS transceiver module state";
         } // END of current-state definition.
 
+    } // END of ipi-platform-cmis-module-module-state-state definition.
+    grouping ipi-platform-cmis-module-module-state-top {
+        description
+            "ipi-platform-cmis-module-module-state-top";
+        container state {
+            config false;
+            description
+                "State data for CMIS module state info";
+            uses ipi-platform-cmis-module-module-state-state;
+        } // END of state-container definition.
         container datapaths {
             config false;
             description
@@ -746,6 +1701,11 @@ submodule ipi-platform-cmis {
             description "Host side lane number";
         } // END of number definition.
 
+        leaf dp-assigned  {
+            type  boolean;
+            description "Host side lane is datapath starting lane";
+        } // END of dp-assigned definition.
+
     } // END of ipi-platform-cmis-module-host-monitors-lane-state definition.
     grouping ipi-platform-cmis-module-host-monitors-top {
         description
@@ -787,7 +1747,7 @@ submodule ipi-platform-cmis {
                             type  leafref {
                                 path  "../state/id";
                             }
-                            description "Media side monitor ID";
+                            description "Host side monitor ID";
                         } // END of id definition.
 
                         container state {
@@ -1070,81 +2030,259 @@ submodule ipi-platform-cmis {
             } // End of lane-list
         } // END of lanes-container definition.
     } // END of ipi-platform-cmis-module-media-monitors-top definition.
-    grouping ipi-platform-cmis-module-state {
+    grouping ipi-platform-cmis-module-user-thresholds-per-lane-state {
         description
-            "ipi-platform-cmis-module-state";
-        leaf type  {
-            type  ipi-platform-cmis-types:cmm_cmis_port_type_t;
-            description "CMIS transceiver port type";
-        } // END of type definition.
+            "ipi-platform-cmis-module-user-thresholds-per-lane-state";
+        leaf value  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "User threshold programmed value";
+        } // END of value definition.
 
-        leaf port  {
-            type  uint8;
-            description "A unique value for each panel port within the unit";
-        } // END of port definition.
+        leaf minimum  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "User threshold minimum value";
+        } // END of minimum definition.
 
-    } // END of ipi-platform-cmis-module-state definition.
-    grouping ipi-platform-cmis-module-top {
+        leaf maximum  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            description "User threshold maximum value";
+        } // END of maximum definition.
+
+        leaf active  {
+            type  boolean;
+            description "User threshold activation state";
+        } // END of active definition.
+
+    } // END of ipi-platform-cmis-module-user-thresholds-per-lane-state definition.
+    grouping ipi-platform-cmis-module-user-thresholds-host-per-lane-state {
         description
-            "ipi-platform-cmis-module-top";
+            "ipi-platform-cmis-module-user-thresholds-host-per-lane-state";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_ccmis_thres_state_host_id_t;
+            description "User threshold ID";
+        } // END of id definition.
 
-        list cmis-module {
-            key "type port";
+        uses ipi-platform-cmis-module-user-thresholds-per-lane-state;
+    } // END of ipi-platform-cmis-module-user-thresholds-host-per-lane-state definition.
+    grouping ipi-platform-cmis-module-user-thresholds-host-per-lane-top {
+        description
+            "ipi-platform-cmis-module-user-thresholds-host-per-lane-top";
+        container thresholds {
             config false;
             description
-                "List of attached CMIS transceivers";
-            leaf type  {
-                type  leafref {
-                    path  "../state/type";
-                }
-                description "CMIS transceiver port type";
-            } // END of type definition.
+                "Top level container for the list of user configurable thresholds";
 
-            leaf port  {
-                type  leafref {
-                    path  "../state/port";
-                }
-                description "A value for each panel port within the unit";
-            } // END of port definition.
+            list threshold {
+                key "id";
+                config false;
+                description
+                    "List of user configurable thresholds";
+                leaf id  {
+                    type  leafref {
+                        path  "../state/id";
+                    }
+                    description "User threshold ID";
+                } // END of id definition.
 
-            container state {
+                container state {
+                    config false;
+                    description
+                        "Per user threshold state";
+                    uses ipi-platform-cmis-module-user-thresholds-host-per-lane-state;
+                } // END of state-container definition.
+            } // End of threshold-list
+        } // END of thresholds-container definition.
+    } // END of ipi-platform-cmis-module-user-thresholds-host-per-lane-top definition.
+    grouping ipi-platform-cmis-module-user-thresholds-media-per-lane-state {
+        description
+            "ipi-platform-cmis-module-user-thresholds-media-per-lane-state";
+        leaf id  {
+            type  ipi-platform-cmis-types:cmm_ccmis_thres_state_media_id_t;
+            description "User threshold ID";
+        } // END of id definition.
+
+        uses ipi-platform-cmis-module-user-thresholds-per-lane-state;
+    } // END of ipi-platform-cmis-module-user-thresholds-media-per-lane-state definition.
+    grouping ipi-platform-cmis-module-user-thresholds-media-per-lane-top {
+        description
+            "ipi-platform-cmis-module-user-thresholds-media-per-lane-top";
+        container thresholds {
+            config false;
+            description
+                "Top level container for the list of user configurable thresholds";
+
+            list threshold {
+                key "id";
                 config false;
                 description
-                    "Operational state data from CMIS transceiver components";
-                uses ipi-platform-cmis-module-state;
-            } // END of state-container definition.
-            container eeprom {
+                    "List of user configurable thresholds";
+                leaf id  {
+                    type  leafref {
+                        path  "../state/id";
+                    }
+                    description "User threshold ID";
+                } // END of id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Per user threshold state";
+                    uses ipi-platform-cmis-module-user-thresholds-media-per-lane-state;
+                } // END of state-container definition.
+            } // End of threshold-list
+        } // END of thresholds-container definition.
+    } // END of ipi-platform-cmis-module-user-thresholds-media-per-lane-top definition.
+    grouping ipi-platform-cmis-module-per-lane-state {
+        description
+            "ipi-platform-cmis-module-per-lane-state";
+        leaf number  {
+            type  uint8;
+            description "Lane number";
+        } // END of number definition.
+
+    } // END of ipi-platform-cmis-module-per-lane-state definition.
+    grouping ipi-platform-cmis-module-user-thresholds-host-top {
+        description
+            "ipi-platform-cmis-module-user-thresholds-host-top";
+        container host {
+            config false;
+            description
+                "Top level container for host side";
+            container lanes {
                 config false;
                 description
-                    "CMIS transceiver EEPROM information";
-                uses ipi-platform-cmis-module-eeprom-top;
-            } // END of eeprom-container definition.
-            container module-state {
+                    "Top level container for host side lanes";
+
+                list lane {
+                    key "number";
+                    config false;
+                    description
+                        "Host side list of lanes";
+                    leaf number  {
+                        type  leafref {
+                            path  "../state/number";
+                        }
+                        description "Lane number";
+                    } // END of number definition.
+
+                    container state {
+                        config false;
+                        description
+                            "Per lane host side user thresholds state data";
+                        uses ipi-platform-cmis-module-per-lane-state;
+                    } // END of state-container definition.
+                    uses ipi-platform-cmis-module-user-thresholds-host-per-lane-top;
+                } // End of lane-list
+            } // END of lanes-container definition.
+        } // END of host-container definition.
+    } // END of ipi-platform-cmis-module-user-thresholds-host-top definition.
+    grouping ipi-platform-cmis-module-user-thresholds-media-top {
+        description
+            "ipi-platform-cmis-module-user-thresholds-media-top";
+        container media {
+            config false;
+            description
+                "Top level container for media side";
+            container lanes {
                 config false;
                 description
-                    "CMIS transceiver module state info";
-                uses ipi-platform-cmis-module-module-state-top;
-            } // END of module-state-container definition.
-            container module-monitors {
+                    "Top level container for media side lanes";
+
+                list lane {
+                    key "number";
+                    config false;
+                    description
+                        "Media side list of lanes";
+                    leaf number  {
+                        type  leafref {
+                            path  "../state/number";
+                        }
+                        description "Lane number";
+                    } // END of number definition.
+
+                    container state {
+                        config false;
+                        description
+                            "Per lane media side user thresholds state data";
+                        uses ipi-platform-cmis-module-per-lane-state;
+                    } // END of state-container definition.
+                    uses ipi-platform-cmis-module-user-thresholds-media-per-lane-top;
+                } // End of lane-list
+            } // END of lanes-container definition.
+        } // END of media-container definition.
+    } // END of ipi-platform-cmis-module-user-thresholds-media-top definition.
+    grouping ipi-platform-cmis-module-signal-integrity-per-lane-state {
+        description
+            "ipi-platform-cmis-module-signal-integrity-per-lane-state";
+        leaf tx-input-equalizer-target  {
+            type  uint8;
+            description "Tx input equalizer target programmed value";
+        } // END of tx-input-equalizer-target definition.
+
+        leaf rx-output-equalizer-pre-cursor-target  {
+            type  uint8;
+            description "Rx output equalizer pre-cursor target programmed value";
+        } // END of rx-output-equalizer-pre-cursor-target definition.
+
+        leaf rx-output-equalizer-post-cursor-target  {
+            type  uint8;
+            description "Rx output equalizer post-cursor target programmed value";
+        } // END of rx-output-equalizer-post-cursor-target definition.
+
+        leaf rx-output-amplitude-target  {
+            type  uint8;
+            description "Rx output equalizer amplitude target programmed value";
+        } // END of rx-output-amplitude-target definition.
+
+        leaf tx-cdr-bypass  {
+            type  boolean;
+            description "Tx CDR bypassed or not";
+        } // END of tx-cdr-bypass definition.
+
+        leaf rx-cdr-bypass  {
+            type  boolean;
+            description "Rx CDR bypassed or not";
+        } // END of rx-cdr-bypass definition.
+
+    } // END of ipi-platform-cmis-module-signal-integrity-per-lane-state definition.
+    grouping ipi-platform-cmis-module-signal-integrity-top {
+        description
+            "ipi-platform-cmis-module-signal-integrity-top";
+        container host {
+            config false;
+            description
+                "Top level container for host side";
+            container lanes {
                 config false;
                 description
-                    "CMIS transceiver module monitors";
-                uses ipi-platform-cmis-module-module-monitors-top;
-            } // END of module-monitors-container definition.
-            container host-monitors {
-                config false;
-                description
-                    "CMIS transceiver host monitors";
-                uses ipi-platform-cmis-module-host-monitors-top;
-            } // END of host-monitors-container definition.
-            container media-monitors {
-                config false;
-                description
-                    "CMIS transceiver media monitors";
-                uses ipi-platform-cmis-module-media-monitors-top;
-            } // END of media-monitors-container definition.
-        } // End of cmis-module-list
-    } // END of ipi-platform-cmis-module-top definition.
+                    "Top level container for host side lanes";
+
+                list lane {
+                    key "number";
+                    config false;
+                    description
+                        "Host side list of lanes";
+                    leaf number  {
+                        type  leafref {
+                            path  "../state/number";
+                        }
+                        description "Lane number";
+                    } // END of number definition.
+
+                    container state {
+                        config false;
+                        description
+                            "Per host lane signal integrity state";
+                        uses ipi-platform-cmis-module-per-lane-state;
+                        uses ipi-platform-cmis-module-signal-integrity-per-lane-state;
+                    } // END of state-container definition.
+                } // End of lane-list
+            } // END of lanes-container definition.
+        } // END of host-container definition.
+    } // END of ipi-platform-cmis-module-signal-integrity-top definition.
     grouping ipi-platform-qsfp-dd-config {
         description
             "ipi-platform-qsfp-dd-config";
@@ -1270,6 +2408,56 @@ submodule ipi-platform-cmis {
         } // END of output-power definition.
 
     } // END of ipi-platform-qsfp-dd-lane-laser-config definition.
+    grouping ipi-platform-qsfp-dd-signal-integrity-config {
+        description
+            "Grouping for signal integrity configurable parameters";
+        leaf tx-input-equalizer-target  {
+            type  uint8 {
+                 range "1..15"  {
+                    description "1..15: Supported range 1 - 15";
+                 }
+            }
+            description "Tx input equalizer target value code";
+        } // END of tx-input-equalizer-target definition.
+
+        leaf rx-output-equalizer-pre-cursor-target  {
+            type  uint8 {
+                 range "1..15"  {
+                    description "1..15: Supported range 1 - 15";
+                 }
+            }
+            description "Rx output equalizer pre-cursor target value code";
+        } // END of rx-output-equalizer-pre-cursor-target definition.
+
+        leaf rx-output-equalizer-post-cursor-target  {
+            type  uint8 {
+                 range "1..15"  {
+                    description "1..15: Supported range 1 - 15";
+                 }
+            }
+            description "Rx output equalizer post-cursor target value code";
+        } // END of rx-output-equalizer-post-cursor-target definition.
+
+        leaf rx-output-amplitude-target  {
+            type  uint8 {
+                 range "0..15"  {
+                    description "0..15: Supported range 0 - 15";
+                 }
+            }
+            description "Rx output equalizer amplitude target value code";
+        } // END of rx-output-amplitude-target definition.
+
+        leaf tx-cdr-bypass  {
+            type  empty;
+            description "Bypass the TX CDR control";
+        } // END of tx-cdr-bypass definition.
+
+        leaf rx-cdr-bypass  {
+            type  empty;
+            description "Bypass the CDR control";
+        } // END of rx-cdr-bypass definition.
+
+    } // END of ipi-platform-qsfp-dd-signal-integrity-config definition.
     grouping ipi-platform-qsfp-dd-media-laser-top {
         description
             "Grouping for per media lane laser configuration related data";
@@ -1488,6 +2676,25 @@ submodule ipi-platform-cmis {
         } // END of lane-number definition.
 
     } // END of ipi-platform-qsfp-dd-media-lane-config definition.
+    grouping ipi-platform-qsfp-dd-host-signal-integrity-top {
+        description
+            "Grouping for signal integrity related data";
+        container signal-integrity {
+            description
+                "Container enclosing laser related data";
+            container config {
+                description
+                    "Signal integrity parameters configutation data";
+                uses ipi-platform-qsfp-dd-signal-integrity-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Signal integrity parameters operational data";
+                uses ipi-platform-qsfp-dd-signal-integrity-config;
+            } // END of state-container definition.
+        } // END of signal-integrity-container definition.
+    } // END of ipi-platform-qsfp-dd-host-signal-integrity-top definition.
     grouping ipi-platform-qsfp-dd-host-top {
         description
             "Grouping for host side configuration related data";
@@ -1548,7 +2755,7 @@ submodule ipi-platform-cmis {
                     "Top level container for per host lane configuration";
 
                 list lane {
-                // when " ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config ";
+                // when " ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config  +                       ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/signal-integrity/config ";
                     key "lane-number";
                     description
                         "List of host lanes and their configuration";
@@ -1561,7 +2768,7 @@ submodule ipi-platform-cmis {
 
                     container config {
                         description
-                            "Media lane configutation data";
+                            "Host lane configutation data";
                         uses ipi-platform-qsfp-dd-host-lane-config;
                     } // END of config-container definition.
                     container state {
@@ -1571,6 +2778,7 @@ submodule ipi-platform-cmis {
                         uses ipi-platform-qsfp-dd-host-lane-config;
                     } // END of state-container definition.
                     uses ipi-platform-qsfp-dd-host-thresholds-top;
+                    uses ipi-platform-qsfp-dd-host-signal-integrity-top;
                 } // End of lane-list
             } // END of lanes-container definition.
         } // END of host-container definition.
@@ -1663,12 +2871,31 @@ submodule ipi-platform-cmis {
             } // END of lanes-container definition.
         } // END of media-container definition.
     } // END of ipi-platform-qsfp-dd-media-top definition.
+    grouping ipi-platform-qsfp-dd-signal-integrity-top {
+        description
+            "Grouping for signal integrity related data";
+        container signal-integrity {
+            description
+                "Container enclosing laser related data";
+            container config {
+                description
+                    "Signal integrity parameters configutation data";
+                uses ipi-platform-qsfp-dd-signal-integrity-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Signal integrity parameters operational data";
+                uses ipi-platform-qsfp-dd-signal-integrity-config;
+            } // END of state-container definition.
+        } // END of signal-integrity-container definition.
+    } // END of ipi-platform-qsfp-dd-signal-integrity-top definition.
     grouping ipi-platform-qsfp-dd-top {
         description
             "ipi-platform-qsfp-dd-top";
 
         list qsfp-dd {
-        // when "                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/application  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/service-disable  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config ";
+        // when "                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/application  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/service-disable  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/signal-integrity/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/signal-integrity/config ";
             key "fp-port";
             description
                 "List of configured QSFP-DD transceivers";
@@ -1694,28 +2921,79 @@ submodule ipi-platform-cmis {
             uses ipi-platform-qsfp-dd-media-top;
             uses ipi-platform-qsfp-dd-laser-top;
             uses ipi-platform-qsfp-dd-thresholds-top;
+            uses ipi-platform-qsfp-dd-signal-integrity-top;
         } // End of qsfp-dd-list
     } // END of ipi-platform-qsfp-dd-top definition.
 
-    grouping  cmis-modules-grouping {
+    grouping  cmis-module-grouping {
     description
         "Top level container of CMIS modules, including configuration and state
                 data";
-    container cmis-modules {
+    container cmis-module {
         if-feature feature-list:HAVE_CMMD;
+        if-feature feature-list:NOT_HAVE_TIBIT;
         config false;
         description
             "Top level container of CMIS modules, including configuration and state
                     data";
-        uses ipi-platform-cmis-module-top;
-    } // END of cmis-modules-container definition.
-    } // END of cmis-modules-grouping definition.
+        container eeprom {
+            config false;
+            description
+                "CMIS transceiver EEPROM information";
+            uses ipi-platform-cmis-module-eeprom-top;
+        } // END of eeprom-container definition.
+        container advertisement {
+            config false;
+            description
+                "CMIS transceiver advertisement information";
+            uses ipi-platform-cmis-module-advertisement-top;
+        } // END of advertisement-container definition.
+        container module-state {
+            config false;
+            description
+                "CMIS transceiver module state info";
+            uses ipi-platform-cmis-module-module-state-top;
+        } // END of module-state-container definition.
+        container module-monitors {
+            config false;
+            description
+                "CMIS transceiver module monitors";
+            uses ipi-platform-cmis-module-module-monitors-top;
+        } // END of module-monitors-container definition.
+        container host-monitors {
+            config false;
+            description
+                "CMIS transceiver host monitors";
+            uses ipi-platform-cmis-module-host-monitors-top;
+        } // END of host-monitors-container definition.
+        container media-monitors {
+            config false;
+            description
+                "CMIS transceiver media monitors";
+            uses ipi-platform-cmis-module-media-monitors-top;
+        } // END of media-monitors-container definition.
+        container user-thresholds {
+            config false;
+            description
+                "Container for HW config state of CCMIS user configurable tresholds";
+            uses ipi-platform-cmis-module-user-thresholds-host-top;
+            uses ipi-platform-cmis-module-user-thresholds-media-top;
+        } // END of user-thresholds-container definition.
+        container signal-integrity {
+            config false;
+            description
+                "Container for HW config state of signal integrity settings";
+            uses ipi-platform-cmis-module-signal-integrity-top;
+        } // END of signal-integrity-container definition.
+    } // END of cmis-module-container definition.
+    } // END of cmis-module-grouping definition.
 
     grouping  qsfp-dds-grouping {
     description
         "Top level container of QSFP-DD, including configuration and state data";
     container qsfp-dds {
         if-feature feature-list:HAVE_CMMD;
+        if-feature feature-list:NOT_HAVE_TIBIT;
         description
             "Top level container of QSFP-DD, including configuration and state data";
         uses ipi-platform-qsfp-dd-top;

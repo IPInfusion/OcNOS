@@ -21,6 +21,11 @@ module ipi-evpn-srv6 {
 
     prefix "ipi-evpn-srv6";
 
+    import cml-data-types {
+        prefix cml-data-types;
+        revision-date 2024-06-17;
+    }
+
     import ietf-inet-types {
         prefix inet;
         revision-date 2013-07-15;
@@ -28,7 +33,7 @@ module ipi-evpn-srv6 {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2023-08-08;
+        revision-date 2024-03-11;
     }
 
     import ipi-network-instance {
@@ -38,7 +43,7 @@ module ipi-evpn-srv6 {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -53,6 +58,11 @@ module ipi-evpn-srv6 {
     description
         "Datamodel for EVPN-SRV6 protocol";
 
+
+    revision "2024-01-11" {
+        description "SRv6 ELAN feature";
+        reference " 0.6.0.";
+    }
 
     revision "2023-02-17" {
         description "Fixed prependstr warning";
@@ -100,13 +110,25 @@ module ipi-evpn-srv6 {
                         This will be treated at evpn srv6 tunnel source address";
         } // END of vtep-ipv6-address definition.
 
+        leaf mac-ageing-timer  {
+            // when " ipi-evpn-srv6:evpn-srv6/global/config/enabled ";
+            type  uint32 {
+                 range "10..572"  {
+                    description "10..572: Supported range 10 - 572";
+                 }
+            }
+            units "seconds";
+            description "Use this attribute to set the time till a learned mac
+                        address will persist after last update";
+        } // END of mac-ageing-timer definition.
+
     } // END of evpn-srv6-global-config definition.
     grouping evpn-srv6-tenant-top {
         description
             "Grouping for EVPN-SRV6 tenant top";
         container tenants {
             description
-                "Tenants list";
+                "EVPN-SRV6 tenant list enclosing container";
 
             list tenant {
             when " /ipi-evpn-srv6:evpn-srv6/ipi-evpn-srv6:global/ipi-evpn-srv6:config ";
@@ -169,6 +191,18 @@ module ipi-evpn-srv6 {
             description "Use this attribute to map vrf to carry EVPN routes";
         } // END of vrf-name definition.
 
+        leaf mac-holdtime  {
+            type  int32 {
+                 range "-1..300"  {
+                    description "-1..300: Supported range -1 - 300";
+                 }
+            }
+            units "seconds";
+            default "0";
+            description "Use this attribute to set the time a host mac entry will persist after
+                        unconfig";
+        } // END of mac-holdtime definition.
+
         leaf tenant-description  {
             type  string {
                 length "1..1965";
@@ -195,6 +229,22 @@ module ipi-evpn-srv6 {
         } // END of srv6-locator-name definition.
 
     } // END of evpn-srv6-tenant-config definition.
+    grouping arp-nd-global-grouping {
+        description
+            "Grouping for configuring global ARP-ND configs";
+        leaf arp-nd-refresh-time  {
+            when " /ipi-evpn-srv6:evpn-srv6/ipi-evpn-srv6:global/ipi-evpn-srv6:config/ipi-evpn-srv6:enabled ";
+            type  uint32 {
+                 range "3..190"  {
+                    description "3..190: Supported range 3 - 190";
+                 }
+            }
+            units "seconds";
+            description "Use this attribute to configure aging out the arp-cache and
+                        nd-cache entries";
+        } // END of arp-nd-refresh-time definition.
+
+    } // END of arp-nd-global-grouping definition.
 
     grouping  evpn-srv6-grouping {
     description
@@ -222,10 +272,101 @@ module ipi-evpn-srv6 {
                 uses evpn-srv6-global-config;
             } // END of state-container definition.
         } // END of global-container definition.
+        container arp-nd-global {
+            description
+                "ARP-ND global data";
+            container config {
+                description
+                    "ARP-ND global configuration data";
+                uses arp-nd-global-grouping;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses arp-nd-global-grouping;
+            } // END of state-container definition.
+        } // END of arp-nd-global-container definition.
         uses evpn-srv6-tenant-top;
     } // END of evpn-srv6-container definition.
     } // END of evpn-srv6-grouping definition.
 
     uses evpn-srv6-grouping;
+
+    rpc clear-nvo-srv6-dynamic-mac-address-table {
+        if-feature feature-list:HAVE_SRV6;
+        if-feature feature-list:HAVE_SUBINTERFACE;
+        if-feature feature-list:HAVE_NVO;
+        if-feature feature-list:HAVE_BGP_EVPN;
+        description "Use this RPC to clear the dynamic entries from mac address table";
+    }
+
+    rpc clear-nvo-srv6-dynamic-mac-address-table-evid {
+        if-feature feature-list:HAVE_SRV6;
+        if-feature feature-list:HAVE_SUBINTERFACE;
+        if-feature feature-list:HAVE_NVO;
+        if-feature feature-list:HAVE_BGP_EVPN;
+        description "Use this RPC to clear the dynamic entries from mac address table with
+                    evid or evid+mac";
+        input  {
+            leaf tenant-identifier  {
+                type uint32 {
+                    range "1..16777215";
+                }
+                mandatory true;
+                description "Use this attribute to include a tenant";
+            }
+            leaf mac-address  {
+                type cml-data-types:cml_mac_addr_t;
+                description "Interface MAC address";
+            }
+        }
+    }
+
+    rpc clear-evpn-srv6-egress-counters {
+        if-feature feature-list:HAVE_SRV6;
+        if-feature feature-list:HAVE_SUBINTERFACE;
+        if-feature feature-list:HAVE_NVO;
+        if-feature feature-list:HAVE_BGP_EVPN;
+        description "Use this RPC to clear the counters";
+        input  {
+            leaf tenant-identifier  {
+                type uint32 {
+                    range "1..16777215";
+                }
+                description "Use this attribute to include a tenant";
+            }
+            leaf egress-direction  {
+                type cml-data-types:evpn_egress_dir_t;
+                mandatory true;
+                description "Use this attribute to include Tunnel direction";
+            }
+            leaf destination-ip  {
+                type inet:ipv6-address;
+                description "Use this attribute to include Tunnel destination IP";
+            }
+        }
+    }
+
+    rpc clear-evpn-srv6-ingress-counters {
+        if-feature feature-list:HAVE_SRV6;
+        if-feature feature-list:HAVE_SUBINTERFACE;
+        if-feature feature-list:HAVE_NVO;
+        if-feature feature-list:HAVE_BGP_EVPN;
+        description "Use this RPC to clear the ingress side counters";
+        input  {
+            leaf tenant-identifier  {
+                type uint32 {
+                    range "1..16777215";
+                }
+                description "Use this attribute to include a tenant";
+            }
+            leaf ingress-direction  {
+                type cml-data-types:evpn_ingress_dir_t;
+                mandatory true;
+                description "Use this attribute to include Tunnel direction";
+            }
+        }
+    }
 
 }

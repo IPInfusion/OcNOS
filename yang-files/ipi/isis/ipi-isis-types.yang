@@ -23,7 +23,7 @@ module ipi-isis-types {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2023-12-22;
+        revision-date 2024-08-06;
     }
 
     organization
@@ -38,6 +38,21 @@ module ipi-isis-types {
     description
         "YANG version of the ipi-isis-types";
 
+
+    revision "2024-05-10" {
+        description "Removed interlevel-extenal from isis_supress_t datatype";
+        reference " 0.8.2.";
+    }
+
+    revision "2024-02-02" {
+        description "Updated the MT type bit position values";
+        reference " 0.8.1.";
+    }
+
+    revision "2023-09-29" {
+        description "Added data-types in ISIS_DEBUG_T for ASLA and Flexible Algorithm features";
+        reference " 0.8.0.";
+    }
 
     revision "2023-02-14" {
         description "Updated if-feature for Microloop-Avoidance";
@@ -603,6 +618,14 @@ module ipi-isis-types {
                 position 20;
                 description "Microloop-Avoidance using oFIB";
             }
+            bit asla {
+                position 21;
+                description "IS-IS ASLA management";
+            }
+            bit flexalgo {
+                position 22;
+                description "IS-IS Flexible Algorithm management";
+            }
         }
         description "type definition for ISIS_DEBUG_T";
     }
@@ -710,10 +733,6 @@ module ipi-isis-types {
             enum external-interlevel {
                 value 3;
                 description "If overload-bit set donot advertise IP prefixes learned from other protocols,If overload-bit set do not advertise IP prefixes learned from another ISIS level";
-            }
-            enum interlevel-external {
-                value 4;
-                description "If overload-bit set donot advertise IP prefixes learned from another ISIS level,If overload-bit set donot advertise IP prefixes learned from other protocols";
             }
         }
         description "type definition for ISIS_SUPPRESS_T";
@@ -825,18 +844,37 @@ module ipi-isis-types {
         description "type definition for ISIS_IEEE_FLOAT32_T";
     }
 
-    typedef  isis_spf_t {
+    typedef  isis_sr_sspf_algo_t {
         type enumeration {
             enum spf {
                 value 0;
-                description "spf";
+                description "Segment Routing Shortest Path Algorithm";
             }
             enum strict-spf {
                 value 1;
-                description "strict spf";
+                description "Segment Routing Strict Shortest Path Algorithm";
             }
         }
-        description "type definition for ISIS_SPF_T";
+        description "type definition for ISIS_SR_SSPF_ALGO_T";
+    }
+
+    typedef  isis_sr_flex_algo_t {
+        type uint32 {
+             range 128..255;
+        }
+        description "type definition for ISIS_SR_FLEX_ALGO_T";
+    }
+
+    typedef  isis_sr_algo_choice_t {
+        type union {
+            type isis_sr_sspf_algo_t {
+
+            }
+            type isis_sr_flex_algo_t {
+
+            }
+        }
+        description "datatype for segment routing algorithm number";
     }
 
     typedef  isis_cspf_path_type_t {
@@ -934,15 +972,47 @@ module ipi-isis-types {
     typedef  isis_multi_topology_types_t {
         type bits {
             bit IPv4 {
-                position 1;
+                position 0;
                 description "IPv4";
             }
             bit IPv6 {
-                position 2;
+                position 1;
                 description "IPv6";
             }
         }
         description "Multi Topology Types";
+    }
+
+    typedef  isis_fad_metric_type_t {
+        type enumeration {
+            enum igp-metric {
+                value 0;
+                description "IGP metric";
+            }
+            enum link-delay {
+                value 1;
+                description "Min unidirectional link delay";
+            }
+            enum te-metric {
+                value 2;
+                description "TE default metric";
+            }
+        }
+        description "type definition for ISIS_FAD_METRIC_TYPE_T";
+    }
+
+    typedef  isis_fad_calculation_type_t {
+        type enumeration {
+            enum spf {
+                value 0;
+                description "Default SPF Calculation";
+            }
+            enum strict-spf {
+                value 1;
+                description "Strict SPF Calculation";
+            }
+        }
+        description "type definition for ISIS_FAD_CALCULATION_TYPE_T";
     }
 
 }
