@@ -21,7 +21,7 @@ submodule ipi-bgp-address-family-vrf {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     import ietf-inet-types {
@@ -31,16 +31,16 @@ submodule ipi-bgp-address-family-vrf {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2024-06-20;
+        revision-date 2024-08-21;
     }
 
-    include ipi-bgp-common { revision-date 2024-01-05;}
-    include ipi-bgp-address-family { revision-date 2024-08-02;}
+    include ipi-bgp-common { revision-date 2024-10-14;}
+    include ipi-bgp-address-family { revision-date 2024-10-14;}
     organization
         "IP Infusion Inc.";
 
@@ -53,6 +53,56 @@ submodule ipi-bgp-address-family-vrf {
     description
         "";
 
+
+    revision "2024-10-14" {
+        description "Updated create and delete operation of table-map";
+        reference " 0.16.9.";
+    }
+
+    revision "2024-10-10" {
+        description "Added when tag for peer member deletion from DB when mapped peergroup remote-as is deleted";
+        reference " 0.16.8.";
+    }
+
+    revision "2024-10-09" {
+        description "Added when tag peer-allow-ebgp-vpn to activate";
+        reference " 0.16.7.";
+    }
+
+    revision "2024-09-30" {
+        description "Updated When tag constraints for attribute 'site-origin-identifier'";
+        reference " 0.16.6.";
+    }
+
+    revision "2024-09-05" {
+        description "For operation create Changed flag for cli-install-default-family for BGP_IPV4_MODE and BGP_IPV6_MODE to apply address-family-exit";
+        reference " 0.16.5.";
+    }
+
+    revision "2024-08-28" {
+        description "Fix data-sync issue when address-family flowspec vrf removed'";
+        reference " 0.16.4.";
+    }
+
+    revision "2024-08-27" {
+        description "Changed display string for unset cli in site-origin-identifier";
+        reference " 0.16.3.";
+    }
+
+    revision "2024-08-26" {
+        description "Updated When tag constraints for object-list 'distribute-list-filter', 'as-list-filters', 'prefix-list-filter' and 'route-map-filter'";
+        reference " 0.16.2.";
+    }
+
+    revision "2024-08-14" {
+        description "Added when tag for prefix-list under vrf in bgp";
+        reference " 0.16.1.";
+    }
+
+    revision "2024-07-19" {
+        description "Added whan tag wrt removal of address-family vpnv6 unicast";
+        reference " 0.16.0.";
+    }
 
     revision "2024-06-06" {
         description "Added dependency between g-shut-capable and g-shut-local-preference";
@@ -786,6 +836,18 @@ submodule ipi-bgp-address-family-vrf {
             description "Use this attribute to set the BGP TCP MSS value of a neighbor.";
         } // END of tcp-adjust-mss definition.
 
+        leaf site-origin-identifier  {
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/activate  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
+            if-feature feature-list:HAVE_VRF;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to enable the site-of-origin (SOO) feature. If the
+                        customer AS is multi-homed to the ISP, this attribute ensures that the
+                        PE does not advertise the routes back to the same AS.";
+        } // END of site-origin-identifier definition.
+
     } // END of bgp-address-family-peer-vrf-config definition.
     grouping bgp-address-family-vrf-table-map-config {
         description
@@ -1411,18 +1473,6 @@ submodule ipi-bgp-address-family-vrf {
                         neighbor waits to come back up after a restart. The default value is
                         120 seconds.";
         } // END of peer-restart-time definition.
-
-        leaf site-origin-identifier  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";
-            if-feature feature-list:HAVE_VRF;
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to enable the site-of-origin (SOO) feature. If the
-                        customer AS is multi-homed to the ISP, this attribute ensures that the
-                        PE does not advertise the routes back to the same AS.";
-        } // END of site-origin-identifier definition.
 
         leaf graceful-shut  {
             // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/peer-as  +  !ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/vrf-peers/vrf-peer/config/mapped-peer-group-tag-af ";

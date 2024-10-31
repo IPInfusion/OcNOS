@@ -21,12 +21,12 @@ submodule ipi-ldp-peer {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ipi-ldp-types {
@@ -36,7 +36,7 @@ submodule ipi-ldp-peer {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-07-24;
+        revision-date 2024-10-17;
     }
 
     import ietf-inet-types {
@@ -57,6 +57,11 @@ submodule ipi-ldp-peer {
     description
         "Datamodel for LDP Peer information";
 
+
+    revision "2024-08-07" {
+        description "Changed the help string for targeted hello timer config";
+        reference " 0.8.2.";
+    }
 
     revision "2023-08-28" {
         description "Removed implicit delete tag for config container of targeted peer objectlist";
@@ -153,18 +158,46 @@ submodule ipi-ldp-peer {
                 description
                     "Configuration data";
                 uses ldp-targeted-address-config;
-                uses ldp-hello-timers-config;
+                uses ldp-targeted-hello-timers-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operational state data";
                 uses ldp-targeted-address-config;
-                uses ldp-hello-timers-config;
+                uses ldp-targeted-hello-timers-config;
                 uses ldp-counters-state;
             } // END of state-container definition.
         } // End of targeted-peer-list
     } // END of ldp-targeted-peer-list definition.
+    grouping ldp-targeted-hello-timers-config {
+        description
+            "Grouping for LDP capabilities for Hello Timers configurtaion";
+        leaf hello-interval  {
+            type  uint16 {
+                 range "1..21845"  {
+                    description "1..21845: Supported range 1 - 21845";
+                 }
+            }
+            units "seconds";
+            default "15";
+            description "Use this attribute set the hello interval to send the hello messages
+                        to peers";
+        } // END of hello-interval definition.
+
+        leaf hello-holdtime  {
+            type  uint16 {
+                 range "3..65535"  {
+                    description "3..65535: Supported range 3 - 65535";
+                 }
+            }
+            units "seconds";
+            default "45";
+            description "Use this attribute set the hello hold time as the time out value that
+                        the router waits before rejecting an adjacency";
+        } // END of hello-holdtime definition.
+
+    } // END of ldp-targeted-hello-timers-config definition.
     grouping ldp-targeted-address-config {
         description
             "Grouping for Targeted-peer address configuration";

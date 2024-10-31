@@ -21,7 +21,7 @@ submodule ipi-logging-remote {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     import ipi-network-instance {
@@ -31,7 +31,7 @@ submodule ipi-logging-remote {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ipi-logging-types {
@@ -41,7 +41,7 @@ submodule ipi-logging-remote {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-03-11;
+        revision-date 2024-09-18;
     }
 
     organization
@@ -56,6 +56,26 @@ submodule ipi-logging-remote {
     description
         "Datamodel for logging configurations";
 
+
+    revision "2024-09-04" {
+        description "Added some dependencies in objects for enable-syslog";
+        reference " 0.9.2.";
+    }
+
+    revision "2024-08-15" {
+        description "Added simultaneous user defined VRF support for remote server";
+        reference " 0.10.0.";
+    }
+
+    revision "2024-08-02" {
+        description "Remove change lower to upper case validation from hostname. Since hostname are case sensitive";
+        reference " 0.9.1.";
+    }
+
+    revision "2024-06-25" {
+        description "Introduced disable-default attribute to resolve show running-config issue";
+        reference " 0.9.0.";
+    }
 
     revision "2023-12-20" {
         description "Added attr for remote server authpriv facility";
@@ -141,7 +161,7 @@ submodule ipi-logging-remote {
         } // END of enable definition.
 
     } // END of logging-debug-host-config definition.
-    grouping logging-remote-server-config {
+    grouping logging-server-config {
         description
             "Grouping for remote server configuration";
         leaf address  {
@@ -171,16 +191,15 @@ submodule ipi-logging-remote {
                         value is 514";
         } // END of port definition.
 
-    } // END of logging-remote-server-config definition.
-    grouping logging-remote-server-top {
+    } // END of logging-server-config definition.
+    grouping logging-server-top {
         description
-            "Grouping for remote server configuration";
-        container remote-servers {
-            // when " ipi-logging-remote:remote-logging/rsyslog/config/enable-rsyslog == '1' ";
+            "Grouping for server configuration";
+        container servers {
             description
-                "Remote servers configuration";
+                "Servers configuration";
 
-            list remote-server {
+            list server {
                 key "address";
                 max-elements 8;
                 description
@@ -197,6 +216,52 @@ submodule ipi-logging-remote {
                 container config {
                     description
                         "Configuration data";
+                    uses logging-server-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses logging-server-config;
+                } // END of state-container definition.
+            } // End of server-list
+        } // END of servers-container definition.
+    } // END of logging-server-top definition.
+    grouping logging-remote-server-config {
+        description
+            "Grouping for remote server configuration";
+        leaf vrf  {
+            if-feature feature-list:HAVE_VRF;
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
+            }
+            description "VRF name that is connected to remote server";
+        } // END of vrf definition.
+
+    } // END of logging-remote-server-config definition.
+    grouping logging-remote-server-top {
+        description
+            "Grouping for remote server configuration";
+        container remote-servers {
+            if-feature feature-list:HAVE_VRF;
+            description
+                "Remote servers configuration";
+
+            list remote-server {
+            // when " ipi-logging-remote:remote-logging/remote-servers/remote-server/config  +  ipi-logging-remote:remote-logging/remote-servers/remote-server/servers/server ";
+                key "vrf";
+                description
+                    "list of servers";
+                leaf vrf  {
+                    type  leafref {
+                        path  "../config/vrf";
+                    }
+                    description "VRF name for which the feature is being enabled";
+                } // END of vrf definition.
+
+                container config {
+                    description
+                        "Configuration data";
                     uses logging-remote-server-config;
                 } // END of config-container definition.
                 container state {
@@ -205,22 +270,44 @@ submodule ipi-logging-remote {
                         "Operational state data";
                     uses logging-remote-server-config;
                 } // END of state-container definition.
+                uses logging-server-top;
             } // End of remote-server-list
         } // END of remote-servers-container definition.
     } // END of logging-remote-server-top definition.
+    grouping logging-rsyslog-default-config {
+        description
+            "logging disable default configuration";
+        leaf disable-default-instance  {
+            type  empty;
+            description "Use this attribute to prevent default rsyslog config from being
+                        enabled at start up";
+        } // END of disable-default-instance definition.
+
+    } // END of logging-rsyslog-default-config definition.
+    grouping logging-rsyslog-default-top {
+        description
+            "logging disable default configuration";
+        container default-instance {
+            description
+                "logging default container configuration";
+            container config {
+                description
+                    "Configuration data for logging global configuration";
+                uses logging-rsyslog-default-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for logging global configuration";
+                uses logging-rsyslog-default-config;
+            } // END of state-container definition.
+        } // END of default-instance-container definition.
+    } // END of logging-rsyslog-default-top definition.
     grouping logging-feature-rsyslog-config {
         description
             "Grouping for feature rsyslog configuration";
-        leaf vrf  {
-            type  leafref {
-                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
-            }
-            description "VRF name for which the feature is being enabled";
-        } // END of vrf definition.
-
         leaf enable-rsyslog  {
-            type  boolean;
-            mandatory true;
+            type  empty;
             description "Enable/disable the rsyslog feature";
         } // END of enable-rsyslog definition.
 
@@ -251,32 +338,19 @@ submodule ipi-logging-remote {
         if-feature feature-list:HAVE_SYSLOG;
         description
             "Top level container for remote logging feature";
-
-        list rsyslog {
-            key "vrf";
-            max-elements 1;
+        container config {
             description
-                "Remote Logging feature";
-            leaf vrf  {
-                type  leafref {
-                    path  "../config/vrf";
-                }
-                description "VRF name for which the feature is being enabled";
-            } // END of vrf definition.
-
-            container config {
-                description
-                    "Configuration data";
-                uses logging-feature-rsyslog-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses logging-feature-rsyslog-config;
-            } // END of state-container definition.
-            uses logging-remote-server-top;
-        } // End of rsyslog-list
+                "Configuration data";
+            uses logging-feature-rsyslog-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Operational state data";
+            uses logging-feature-rsyslog-config;
+        } // END of state-container definition.
+        uses logging-remote-server-top;
+        uses logging-rsyslog-default-top;
     } // END of remote-logging-container definition.
     } // END of remote-logging-grouping definition.
 
@@ -284,7 +358,6 @@ submodule ipi-logging-remote {
     description
         "Global rsyslog configuration";
     container global {
-        // when " ipi-logging-remote:remote-logging/rsyslog/config/enable-rsyslog == '1' ";
         if-feature feature-list:HAVE_HOSTPD;
         if-feature feature-list:HAVE_SYSLOG;
         description

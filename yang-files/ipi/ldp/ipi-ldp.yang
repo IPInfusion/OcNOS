@@ -33,17 +33,17 @@ module ipi-ldp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     include ipi-ldp-l2vpn { revision-date 2024-05-24;}
     include ipi-ldp-interface { revision-date 2023-12-18;}
-    include ipi-ldp-peer { revision-date 2023-08-28;}
+    include ipi-ldp-peer { revision-date 2024-08-07;}
     organization
         "IP Infusion Inc.";
 
@@ -56,6 +56,16 @@ module ipi-ldp {
     description
         "Datamodel for LDP protocol";
 
+
+    revision "2024-08-07" {
+        description "Changed the help string for targeted hello timer config";
+        reference " 0.10.2.";
+    }
+
+    revision "2024-08-06" {
+        description "Added state attributes for sget of LOR";
+        reference " 0.10.1.";
+    }
 
     revision "2024-05-24" {
         description "Added attributes to display Local and Remote Pseudowire Status Capability";
@@ -1284,6 +1294,83 @@ module ipi-ldp {
         } // END of restart-count definition.
 
     } // END of ldp-graceful-restart-state definition.
+    grouping ldp-tunnel-info-state {
+        description
+            "State data of tunnel";
+        leaf tunnel-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute acquires name of the tunnel";
+        } // END of tunnel-name definition.
+
+        leaf cost  {
+            type  uint32;
+            description "This attribute acquires cost of tunnel";
+        } // END of cost definition.
+
+        leaf owner  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specify owner";
+        } // END of owner definition.
+
+        leaf status  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specify status of tunnel";
+        } // END of status definition.
+
+        leaf fec-count  {
+            type  uint8;
+            description "This attribute specify total fec count tunneled by tunnel";
+        } // END of fec-count definition.
+
+    } // END of ldp-tunnel-info-state definition.
+    grouping ldp-fec-info-state {
+        description
+            "State data of fec";
+        leaf fec-prefix  {
+            type  cml-data-types:cml_ipv4_addr_prefix_t;
+            description "This attribute acquires name of the fec";
+        } // END of fec-prefix definition.
+
+        leaf upstream-peer  {
+            type  inet:ipv4-address;
+            description "This attribute acquires address of the upstream peer";
+        } // END of upstream-peer definition.
+
+        leaf in-label  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specify in-label";
+        } // END of in-label definition.
+
+        leaf out-label  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "This attribute specify out-label";
+        } // END of out-label definition.
+
+    } // END of ldp-fec-info-state definition.
+    grouping ldp-tunnel-state {
+        description
+            "State data of tunnel";
+        leaf tunnel-endpoint  {
+            type  cml-data-types:cml_ipv4_addr_prefix_t;
+            description "This attribute acquires address of tunnel end point";
+        } // END of tunnel-endpoint definition.
+
+    } // END of ldp-tunnel-state definition.
     grouping ldp-inter-chassis-communication-protocol-config {
         description
             "Grouping for ICCP configuration";
@@ -1446,6 +1533,82 @@ module ipi-ldp {
                 uses ldp-graceful-restart-state;
             } // END of state-container definition.
         } // END of graceful-restart-container definition.
+        container ldp-tunnels {
+            if-feature feature-list:HAVE_LDP_TUNNELING;
+            config false;
+            description
+                "LDP tunnels";
+
+            list ldp-tunnel {
+                key "tunnel-endpoint";
+                config false;
+                description
+                    "State data list for LDP tunnel";
+                leaf tunnel-endpoint  {
+                    type  leafref {
+                        path  "../state/tunnel-endpoint";
+                    }
+                    description "This attribute acquires address of tunnel end point";
+                } // END of tunnel-endpoint definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ldp-tunnel-state;
+                } // END of state-container definition.
+                container tunnel-lists {
+                    config false;
+                    description
+                        "tunnel lists";
+
+                    list tunnel-list {
+                        key "tunnel-name";
+                        config false;
+                        description
+                            "State data list for tunnel";
+                        leaf tunnel-name  {
+                            type  leafref {
+                                path  "../state/tunnel-name";
+                            }
+                            description "This attribute acquires tunnel name";
+                        } // END of tunnel-name definition.
+
+                        container state {
+                            config false;
+                            description
+                                "Operational state data";
+                            uses ldp-tunnel-info-state;
+                        } // END of state-container definition.
+                        container fec-lists {
+                            config false;
+                            description
+                                "Fec lists";
+
+                            list fec-list {
+                                key "fec-prefix";
+                                config false;
+                                description
+                                    "State data list for fec list";
+                                leaf fec-prefix  {
+                                    type  leafref {
+                                        path  "../state/fec-prefix";
+                                    }
+                                    description "This attribute acquires fec IP address";
+                                } // END of fec-prefix definition.
+
+                                container state {
+                                    config false;
+                                    description
+                                        "Operational state data";
+                                    uses ldp-fec-info-state;
+                                } // END of state-container definition.
+                            } // End of fec-list-list
+                        } // END of fec-lists-container definition.
+                    } // End of tunnel-list-list
+                } // END of tunnel-lists-container definition.
+            } // End of ldp-tunnel-list
+        } // END of ldp-tunnels-container definition.
         container iccp {
             if-feature feature-list:HAVE_ICCP_CLI;
             description

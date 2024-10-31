@@ -23,7 +23,7 @@ module ipi-aaa {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ipi-aaa-types {
@@ -33,7 +33,7 @@ module ipi-aaa {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-03-11;
+        revision-date 2024-09-18;
     }
 
     import ipi-network-instance {
@@ -41,9 +41,14 @@ module ipi-aaa {
         revision-date 2023-07-13;
     }
 
+    import ipi-user-management-types {
+        prefix ipi-user-management-types;
+        revision-date 2022-06-25;
+    }
+
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     organization
@@ -58,6 +63,21 @@ module ipi-aaa {
     description
         "Layer-3 aaa configurations";
 
+
+    revision "2024-08-20" {
+        description "Added when tag for objectlist role-expday";
+        reference " 0.8.2.";
+    }
+
+    revision "2024-07-25" {
+        description "Update to support user-defined VRF";
+        reference " 0.8.1.";
+    }
+
+    revision "2024-07-19" {
+        description "Added new cli to config expiry for user/role";
+        reference " 0.8.1.";
+    }
 
     revision "2024-07-15" {
         description "Removed pattern tag validation from AAA group Server name";
@@ -487,6 +507,32 @@ module ipi-aaa {
         } // END of min-length definition.
 
     } // END of password-policy-config definition.
+    grouping password-expdays {
+        description
+            "Password expiration days";
+        leaf expire  {
+            type  uint16 {
+                 range "0..1000"  {
+                    description "0..1000: Supported range 0 - 1000";
+                 }
+            }
+            description "use this attribute to set user/role level expiry days";
+        } // END of expire definition.
+
+        leaf role  {
+            type  ipi-user-management-types:user_mgmt_role_types_t;
+            description "use this attribute to set the role for password expiry";
+        } // END of role definition.
+
+        leaf user  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "use this attribute to set the username for password expiry";
+        } // END of user definition.
+
+    } // END of password-expdays definition.
     grouping aaa-debug-config {
         description
             "Configuration data for AAA debugging in Config Mode";
@@ -621,6 +667,65 @@ module ipi-aaa {
                         "Operational state data for password policy";
                     uses password-policy-config;
                 } // END of state-container definition.
+                container role-expdays {
+                    description
+                        "Defines password expiration days for roles";
+
+                    list role-expday {
+                    when " /ipi-aaa:aaa/ipi-aaa:aaa-user/ipi-aaa:password-policy/ipi-aaa:config/ipi-aaa:enable ";
+                        key "role";
+                        max-elements 4;
+                        description
+                            "Config password expiration days for each role";
+                        leaf role  {
+                            type  leafref {
+                                path  "../config/role";
+                            }
+                            description "password expiration";
+                        } // END of role definition.
+
+                        container config {
+                            description
+                                "Config for password expiration of roles";
+                            uses password-expdays;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "state of password exp for role";
+                            uses password-expdays;
+                        } // END of state-container definition.
+                    } // End of role-expday-list
+                } // END of role-expdays-container definition.
+                container user-expdays {
+                    description
+                        "Defines password expiration days for users";
+
+                    list user-expday {
+                        key "user";
+                        max-elements 100;
+                        description
+                            "Config password expiration days for each user";
+                        leaf user  {
+                            type  leafref {
+                                path  "../config/user";
+                            }
+                            description "password expiration";
+                        } // END of user definition.
+
+                        container config {
+                            description
+                                "password exp config for users";
+                            uses password-expdays;
+                        } // END of config-container definition.
+                        container state {
+                            config false;
+                            description
+                                "state exp for users";
+                            uses password-expdays;
+                        } // END of state-container definition.
+                    } // End of user-expday-list
+                } // END of user-expdays-container definition.
             } // END of password-policy-container definition.
         } // END of aaa-user-container definition.
         container debug {

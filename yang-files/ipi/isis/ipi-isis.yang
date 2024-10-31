@@ -23,12 +23,12 @@ module ipi-isis {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-03-11;
+        revision-date 2024-09-18;
     }
 
     import ipi-network-instance {
@@ -48,23 +48,23 @@ module ipi-isis {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-07-24;
+        revision-date 2024-10-17;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
-    include ipi-isis-extended { revision-date 2024-05-12;}
-    include ipi-isis-lsp { revision-date 2024-04-22;}
-    include ipi-isis-global-flxalg { revision-date 2024-03-27;}
+    include ipi-isis-extended { revision-date 2024-06-14;}
+    include ipi-isis-lsp { revision-date 2024-10-23;}
+    include ipi-isis-global-flxalg { revision-date 2024-10-23;}
     include ipi-isis-sr { revision-date 2024-05-25;}
     include ipi-isis-cspf { revision-date 2023-08-10;}
-    include ipi-isis-fad { revision-date 2024-05-07;}
+    include ipi-isis-fad { revision-date 2024-10-25;}
     include ipi-isis-interface { revision-date 2024-04-10;}
-    include ipi-isis-lsp-flxalg { revision-date 2024-04-22;}
-    include ipi-isis-interface-flxalg { revision-date 2024-04-10;}
+    include ipi-isis-lsp-flxalg { revision-date 2024-10-23;}
+    include ipi-isis-interface-flxalg { revision-date 2024-10-23;}
     organization
         "IP Infusion Inc.";
 
@@ -78,8 +78,23 @@ module ipi-isis {
         "Model for managing IS-IS Instance";
 
 
-    revision "2024-07-03" {
-        description "Added when tag for metric-style under Multi-topology";
+    revision "2024-10-25" {
+        description "Hidden-cli tag for flex-algo clis";
+        reference " 0.13.29.";
+    }
+
+    revision "2024-10-23" {
+        description "Added hidden-cli tag for flex-algo clis";
+        reference " 0.13.28.";
+    }
+
+    revision "2024-08-26" {
+        description "Made changes to commit in user given order";
+        reference " 0.13.27.";
+    }
+
+    revision "2024-07-10" {
+        description "Added attributes required for IS-IS SR ECMP";
         reference " 0.13.21.";
     }
 
@@ -1231,6 +1246,24 @@ module ipi-isis {
             description "Tunnel LSP Tunnel Endpoint";
         } // END of tunnel-lsp-tunnel-endpoint definition.
 
+        leaf ilm-id  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  uint32;
+            description "Prefix ILM-ID";
+        } // END of ilm-id definition.
+
+        leaf ftn-id  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  uint32;
+            description "Prefix FTN-ID";
+        } // END of ftn-id definition.
+
+        leaf in-label  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  uint32;
+            description "Prefix In-Label";
+        } // END of in-label definition.
+
     } // END of isis-route-state definition.
     grouping isis-route-nh-state {
         description
@@ -1260,6 +1293,12 @@ module ipi-isis {
             }
             description "Nexthop neighbor source ID";
         } // END of source-identifier definition.
+
+        leaf out-label  {
+            if-feature feature-list:HAVE_ISIS_SR;
+            type  uint32;
+            description "Nexthop Out-Label";
+        } // END of out-label definition.
 
     } // END of isis-route-nh-state definition.
     grouping isis-ipv6-route-state {
@@ -1892,6 +1931,8 @@ module ipi-isis {
             list isis-instance {
             // when " ipi-isis:isis/isis-instances/isis-instance/config/vrf-name ";
                 key "instance";
+
+                ordered-by user;
                 description
                     "IS-IS structure";
                 leaf instance  {
@@ -2368,8 +2409,7 @@ module ipi-isis {
                             "Enclosing container for Multi-topology";
 
                         list multi-topology {
-                        when " /ipi-isis:isis/ipi-isis:isis-instances/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style and /ipi-isis:isis/ipi-isis:isis-instances/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style = 'wide' ";
-                        // when " ipi-isis:isis/isis-instances/isis-instance/metric/config/level-number ";
+                        when " /ipi-isis:isis/ipi-isis:isis-instances/ipi-isis:isis-instance/ipi-isis:metric/ipi-isis:config/ipi-isis:style ";
                             if-feature feature-list:HAVE_MULTI_TOPOLOGY;
                             key "level";
                             max-elements 1;

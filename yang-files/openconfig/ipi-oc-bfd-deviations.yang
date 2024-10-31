@@ -1,15 +1,176 @@
+/*
+ * Copyright (C) 2024 IP Infusion, Inc.
+ * All rights reserved.
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.
+ *
+ * File name: ipi-oc-bfd-deviations.yang
+ */
+
 module ipi-oc-bfd-deviations {
   namespace   "http://www.ipinfusion.com/yang/ocnos/ipi-oc-bfd-deviations";
   prefix "ipi-oc-bfd-deviations";
 
   import openconfig-bfd { prefix oc-bfd; }
 
+  revision "2024-05-08" {
+    description "Enable /bfd support and add not-supported deviation to all not-supported paths.
+                Add a constraint in bfd interfaces intervals to force leaves to be set together";
+  }
+
   revision "2022-01-19" {
     description "BFD deviations";
   }
 
-  deviation /oc-bfd:bfd {
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:config/oc-bfd:desired-minimum-tx-interval {
+    deviate add {
+      must "../required-minimum-receive and ../detection-multiplier" {
+        error-message "The intervals and detection-multiplier must be set together";
+      }
+    }
+    deviate replace {
+      type uint32{
+        range "3..999";
+      }
+      units milliseconds;
+    }
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:config/oc-bfd:required-minimum-receive {
+    deviate add {
+      must "../desired-minimum-tx-interval and ../detection-multiplier" {
+        error-message "The intervals and detection-multiplier must be set together";
+      }
+    }
+    deviate replace {
+      type uint32{
+        range "3..999";
+      }
+      units milliseconds;
+    }
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:config/oc-bfd:detection-multiplier {
+    deviate add {
+      must "../desired-minimum-tx-interval and ../required-minimum-receive" {
+        error-message "Detection-multiplier must be set together with the intervals";
+      }
+    }
+    deviate replace {
+      type uint8 {
+        range "3..50";
+      }
+    }
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:config/oc-bfd:local-address {
     deviate not-supported;
   }
 
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:config/oc-bfd:enable-per-member-link{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:state/oc-bfd:local-address {
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions{
+    deviate replace {
+      config false;
+    }
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session {
+    deviate replace {
+      config false;
+    }
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:member-interface {
+    deviate replace {
+      type leafref {
+            path "../state/member-interface";
+      }
+    }
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:config {
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:state/oc-bfd:local-address {
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:state/oc-bfd:remote-address{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:state/oc-bfd:last-failure-time{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:state/oc-bfd:failure-transitions{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:state/oc-bfd:remote-minimum-receive-interval{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:state/oc-bfd:demand-mode-requested{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:state/oc-bfd:remote-authentication-enabled{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:state/oc-bfd:remote-control-plane-independent{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:micro-bfd-sessions/oc-bfd:micro-bfd-session/oc-bfd:state/oc-bfd:async{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:peers/oc-bfd:peer/oc-bfd:state/oc-bfd:last-failure-time{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:peers/oc-bfd:peer/oc-bfd:state/oc-bfd:failure-transitions{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:peers/oc-bfd:peer/oc-bfd:state/oc-bfd:remote-diagnostic-code{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:peers/oc-bfd:peer/oc-bfd:state/oc-bfd:remote-control-plane-independent{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:peers/oc-bfd:peer/oc-bfd:state/oc-bfd:echo/oc-bfd:last-packet-transmitted{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:peers/oc-bfd:peer/oc-bfd:state/oc-bfd:echo/oc-bfd:last-packet-received{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:peers/oc-bfd:peer/oc-bfd:state/oc-bfd:echo/oc-bfd:received-packets{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:peers/oc-bfd:peer/oc-bfd:state/oc-bfd:async/oc-bfd:last-packet-transmitted{
+    deviate not-supported;
+  }
+
+  deviation /oc-bfd:bfd/oc-bfd:interfaces/oc-bfd:interface/oc-bfd:peers/oc-bfd:peer/oc-bfd:state/oc-bfd:async/oc-bfd:last-packet-received{
+    deviate not-supported;
+  }
 }

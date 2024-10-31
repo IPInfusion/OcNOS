@@ -23,22 +23,22 @@ module ipi-if-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ipi-if-types {
         prefix ipi-if-types;
-        revision-date 2024-07-03;
+        revision-date 2024-10-17;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-07-24;
+        revision-date 2024-10-17;
     }
 
     import ipi-if-ethernet {
         prefix ipi-if-ethernet;
-        revision-date 2024-07-03;
+        revision-date 2024-10-21;
     }
 
     import ietf-inet-types {
@@ -53,7 +53,7 @@ module ipi-if-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     organization
@@ -68,6 +68,51 @@ module ipi-if-extended {
     description
         "Datamodel for IPI Interface extended module";
 
+
+    revision "2024-10-17" {
+        description "Added missing interface types for IF_HW_TYPE_T";
+        reference " 0.23.4.";
+    }
+
+    revision "2024-10-10" {
+        description "Fix the when directive for empty flags enable-vxlan";
+        reference " 0.23.3.";
+    }
+
+    revision "2024-10-03" {
+        description "Added support to 400G and 200G in interface negotiated-port-speed";
+        reference " 0.23.2.";
+    }
+
+    revision "2024-09-19" {
+        description "Modified cli helpstring for mac ageing mode";
+        reference " 0.22.4.";
+    }
+
+    revision "2024-08-21" {
+        description "CLI implementation mac-ageing";
+        reference " 0.22.3.";
+    }
+
+    revision "2024-08-20" {
+        description "Added HW_SWFDR for L2C type when tag ";
+        reference " 0.21.3.";
+    }
+
+    revision "2024-08-13" {
+        description "Added the range for vlan-id and when tag under l2protocol";
+        reference " 0.21.2.";
+    }
+
+    revision "2024-08-09" {
+        description "Help string change for disable-egr-pcp attribute";
+        reference " 0.21.1.";
+    }
+
+    revision "2024-08-07" {
+        description "Support for egress pcp disable";
+        reference " 0.21.0.";
+    }
 
     revision "2024-07-19" {
         description "Fix storm-control and hardware-profile filter dependency in Q2 boards";
@@ -1786,6 +1831,16 @@ module ipi-if-extended {
         } // END of encap-untagged definition.
 
     } // END of native-layer2-encapsulation-config definition.
+    grouping subif-rewrite-egress-config {
+        description
+            "Grouping for attributes that preserve bits in egress";
+        leaf disable-egr-pcp  {
+            if-feature feature-list:HAVE_DNX;
+            type  empty;
+            description "This attribute is used to preserve cos-dei bits at egress";
+        } // END of disable-egr-pcp definition.
+
+    } // END of subif-rewrite-egress-config definition.
     grouping subif-rewrite-config {
         description
             "Grouping for dot1q and dot1ad encapsulation data";
@@ -1928,7 +1983,11 @@ module ipi-if-extended {
 
         leaf tunnel-vlan  {
             if-feature feature-list:HAVE_SWFWDR;
-            type  int32;
+            type  int32 {
+                 range "2..4094"  {
+                    description "2..4094: Supported range 2 - 4094";
+                 }
+            }
             description "This attribute is used to configure the layer2 control-protocol type
                         tunnel VLAN";
         } // END of tunnel-vlan definition.
@@ -2597,6 +2656,16 @@ module ipi-if-extended {
         } // END of if-arbiter definition.
 
     } // END of if-arbiter-config definition.
+    grouping mac-ageing-config {
+        description
+            "Top level grouping for mac ageing config";
+        leaf hit-based-ageing  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  ipi-if-types:cml_mac_ageing_t;
+            description "Use this attribute to set the mac ageing src or dst-src";
+        } // END of hit-based-ageing definition.
+
+    } // END of mac-ageing-config definition.
 
     grouping  extended-grouping {
     description
@@ -2761,6 +2830,23 @@ module ipi-if-extended {
                                 outer VLAN-id";
                     uses subif-rewrite-config;
                 } // END of state-container definition.
+                container egress {
+                    if-feature feature-list:HAVE_SUBINTERFACE;
+                    if-feature feature-list:HAVE_DNX;
+                    description
+                        "Container for rewrite egress";
+                    container config {
+                        description
+                            "Operational config data for rewrite egress";
+                        uses subif-rewrite-egress-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational state data for rewrite egress";
+                        uses subif-rewrite-egress-config;
+                    } // END of state-container definition.
+                } // END of egress-container definition.
             } // END of rewrite-container definition.
             uses subif-encapsulation-single-tag-top;
             uses subif-encapsulation-double-tag-top;
@@ -3048,6 +3134,26 @@ module ipi-if-extended {
     } // END of tunnel-container definition.
     } // END of tunnel-grouping definition.
 
+    grouping  mac-ageing-grouping {
+    description
+        "Container for mac-ageing";
+    container mac-ageing {
+        description
+            "Container for mac-ageing";
+        container config {
+            description
+                "Container for mac-ageing config";
+            uses mac-ageing-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Operational state data for mac-ageing command";
+            uses mac-ageing-config;
+        } // END of state-container definition.
+    } // END of mac-ageing-container definition.
+    } // END of mac-ageing-grouping definition.
+
     augment /ipi-interface:interfaces/ipi-interface:interface {
     when " /ipi-interface:interfaces/ipi-interface:interface ";
         description
@@ -3098,6 +3204,7 @@ module ipi-if-extended {
         uses tunnel-grouping;
     }
 
+    uses mac-ageing-grouping;
     augment /ipi-interface:interfaces {
         description
             "Global configuration for Port-group";

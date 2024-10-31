@@ -23,7 +23,7 @@ module ipi-ethernet-vpn {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ietf-inet-types {
@@ -33,7 +33,7 @@ module ipi-ethernet-vpn {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-03-11;
+        revision-date 2024-09-18;
     }
 
     import ipi-network-instance {
@@ -43,7 +43,7 @@ module ipi-ethernet-vpn {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-07-24;
+        revision-date 2024-10-17;
     }
 
     import ipi-evpn-srv6 {
@@ -53,17 +53,17 @@ module ipi-ethernet-vpn {
 
     import ipi-if-extended {
         prefix ipi-if-extended;
-        revision-date 2024-07-19;
+        revision-date 2024-10-17;
     }
 
     import ipi-ethernet-vpn-types {
         prefix ipi-ethernet-vpn-types;
-        revision-date 2023-08-16;
+        revision-date 2024-09-18;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     organization
@@ -78,6 +78,31 @@ module ipi-ethernet-vpn {
     description
         "Datamodel for EVPN protocol";
 
+
+    revision "2024-09-19" {
+        description "Added ARP/ND CoS attribute for AC access-if";
+        reference " 0.12.4.";
+    }
+
+    revision "2024-09-18" {
+        description "Blocking service-carving off and dont-pre-empt attr";
+        reference " 0.12.3.";
+    }
+
+    revision "2024-09-03" {
+        description "Restrict Active-Standby CLI for DC boards";
+        reference " 0.12.2.";
+    }
+
+    revision "2024-08-26" {
+        description "Addition of EVPN-MPLS-MH Filter dependentObject for evpn mpls irb";
+        reference " 0.12.1.";
+    }
+
+    revision "2024-08-14" {
+        description "Changed the grouping and added dependentObject for evpn-identifier";
+        reference " 0.12.0.";
+    }
 
     revision "2024-07-20" {
         description "Changed displayString and helpString in cliattr access-interface/config/evpn-identifier";
@@ -416,6 +441,7 @@ module ipi-ethernet-vpn {
         description
             "Top-Level Grouping for MH Load-balancing";
         container mh-load-balance-esi {
+            if-feature feature-list:HAVE_DUNE;
             description
                 "Multihoming ESI and load-balancing";
             container config {
@@ -481,6 +507,7 @@ module ipi-ethernet-vpn {
         } // END of system-mac definition.
 
         leaf redundancy-mode  {
+            if-feature feature-list:HAVE_DUNE;
             type  ipi-ethernet-vpn-types:evpn_esi_load_balance_mode_t;
             description "Use this attribute to configure load balancing type";
         } // END of redundancy-mode definition.
@@ -536,18 +563,6 @@ module ipi-ethernet-vpn {
             description "evpn access port";
         } // END of access-if definition.
 
-        leaf evpn-identifier  {
-            if-feature feature-list:HAVE_BGP_EVPN;
-            if-feature feature-list:HAVE_NVO;
-            if-feature feature-list:HAVE_MPLS_OR_HAVE_VXLAN_OR_HAVE_SRV6;
-            type  uint32 {
-                 range "1..16777215"  {
-                    description "1..16777215: Supported range 1 - 16777215";
-                 }
-            }
-            description "Map already created tenant id";
-        } // END of evpn-identifier definition.
-
         leaf dynamic-learning-disable  {
             type  empty;
             description "Use this attribute to disable dynamic learning of MACs
@@ -559,6 +574,15 @@ module ipi-ethernet-vpn {
             description "Use this attribute to restrict the flood of ARP/ND packets
                         towards remote VTEPs or other access ports";
         } // END of arp-nd-flood-suppress definition.
+
+        leaf cos  {
+            type  int16 {
+                 range "0..7"  {
+                    description "0..7: Supported range 0 - 7";
+                 }
+            }
+            description "Use this attribute to set CoS for the ARP/ND proxy reply";
+        } // END of cos definition.
 
         leaf arp-cache-disable  {
             type  empty;
@@ -597,6 +621,22 @@ module ipi-ethernet-vpn {
         } // END of garp-gna-enable definition.
 
     } // END of evpn-access-interface-config definition.
+    grouping evpn-access-interface-map-vpn-id-config {
+        description
+            "Grouping for EVPN map vpn-id access interface config";
+        leaf evpn-identifier  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            if-feature feature-list:HAVE_NVO;
+            if-feature feature-list:HAVE_MPLS_OR_HAVE_VXLAN_OR_HAVE_SRV6;
+            type  uint32 {
+                 range "1..16777215"  {
+                    description "1..16777215: Supported range 1 - 16777215";
+                 }
+            }
+            description "Map already created tenant id";
+        } // END of evpn-identifier definition.
+
+    } // END of evpn-access-interface-map-vpn-id-config definition.
     grouping evpn-mpls-access-mac-ipv4-config {
         description
             "Grouping for access interface configuration";
@@ -782,11 +822,33 @@ module ipi-ethernet-vpn {
                         "Operational state data";
                     uses evpn-access-interface-config;
                 } // END of state-container definition.
+                uses evpn-access-interface-map-vpn-id-top;
                 uses evpn-mpls-access-interface-mac-ipv4-list-top;
                 uses evpn-mpls-access-interface-mac-ipv6-list-top;
             } // End of access-interface-list
         } // END of access-interfaces-container definition.
     } // END of evpn-access-interface-top definition.
+    grouping evpn-access-interface-map-vpn-id-top {
+        description
+            "Grouping for map vpn-id configuration for access port";
+        container evpn-id-mappings {
+            if-feature feature-list:HAVE_SUBINTERFACE;
+            if-feature feature-list:HAVE_NVO;
+            description
+                "Top level container for map vpn-id configuration for access port";
+            container config {
+                description
+                    "configuration data";
+                uses evpn-access-interface-map-vpn-id-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses evpn-access-interface-map-vpn-id-config;
+            } // END of state-container definition.
+        } // END of evpn-id-mappings-container definition.
+    } // END of evpn-access-interface-map-vpn-id-top definition.
     grouping evpn-mpls-access-interface-mac-ipv4-list-top {
         description
             "Grouping for mac-ipv4 configuration for access port";

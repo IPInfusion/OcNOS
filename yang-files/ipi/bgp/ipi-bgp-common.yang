@@ -21,17 +21,17 @@ submodule ipi-bgp-common {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2024-06-20;
+        revision-date 2024-08-21;
     }
 
     import ietf-yang-types {
@@ -56,6 +56,21 @@ submodule ipi-bgp-common {
     description
         "Datamodel for bgp network list";
 
+
+    revision "2024-10-14" {
+        description "Added peer-allow-ebgp-vpn when tag to peer-group activate of vrf address-family";
+        reference " 0.11.6.";
+    }
+
+    revision "2024-09-30" {
+        description "Updated When tag constraints for attribute 'site-origin-identifier'";
+        reference " 0.11.5.";
+    }
+
+    revision "2024-08-15" {
+        description "Fix data-sync issue when address-family flowspec vrf removed'";
+        reference " 0.11.4.";
+    }
 
     revision "2024-01-05" {
         description "Removed 'ebgp-max-path' cli for address-family l2vpn evpn";
@@ -2190,18 +2205,6 @@ submodule ipi-bgp-common {
                         120 seconds.";
         } // END of peer-restart-time definition.
 
-        leaf site-origin-identifier  {
-            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
-            if-feature feature-list:HAVE_VRF;
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to enable the site-of-origin (SOO) feature. If the
-                        customer AS is multi-homed to the ISP, this attribute ensures that the
-                        PE does not advertise the routes back to the same AS.";
-        } // END of site-origin-identifier definition.
-
         leaf graceful-shut  {
             // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/peer-as ";
             type  empty;
@@ -2467,6 +2470,18 @@ submodule ipi-bgp-common {
             }
             description "Attribute to select best advertise additional path";
         } // END of additional-paths-best-select-count definition.
+
+        leaf site-origin-identifier  {
+            // when " ipi-bgp-address-family-vrf:address-family-vrfs/address-family-vrf/peer-groups/peer-group/config/activate ";
+            if-feature feature-list:HAVE_VRF;
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to enable the site-of-origin (SOO) feature. If the
+                        customer AS is multi-homed to the ISP, this attribute ensures that the
+                        PE does not advertise the routes back to the same AS.";
+        } // END of site-origin-identifier definition.
 
     } // END of bgp-address-family-peer-group-vrf-config definition.
 

@@ -21,12 +21,12 @@ submodule ipi-platform-cmis {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     import ipi-platform-cmis-types {
         prefix ipi-platform-cmis-types;
-        revision-date 2024-05-21;
+        revision-date 2024-09-03;
     }
 
     import ipi-platform-sff8024-types {
@@ -47,6 +47,41 @@ submodule ipi-platform-cmis {
         "This module defines a schema for CMIS transceivers in platform
                 datamodel";
 
+
+    revision "2024-09-03" {
+        description "Add alarm-type field for monitor recovery notifications";
+        reference " 0.8.6.";
+    }
+
+    revision "2024-08-20" {
+        description "Fixed releases in OcNOS 6.5.3 revisions";
+        reference " 0.8.5.";
+    }
+
+    revision "2024-08-16" {
+        description "Fixes for custom application after DM review";
+        reference " 0.8.4.";
+    }
+
+    revision "2024-08-09" {
+        description "Added CMIS module laser status";
+        reference " 0.8.3.";
+    }
+
+    revision "2024-07-29" {
+        description "Added flag skip-netconf-validation to qsfp-dd model to skip some checks in netconf";
+        reference " 0.8.2.";
+    }
+
+    revision "2024-07-15" {
+        description "Added custom application advertisement";
+        reference " 0.8.1.";
+    }
+
+    revision "2024-06-11" {
+        description "Added custom application config CLI";
+        reference " 0.8.0.";
+    }
 
     revision "2024-04-08" {
         description "Added host-config attribute to host side application advertisement";
@@ -627,6 +662,102 @@ submodule ipi-platform-cmis {
             } // END of media-container definition.
         } // End of application-list
     } // END of ipi-platform-cmis-module-advertisement-applications-top definition.
+    grouping ipi-platform-cmis-module-advertisement-custom-app-side-id-state {
+        description
+            "ipi-platform-cmis-module-advertisement-custom-app-side-id-state";
+        leaf id  {
+            type  uint8 {
+                 range "1..32"  {
+                    description "1..32: Supported range 1 - 32";
+                 }
+            }
+            description "Custom application host/media ID number";
+        } // END of id definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-custom-app-side-id-state definition.
+    grouping ipi-platform-cmis-module-advertisement-custom-application-host {
+        description
+            "ipi-platform-cmis-module-advertisement-custom-application-host";
+        leaf host-config  {
+            type  string {
+                length "1..1965";
+            }
+            description "Application host interface configuration details";
+        } // END of host-config definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-custom-application-host definition.
+    grouping ipi-platform-cmis-module-advertisement-custom-application-state {
+        description
+            "ipi-platform-cmis-module-advertisement-custom-application-state";
+        leaf application-selector  {
+            type  uint8;
+            description "Custom application application selector to be used";
+        } // END of application-selector definition.
+
+    } // END of ipi-platform-cmis-module-advertisement-custom-application-state definition.
+    grouping ipi-platform-cmis-module-advertisement-custom-application-top {
+        description
+            "ipi-platform-cmis-module-advertisement-custom-application-top";
+        container state {
+            config false;
+            description
+                "State data for CMIS advertised custom application";
+            uses ipi-platform-cmis-module-advertisement-custom-application-state;
+        } // END of state-container definition.
+        container host-ids {
+            config false;
+            description
+                "Enclosing container for custom application host IDs list";
+
+            list host-id {
+                key "id";
+                config false;
+                description
+                    "List of advertised host IDs";
+                leaf id  {
+                    type  leafref {
+                        path  "../state/id";
+                    }
+                    description "Custom application host ID number";
+                } // END of id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Custom application state data for a host ID";
+                    uses ipi-platform-cmis-module-advertisement-custom-app-side-id-state;
+                    uses ipi-platform-cmis-module-advertisement-application-side-state;
+                    uses ipi-platform-cmis-module-advertisement-custom-application-host;
+                } // END of state-container definition.
+            } // End of host-id-list
+        } // END of host-ids-container definition.
+        container media-ids {
+            config false;
+            description
+                "Enclosing container for custom application media IDs list";
+
+            list media-id {
+                key "id";
+                config false;
+                description
+                    "List of advertised media IDs";
+                leaf id  {
+                    type  leafref {
+                        path  "../state/id";
+                    }
+                    description "Custom application media ID number";
+                } // END of id definition.
+
+                container state {
+                    config false;
+                    description
+                        "Custom application state data for a host ID";
+                    uses ipi-platform-cmis-module-advertisement-custom-app-side-id-state;
+                    uses ipi-platform-cmis-module-advertisement-application-side-state;
+                } // END of state-container definition.
+            } // End of media-id-list
+        } // END of media-ids-container definition.
+    } // END of ipi-platform-cmis-module-advertisement-custom-application-top definition.
     grouping ipi-platform-cmis-module-advertisement-controls-top {
         description
             "ipi-platform-cmis-module-advertisement-controls-top";
@@ -1329,6 +1460,12 @@ submodule ipi-platform-cmis {
                 "CMIS transceiver advertised applications";
             uses ipi-platform-cmis-module-advertisement-applications-top;
         } // END of applications-container definition.
+        container custom-application {
+            config false;
+            description
+                "CMIS transceiver advertised custom application";
+            uses ipi-platform-cmis-module-advertisement-custom-application-top;
+        } // END of custom-application-container definition.
         container controls {
             config false;
             description
@@ -2283,6 +2420,59 @@ submodule ipi-platform-cmis {
             } // END of lanes-container definition.
         } // END of host-container definition.
     } // END of ipi-platform-cmis-module-signal-integrity-top definition.
+    grouping ipi-platform-cmis-module-laser-status-per-lane-state {
+        description
+            "ipi-platform-cmis-module-laser-status-per-lane-state";
+        leaf laser-frequency  {
+            type  decimal64 {
+                 fraction-digits 3;            }
+            units "THz";
+            description "Laser frequency in THz";
+        } // END of laser-frequency definition.
+
+        leaf wavelength  {
+            type  decimal64 {
+                 fraction-digits 2;            }
+            units "nm";
+            description "Laser wavelength in nm";
+        } // END of wavelength definition.
+
+    } // END of ipi-platform-cmis-module-laser-status-per-lane-state definition.
+    grouping ipi-platform-cmis-module-laser-status-top {
+        description
+            "ipi-platform-cmis-module-laser-status-top";
+        container media {
+            config false;
+            description
+                "Top level container for media side";
+            container lanes {
+                config false;
+                description
+                    "Top level container for media side lanes";
+
+                list lane {
+                    key "number";
+                    config false;
+                    description
+                        "Media side list of lanes";
+                    leaf number  {
+                        type  leafref {
+                            path  "../state/number";
+                        }
+                        description "Lane number";
+                    } // END of number definition.
+
+                    container state {
+                        config false;
+                        description
+                            "Per media lane laser status state";
+                        uses ipi-platform-cmis-module-per-lane-state;
+                        uses ipi-platform-cmis-module-laser-status-per-lane-state;
+                    } // END of state-container definition.
+                } // End of lane-list
+            } // END of lanes-container definition.
+        } // END of media-container definition.
+    } // END of ipi-platform-cmis-module-laser-status-top definition.
     grouping ipi-platform-qsfp-dd-config {
         description
             "ipi-platform-qsfp-dd-config";
@@ -2304,6 +2494,24 @@ submodule ipi-platform-cmis {
             type  empty;
             description "To disable the service for a particular port";
         } // END of service-disable definition.
+
+        leaf custom-app-host-id  {
+            type  uint8 {
+                 range "1..32"  {
+                    description "1..32: Supported range 1 - 32";
+                 }
+            }
+            description "Configuration of custom application host ID";
+        } // END of custom-app-host-id definition.
+
+        leaf custom-app-media-id  {
+            type  uint8 {
+                 range "1..32"  {
+                    description "1..32: Supported range 1 - 32";
+                 }
+            }
+            description "Configuration of custom application media ID";
+        } // END of custom-app-media-id definition.
 
     } // END of ipi-platform-qsfp-dd-config definition.
     grouping ipi-platform-qsfp-dd-prbs-gen-check-host-config {
@@ -2895,7 +3103,7 @@ submodule ipi-platform-cmis {
             "ipi-platform-qsfp-dd-top";
 
         list qsfp-dd {
-        // when "                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/application  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/service-disable  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/signal-integrity/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/signal-integrity/config ";
+        // when "                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/application  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/custom-app-host-id  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/custom-app-media-id  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/service-disable  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/signal-integrity/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/signal-integrity/config ";
             key "fp-port";
             description
                 "List of configured QSFP-DD transceivers";
@@ -2985,6 +3193,12 @@ submodule ipi-platform-cmis {
                 "Container for HW config state of signal integrity settings";
             uses ipi-platform-cmis-module-signal-integrity-top;
         } // END of signal-integrity-container definition.
+        container laser-status {
+            config false;
+            description
+                "Container for transceiver laser status";
+            uses ipi-platform-cmis-module-laser-status-top;
+        } // END of laser-status-container definition.
     } // END of cmis-module-container definition.
     } // END of cmis-module-grouping definition.
 

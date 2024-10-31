@@ -1,9 +1,39 @@
+/*
+ * Copyright (C) 2024 IP Infusion, Inc.
+ * All rights reserved.
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.
+ *
+ * File name: ipi-oc-ni-augments.yang
+ */
+
 module ipi-oc-ni-augments {
   namespace   "http://www.ipinfusion.com/yang/ocnos/ipi-oc-ni-augments";
   prefix "ipi-oc-ni-augments";
 
   import openconfig-network-instance { prefix oc-netinst; }
   import openconfig-network-instance-types { prefix oc-ni-types; }
+  import openconfig-mpls-types { prefix oc-mplst; }
+
+
+  revision "2024-04-08" {
+    description "Add new identities to LSP_ROLE";
+  }
+
+  revision "2024-03-18" {
+    description "Add protection-role leaf for RSVP-TE tunnels in config and state container";
+  }
+
+  revision "2024-02-23" {
+    description "Add enabled leaf for RSVP-TE in interface-attributes container";
+  }
+
+  revision "2024-01-30" {
+    description "Add enabled leaf for RSVP-TE in config and state container";
+  }
 
   revision "2023-07-25" {
     description "Add enabled leaf for LDP in config and state container";
@@ -145,6 +175,99 @@ module ipi-oc-ni-augments {
       uses ldp-config;
       config false;
     }
+  }
+
+  grouping rsvp-te-config {
+    leaf enabled {
+      type empty;
+      description "When this leaf is present, it signifies that the RSVP functionality is active; conversely, its absence explicitly deactivates the feature";
+    }
+  }
+
+  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:mpls/oc-netinst:signaling-protocols/oc-netinst:rsvp-te" {
+
+    container config {
+      description "RSVP-TE configuration attributes";
+      uses rsvp-te-config;
+    }
+
+    container state {
+      description "RSVP-TE state attributes";
+      uses rsvp-te-config;
+      config false;
+    }
+  }
+
+  grouping rsvp-te-if-config {
+    leaf enabled {
+      type boolean;
+      default "true";
+      must "(. = 'true')" {
+        error-message "The value must be true";
+      }
+      description "Use this attribute to enable control adjacency to send and receive RSVP-TE control messages for MPLS and GMPLS";
+    }
+  }
+
+  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:mpls/oc-netinst:signaling-protocols/oc-netinst:rsvp-te/oc-netinst:interface-attributes/oc-netinst:interface/oc-netinst:config" {
+      uses rsvp-te-if-config;
+  }
+
+  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:mpls/oc-netinst:signaling-protocols/oc-netinst:rsvp-te/oc-netinst:interface-attributes/oc-netinst:interface/oc-netinst:state" {
+      uses rsvp-te-if-config;
+  }
+
+  identity PROTECTION_ROLE {
+    description
+      "Base identity for protection role.";
+  }
+
+  identity ONE_TO_ONE {
+    base PROTECTION_ROLE;
+    description
+      "Tunnel will use one-to-one protection mechanism.";
+  }
+
+  identity FACILITY {
+    base PROTECTION_ROLE;
+    description
+      "Primary tunnel will use another tunnel as N:1 protection.";
+  }
+
+  identity BYPASS {
+    base PROTECTION_ROLE;
+    description
+      "Tunnel is the protecting tunnel.";
+  }
+
+  grouping te-tunnels-config {
+    leaf protection-role {
+      type identityref {
+        base PROTECTION_ROLE;
+      }
+      default ONE_TO_ONE;
+      description "Specifies the tunnel protection mode: can be one-to-one, facility or bypass.";
+    }
+  }
+
+  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:mpls/oc-netinst:lsps/oc-netinst:constrained-path/oc-netinst:tunnels/oc-netinst:tunnel/oc-netinst:config" {
+    uses te-tunnels-config;
+  }
+
+  augment "/oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:mpls/oc-netinst:lsps/oc-netinst:constrained-path/oc-netinst:tunnels/oc-netinst:tunnel/oc-netinst:state" {
+    uses te-tunnels-config;
+  }
+
+  identity NON_INGRESS {
+    base oc-mplst:LSP_ROLE;
+    description
+      "Label switched path role is a non ingress LSP";
+  }
+
+  identity NONE {
+    base oc-mplst:LSP_ROLE;
+    description
+      "Label switched path role is invalid";
   }
 
 }

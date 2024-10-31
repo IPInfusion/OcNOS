@@ -21,17 +21,17 @@ submodule ipi-platform-profile-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
-    }
-
-    import ipi-platform-types {
-        prefix ipi-platform-types;
-        revision-date 2024-07-15;
+        revision-date 2024-10-29;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-07-24;
+        revision-date 2024-10-17;
+    }
+
+    import ipi-platform-profile-types {
+        prefix ipi-platform-profile-types;
+        revision-date 2024-10-08;
     }
 
     organization
@@ -46,6 +46,16 @@ submodule ipi-platform-profile-extended {
     description
         "Datamodel for Platform profile extended object";
 
+
+    revision "2024-10-08" {
+        description "added symmetric type for load balance l2 and ipv4 ";
+        reference " 0.4.1.";
+    }
+
+    revision "2024-09-25" {
+        description "Imported ipi-platform-profile-types";
+        reference " 0.4.0.";
+    }
 
     revision "2024-04-22" {
         description "added when condition for rtag7 ";
@@ -143,7 +153,7 @@ submodule ipi-platform-profile-extended {
         leaf profile  {
             if-feature feature-list:HAVE_BCM_UFT;
             if-feature feature-list:NOT_HAVE_DUNE;
-            type  ipi-platform-types:platform_forwarding_profile_t;
+            type  ipi-platform-profile-types:platform_forwarding_profile_t;
             default "l2-profile-three";
             description "This Object is to check forwarding profile limit";
         } // END of profile definition.
@@ -156,7 +166,7 @@ submodule ipi-platform-profile-extended {
         leaf route-mode  {
             if-feature feature-list:HAVE_BCM_UFT;
             if-feature feature-list:NOT_HAVE_DUNE;
-            type  ipi-platform-types:platform_forwarding_profile_route_mode_t;
+            type  ipi-platform-profile-types:platform_forwarding_profile_route_mode_t;
             default "wide";
             description "This Object is to check forwarding profile limit";
         } // END of route-mode definition.
@@ -187,7 +197,7 @@ submodule ipi-platform-profile-extended {
 
         leaf lpm-banks  {
             // when " ipi-platform-profile-extended:platform/config/soc == '4'  +  ipi-platform-profile-extended:platform/config/soc == '5' ";
-            type  ipi-platform-types:platform_lpm_custom_profile_t;
+            type  ipi-platform-profile-types:platform_lpm_custom_profile_t;
             description "Use this attribute to set Sets memory allocation profile - Use `show
                         forwarding profile limit` to check size";
         } // END of lpm-banks definition.
@@ -231,13 +241,13 @@ submodule ipi-platform-profile-extended {
         description
             "Grouping for extended profile mdb configuration data";
         leaf type  {
-            type  ipi-platform-types:platform_mdb_profile_t;
+            type  ipi-platform-profile-types:platform_mdb_profile_t;
             mandatory true;
             description "forwarding MDB profile";
         } // END of type definition.
 
         leaf kaps  {
-            type  ipi-platform-types:platform_mdb_kaps_type_t;
+            type  ipi-platform-profile-types:platform_mdb_kaps_type_t;
             mandatory true;
             description "forwarding MDB profile KAPS-CFG";
         } // END of kaps definition.
@@ -248,7 +258,7 @@ submodule ipi-platform-profile-extended {
             "Grouping for extended profile table-limit operational state data";
         leaf forwarding-profile  {
             if-feature feature-list:NOT_HAVE_DUNE;
-            type  ipi-platform-types:platform_forwarding_profile_t;
+            type  ipi-platform-profile-types:platform_forwarding_profile_t;
             description "Profile active in hardware";
         } // END of forwarding-profile definition.
 
@@ -257,7 +267,7 @@ submodule ipi-platform-profile-extended {
         description
             "Grouping for extended profile table-size operational state data";
         leaf profile  {
-            type  ipi-platform-types:platform_forwarding_profile_t;
+            type  ipi-platform-profile-types:platform_forwarding_profile_t;
             description "Profile name";
         } // END of profile definition.
 
@@ -317,13 +327,13 @@ submodule ipi-platform-profile-extended {
             "Grouping for extended profile rate-limit configuration data";
         leaf lossy  {
             if-feature feature-list:NOT_HAVE_DUNE;
-            type  ipi-platform-types:platform_cpu_queue_lossy_t;
+            type  ipi-platform-profile-types:platform_cpu_queue_lossy_t;
             description "Configure CPU queue as lossy or lossless";
         } // END of lossy definition.
 
         leaf monitor  {
             if-feature feature-list:NOT_HAVE_DUNE;
-            type  ipi-platform-types:platform_cpu_queue_monitor_t;
+            type  ipi-platform-profile-types:platform_cpu_queue_monitor_t;
             description "monitor CPU queue usage";
         } // END of monitor definition.
 
@@ -347,12 +357,11 @@ submodule ipi-platform-profile-extended {
             description "Source Destination IPV4 based load balancing";
         } // END of src-dest-ipv4-address-based definition.
 
-        leaf non-symmetric  {
-            // when " ipi-platform-profile-extended:inner-ipv4/config/src-dest-ipv4-address-based ";
+        leaf symmetric-type  {
             if-feature feature-list:HAVE_DNX;
-            type  empty;
+            type  ipi-platform-profile-types:platform_loadbalance_type_t;
             description "Destination IPV4 based load balancing";
-        } // END of non-symmetric definition.
+        } // END of symmetric-type definition.
 
         leaf protocol-id-based  {
             if-feature feature-list:HAVE_DNX;
@@ -479,10 +488,10 @@ submodule ipi-platform-profile-extended {
             description "Source Destination l4port based load balancing";
         } // END of src-dest-based definition.
 
-        leaf non-symmetric  {
-            type  empty;
+        leaf symmetric-type  {
+            type  ipi-platform-profile-types:platform_loadbalance_type_t;
             description "Non-symmetrical based load balancing";
-        } // END of non-symmetric definition.
+        } // END of symmetric-type definition.
 
     } // END of platform-load-balance-l4-port-config definition.
     grouping platform-extended-load-balance-config {
@@ -497,13 +506,13 @@ submodule ipi-platform-profile-extended {
         leaf trill  {
             if-feature feature-list:HAVE_TRILLD;
             if-feature feature-list:NOT_HAVE_DUNE;
-            type  ipi-platform-types:platform_load_trill_t;
+            type  ipi-platform-profile-types:platform_load_trill_t;
             description "This Object is used to set trill header";
         } // END of trill definition.
 
         leaf hash  {
             if-feature feature-list:NOT_HAVE_DUNE;
-            type  ipi-platform-types:platform_load_hash_t;
+            type  ipi-platform-profile-types:platform_load_hash_t;
             description "This Object is used to set (hash values)CRC";
         } // END of hash definition.
 
@@ -523,11 +532,11 @@ submodule ipi-platform-profile-extended {
             description "Source Destination based load balancing";
         } // END of src-dest-mac-based definition.
 
-        leaf non-symmetric  {
+        leaf symmetric-type  {
             if-feature feature-list:HAVE_DNX;
-            type  empty;
-            description "Non symmetrical based load balancing";
-        } // END of non-symmetric definition.
+            type  ipi-platform-profile-types:platform_loadbalance_type_t;
+            description "Choose Symmetrical or Non symmetrical based load balancing";
+        } // END of symmetric-type definition.
 
     } // END of platform-extended-load-balance-l2-config definition.
     grouping platform-extended-load-balance-inner-l2-config {
@@ -549,11 +558,11 @@ submodule ipi-platform-profile-extended {
             description "Source Destination based load balancing";
         } // END of src-dest-mac-based definition.
 
-        leaf non-symmetric  {
+        leaf symmetric-type  {
             if-feature feature-list:HAVE_DNX;
-            type  empty;
+            type  ipi-platform-profile-types:platform_loadbalance_type_t;
             description "Non symmetrical based load balancing";
-        } // END of non-symmetric definition.
+        } // END of symmetric-type definition.
 
     } // END of platform-extended-load-balance-inner-l2-config definition.
     grouping platform-extended-load-balance-ipv4-config {
@@ -572,11 +581,11 @@ submodule ipi-platform-profile-extended {
             description "Source Destination IPV4 based load balancing";
         } // END of src-dest-ipv4-address-based definition.
 
-        leaf non-symmetric  {
+        leaf symmetric-type  {
             if-feature feature-list:HAVE_DNX;
-            type  empty;
-            description "Destination IPV4 based load balancing";
-        } // END of non-symmetric definition.
+            type  ipi-platform-profile-types:platform_loadbalance_type_t;
+            description "Choose Symmetrical or Non symmetrical based load balancing";
+        } // END of symmetric-type definition.
 
     } // END of platform-extended-load-balance-ipv4-config definition.
     grouping platform-extended-load-balance-ipv6-config {
@@ -617,7 +626,7 @@ submodule ipi-platform-profile-extended {
         description
             "Grouping for platform-port-channel-config configuration data";
         leaf type  {
-            type  ipi-platform-types:platform_lacp_psc_t;
+            type  ipi-platform-profile-types:platform_lacp_psc_t;
             description "This Object is used to set LACP port-channel load-balancing and set
                         port selection criteria (PSC) on an interface";
         } // END of type definition.
@@ -627,7 +636,7 @@ submodule ipi-platform-profile-extended {
         description
             "Grouping for Platform SoC information";
         leaf soc  {
-            type  ipi-platform-types:platform_soc_type_t;
+            type  ipi-platform-profile-types:platform_soc_type_t;
             description "Attribute to indicate the SoC running on this platform. This attribute
                         cannot be configured.";
         } // END of soc definition.

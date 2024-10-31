@@ -2,7 +2,7 @@
 #define _H_feature_list
 
 #define y_feature_list_M_feature_list (const xmlChar  *)"feature-list"
-#define y_feature_list_R_feature_list (const xmlChar *)"2024-08-06"
+#define y_feature_list_R_feature_list (const xmlChar *)"2024-10-29"
 
 #include <xmlstring.h>
 #include "dlq.h"
@@ -313,6 +313,7 @@ extern "C" {
 #define u_feature_list_F_HAVE_SR_MPLS 1
 #define u_feature_list_F_HAVE_SR_OAM 1
 #define u_feature_list_F_HAVE_SR_POLICY 1
+#define u_feature_list_F_HAVE_SR_TI_LFA 1
 #define u_feature_list_F_HAVE_SSH_CLIENT 1
 #define u_feature_list_F_HAVE_SSH_SERVER 1
 #define u_feature_list_F_HAVE_STDINT_H 1

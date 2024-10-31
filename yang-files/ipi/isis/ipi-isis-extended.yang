@@ -21,7 +21,7 @@ submodule ipi-isis-extended {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     import ipi-isis-types {
@@ -31,7 +31,7 @@ submodule ipi-isis-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ietf-inet-types {
@@ -51,6 +51,11 @@ submodule ipi-isis-extended {
     description
         "Model for managing IS-IS Extended Parameters";
 
+
+    revision "2024-06-14" {
+        description "Added attributes required for IS-IS SR ECMP";
+        reference " 0.6.6.";
+    }
 
     revision "2024-05-12" {
         description "Added implicit delete tag wrt fast-reroute";
@@ -458,6 +463,16 @@ submodule ipi-isis-extended {
             description "Destination Path Type of TI-LFA route";
         } // END of path-type definition.
 
+        leaf ftn-index  {
+            type  uint32;
+            description "FTN index of TI-LFA route";
+        } // END of ftn-index definition.
+
+        leaf ilm-index  {
+            type  uint32;
+            description "ILM index of TI-LFA route";
+        } // END of ilm-index definition.
+
     } // END of ipv4-tilfa-route-state definition.
     grouping ipv4-tilfa-route-nexthop-state {
         description
@@ -467,20 +482,33 @@ submodule ipi-isis-extended {
             description "Primary Nexthop address of TI-LFA route";
         } // END of primary-nexthop definition.
 
+        leaf primary-outgoing-interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Primary Out-going Interface of TI-LFA route";
+        } // END of primary-outgoing-interface definition.
+
         leaf protection-type  {
             type  ipi-isis-types:isis_tilfa_protection_type_t;
             description "Nexthop protection type of TI-LFA route";
         } // END of protection-type definition.
 
-        leaf backup-nexthop  {
-            type  inet:ipv4-address;
-            description "Backup Nexthop of TI-LFA route";
-        } // END of backup-nexthop definition.
-
         leaf pq-node-router-id  {
             type  inet:ipv4-address;
             description "PQ Router-ID of TI-LFA route";
         } // END of pq-node-router-id definition.
+
+        leaf p-node  {
+            type  inet:ipv4-address;
+            description "Disjoint P node of TI-LFA route";
+        } // END of p-node definition.
+
+        leaf q-node  {
+            type  inet:ipv4-address;
+            description "Disjoint Q node of TI-LFA route";
+        } // END of q-node definition.
 
         leaf pq-trunk-id  {
             type  uint32;
@@ -536,6 +564,16 @@ submodule ipi-isis-extended {
             type  uint32;
             description "PQ Trunk Outgoing Label";
         } // END of outgoing-label definition.
+
+        leaf ftn-index  {
+            type  uint32;
+            description "FTN index of PQ Trunk";
+        } // END of ftn-index definition.
+
+        leaf reference-count  {
+            type  uint32;
+            description "Reference count of PQ Trunk";
+        } // END of reference-count definition.
 
     } // END of tilfa-pq-trunk-state definition.
     grouping tilfa-pq-state {
@@ -598,6 +636,14 @@ submodule ipi-isis-extended {
             description "ISIS TI-LFA PQ node";
         } // END of pq-node definition.
 
+        leaf p-node-disjoint  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA P node disjoint";
+        } // END of p-node-disjoint definition.
+
         leaf q-node-disjoint  {
             type  string {
                 length "1..1965";
@@ -633,6 +679,14 @@ submodule ipi-isis-extended {
             }
             description "ISIS TI-LFA PQ node";
         } // END of pq-node definition.
+
+        leaf p-node-disjoint  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "ISIS TI-LFA P node disjoint";
+        } // END of p-node-disjoint definition.
 
         leaf q-node-disjoint  {
             type  string {
@@ -771,6 +825,7 @@ submodule ipi-isis-extended {
                 } // End of protocol-list
             } // END of protocols-container definition.
             container ipv4-tilfa-routes {
+                if-feature feature-list:HAVE_ISIS_TI_LFA;
                 description
                     "This container defines the ISIS TI-LFA routes";
 
@@ -845,6 +900,7 @@ submodule ipi-isis-extended {
                 } // End of ipv4-tilfa-route-list
             } // END of ipv4-tilfa-routes-container definition.
             container tilfa-pq-nodes {
+                if-feature feature-list:HAVE_ISIS_TI_LFA;
                 description
                     "This container defines ISIS TI-LFA pq nodes";
                 container circuit-levels {

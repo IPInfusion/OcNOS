@@ -1,0 +1,241 @@
+    -- /* Copyright (C) 2001-2024 IP Infusion, Inc. All Rights Reserved. */
+
+    IPI-CMM-EDFA-MIB DEFINITIONS ::= BEGIN
+
+    --  This module provides authoritative definitions for cmm  EDFA
+    --  transceiver modules
+    --
+    --  This module will be extended, as needed.
+    --
+
+    IMPORTS
+        MODULE-IDENTITY, Counter32
+            FROM SNMPv2-SMI-MIB
+        OBJECT-TYPE, NOTIFICATION-TYPE
+            FROM SNMPv2-SMI-MIB
+        DisplayString
+            FROM SNMPv2-TC
+        MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+            FROM SNMPv2-CONF
+        enterprises, OBJECT-IDENTITY
+            FROM SNMPv2-SMI
+        ipi FROM IPI-MODULE-MIB
+        cmmChassisObject, cmmStackUnitIndex, cmmTransIndex
+            FROM IPI-CMM-CHASSIS-MIB;
+
+    cmm  MODULE-IDENTITY
+    LAST-UPDATED "202304030000Z"   -- April 03, 2023 12:00:00 GMT
+    ORGANIZATION "IP Infusion"
+    CONTACT-INFO "support@ipinfusion.com"
+
+    DESCRIPTION
+       "The Structure of CMM EDFA transceiver Information for
+        the IPI enterprise."
+  REVISION "202304030000Z"
+  DESCRIPTION
+      "Complying to level 3 of SMILINT"
+    ::= { ipi 100 }
+
+
+    -- ### Groups ###
+    cmmEDFAModule      OBJECT IDENTIFIER ::={ cmmChassisObject 22 }
+
+    cmmEDFAModuleObjects  OBJECT IDENTIFIER ::={ cmmEDFAModule 1 }
+    cmmEDFADDMObjects     OBJECT IDENTIFIER ::={ cmmEDFAModule 2 }
+
+
+    -- ## Remote EDFA Entry
+    cmmEDFATable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmEDFAEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of entries containing EDFA Transceiver module information."
+        ::= { cmmEDFAModuleObjects 1 }
+
+    cmmEDFAEntry OBJECT-TYPE
+      SYNTAX            CmmEDFAEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing EDFA Transceiver module information."
+        INDEX    { cmmStackUnitIndex,
+                   cmmTransIndex }
+        ::= { cmmEDFATable 1 }
+
+    CmmEDFAEntry::=
+        SEQUENCE {
+           cmmEDFAOpertingMode     INTEGER
+        }
+
+    cmmEDFAOpertingMode    OBJECT-TYPE
+      SYNTAX  INTEGER {
+                        agc(1),
+                        apc(2)
+      }
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "EDFA configured mode of operation."
+      ::= { cmmEDFAEntry 1 }
+
+
+    -- ## Remote EDFA DDM Entry
+    cmmEDFADDMTable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmEDFADDMEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of entries containing EDFA Transceiver DDM information."
+        ::= { cmmEDFAModuleObjects 2 }
+
+    cmmEDFADDMEntry OBJECT-TYPE
+      SYNTAX            CmmEDFADDMEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+        "A list of table entries containing EDFA Transceiver DDM information."
+        INDEX    { cmmStackUnitIndex,
+                   cmmTransIndex,
+                   cmmEDFAAttrType
+        }
+        ::= { cmmEDFADDMTable 1 }
+
+    CmmEDFADDMEntry::=
+        SEQUENCE {
+           cmmEDFAAttrType            INTEGER,
+           cmmEDFAValue               INTEGER,
+           cmmEDFAAlertMax            INTEGER,
+           cmmEDFACriticalMax         INTEGER,
+           cmmEDFACriticalMin         INTEGER,
+           cmmEDFAAlertMin            INTEGER
+        }
+
+    cmmEDFAAttrType  OBJECT-TYPE
+      SYNTAX    INTEGER {
+                        temperature(1),
+                        voltage(2),
+                        inputpower(3),
+                        outputpower(4),
+                        pumpbias(5),
+                        gain(6)
+      }
+      MAX-ACCESS   accessible-for-notify
+      STATUS      current
+      DESCRIPTION
+      "EDFA DDM for variables."
+      ::= { cmmEDFADDMEntry 1 }
+
+    cmmEDFAValue  OBJECT-TYPE
+      SYNTAX        INTEGER
+      UNITS         "0.01 unit"
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "Internally measured temperature of the transceiver.
+       Unit: Temperature in degree C, Voltage in Volts,
+             TargetGain/TargetOutputPower/InputPower in dBm and
+             PumpBias in Amp"
+      ::= { cmmEDFADDMEntry 2 }
+
+    cmmEDFAAlertMax  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "EDFA transceiver alert max threshold value."
+      ::= { cmmEDFADDMEntry 3 }
+
+    cmmEDFACriticalMax  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "EDFA transceiver critical max threshold value."
+      ::= { cmmEDFADDMEntry 4 }
+
+    cmmEDFACriticalMin  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "EDFA transceiver critical min threshold value."
+      ::= { cmmEDFADDMEntry 5 }
+
+    cmmEDFAAlertMin  OBJECT-TYPE
+      SYNTAX        INTEGER
+      MAX-ACCESS    read-only
+      STATUS        current
+      DESCRIPTION
+      "EDFA transceiver alert min threshold value."
+      ::= { cmmEDFADDMEntry 6 }
+
+
+    --
+    -- ## Notifications
+    --
+
+    cmmEDFADDMAlarm           OBJECT IDENTIFIER ::= { cmmEDFADDMObjects 1 }
+    cmmEDFADDMNotifications   OBJECT IDENTIFIER ::= { cmmEDFADDMObjects 2  }
+
+
+    cmmEDFAAlarmSeverity  OBJECT-TYPE
+      SYNTAX  INTEGER {
+                        alertmax(1),
+                        criticalmax(2),
+                        criticalmin(3),
+                        alertmin(4)
+      }
+      MAX-ACCESS   accessible-for-notify
+      STATUS      current
+      DESCRIPTION
+      "EDFA generic threshold alarm severity type."
+      ::= { cmmEDFADDMAlarm 1 }
+
+    cmmEDFAAlarmThresholdMax  OBJECT-TYPE
+      SYNTAX   INTEGER
+       MAX-ACCESS   accessible-for-notify
+       STATUS       current
+       DESCRIPTION
+       "A generic threshold maximum value"
+       ::= { cmmEDFADDMAlarm 2 }
+
+    cmmEDFAAlarmThresholdMin  OBJECT-TYPE
+      SYNTAX   INTEGER
+       MAX-ACCESS   accessible-for-notify
+       STATUS       current
+       DESCRIPTION
+       "A generic threshold minimum value"
+       ::= { cmmEDFADDMAlarm 3 }
+
+    cmmEDFANotifyAlarm   NOTIFICATION-TYPE
+      OBJECTS     {
+            cmmStackUnitIndex,
+            cmmTransIndex,
+            cmmEDFAAlarmSeverity,
+            cmmEDFAAttrType,
+            cmmEDFAValue,
+            cmmEDFAAlarmThresholdMax,
+            cmmEDFAAlarmThresholdMin
+      }
+      STATUS       current
+      DESCRIPTION
+      "Set when EDFA transceiver type exceeds alarm value"
+      ::= { cmmEDFADDMNotifications 1 }
+
+    cmmEDFANotifyAlarmRecovery   NOTIFICATION-TYPE
+      OBJECTS     {
+            cmmStackUnitIndex,
+            cmmTransIndex,
+            cmmEDFAAttrType,
+            cmmEDFAValue,
+            cmmEDFACriticalMax,
+            cmmEDFACriticalMin
+      }
+      STATUS       current
+      DESCRIPTION
+      "Set when EDFA transceiver type recovers from alarm value"
+      ::= { cmmEDFADDMNotifications 2 }
+
+
+END

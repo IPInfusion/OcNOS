@@ -23,7 +23,7 @@ module ipi-vxlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-06-17;
+        revision-date 2024-10-15;
     }
 
     import ietf-inet-types {
@@ -38,7 +38,7 @@ module ipi-vxlan {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-07-24;
+        revision-date 2024-10-17;
     }
 
     import ipi-bridge {
@@ -48,17 +48,17 @@ module ipi-vxlan {
 
     import ipi-vlan {
         prefix ipi-vlan;
-        revision-date 2024-03-13;
+        revision-date 2024-09-20;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-03-11;
+        revision-date 2024-09-18;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2024-07-23;
+        revision-date 2024-09-20;
     }
 
     import ipi-network-instance {
@@ -73,7 +73,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-08-06;
+        revision-date 2024-10-29;
     }
 
     organization
@@ -88,6 +88,31 @@ module ipi-vxlan {
     description
         "Datamodel for VxLAN protocol";
 
+
+    revision "2024-10-03" {
+        description "CLI implementation disable-arp-storm-control-for-cpu";
+        reference " 0.12.5.";
+    }
+
+    revision "2024-09-27" {
+        description "Fix the when directive for empty flags enable-vxlan and enable-switchport";
+        reference " 0.12.7.";
+    }
+
+    revision "2024-09-25" {
+        description "Added 'is-bitmap-check-enable' in vxlan-tenants container with config tenant-type";
+        reference " 0.13.1.";
+    }
+
+    revision "2024-09-20" {
+        description "Added pattern for destiantion-vtep-ip";
+        reference " 0.13.0.";
+    }
+
+    revision "2024-07-26" {
+        description "Added length for description";
+        reference " 0.12.5.";
+    }
 
     revision "2024-07-24" {
         description "Enabled the access-if-vxlan and vxlan bridge-vlan CLI only for TR3 boards";
@@ -462,6 +487,12 @@ module ipi-vxlan {
                         cache disables on access ports created with
                         only the port option.";
         } // END of maximum-cache-disable-count definition.
+
+        leaf disable-arp-storm-control-for-cpu  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to set the vxlan disable arp storm control for cpu";
+        } // END of disable-arp-storm-control-for-cpu definition.
 
     } // END of vxlan-global-config definition.
     grouping vxlan-qos-global-config {
@@ -859,24 +890,26 @@ module ipi-vxlan {
         description
             "Grouping for displaying tunnel information";
         leaf destination-vtep-ip  {
-            type  inet:ipv4-address;
-            description "Use this attribute to set Tunnel destination IP";
-        } // END of destination-vtep-ip definition.
+            type  inet:ipv4-address {
+                pattern "(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])";
+                }
+                description "Use this attribute to set Tunnel destination IP";
+            } // END of destination-vtep-ip definition.
 
-        leaf source-vtep-ip  {
-            type  inet:ipv4-address;
-            description "Use this attribute to set Tunnel source IP";
-        } // END of source-vtep-ip definition.
+            leaf source-vtep-ip  {
+                type  inet:ipv4-address;
+                description "Use this attribute to set Tunnel source IP";
+            } // END of source-vtep-ip definition.
 
-        leaf up-down-time  {
-            type  yang:timeticks;
-            description "Use this attribute to indicate tunnel up/down time";
-        } // END of up-down-time definition.
+            leaf up-down-time  {
+                type  yang:timeticks;
+                description "Use this attribute to indicate tunnel up/down time";
+            } // END of up-down-time definition.
 
-        leaf tunnel-status  {
-            type  ipi-vxlan-types:vxlan_tunnel_status_t;
-            description "Use this attribute to see the Status of tunnel";
-        } // END of tunnel-status definition.
+            leaf tunnel-status  {
+                type  ipi-vxlan-types:vxlan_tunnel_status_t;
+                description "Use this attribute to see the Status of tunnel";
+            } // END of tunnel-status definition.
 
     } // END of vxlan-tunnel-state definition.
     grouping vxlan-tunnel-counters-state {
@@ -2304,7 +2337,7 @@ module ipi-vxlan {
 
         leaf description  {
             type  cml-data-types:cml_line_t {
-                length "1..1965";
+                length "1..128";
             }
             description "VTEP description";
         } // END of description definition.
