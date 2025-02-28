@@ -23,7 +23,7 @@ module ipi-segment-routing {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-sr-types {
@@ -33,7 +33,7 @@ module ipi-segment-routing {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
     }
 
     import ietf-inet-types {
@@ -43,14 +43,15 @@ module ipi-segment-routing {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
-    include ipi-segment-routing-mpls-flxalg { revision-date 2024-03-09;}
     include ipi-srv6-flxalg { revision-date 2024-03-09;}
-    include ipi-segment-routing-policy-flxalg { revision-date 2024-10-19;}
-    include ipi-segment-routing-odn { revision-date 2023-09-12;}
-    include ipi-segment-routing-mpls-ipv6 { revision-date 2024-02-29;}
+    include ipi-segment-routing-mpls-flxalg { revision-date 2024-08-10;}
+    include ipi-segment-routing-policy-constr { revision-date 2024-12-05;}
+    include ipi-segment-routing-policy-flxalg { revision-date 2024-12-05;}
+    include ipi-segment-routing-odn { revision-date 2024-12-18;}
+    include ipi-segment-routing-odn-constr { revision-date 2024-12-05;}
     organization
         "IP Infusion Inc.";
 
@@ -65,18 +66,58 @@ module ipi-segment-routing {
                 which includes traffic-enireening for sr as well";
 
 
-    revision "2024-10-19" {
-        description "Added hidden cli tag for Flexible Algorithm Enable";
-        reference " 0.13.1.";
+    revision "2024-12-18" {
+        description "Added exit command exit-pol-cp back in constraints mode";
+        reference " 0.13.7.";
+    }
+
+    revision "2024-12-13" {
+        description "Added exit command in policy-cp-constraints mode";
+        reference " 0.13.6.";
+    }
+
+    revision "2024-12-05" {
+        description "Hide new SR-Policy constraints, EAG, SRLG, IP-Address-Filter-EAG";
+        reference " 0.13.5.";
+    }
+
+    revision "2024-10-04" {
+        description "Added Flex-algo support for ODN";
+        reference " 0.13.4.";
+    }
+
+    revision "2024-10-01" {
+        description "Removed inclusion of SR-MPLS-IPv6 Segment-ID XML file, since not supported now";
+        reference " 0.13.3.";
     }
 
     revision "2024-09-23" {
         description "Updated the description for binding-sid notification";
+        reference " 0.13.2.";
+    }
+
+    revision "2024-08-20" {
+        description "Added implicit delete tag for srms-preference";
+        reference " 0.13.1.";
+    }
+
+    revision "2024-08-10" {
+        description "Commented out Flex-Algo Adjacency-SID for OcNOS-6.6";
         reference " 0.13.0.";
     }
 
-    revision "2024-07-25" {
-        description "Added implicit delete tag for srms-preference";
+    revision "2024-06-25" {
+        description "Unhide the SR-policy Algorithm parameter";
+        reference " 0.12.11.";
+    }
+
+    revision "2024-05-06" {
+        description "Included ODN SR-Policy constraints and Adj-SID XML files for Flex-Algo";
+        reference " 0.12.10.";
+    }
+
+    revision "2024-04-27" {
+        description "Updated revision date since Jenkins builds failed";
         reference " 0.12.9.";
     }
 
@@ -431,69 +472,6 @@ module ipi-segment-routing {
         } // END of name definition.
 
     } // END of segment-routing-interface-config definition.
-    grouping adjacency-segment-config {
-        description
-            "Grouping for MPLS segment-routing Adjacency configurations";
-        leaf adj-sid-absolute  {
-            type  uint32 {
-                 range "16..1048575"  {
-                    description "16..1048575: Supported range 16 - 1048575";
-                 }
-            }
-            description "This attribute is used to configure Segment Route adjacency SID
-                        absolute value";
-        } // END of adj-sid-absolute definition.
-
-        leaf adj-sid-index  {
-            type  uint32 {
-                 range "0..1048575"  {
-                    description "0..1048575: Supported range 0 - 1048575";
-                 }
-            }
-            description "This attribute is used to configure Segment Route adjacency SID
-                        index-value";
-        } // END of adj-sid-index definition.
-
-    } // END of adjacency-segment-config definition.
-    grouping prefix-segment-algorithm-config {
-        description
-            "Grouping for MPLS segment-route Prefix configurations";
-        leaf algorithm-num  {
-            type  ipi-sr-types:sr_algo_choice_t;
-            description "SR-Algorithm number";
-        } // END of algorithm-num definition.
-
-        leaf sid-absolute  {
-            type  uint32 {
-                 range "16..1048575"  {
-                    description "16..1048575: Supported range 16 - 1048575";
-                 }
-            }
-            description "This attribute is used to configure Segment Route Prefix SID absolute
-                        value";
-        } // END of sid-absolute definition.
-
-        leaf sid-index  {
-            type  uint32 {
-                 range "0..1048575"  {
-                    description "0..1048575: Supported range 0 - 1048575";
-                 }
-            }
-            description "This attribute is used to configure Segment Route Prefix SID
-                        index-value";
-        } // END of sid-index definition.
-
-        leaf exp-null  {
-            type  ipi-sr-types:if_sr_prefix_flag_t;
-            description "This attribute describes except Null";
-        } // END of exp-null definition.
-
-        leaf n-flag-clear  {
-            type  ipi-sr-types:if_sr_n_flag_clear_t;
-            description "This attribute is used to set n-flag-clear";
-        } // END of n-flag-clear definition.
-
-    } // END of prefix-segment-algorithm-config definition.
     grouping prefer-sr-config {
         description
             "preference configuration for segment routing label over LDP label";
@@ -1352,37 +1330,6 @@ module ipi-segment-routing {
                         "constraint state container";
                     uses constraints-config;
                 } // END of state-container definition.
-                container admin-groups {
-                    when " /ipi-segment-routing:segment-routing/ipi-segment-routing:traffic-engineering/ipi-segment-routing:policies/ipi-segment-routing:policy/ipi-segment-routing:candidate-paths/ipi-segment-routing:candidate-path/ipi-segment-routing:dynamic/ipi-segment-routing:constraints/ipi-segment-routing:config ";
-                    if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_PCEP_SRV6;
-                    description
-                        "CP constraint admin-group";
-
-                    list admin-group {
-                        if-feature feature-list:HAVE_SR_POLICY_OR_HAVE_PCEP_SRV6;
-                        key "admin-group-name";
-                        description
-                            "list of affinity admin group";
-                        leaf admin-group-name  {
-                            type  leafref {
-                                path  "../config/admin-group-name";
-                            }
-                            description "admin group name";
-                        } // END of admin-group-name definition.
-
-                        container config {
-                            description
-                                "configuration container for affinity admin group";
-                            uses admin-group-config;
-                        } // END of config-container definition.
-                        container state {
-                            config false;
-                            description
-                                "state container for admin group";
-                            uses admin-group-config;
-                        } // END of state-container definition.
-                    } // End of admin-group-list
-                } // END of admin-groups-container definition.
                 container bounds {
                     description
                         "Upper-bound constraints container";
@@ -1412,34 +1359,11 @@ module ipi-segment-routing {
                         } // END of state-container definition.
                     } // End of bound-list
                 } // END of bounds-container definition.
-                container ip {
-                    description
-                        "IP constraints to be used for dynamic candidate path";
-
-                    list include-hop {
-                        key "address";
-                        description
-                            "All the ip constriants should be  included for the path computation";
-                        leaf address  {
-                            type  leafref {
-                                path  "../config/address";
-                            }
-                            description "Hop address which needs toincluded in the LSP";
-                        } // END of address definition.
-
-                        container config {
-                            description
-                                "include-hop config container";
-                            uses include-ip-constraints-config;
-                        } // END of config-container definition.
-                        container state {
-                            config false;
-                            description
-                                "include-hop state container";
-                            uses include-ip-constraints-config;
-                        } // END of state-container definition.
-                    } // End of include-hop-list
-                } // END of ip-container definition.
+                uses admin-group-constraints-top;
+                uses extended-admin-group-constraints-top;
+                uses srlg-group-constraints-top;
+                uses ip-hop-constraints-top;
+                uses ip-hop-address-filter-constraints-top;
                 uses sr-dyn-cp-cons-segrule-top;
                 uses sr-dyn-cp-cons-disjoint-path-top;
             } // END of constraints-container definition.
@@ -1450,21 +1374,6 @@ module ipi-segment-routing {
             uses explicit-path-properties;
         } // END of explicit-container definition.
     } // END of candidate-path-types-config definition.
-    grouping include-ip-constraints-config {
-        description
-            "Ip addresses to be        included as constraints for the dynamic path";
-        leaf address  {
-            type  inet:ip-address;
-            description "Hop address which needs toincluded in the LSP";
-        } // END of address definition.
-
-        leaf type  {
-            type  ipi-sr-types:srte_ip_constraint_hop_type_t;
-            description "Type of the constraints whether it is node or loose or it is a link or
-                        strict, It is highly recomeneded to use strict fro link constraint";
-        } // END of type definition.
-
-    } // END of include-ip-constraints-config definition.
     grouping bounds-config {
         description
             "various bound constraints for the dynamic candidate path";
@@ -1490,34 +1399,6 @@ module ipi-segment-routing {
         } // END of segment-bound definition.
 
     } // END of bounds-config definition.
-    grouping affinity-config {
-        description
-            "affinity constraints for the dynamic candidate path";
-        leaf-list exclude-any  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "The link is excluded if it has any of these affinities.";
-        } // END of exclude-any definition.
-
-        leaf-list include-any  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "The link is accepted if it has any of these affinities.";
-        } // END of include-any definition.
-
-        leaf-list include-all  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "The link is accepted if it has all these affinities.";
-        } // END of include-all definition.
-
-    } // END of affinity-config definition.
     grouping dynamic-path-properties-config {
         description
             "Dynamic path properties of the candidate path";
@@ -1573,7 +1454,7 @@ module ipi-segment-routing {
                 container config {
                     description
                         "Configuration state for SR policy candidate path segment lists";
-                    uses segment-list-config;
+                    uses weighted-segment-list-config;
                 } // END of config-container definition.
             } // End of segment-list-list
         } // END of segment-lists-container definition.
@@ -1588,24 +1469,6 @@ module ipi-segment-routing {
         } // END of enable definition.
 
     } // END of constraints-config definition.
-    grouping admin-group-config {
-        description
-            "configuration parameters for admin group";
-        leaf affinity-type  {
-            type  ipi-sr-types:sr_te_admin_group_type_t;
-            description "Use this attribute to configure the type is include-any or include-all
-                        or exclude-any";
-        } // END of affinity-type definition.
-
-        leaf admin-group-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Affinity admin-group name";
-        } // END of admin-group-name definition.
-
-    } // END of admin-group-config definition.
     grouping srv6-manager-state {
         description
             "SRv6 manager state attributes";
@@ -1942,55 +1805,8 @@ module ipi-segment-routing {
                         "Configuration data for segment-routing interface name";
                     uses segment-routing-interface-config;
                 } // END of config-container definition.
-                container adjacency-segment {
-                    // when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
-                    if-feature feature-list:HAVE_SR_MPLS;
-                    description
-                        "MPLS segment-route adjacency";
-                    container config {
-                        // when " ../config/adj-sid-index or ../config/adj-sid-absolute ";
-                        description
-                            "Configuration data for segment-route adjacency module";
-                        uses adjacency-segment-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "Operational state data for segment-route prefix module";
-                        uses adjacency-segment-config;
-                    } // END of state-container definition.
-                } // END of adjacency-segment-container definition.
-                container prefix-segment-algorithms {
-                    if-feature feature-list:HAVE_SR_MPLS;
-                    description
-                        "MPLS segment-route Prefix-SID/Algorithm list";
-
-                    list prefix-segment-algorithm {
-                    // when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
-                        key "algorithm-num";
-                        description
-                            "MPLS segment-route Prefix-SID/Algorithm pair";
-                        leaf algorithm-num  {
-                            type  leafref {
-                                path  "../config/algorithm-num";
-                            }
-                            description "SR-Algorithm number";
-                        } // END of algorithm-num definition.
-
-                        container config {
-                            // when " ../config/sid-index or ../config/sid-absolute ";
-                            description
-                                "Configuration data for segment-route prefix module";
-                            uses prefix-segment-algorithm-config;
-                        } // END of config-container definition.
-                        container state {
-                            config false;
-                            description
-                                "Operational state data for segment-route prefix module";
-                            uses prefix-segment-algorithm-config;
-                        } // END of state-container definition.
-                    } // End of prefix-segment-algorithm-list
-                } // END of prefix-segment-algorithms-container definition.
+                uses adjacency-segment-def-algo-top;
+                uses prefix-segment-algorithm-top;
             } // End of interface-list
         } // END of interfaces-container definition.
         container sr-mpls {
@@ -2184,15 +2000,15 @@ module ipi-segment-routing {
                 description
                     "Segment routing traffic engineering configuration and other CLIs
                             inside traffic enginnering";
-                uses frr-config;
                 uses te-config;
+                uses frr-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Segment routing traffic engineering runtime parameters";
-                uses frr-config;
                 uses te-config;
+                uses frr-config;
             } // END of state-container definition.
             uses attributes-config;
             uses policies-config;

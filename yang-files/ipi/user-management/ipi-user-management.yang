@@ -23,17 +23,17 @@ module ipi-user-management {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-user-management-types {
         prefix ipi-user-management-types;
-        revision-date 2022-06-25;
+        revision-date 2024-09-29;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -48,6 +48,16 @@ module ipi-user-management {
     description
         "Data model for User-Management Module";
 
+
+    revision "2024-11-07" {
+        description "Added default user utils api should be supported inside config container";
+        reference " 0.10.2.";
+    }
+
+    revision "2024-09-29" {
+        description "Added support to choose hash algorithm for user password";
+        reference " 0.10.1.";
+    }
 
     revision "2024-07-19" {
         description "Added notification for user-management/users/user/username";
@@ -129,6 +139,36 @@ module ipi-user-management {
         reference " 0.1.0.";
     }
 
+    grouping user-password-hashing-config {
+        description
+            "Hash configuration for Users";
+        leaf password-hashing-algorithm  {
+            type  ipi-user-management-types:user_mgmt_hashing_algorithm_t;
+            default "sha-512";
+            description "Use this attribute to set the hash algorithm for username
+                        configurations";
+        } // END of password-hashing-algorithm definition.
+
+    } // END of user-password-hashing-config definition.
+    grouping user-password-hashing-top {
+        description
+            "Global User Managament Configurations";
+        container hashing {
+            description
+                "Container for username hashing configurations";
+            container config {
+                description
+                    "Config container for username hashing configurations";
+                uses user-password-hashing-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State container for username hashing configurations";
+                uses user-password-hashing-config;
+            } // END of state-container definition.
+        } // END of hashing-container definition.
+    } // END of user-password-hashing-top definition.
     grouping user-management-config {
         description
             "Configuration for Users";
@@ -301,6 +341,7 @@ module ipi-user-management {
                 uses user-management-debug-state;
             } // END of state-container definition.
         } // END of debug-container definition.
+        uses user-password-hashing-top;
         uses user-management-global-top;
         uses user-management-top;
     } // END of user-management-container definition.

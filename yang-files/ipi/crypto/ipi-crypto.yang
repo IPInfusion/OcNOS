@@ -26,9 +26,14 @@ module ipi-crypto {
         revision-date 2013-07-15;
     }
 
+    import ipi-crypto-types {
+        prefix ipi-crypto-types;
+        revision-date 2024-11-23;
+    }
+
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -42,8 +47,19 @@ module ipi-crypto {
 
     description
         "This module defines configurations related to cryptographic
-                certificate generation and management";
+                certificate generation and management and system encryption management
+                global configuration";
 
+
+    revision "2024-11-23" {
+        description "Changed CRYPTO_CIPHER_TYPES_T enum names";
+        reference " 0.3.1.";
+    }
+
+    revision "2024-08-01" {
+        description "Add system encryption management global configuration";
+        reference " 0.3.0.";
+    }
 
     revision "2022-06-01" {
         description "Updated the yang file with feature";
@@ -55,7 +71,42 @@ module ipi-crypto {
         reference "Initial Version";
     }
 
+    grouping crypto-global-config {
+        description
+            "System encryption management global configuration";
+        leaf key-encryption  {
+            type  ipi-crypto-types:crypto_cipher_types_t;
+            description "Use this attribute to set the system global encryption algorithm";
+        } // END of key-encryption definition.
 
+    } // END of crypto-global-config definition.
+
+    grouping  crypto-grouping {
+    description
+        "Top level container for system encryption configuration";
+    container crypto {
+        if-feature feature-list:HAVE_HOSTPD;
+        description
+            "Top level container for system encryption configuration";
+        container global {
+            description
+                "System encryption global configuration";
+            container config {
+                description
+                    "System encryption management configuration";
+                uses crypto-global-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "System encryption management operational state data";
+                uses crypto-global-config;
+            } // END of state-container definition.
+        } // END of global-container definition.
+    } // END of crypto-container definition.
+    } // END of crypto-grouping definition.
+
+    uses crypto-grouping;
 
     rpc crypto-rsa-key-gen {
         if-feature feature-list:HAVE_HOSTPD;

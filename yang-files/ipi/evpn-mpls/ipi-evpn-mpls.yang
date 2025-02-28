@@ -23,7 +23,7 @@ module ipi-evpn-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ietf-inet-types {
@@ -38,17 +38,17 @@ module ipi-evpn-mpls {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-09-18;
+        revision-date 2025-01-02;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import ietf-yang-types {
@@ -58,7 +58,7 @@ module ipi-evpn-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -74,14 +74,24 @@ module ipi-evpn-mpls {
         "Datamodel for EVPN-MPLS protocol";
 
 
+    revision "2025-02-05" {
+        description "Changing the route-map keyword to evpn-route-map";
+        reference " 0.13.4.";
+    }
+
+    revision "2024-10-24" {
+        description "Added route-map CLI for supporting SR-ODN for EVPN";
+        reference " 0.13.2.";
+    }
+
+    revision "2024-10-23" {
+        description "Added if-feature for vpws-identifier attribute in cli-command";
+        reference " 0.13.1.";
+    }
+
     revision "2024-08-26" {
         description "Addition of EVPN-MPLS-MH Filter dependentObject for evpn mpls";
         reference " 0.13.0.";
-    }
-
-    revision "2024-06-11" {
-        description "Mask evpn enable command for Marvell platform";
-        reference " 0.12.1.";
     }
 
     revision "2024-04-24" {
@@ -102,6 +112,11 @@ module ipi-evpn-mpls {
     revision "2024-02-09" {
         description "Added import for xp for when tag";
         reference " 0.10.1.";
+    }
+
+    revision "2024-01-15" {
+        description "Added CML_SKIP_HITLESS_MERGE for vpws-identifier attribute";
+        reference " 0.13.3.";
     }
 
     revision "2024-01-03" {
@@ -263,7 +278,6 @@ module ipi-evpn-mpls {
         description
             "Grouping for global evpn-mpls configuration";
         leaf enable-evpn-mpls  {
-            if-feature feature-list:NOT_HAVE_MARVELL;
             type  empty;
             mandatory true;
             description "Use this attribute to enable EVPN-MPLS module. Without this
@@ -271,12 +285,14 @@ module ipi-evpn-mpls {
         } // END of enable-evpn-mpls definition.
 
         leaf vtep-ipv4  {
+            // when " ipi-evpn-mpls:evpn-mpls/global/config/enable-evpn-mpls ";
             type  inet:ipv4-address;
             description "Use this attribute to set source vtep global ip address.
                         This will be treated at evpn mpls tunnel source address";
         } // END of vtep-ipv4 definition.
 
         leaf mac-ageing-timer  {
+            // when " ipi-evpn-mpls:evpn-mpls/global/config/enable-evpn-mpls ";
             type  uint32 {
                  range "10..572"  {
                     description "10..572: Supported range 10 - 572";
@@ -310,15 +326,15 @@ module ipi-evpn-mpls {
                 container config {
                     description
                         "Configuration data";
-                    uses evpn-mpls-tenant-config;
                     uses evpn-mpls-tenant-global-config;
+                    uses evpn-mpls-tenant-config;
                 } // END of config-container definition.
                 container state {
                     config false;
                     description
                         "Operational state data";
-                    uses evpn-mpls-tenant-config;
                     uses evpn-mpls-tenant-global-config;
+                    uses evpn-mpls-tenant-config;
                 } // END of state-container definition.
                 container route-count-info {
                     config false;
@@ -565,6 +581,14 @@ module ipi-evpn-mpls {
             description "Use this attribute to set the time a host mac entry will persist after
                         unconfig";
         } // END of mac-holdtime definition.
+
+        leaf route-map  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set route-map.";
+        } // END of route-map definition.
 
         leaf tenant-description  {
             type  string {
@@ -931,6 +955,7 @@ module ipi-evpn-mpls {
         description
             "Grouping for configuring global ARP-ND configs";
         leaf arp-nd-refresh-time  {
+            when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config/ipi-evpn-mpls:enable-evpn-mpls ";
             type  uint32 {
                  range "3..190"  {
                     description "3..190: Supported range 3 - 190";

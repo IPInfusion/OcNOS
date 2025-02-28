@@ -36,6 +36,10 @@ module zebm-cli {
     description "List of RPCs used for CML actions";
 
 
+    revision "2024-11-12" {
+        description "Added the support for load-config-filepath and load-config-server RPC.";
+        reference "0.11.0";}
+
     revision "2023-06-26" {
         description "Removed old command that enables/disables netconf-translation";
         reference "0.10.0";}
@@ -225,20 +229,111 @@ module zebm-cli {
                 type string;
                 description "Name of the source backup file to be restored into running-config";
             }
+            leaf operation-type {
+                type enumeration {
+                    enum continue-on-error {
+                        description "Continue to process configuration data on error(default)";
+                    }
+                    enum rollback-on-error {
+                        description "Initiate rollback when it receives error";
+                    }
+                }
+                description "control the behavior of configuration changes when an error occurs during a transaction or commit operation";
+            }
         }
+        output {
+            leaf show-cli-status {
+                type string;
+                description "Show the result of cli execution";
+            }
+            leaf show-failed-cli {
+                type string;
+                description "Show the list of cli Failed";
+            }
+        }
+
     }
 
-    rpc load-config-scp {
+    rpc load-config-server {
         description "This RPC will apply the backup configuration in the source attribute";
 
         input {
+            leaf mode {
+                type enumeration {
+                    enum scp {
+                        description "Download files via scp";
+                    }
+                    enum tftp {
+                        description "Download files via tftp";
+                    }
+                    enum ftp {
+                        description "Download files via ftp";
+                    }
+                    enum sftp {
+                        description "Download files via sftp";
+                    }
+                    enum http {
+                        description "Download files via http";
+                    }
+                }
+                description "Load-config download file mode";
+            }
             leaf source {
                 type string;
-                description "Name of the source backup file to be restored into running-config";
+                description "Name of the source backup file to be restored into running-config Enter URL scp:[//server][/path/filename]";            }
+            leaf vrf {
+                type string;
+                description "VRF Name";
+            }
+            leaf operation-type {
+                type enumeration {
+                    enum continue-on-error {
+                        description "Continue to process configuration data on error(default)";
+                    }
+                    enum rollback-on-error {
+                        description "Initiate rollback when it receives error";
+                    }
+                }
+                description "control the behavior of configuration changes when an error occurs during a transaction or commit operation";
+            }
+        }
+        output {
+            leaf show-cli-status {
+                type string;
+                description "Show the result of cli execution";
+            }
+            leaf show-failed-cli {
+                type string;
+                description "Show the list of cli Failed";
             }
         }
     }
+    rpc copy-text-config {
+        description "This RPC will replace the current config with the configuration in the source attribute";
 
+        input {
+            container target {
+                description "Particular configuration to copy to.";
+                choice config-target {
+                    mandatory true;
+                    description "Configuration target to be modified";
+                    leaf startup {
+                        type empty;
+                        description "Modify the startup config";
+                    }
+                    leaf running {
+                        type empty;
+                        description "Modify the currently running-config";
+                    }
+                }
+            }
+                    leaf source {
+                type string;
+                mandatory true;
+                description "Name of the source backup file to be restored into running-config Enter URL <source>:[//server][/path/filename]";
+            }
+        }
+    }
     rpc custom-cmlsh-show-rpc {
         description "This RPC will execute the cmlsh show command";
 

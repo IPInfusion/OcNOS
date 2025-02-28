@@ -23,12 +23,12 @@ module ipi-l2vpn-vpws {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
     }
 
     import ipi-network-instance-types {
@@ -38,12 +38,12 @@ module ipi-l2vpn-vpws {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2024-09-18;
+        revision-date 2024-12-23;
     }
 
     import ipi-vpws-types {
@@ -53,7 +53,7 @@ module ipi-l2vpn-vpws {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2024-09-20;
+        revision-date 2025-02-15;
     }
 
     import ietf-inet-types {
@@ -68,7 +68,7 @@ module ipi-l2vpn-vpws {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -83,6 +83,21 @@ module ipi-l2vpn-vpws {
     description
         "Datamodel for VPWS pseudowire";
 
+
+    revision "2025-02-06" {
+        description "Added when tag with condition inside forwarding-information-base objectlist";
+        reference " 6.6.0.";
+    }
+
+    revision "2025-01-28" {
+        description "Added when tag inside forwarding-information-base objectlist";
+        reference " 6.6.0.";
+    }
+
+    revision "2024-10-26" {
+        description "Added nexthop address as RDN for forwarding information base objectlist";
+        reference " 6.0.0.";
+    }
 
     revision "2024-09-17" {
         description "Added down-reason attribute in vpws-pseudowire-state grp";
@@ -866,7 +881,7 @@ module ipi-l2vpn-vpws {
                 list forwarding-information-base {
                 when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowires/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:default-tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-manual-pseudowire or /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowires/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:tagged/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-manual-pseudowire or /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-l2vpn-vpws:vpws-instance/ipi-l2vpn-vpws:pseudowires/ipi-l2vpn-vpws:pseudowire/ipi-l2vpn-vpws:raw/ipi-l2vpn-vpws:config/ipi-l2vpn-vpws:enable-manual-pseudowire ";
                 // when " ../forwarding-information-base/config/access-interface-name ";
-                    key "pseudowire-identifier";
+                    key "pseudowire-identifier nexthop-address";
                     description
                         "VPWS static FIB entries configuration list";
                     leaf pseudowire-identifier  {
@@ -875,6 +890,14 @@ module ipi-l2vpn-vpws {
                         }
                         description "Use this attribute to configure pseudowire identifier";
                     } // END of pseudowire-identifier definition.
+
+                    leaf nexthop-address  {
+                        type  leafref {
+                            path  "../config/nexthop-address";
+                        }
+                        description "This attribute is used to configure VC next-hop address for static VC
+                                    fib entry";
+                    } // END of nexthop-address definition.
 
                     container config {
                         description
@@ -926,7 +949,6 @@ module ipi-l2vpn-vpws {
 
         leaf nexthop-address  {
             type  inet:ip-address;
-            mandatory true;
             description "This attribute is used to configure VC next-hop address for static VC
                         fib entry";
         } // END of nexthop-address definition.
@@ -1327,24 +1349,24 @@ module ipi-l2vpn-vpws {
                         presence "Create Default-Tagged VPWS Fec-128 Instance";
                         description
                             "Top level configuration data for Fec128 pseudowire";
-                        uses vpws-pseudowire-common-config;
                         uses vpws-pseudowire-default-tagged-config;
-                        uses vpws-pseudowire-fat-config;
-                        uses vpws-pseudowire-mplstp-config;
                         uses vpws-pseudowire-service-tpid-config;
+                        uses vpws-pseudowire-common-config;
+                        uses vpws-pseudowire-fat-config;
                         uses vpws-pseudowire-static-config;
+                        uses vpws-pseudowire-mplstp-config;
                         uses vpws-pseudowire-vccv-config;
                     } // END of config-container definition.
                     container state {
                         config false;
                         description
                             "Container for Operational attributes for pseudowire";
-                        uses vpws-pseudowire-common-config;
                         uses vpws-pseudowire-default-tagged-config;
-                        uses vpws-pseudowire-fat-config;
-                        uses vpws-pseudowire-mplstp-config;
                         uses vpws-pseudowire-service-tpid-config;
+                        uses vpws-pseudowire-common-config;
+                        uses vpws-pseudowire-fat-config;
                         uses vpws-pseudowire-static-config;
+                        uses vpws-pseudowire-mplstp-config;
                         uses vpws-pseudowire-vccv-config;
                     } // END of state-container definition.
                 } // END of default-tagged-container definition.
@@ -1356,22 +1378,22 @@ module ipi-l2vpn-vpws {
                         presence "Create Tagged VPWS Fec-128 Instance";
                         description
                             "Configuration data for Tagged Fec128 pseudowire";
-                        uses vpws-pseudowire-common-config;
-                        uses vpws-pseudowire-fat-config;
-                        uses vpws-pseudowire-mplstp-config;
-                        uses vpws-pseudowire-static-config;
                         uses vpws-pseudowire-tagged-config;
+                        uses vpws-pseudowire-common-config;
+                        uses vpws-pseudowire-static-config;
+                        uses vpws-pseudowire-mplstp-config;
+                        uses vpws-pseudowire-fat-config;
                         uses vpws-pseudowire-vccv-config;
                     } // END of config-container definition.
                     container state {
                         config false;
                         description
                             "Container for Operational attributes for pseudowire";
-                        uses vpws-pseudowire-common-config;
-                        uses vpws-pseudowire-fat-config;
-                        uses vpws-pseudowire-mplstp-config;
-                        uses vpws-pseudowire-static-config;
                         uses vpws-pseudowire-tagged-config;
+                        uses vpws-pseudowire-common-config;
+                        uses vpws-pseudowire-static-config;
+                        uses vpws-pseudowire-mplstp-config;
+                        uses vpws-pseudowire-fat-config;
                         uses vpws-pseudowire-vccv-config;
                     } // END of state-container definition.
                 } // END of tagged-container definition.
@@ -1383,22 +1405,22 @@ module ipi-l2vpn-vpws {
                         presence "Create Raw VPWS Fec-128 Instance";
                         description
                             "Configuration data for Raw Fec128 pseudowire";
-                        uses vpws-pseudowire-common-config;
-                        uses vpws-pseudowire-fat-config;
-                        uses vpws-pseudowire-mplstp-config;
                         uses vpws-pseudowire-raw-config;
+                        uses vpws-pseudowire-common-config;
                         uses vpws-pseudowire-static-config;
+                        uses vpws-pseudowire-mplstp-config;
                         uses vpws-pseudowire-vccv-config;
+                        uses vpws-pseudowire-fat-config;
                     } // END of config-container definition.
                     container state {
                         config false;
                         description
                             "Container for Operational attributes for pseudowire";
-                        uses vpws-pseudowire-common-config;
-                        uses vpws-pseudowire-fat-config;
-                        uses vpws-pseudowire-mplstp-config;
                         uses vpws-pseudowire-raw-config;
+                        uses vpws-pseudowire-common-config;
                         uses vpws-pseudowire-static-config;
+                        uses vpws-pseudowire-mplstp-config;
+                        uses vpws-pseudowire-fat-config;
                         uses vpws-pseudowire-vccv-config;
                     } // END of state-container definition.
                 } // END of raw-container definition.

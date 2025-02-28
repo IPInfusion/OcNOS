@@ -1,0 +1,1807 @@
+-- /* Copyright (C) 2001-2024 IP Infusion, Inc. All Rights Reserved. */
+
+IPI-SAT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+      OBJECT-TYPE, MODULE-IDENTITY,
+      Gauge32, Counter32, Integer32, Unsigned32,
+      IpAddress, Counter64,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, MacAddress, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC
+      ipi  FROM IPI-MODULE-MIB;
+
+ipiSatMib MODULE-IDENTITY
+    LAST-UPDATED    "202405220000Z"
+    ORGANIZATION    "IP Infusion"
+    CONTACT-INFO    "support@ipinfusion.com"
+    DESCRIPTION     "This MIB module is for managing Service Activation Test"
+    REVISION        "202404170000Z"
+    DESCRIPTION     "Service Activation Test mib intial version"
+        ::= { ipi 1564 }
+
+ipiSatMibNotifs         OBJECT IDENTIFIER ::= { ipiSatMib 0 }
+ipiSatMibObjects        OBJECT IDENTIFIER ::= { ipiSatMib 1 }
+ipiSatMibConformance    OBJECT IDENTIFIER ::= { ipiSatMib 2 }
+
+ipiSatTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF IpiSatEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This table includes configuration objects and operations for the
+                Ethernet SAT test Function.
+
+                Each row in the table represents a SAT Test configurations.
+                This table uses only one indices, which is index of the SAT Test.
+
+                These objects in this table need to be persistent upon reboot
+                or restart of a device.
+                "
+        ::= { ipiSatMibObjects 1 }
+
+ipiSatEntry OBJECT-TYPE
+        SYNTAX     IpiSatEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+                "
+                The conceptual row of ipiSatTestTable.
+                "
+        INDEX { ipiSatId }
+        ::= { ipiSatTable 1 }
+
+IpiSatEntry ::= SEQUENCE {
+        ipiSatId                      Unsigned32,
+        ipiSatName                    OCTET STRING,
+        ipiSatDescription             OCTET STRING,
+        ipiSatDirection               INTEGER,
+        ipiSatStreamRun               INTEGER,
+        ipiSatCirTest                 INTEGER,
+        ipiSatCirTestDuration         Unsigned32,
+        ipiSatCirEirTest              INTEGER,
+        ipiSatCirEirTestDuration      Unsigned32,
+        ipiSatPolicingTest            INTEGER,
+        ipiSatPolicingTestDuration    Unsigned32,
+        ipiSatPerformanceTest         INTEGER,
+        ipiSatPerformanceTestDuration Unsigned32,
+        ipiSatCurrentRunId            Unsigned32,
+        ipiSatCurrentRunIdStats       INTEGER
+}
+
+ipiSatId OBJECT-TYPE
+        SYNTAX     Unsigned32
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                An index to the SAT Test Configuration table which indicates
+                the specific Test config.
+
+                The index value keeps increasing until it
+                wraps to zero. This is to facilitate access control based
+                on a fixed index for an EMS, since the index is not reused.
+
+                ID Uniquely identify the SAT test which exec the test cases
+                for the service streams configured under this SAT test.
+                "
+        ::= { ipiSatEntry 1 }
+
+ipiSatName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Name of the SAT Test Name.
+                "
+        ::= { ipiSatEntry 2 }
+
+ipiSatDescription OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Description of the SAT Description.
+                "
+        ::= { ipiSatEntry 3 }
+
+ipiSatDirection OBJECT-TYPE
+        SYNTAX INTEGER {
+                    upStream(1),
+                    downStream(2)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Direction of the SAT is configured.
+
+                The valid enumerated values associated with this type are:
+
+                upStream (1)  - Test validated in ingress direction.
+                downStream(2) - Test validated in egress direction
+                "
+        ::= { ipiSatEntry 4 }
+
+ipiSatStreamRun OBJECT-TYPE
+        SYNTAX INTEGER {
+                  parallel(1),
+                  onebyone(2)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Direction of the SAT Run Type is configured.
+
+                The valid enumerated values associated with this type are:
+
+                Parallel   (1)  - List of Streams under this SAT will exec test in parallel.
+                one-by-one (2)  - List of Streams under this SAT will exec test one-by-one.
+                "
+        ::= { ipiSatEntry 5 }
+
+ipiSatCirTest OBJECT-TYPE
+        SYNTAX INTEGER {
+                  configured(1),
+                  notConfigured(2)
+                    }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Direction of the SAT Test is configured or Not.
+
+                The valid enumerated values associated with this type are:
+
+                Configured    (1)  - If test is configured.
+                notConfigured (2)  - If test is not configured.
+                "
+        ::= { ipiSatEntry 6 }
+
+ipiSatCirTestDuration OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Service Test Duration.
+                Returns the duration in seconds.
+
+                Depends on test configured ot not.
+                "
+        ::= { ipiSatEntry 7 }
+
+ipiSatCirEirTest OBJECT-TYPE
+        SYNTAX INTEGER {
+                  configured(1),
+                  notConfigured(2)
+                    }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Direction of the SAT Test is configured or Not.
+
+                The valid enumerated values associated with this type are:
+
+                Configured    (1)  - If test is configured.
+                notConfigured (2)  - If test is not configured.
+                "
+        ::= { ipiSatEntry 8 }
+
+ipiSatCirEirTestDuration OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Service Test Duration.
+                Returns the duration in seconds.
+
+                Depends on test configured ot not.
+                "
+        ::= { ipiSatEntry 9 }
+
+ipiSatPolicingTest OBJECT-TYPE
+        SYNTAX INTEGER {
+                  configured(1),
+                  notConfigured(2)
+                    }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Direction of the SAT Test is configured or Not.
+
+                The valid enumerated values associated with this type are:
+                Configured    (1)  - If test is configured.
+                notConfigured (2)  - If test is not configured.
+                "
+        ::= { ipiSatEntry 10 }
+
+ipiSatPolicingTestDuration OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Service Test Duration.
+                Returns the duration in seconds.
+
+                Depends on test configured ot not.
+                "
+        ::= { ipiSatEntry 11 }
+
+ipiSatPerformanceTest OBJECT-TYPE
+        SYNTAX INTEGER {
+                  configured(1),
+                  notConfigured(2)
+                    }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Direction of the SAT Test is configured or Not.
+
+                The valid enumerated values associated with this type are:
+                Configured    (1)  - If test is configured.
+                notConfigured (2)  - If test is not configured.
+                "
+        ::= { ipiSatEntry 12 }
+
+ipiSatPerformanceTestDuration OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Service Test Duration.
+                Returns the duration in seconds.
+                Depends on test configured ot not.
+                "
+        ::= { ipiSatEntry 13 }
+
+ipiSatCurrentRunId OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Latest SAT Run Id.
+                "
+        ::= { ipiSatEntry 14 }
+
+ipiSatCurrentRunIdStatus OBJECT-TYPE
+        SYNTAX INTEGER{
+                    notStarted(0),
+                    inProgress(1),
+                    aborted(2),
+                    passed(3),
+                    failed(4)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Latest SAT Run Id Status.
+
+                The valid enumerated values associated with this type are:
+                notStarted (0)  - Test is not started.
+                inprogress (1)  - Test is in progress.
+                aborted    (2)  - Test is aborted by user or config deletion.
+                passed     (3)  - Test is Passed with all acceptance criteria.
+                failed     (4)  - Test is Failed due to any one of the Stream test failure.
+                "
+        ::= { ipiSatEntry 15 }
+
+
+ipiSatStreamTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF IpiSatStreamEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This table provides information for List of SAT service stream
+                configured under SAT.
+
+                Each row in the table represents a SAT Service Stream configurations.
+                These objects in this table need to be persistent upon reboot
+                or restart of a device.
+                "
+        ::= { ipiSatMibObjects 2 }
+
+ipiSatStreamEntry OBJECT-TYPE
+        SYNTAX IpiSatStreamEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                An entry containing information for List of SAT Service Stream
+                under SAT.
+                "
+        INDEX { ipiSatId,ipiSatStreamId }
+        ::= { ipiSatStreamTable 1 }
+
+IpiSatStreamEntry::= SEQUENCE {
+        ipiSatStreamId                 Unsigned32,
+        ipiSatStreamName               OCTET STRING,
+        ipiSatStreamMeasurementType    INTEGER,
+        ipiSatStreamMode               INTEGER,
+        ipiSatStreamCirRate            Unsigned32,
+        ipiSatStreamCirRateUnit        INTEGER,
+        ipiSatStreamCirCos             Integer32,
+        ipiSatStreamCirDei             INTEGER,
+        ipiSatStreamEirRate            Unsigned32,
+        ipiSatStreamEirRateUnit        INTEGER,
+        ipiSatStreamEirCos             Integer32,
+        ipiSatStreamEirDei             INTEGER,
+        ipiSatStreamColorAware         INTEGER,
+        ipiSatStreamLoadStep           Unsigned32,
+        ipiSatStreamAcceptFlr          Unsigned32,
+        ipiSatStreamAcceptFtdDelay     Unsigned32,
+        ipiSatStreamAcceptFdvDelay     Unsigned32,
+        ipiSatStreamFrameSequence      OCTET STRING,
+        ipiSatStreamFrameDataPattern   INTEGER,
+        ipiSatStreamFrameDelayDisable  INTEGER,
+        ipiSatStreamDstMac             MacAddress,
+        ipiSatStreamDomain             OCTET STRING,
+        ipiSatStreamMaName             OCTET STRING,
+        ipiSatStreamMepId              Unsigned32,
+        ipiSatStreamInterfaceName      OCTET STRING,
+        ipiSatStreamTagType            INTEGER,
+        ipiSatStreamVlanId             Unsigned32,
+        ipiSatStreamInnerVlanId        Unsigned32,
+        ipiSatStreamCurrentRunId       Unsigned32,
+        ipiSatStreamCurrentRunIdStatus INTEGER
+}
+
+ipiSatStreamId OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Id.
+
+                The index value keeps increasing until it
+                wraps to zero. This is to facilitate access control based
+                on a fixed index for an EMS, since the index is not reused.
+                "
+        ::= { ipiSatStreamEntry 1 }
+
+ipiSatStreamName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Name.
+                "
+        ::= { ipiSatStreamEntry 2 }
+
+ipiSatStreamMeasurementType OBJECT-TYPE
+        SYNTAX INTEGER {
+                   oneWay(1),
+                   twoWay(2)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Measurement Type.
+                "
+        ::= { ipiSatStreamEntry 3 }
+
+ipiSatStreamMode OBJECT-TYPE
+        SYNTAX INTEGER {
+                   generator(1),
+                   receiver(2),
+                   generatorReceiver(3)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Mode.
+                "
+        ::= { ipiSatStreamEntry 4 }
+
+ipiSatStreamCirRate OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Rate Value.
+                Bandwidth Rate configured for this stream to check.
+                "
+        ::= { ipiSatStreamEntry 5 }
+
+ipiSatStreamCirRateUnit OBJECT-TYPE
+        SYNTAX INTEGER {
+                   gbps(1),
+                   mbps(2),
+                   kbps(3)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Rate Unit.
+                "
+        ::= { ipiSatStreamEntry 6 }
+
+ipiSatStreamCirCos OBJECT-TYPE
+        SYNTAX      Integer32 (0..7)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR COS value.
+                "
+        ::= { ipiSatStreamEntry 7 }
+
+ipiSatStreamCirDei OBJECT-TYPE
+        SYNTAX INTEGER {
+                   inEligible(0),
+                   eligible(1)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Drop Eligiblility (DE) value.
+                "
+        ::= { ipiSatStreamEntry 8 }
+
+ipiSatStreamEirRate OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream EIR Rate Value.
+                Bandwidth Rate configured for this stream to check.
+                "
+        ::= { ipiSatStreamEntry 9 }
+
+ipiSatStreamEirRateUnit OBJECT-TYPE
+        SYNTAX INTEGER {
+                   gbps(1),
+                   mbps(2),
+                   kbps(3)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream EIR Value in kbps.
+                "
+        ::= { ipiSatStreamEntry 10 }
+
+ipiSatStreamEirCos OBJECT-TYPE
+        SYNTAX      Integer32 (0..7)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream EIR COS value.
+                "
+        ::= { ipiSatStreamEntry 11 }
+
+ipiSatStreamEirDei OBJECT-TYPE
+        SYNTAX INTEGER {
+                   inEligible(0),
+                   eligible(1)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream EIR Drop Eligiblility (DE) value.
+                "
+        ::= { ipiSatStreamEntry 12 }
+
+ipiSatStreamColorAware OBJECT-TYPE
+        SYNTAX INTEGER {on(1), off(2)}
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Color aware or not.
+                "
+        ::= { ipiSatStreamEntry 13 }
+
+ipiSatStreamLoadStep OBJECT-TYPE
+        SYNTAX Unsigned32 (1..10)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Load Step size.
+                "
+        ::= { ipiSatStreamEntry 14 }
+
+ipiSatStreamAcceptFlr OBJECT-TYPE
+        SYNTAX Unsigned32 (0..1000000)
+        UNITS "percent"
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Accepted CIR Frame Loss Ratio.
+                The FLR value is a ratio that is expressed as a percent with a value of
+                0 (ratio 0.00) through 100000 (ratio 1.00).
+
+                where 1 indicates 0.0001 percent.
+                "
+        ::= { ipiSatStreamEntry 15 }
+
+ipiSatStreamAcceptFtdDelay OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Accepted CIR Frame Delay
+                in us (Microseconds).
+                "
+        ::= { ipiSatStreamEntry 16 }
+
+ipiSatStreamAcceptFdvDelay OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Accepted CIR Frame Delay Variation
+                in us (Microseconds).
+                "
+        ::= { ipiSatStreamEntry 17 }
+
+ipiSatStreamFrameSequence OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Frame Sequence.
+
+                Supported frame sequence:
+                a(64), b(128), c(256), d(512), e(1024), f(1280), g(1518),
+                h(MTU), u(user-configured)
+                "
+        ::= { ipiSatStreamEntry 18 }
+
+ipiSatStreamFrameDataPattern OBJECT-TYPE
+        SYNTAX INTEGER {
+                   nullsig(1),
+                   prbs(3)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Frame Data Pattern.
+
+                The valid enumerated values associated with this type are:
+
+                        nullsig  (1)  - nullsig pattern without crc.
+                        prbs     (2)  - prbs pattern without crc.
+                "
+        ::= { ipiSatStreamEntry 19 }
+
+ipiSatStreamFrameDelayDisable OBJECT-TYPE
+        SYNTAX INTEGER {
+                   unset(0),
+                   set(1)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Frame Delay enabled or not.
+                "
+        ::= { ipiSatStreamEntry 20 }
+
+ipiSatStreamDstMac OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Destination Mac address.
+                "
+        ::= { ipiSatStreamEntry 21 }
+
+ipiSatStreamDomain OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Domain Name.
+                "
+        ::= { ipiSatStreamEntry 22 }
+
+ipiSatStreamMaName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream MA Name.
+                "
+        ::= { ipiSatStreamEntry 23 }
+
+ipiSatStreamMepId OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream MEP ID.
+                "
+        ::= { ipiSatStreamEntry 24 }
+
+ipiSatStreamInterfaceName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Interface Name.
+                "
+        ::= { ipiSatStreamEntry 25 }
+
+ipiSatStreamTagType OBJECT-TYPE
+        SYNTAX INTEGER {
+                    dot1q(1),
+                    dot1ad(2)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Tag Type used.
+                Configured/Allowed tag type (dot1q|dot1ad).
+                "
+        ::= { ipiSatStreamEntry 26 }
+
+ipiSatStreamVlanId OBJECT-TYPE
+        SYNTAX     Unsigned32(1..4094)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Vlan-ID.
+                "
+        ::= { ipiSatStreamEntry 27 }
+
+ipiSatStreamInnerVlanId OBJECT-TYPE
+        SYNTAX     Unsigned32(1..4094)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Inner-Vlan Id.
+                Default encap type is inner-vlan is dot1q.
+                "
+        ::= { ipiSatStreamEntry 28 }
+
+ipiSatStreamCurrentRunId OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Latest SAT Run Id.
+                "
+        ::= { ipiSatStreamEntry 29 }
+
+ipiSatStreamCurrentRunIdStatus OBJECT-TYPE
+        SYNTAX INTEGER{
+                    notStarted(0),
+                    inProgress(1),
+                    aborted(2),
+                    passed(3),
+                    failed(4)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the Latest SAT Run Id Status.
+
+                The valid enumerated values associated with this type are:
+                notStarted (0)  - Test is not started
+                inprogress (1)  - Test is in progress.
+                aborted    (2)  - Test is aborted by user or config deletion.
+                passed     (3)  - Test is Passed with all acceptance criteria.
+                failed     (4)  - Test is Failed due to any one of the Stream test failure.
+                "
+        ::= { ipiSatStreamEntry 30 }
+
+
+ipiSatRunTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF IpiSatRunEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This table provides information for List of SAT Test Runs Informations.
+
+                Each row in the table represents a SAT Run Test Results informations.
+                "
+        ::= { ipiSatMibObjects 3 }
+
+ipiSatRunEntry OBJECT-TYPE
+        SYNTAX IpiSatRunEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Test Runs.
+                "
+        INDEX { ipiSatId, ipiSatRunId }
+        ::= { ipiSatRunTable 1 }
+
+IpiSatRunEntry ::= SEQUENCE {
+        ipiSatRunId          Unsigned32,
+        ipiSatRunOperState   INTEGER,
+        ipiSatRunStartTime   DateAndTime,
+        ipiSatRunEndTime     DateAndTime,
+        ipiSatRunDirection   INTEGER,
+        ipiSatRunStreamRun   INTEGER
+}
+
+ipiSatRunId OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Test Run Id.
+
+                The index value keeps increasing until it
+                wraps to zero. This is to facilitate access control based
+                on a fixed index for an EMS, since the index is not reused.
+                "
+        ::= { ipiSatRunEntry 1 }
+
+ipiSatRunOperState OBJECT-TYPE
+        SYNTAX INTEGER{
+                    inProgress(1),
+                    aborted(2),
+                    passed(3),
+                    failed(4)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Test Run Oper State.
+
+                The valid enumerated values associated with this type are:
+
+                inProgress (1)  - Test is in progress.
+                aborted    (2)  - Test is aborted by user or config deletion.
+                passed     (3)  - Test is Passed with all acceptance criteria.
+                failed     (4)  - Test is Failed due to any one of the Stream test failure.
+                "
+        ::= { ipiSatRunEntry 2 }
+
+ipiSatRunStartTime OBJECT-TYPE
+        SYNTAX     DateAndTime
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Test Run Start Time.
+                "
+        ::= { ipiSatRunEntry 3 }
+
+ipiSatRunEndTime OBJECT-TYPE
+        SYNTAX     DateAndTime
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Test End Time.
+                "
+        ::= { ipiSatRunEntry 4 }
+
+ipiSatRunDirection OBJECT-TYPE
+        SYNTAX INTEGER {
+                    upstream(1),
+                    downstream(2)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Test Run Direction.
+
+                The valid enumerated values associated with this type are:
+
+                upstream (1)  - Test validated in ingress direction.
+                downstream(2) - Test validated in egress direction
+                "
+        ::= { ipiSatRunEntry 5 }
+
+ipiSatRunStreamRun OBJECT-TYPE
+        SYNTAX INTEGER {
+                    parallel(1),
+                    onebyone(2)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Test Run Direction.
+
+                The valid enumerated values associated with this type are:
+
+                upstream (1)  - Test validated in ingress direction.
+                downstream(2) - Test validated in egress direction
+                "
+        ::= { ipiSatRunEntry 6 }
+
+
+ipiSatServiceStreamRunTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF IpiSatServiceStreamRunEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This table provides information for List of SAT service streams.
+
+                Each row in the table represents a SAT Stream configs used for the Run.
+                "
+        ::= { ipiSatMibObjects 4 }
+
+ipiSatServiceStreamRunEntry OBJECT-TYPE
+        SYNTAX IpiSatServiceStreamRunEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                An entry containing information for List of SAT service streams.
+                "
+        INDEX { ipiSatId, ipiSatStreamId, ipiSatStreamRunId }
+        ::= { ipiSatServiceStreamRunTable 1 }
+
+IpiSatServiceStreamRunEntry::= SEQUENCE {
+        ipiSatStreamRunId                  Unsigned32,
+        ipiSatStreamRunName                OCTET STRING,
+        ipiSatStreamRunMeasurementType     INTEGER,
+        ipiSatStreamRunMode                INTEGER,
+        ipiSatStreamRunCirRate             Unsigned32,
+        ipiSatStreamRunCirRateUnit         INTEGER,
+        ipiSatStreamRunCirCos              Integer32,
+        ipiSatStreamRunCirDei              INTEGER,
+        ipiSatStreamRunEirRate             Unsigned32,
+        ipiSatStreamRunEirRateUnit         INTEGER,
+        ipiSatStreamRunEirCos              Integer32,
+        ipiSatStreamRunEirDei              INTEGER,
+        ipiSatStreamRunColorAware          INTEGER,
+        ipiSatStreamRunLoadStep            Unsigned32,
+        ipiSatStreamRunFrameSequence       OCTET STRING,
+        ipiSatStreamRunFrameDataPattern    INTEGER,
+        ipiSatStreamRunFrameDelayDisable   INTEGER,
+        ipiSatStreamRunCirAcceptFlr        Unsigned32,
+        ipiSatStreamRunCirAcceptFtdDelay   Unsigned32,
+        ipiSatStreamRunCirAcceptFdvDelay   Unsigned32,
+        ipiSatStreamRunDestinationMac      MacAddress,
+        ipiSatStreamRunCfmDomain           OCTET STRING,
+        ipiSatStreamRunCfmMaName           OCTET STRING,
+        ipiSatStreamRunCfmMepId            Unsigned32,
+        ipiSatStreamRunInterfaceName       OCTET STRING,
+        ipiSatStreamRunEncapTag            INTEGER,
+        ipiSatStreamRunOuterVid            Unsigned32,
+        ipiSatStreamRunInnerVid            Unsigned32
+}
+
+ipiSatStreamRunId OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Id.
+
+                The index value keeps increasing until it
+                wraps to zero. This is to facilitate access control based
+                on a fixed index for an EMS, since the index is not reused.
+                "
+        ::= { ipiSatServiceStreamRunEntry 1 }
+
+ipiSatStreamRunName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Name.
+                "
+        ::= { ipiSatServiceStreamRunEntry 2 }
+
+ipiSatStreamRunMeasurementType OBJECT-TYPE
+        SYNTAX INTEGER {
+                   oneWay(1),
+                   twoWay(2)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Measurement Type.
+                "
+        ::= { ipiSatServiceStreamRunEntry 3 }
+
+ipiSatStreamRunMode OBJECT-TYPE
+        SYNTAX INTEGER {
+                   generator(1),
+                   receiver(2),
+                   generatorReceiver(3)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Mode.
+                "
+        ::= { ipiSatServiceStreamRunEntry 4 }
+
+ipiSatStreamRunCirRate OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Rate Value.
+                Bandwidth Rate configured for this stream to check.
+                "
+        ::= { ipiSatServiceStreamRunEntry 5 }
+
+ipiSatStreamRunCirRateUnit OBJECT-TYPE
+        SYNTAX INTEGER {
+                    gbps(1),
+                    mbps(2),
+                    kbps(3)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Rate Unit.
+                "
+        ::= { ipiSatServiceStreamRunEntry 6 }
+
+ipiSatStreamRunCirCos OBJECT-TYPE
+        SYNTAX      Integer32 (0..7)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "This object indicates the SAT Stream CIR COS value."
+        ::= { ipiSatServiceStreamRunEntry 7 }
+
+ipiSatStreamRunCirDei OBJECT-TYPE
+        SYNTAX INTEGER {
+                   ineligible(0),
+                   eligible(1)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Drop Eligiblility (DE) value.
+                "
+        ::= { ipiSatServiceStreamRunEntry 8 }
+
+ipiSatStreamRunEirRate OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream EIR Rate Value.
+                Bandwidth Rate configured for this stream to check.
+                "
+        ::= { ipiSatServiceStreamRunEntry 9 }
+
+ipiSatStreamRunEirRateUnit OBJECT-TYPE
+        SYNTAX INTEGER {
+                   gbps(1),
+                   mbps(2),
+                   kbps(3)
+               }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Value in kbps.
+                "
+        ::= { ipiSatServiceStreamRunEntry 10 }
+
+ipiSatStreamRunEirCos OBJECT-TYPE
+        SYNTAX      Integer32 (0..7)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream EIR COS value.
+                "
+        ::= { ipiSatServiceStreamRunEntry 11 }
+
+ipiSatStreamRunEirDei OBJECT-TYPE
+        SYNTAX INTEGER {
+                   inEligible(0),
+                   eligible(1)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream EIR Drop Eligiblility (DE) value.
+                "
+        ::= { ipiSatServiceStreamRunEntry 12 }
+
+ipiSatStreamRunColorAware OBJECT-TYPE
+        SYNTAX INTEGER {on(1), off(2)}
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Color aware or not.
+                "
+        ::= { ipiSatServiceStreamRunEntry 13 }
+
+ipiSatStreamRunLoadStep OBJECT-TYPE
+        SYNTAX Unsigned32 (1..10)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Load Step.
+                "
+        ::= { ipiSatServiceStreamRunEntry 14 }
+
+ipiSatStreamRunFrameSequence OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Frame Sequence.
+                "
+        ::= { ipiSatServiceStreamRunEntry 15 }
+
+ipiSatStreamRunFrameDataPattern OBJECT-TYPE
+        SYNTAX INTEGER {
+                   nullsig(1),
+                   prbs(3)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Frame Data Pattern.
+
+                The valid enumerated values associated with this type are:
+
+                nullsig  (1)  - nullsig pattern without crc.
+                prbs     (2)  - prbs pattern without crc.
+                "
+        ::= { ipiSatServiceStreamRunEntry 16 }
+
+ipiSatStreamRunFrameDelayDisable OBJECT-TYPE
+        SYNTAX INTEGER {
+                   unset(0),
+                   set(1)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Frame Delay enabled or not.
+                "
+        ::= { ipiSatServiceStreamRunEntry 17 }
+
+ipiSatStreamRunCirAcceptFlr OBJECT-TYPE
+        SYNTAX Unsigned32 (0..1000000)
+        UNITS "percent"
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Frame Loss Ratio.
+                The FLR value is a ratio that is expressed as a percent with a value of
+                0 (ratio 0.00) through 100000 (ratio 1.00).
+
+                where 1 indicates 0.0001 percent.
+                "
+        ::= { ipiSatServiceStreamRunEntry 18 }
+
+ipiSatStreamRunCirAcceptFtdDelay OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run CIR Frame Delay
+                in us (Microseconds).
+                "
+        ::= { ipiSatServiceStreamRunEntry 19 }
+
+ipiSatStreamRunCirAcceptFdvDelay OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run CIR Frame Delay Variation
+                in us (Microseconds).
+                "
+        ::= { ipiSatServiceStreamRunEntry 20 }
+
+ipiSatStreamRunDestinationMac OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Destination Mac.
+                "
+        ::= { ipiSatServiceStreamRunEntry 21 }
+
+ipiSatStreamRunCfmDomain OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Domain Name.
+                "
+        ::= { ipiSatServiceStreamRunEntry 22 }
+
+ipiSatStreamRunCfmMaName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run MA Name.
+                "
+        ::= { ipiSatServiceStreamRunEntry 23 }
+
+ipiSatStreamRunCfmMepId OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run MEP ID.
+                "
+        ::= { ipiSatServiceStreamRunEntry 24 }
+
+ipiSatStreamRunInterfaceName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Name of interface.
+                "
+        ::= { ipiSatServiceStreamRunEntry 25 }
+
+ipiSatStreamRunEncapTag OBJECT-TYPE
+        SYNTAX INTEGER {
+                    dot1q(1),
+                    dot1ad(2)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Rncapsulation Tag.
+                "
+        ::= { ipiSatServiceStreamRunEntry 26 }
+
+ipiSatStreamRunOuterVid OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Outer Vlan Id.
+                "
+        ::= { ipiSatServiceStreamRunEntry 27 }
+
+ipiSatStreamRunInnerVid OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Run Inner Vlan Id.
+                "
+        ::= { ipiSatServiceStreamRunEntry 28 }
+
+ipiSatStreamRunTestTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF IpiSatStreamRunTestEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This table provides information for List of Sat Test Results.
+
+                Each row in the table represents a SAT Stream Test Results informations.
+                "
+        ::= { ipiSatMibObjects 5 }
+
+ipiSatStreamRunTestEntry OBJECT-TYPE
+        SYNTAX IpiSatStreamRunTestEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                An entry containing information for List of Sat Test Results.
+                "
+        INDEX { ipiSatId, ipiSatStreamId, ipiSatRunId, ipiSatStreamRunTestId }
+        ::= { ipiSatStreamRunTestTable 1 }
+
+IpiSatStreamRunTestEntry::= SEQUENCE {
+        ipiSatStreamRunTestId           INTEGER,
+        ipiSatStreamRunTestLoad         Unsigned32,
+        ipiSatStreamRunTestOperStatus   INTEGER,
+        ipiSatStreamRunTestDuration     Unsigned32,
+        ipiSatStreamRunTestStartTime    DateAndTime,
+        ipiSatStreamRunTestEndTime      DateAndTime
+}
+
+ipiSatStreamRunTestId OBJECT-TYPE
+        SYNTAX INTEGER{
+                cirLoadStep1(1),
+                cirLoadStep2(2),
+                cirLoadStep3(3),
+                cirLoadStep4(4),
+                cirLoadStep5(5),
+                cirLoadStep6(6),
+                cirLoadStep7(7),
+                cirLoadStep8(8),
+                cirLoadStep9(9),
+                cirLoadStep10(10),
+                cirEir(11),
+                policing(12),
+                performance(13)
+                }
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Id.
+                "
+        ::= { ipiSatStreamRunTestEntry 1 }
+
+ipiSatStreamRunTestLoad OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test load.
+
+                Percentage of Load used for this particular test from configured Rate.
+                "
+        ::= { ipiSatStreamRunTestEntry 2 }
+
+ipiSatStreamRunTestOperStatus OBJECT-TYPE
+        SYNTAX INTEGER{
+                    inProgress(1),
+                    aborted(2),
+                    passed(3),
+                    failed(4)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test operation status.
+
+                The valid enumerated values associated with this type are:
+
+                inProgress (1)  - Test is in progress.
+                aborted    (2)  - Test is aborted by user or config deletion.
+                passed     (3)  - Test is Passed with all acceptance criteria.
+                failed     (4)  - Test is Failed due to any one of the Stream test failure.
+                "
+        ::= { ipiSatStreamRunTestEntry 3 }
+
+ipiSatStreamRunTestDuration OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test duration in Seconds.
+                "
+        ::= { ipiSatStreamRunTestEntry 4 }
+
+ipiSatStreamRunTestStartTime OBJECT-TYPE
+        SYNTAX     DateAndTime
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test start time.
+                "
+        ::= { ipiSatStreamRunTestEntry 5 }
+
+ipiSatStreamRunTestEndTime OBJECT-TYPE
+        SYNTAX     DateAndTime
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test end time.
+                "
+        ::= { ipiSatStreamRunTestEntry 6 }
+
+
+ipiSatStreamRunStatsTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF IpiSatStreamRunStatsEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This table provides information for List of SAT Stream Test Result Stats
+                Measured for each RUN.
+
+                Each row in the table represents a SAT Stream Test Stats informations.
+                "
+        ::= { ipiSatMibObjects 6 }
+
+ipiSatStreamRunStatsEntry OBJECT-TYPE
+        SYNTAX IpiSatStreamRunStatsEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                An entry containing information for List of SAT Stream Test Results.
+                "
+        INDEX { ipiSatId, ipiSatStreamId, ipiSatRunId, ipiSatStreamRunTestId, ipiSatStreamRunStatsId }
+        ::= { ipiSatStreamRunStatsTable 1 }
+
+IpiSatStreamRunStatsEntry ::= SEQUENCE {
+        ipiSatStreamRunStatsId            INTEGER,
+        ipiSatStreamRunOperStatus         INTEGER,
+        ipiSatStreamRunAcceptFlr          Unsigned32,
+        ipiSatStreamRunAcceptFtdDelay     Unsigned32,
+        ipiSatStreamRunAcceptFdvDelay     Unsigned32,
+        ipiSatStreamRunTxPackets          Counter64,
+        ipiSatStreamRunTxBytes            Counter64,
+        ipiSatStreamRunRxPackets          Counter64,
+        ipiSatStreamRunRxBytes            Counter64,
+        ipiSatStreamRunFl                 Counter64,
+        ipiSatStreamRunFlr                Unsigned32,
+        ipiSatStreamRunFd                 Unsigned32,
+        ipiSatStreamRunFdv                Unsigned32,
+        ipiSatStreamRunFdMin              Unsigned32,
+        ipiSatStreamRunFdMax              Unsigned32,
+        ipiSatStreamRunFdExceed           Unsigned32,
+        ipiSatStreamRunOutOfOrderPackets  Counter64,
+        ipiSatStreamRunErrorPackets       Counter64
+}
+
+ipiSatStreamRunStatsId OBJECT-TYPE
+        SYNTAX  INTEGER{
+                 cir(1),
+                 eir(2)
+            }
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result Id.
+
+                The valid enumerated values associated with this type are:
+
+                cir (1)  - Measured values for Cir stats.
+                eir (2)  - Measured values for Eir stats.
+                "
+        ::= { ipiSatStreamRunStatsEntry 1 }
+
+ipiSatStreamRunOperStatus OBJECT-TYPE
+        SYNTAX INTEGER{
+                    inProgress(1),
+                    aborted(2),
+                    passed(3),
+                    failed(4)
+                }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test operation status.
+
+                The valid enumerated values associated with this type are:
+
+                inprogress (1)  - Test is in progress.
+                aborted    (2)  - Test is aborted by user or config deletion.
+                passed     (3)  - Test is Passed with all acceptance criteria.
+                failed     (4)  - Test is Failed due to any one of the Stream test failure.
+                "
+        ::= { ipiSatStreamRunStatsEntry 2 }
+
+ipiSatStreamRunAcceptFlr OBJECT-TYPE
+        SYNTAX Unsigned32 (0..1000000)
+        UNITS "percent"
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream CIR Frame Loss Ratio.
+                The FLR value is a ratio that is expressed as a percent with a value of
+                0 (ratio 0.00) through 100000 (ratio 1.00).
+
+                where 1 indicates 0.0001 percent.
+                "
+        ::= { ipiSatStreamRunStatsEntry 3 }
+
+ipiSatStreamRunAcceptFtdDelay OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Frame Delay in us (Microseconds).
+                "
+        ::= { ipiSatStreamRunStatsEntry 4 }
+
+ipiSatStreamRunAcceptFdvDelay OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Frame Delay Variation in us (Microseconds).
+                "
+        ::= { ipiSatStreamRunStatsEntry 5 }
+
+ipiSatStreamRunTxPackets OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result tx packets.
+                "
+        ::= { ipiSatStreamRunStatsEntry 6 }
+
+ipiSatStreamRunTxBytes OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result tx bytes.
+                "
+        ::= { ipiSatStreamRunStatsEntry 7 }
+
+ipiSatStreamRunRxPackets OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result rx packets.
+                "
+        ::= { ipiSatStreamRunStatsEntry 8 }
+
+ipiSatStreamRunRxBytes OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result rx bytes.
+                "
+        ::= { ipiSatStreamRunStatsEntry 9 }
+
+ipiSatStreamRunFl OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result frame loss.
+                "
+        ::= { ipiSatStreamRunStatsEntry 10 }
+
+ipiSatStreamRunFlr OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result frame loss ratio.
+                "
+        ::= { ipiSatStreamRunStatsEntry 11 }
+
+ipiSatStreamRunFd OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result frame delay.
+                "
+        ::= { ipiSatStreamRunStatsEntry 12 }
+
+ipiSatStreamRunFdv OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result Frame Delay Variation.
+                "
+        ::= { ipiSatStreamRunStatsEntry 13 }
+
+ipiSatStreamRunFdMin OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result Frame Delay Min.
+                "
+        ::= { ipiSatStreamRunStatsEntry 14 }
+
+ipiSatStreamRunFdMax OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result Frame Delay Max.
+                "
+        ::= { ipiSatStreamRunStatsEntry 15 }
+
+ipiSatStreamRunFdExceed OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result Frame Delay Exceeded.
+                "
+        ::= { ipiSatStreamRunStatsEntry 16 }
+
+ipiSatStreamRunOutOfOrderPackets OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result out of order Packets.
+                "
+        ::= { ipiSatStreamRunStatsEntry 17 }
+
+ipiSatStreamRunErrorPackets OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "
+                This object indicates the SAT Stream Test Result Error packets.
+                "
+        ::= { ipiSatStreamRunStatsEntry 18 }
+
+-- *****************************************************************************
+-- SAT MIB Module - Notifications
+-- *****************************************************************************
+
+ipiSatOperStateNotify NOTIFICATION-TYPE
+    OBJECTS { ipiSatName, ipiSatRunId, ipiSatRunOperState}
+    STATUS  current
+    DESCRIPTION
+            "
+            SAT Operational status is notified for Run.
+
+            The valid enumerated values associated with this type are:
+            inprogress (1)  - Test is in progress.
+            aborted    (2)  - Test is aborted by user or config deletion.
+            passed     (3)  - Test is Passed with all acceptance criteria.
+            failed     (4)  - Test is Failed due to any one of the Stream test failure.
+            "
+    ::= { ipiSatMibNotifs 1 }
+
+-- *****************************************************************************
+-- SAT MIB Module - Conformance Information
+-- *****************************************************************************
+
+ipiSatMibCompliances OBJECT IDENTIFIER ::= { ipiSatMibConformance 1 }
+ipiSatMibGroups      OBJECT IDENTIFIER ::= { ipiSatMibConformance 2 }
+
+-- ******************************************************************
+-- IPI-SAT MIB Units of conformance
+-- ******************************************************************
+
+ipiSatTestMandatoryGroup OBJECT-GROUP
+    OBJECTS {
+            ipiSatDescription,
+            ipiSatDirection,
+            ipiSatStreamRun,
+            ipiSatCirTest,
+            ipiSatCirTestDuration,
+            ipiSatCirEirTest,
+            ipiSatCirEirTestDuration,
+            ipiSatPolicingTest,
+            ipiSatPolicingTestDuration,
+            ipiSatPerformanceTest,
+            ipiSatPerformanceTestDuration,
+            ipiSatCurrentRunId,
+            ipiSatCurrentRunIdStatus
+    }
+    STATUS      current
+    DESCRIPTION
+       "Mandatory objects for the SAT Test Configuration."
+    ::= { ipiSatMibGroups 1 }
+
+ipiSatStreamTableMandatoryGroup OBJECT-GROUP
+  OBJECTS {
+          ipiSatStreamName,
+          ipiSatStreamMeasurementType,
+          ipiSatStreamMode,
+          ipiSatStreamCirRate,
+          ipiSatStreamCirRateUnit,
+          ipiSatStreamCirCos,
+          ipiSatStreamCirDei,
+          ipiSatStreamEirRate,
+          ipiSatStreamEirRateUnit,
+          ipiSatStreamEirCos,
+          ipiSatStreamEirDei,
+          ipiSatStreamColorAware,
+          ipiSatStreamLoadStep,
+          ipiSatStreamAcceptFlr,
+          ipiSatStreamAcceptFtdDelay,
+          ipiSatStreamAcceptFdvDelay,
+          ipiSatStreamFrameSequence,
+          ipiSatStreamFrameDataPattern,
+          ipiSatStreamFrameDelayDisable,
+          ipiSatStreamDstMac,
+          ipiSatStreamDomain,
+          ipiSatStreamMaName,
+          ipiSatStreamMepId,
+          ipiSatStreamInterface,
+          ipiSatStreamTagType,
+          ipiSatStreamVlanId,
+          ipiSatStreamInnerVlanId,
+          ipiSatStreamCurrentRunId,
+          ipiSatStreamCurrentRunIdStatus
+    }
+        STATUS      current
+    DESCRIPTION
+       "Mandatory objects for the SAT Stream Configuration."
+    ::= { ipiSatMibGroups 2 }
+
+ipiSatTestRunMandatoryGroup OBJECT-GROUP
+  OBJECTS {
+          ipiSatRunOperState,
+          ipiSatRunStartTime,
+          ipiSatRunEndTime,
+          ipiSatRunDirection,
+          ipiSatRunStreamRun
+    }
+        STATUS      current
+    DESCRIPTION
+       "Mandatory objects for the SAT Test Run Configuration."
+    ::= { ipiSatMibGroups 3 }
+
+ipiSatServiceStreamMandatoryGroup OBJECT-GROUP
+  OBJECTS {
+          ipiSatStreamRunName,
+          ipiSatStreamRunMeasurementType,
+          ipiSatStreamRunMode,
+          ipiSatStreamRunCirRate,
+          ipiSatStreamRunCirRateUnit,
+          ipiSatStreamRunCirCos,
+          ipiSatStreamRunCirDei,
+          ipiSatStreamRunEirRate,
+          ipiSatStreamRunEirRateUnit,
+          ipiSatStreamRunEirCos,
+          ipiSatStreamRunEirDei,
+          ipiSatStreamRunColorAware,
+          ipiSatStreamRunLoadStep,
+          ipiSatStreamRunFrameSequence,
+          ipiSatStreamRunFrameDataPattern,
+          ipiSatStreamRunFrameDelayDisable,
+          ipiSatStreamRunCirAcceptFlr,
+          ipiSatStreamRunCirAcceptFtdDelay,
+          ipiSatStreamRunCirAcceptFdvDelay,
+          ipiSatStreamRunDestinationMac,
+          ipiSatStreamRunCfmDomain,
+          ipiSatStreamRunCfmMaName,
+          ipiSatStreamRunCfmMepId,
+          ipiSatStreamRunInterfaceName,
+          ipiSatStreamRunEncapTag,
+          ipiSatStreamRunOuterVid,
+          ipiSatStreamRunInnerVid
+    }
+    STATUS      current
+    DESCRIPTION
+       "Mandatory objects for the SAT Service Stream Configuration."
+    ::= { ipiSatMibGroups 4 }
+
+ipiSatStreamTestMandatoryGroup OBJECT-GROUP
+  OBJECTS {
+          ipiSatStreamRunTestLoad,
+          ipiSatStreamRunTestOperStatus,
+          ipiSatStreamRunTestDuration,
+          ipiSatStreamRunTestStartTime,
+          ipiSatStreamRunTestEndTime
+    }
+        STATUS      current
+    DESCRIPTION
+       "Mandatory objects for the SAT Stream Test Configuration."
+    ::= { ipiSatMibGroups 5 }
+
+ipiSatStreamResultMandatoryGroup OBJECT-GROUP
+  OBJECTS {
+          ipiSatStreamRunOperStatus,
+          ipiSatStreamRunAcceptFlr,
+          ipiSatStreamRunAcceptFtdDelay,
+          ipiSatStreamRunAcceptFdvDelay,
+          ipiSatStreamRunTxPackets,
+          ipiSatStreamRunTxBytes,
+          ipiSatStreamRunRxPackets,
+          ipiSatStreamRunRxBytes,
+          ipiSatStreamRunFl,
+          ipiSatStreamRunFlr,
+          ipiSatStreamRunFd,
+          ipiSatStreamRunFdv,
+          ipiSatStreamRunFdMin,
+          ipiSatStreamRunFdMax,
+          ipiSatStreamRunFdExceed,
+          ipiSatStreamRunOutOfOrderPackets,
+          ipiSatStreamRunErrorPackets
+    }
+        STATUS      current
+    DESCRIPTION
+       "Mandatory objects for the SAT Stream Result Configuration."
+    ::= { ipiSatMibGroups 6 }
+-- ******************************************************************
+-- SOAM-PM MIB Module Compliance statements
+-- ******************************************************************
+
+ipiSatMibCompliance MODULE-COMPLIANCE
+    STATUS       current
+    DESCRIPTION "The compliance statement for the Service Activation Test MIB."
+    MODULE
+        MANDATORY-GROUPS {
+                ipiSatTestMandatoryGroup,
+                ipiSatStreamTableMandatoryGroup,
+                ipiSatTestRunMandatoryGroup,
+                ipiSatServiceStreamMandatoryGroup,
+                ipiSatStreamTestMandatoryGroup,
+                ipiSatStreamResultMandatoryGroup
+        }
+    ::= { ipiSatMibCompliances 1 }
+
+END

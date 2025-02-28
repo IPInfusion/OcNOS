@@ -23,22 +23,27 @@ module ipi-bridge-domain {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
+    }
+
+    import ipi-bridge-types {
+        prefix ipi-bridge-types;
+        revision-date 2024-10-07;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -53,6 +58,11 @@ module ipi-bridge-domain {
     description
         "Bridge-domain configurations";
 
+
+    revision "2024-10-07" {
+        description "Added static MAC support for bridge-domain";
+        reference " 0.2.2.";
+    }
 
     revision "2023-10-20" {
         description "Changed member-interfaces nodes from leaf-list to list to ease dependency validations";
@@ -132,6 +142,66 @@ module ipi-bridge-domain {
             } // End of member-interface-list
         } // END of member-interfaces-container definition.
     } // END of bridge-domain-interface-top definition.
+    grouping fdb-entry-config {
+        description
+            "Configuration data for FDB MAC address";
+        leaf mac-address  {
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
+            description "Use this attribute to configure the static forwarding table MAC entry
+                        for the bridge";
+        } // END of mac-address definition.
+
+        leaf action  {
+            type  ipi-bridge-types:bridge_domain_forward_deny_t;
+            mandatory true;
+            description "Use this attribute to configure fame discard/forward action for given
+                        MAC address";
+        } // END of action definition.
+
+        leaf interface-name  {
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/bridge-domain/member-interfaces/member-interface/config/name";
+            }
+            mandatory true;
+            description "The textual name of the interface";
+        } // END of interface-name definition.
+
+    } // END of fdb-entry-config definition.
+    grouping bridge-domain-fdb-top {
+        description
+            "Grouping for Sub-interface bridge-domain configurations";
+        container bridge-domain-mac-table {
+            description
+                "MAC table information";
+
+            list entry {
+                key "mac-address";
+                description
+                    "List of FDB MAC entries";
+                leaf mac-address  {
+                    type  leafref {
+                        path  "../config/mac-address";
+                    }
+                    description "Use this attribute to configure the static forwarding table MAC entry
+                                for the bridge";
+                } // END of mac-address definition.
+
+                container config {
+                    description
+                        "Configuration data for FDB MAC entries";
+                    uses fdb-entry-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses fdb-entry-config;
+                } // END of state-container definition.
+            } // End of entry-list
+        } // END of bridge-domain-mac-table-container definition.
+    } // END of bridge-domain-fdb-top definition.
     grouping subif-bridge-config {
         description
             "Grouping for Sub-interface bridge-domain configurations";
@@ -219,6 +289,7 @@ module ipi-bridge-domain {
             uses subif-bridge-config;
         } // END of state-container definition.
         uses bridge-domain-interface-top;
+        uses bridge-domain-fdb-top;
     } // END of bridge-domain-container definition.
     } // END of bridge-domain-grouping definition.
 

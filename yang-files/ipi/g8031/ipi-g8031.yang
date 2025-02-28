@@ -28,35 +28,35 @@ module ipi-g8031 {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2024-06-21;
+        revision-date 2024-10-07;
     }
 
     import ipi-vlan {
         prefix ipi-vlan;
-        revision-date 2024-09-20;
+        revision-date 2025-01-06;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
-    include ipi-g8031-elps { revision-date 2024-06-06;}
+    include ipi-g8031-elps { revision-date 2024-08-22;}
     organization
         "IP Infusion Inc.";
 
@@ -69,6 +69,36 @@ module ipi-g8031 {
     description
         "Ethernet Linear Protection Switching";
 
+
+    revision "2024-08-22" {
+        description "Changed max value for g8031 instance profile and group names";
+        reference " 1.0.1.";
+    }
+
+    revision "2024-08-12" {
+        description "Added notification for g8031 active path notify";
+        reference " 1.0.0.";
+    }
+
+    revision "2024-08-01" {
+        description "commented the rpc of clear g8031 eps-instance";
+        reference " 0.9.3.";
+    }
+
+    revision "2024-07-17" {
+        description "Getapi support for show g8031 eps-instance INSTANCE_NAME";
+        reference " 0.9.2.";
+    }
+
+    revision "2024-07-05" {
+        description "Added all option for clear g8031 eps-instance";
+        reference " 0.9.1.";
+    }
+
+    revision "2024-07-04" {
+        description "Added Length and corrected spelling of some attributes";
+        reference " 0.7.5.";
+    }
 
     revision "2024-06-06" {
         description "Renamed few attributes and Description";
@@ -305,7 +335,7 @@ module ipi-g8031 {
         input  {
             leaf instance-name  {
                 type string {
-                    length "1..255";
+                    length "1..100";
                 }
                 mandatory true;
                 description "ELPS instance identifier";
@@ -320,22 +350,7 @@ module ipi-g8031 {
         input  {
             leaf instance-name  {
                 type string {
-                    length "1..255";
-                }
-                mandatory true;
-                description "ELPS instance identifier";
-            }
-        }
-    }
-
-    rpc g8031-clear {
-        if-feature feature-list:HAVE_G8031;
-        if-feature feature-list:HAVE_ONMD;
-        description "G8031 clear operation";
-        input  {
-            leaf instance-name  {
-                type string {
-                    length "1..255";
+                    length "1..100";
                 }
                 mandatory true;
                 description "ELPS instance identifier";
@@ -376,7 +391,7 @@ module ipi-g8031 {
         input  {
             leaf instance-name  {
                 type string {
-                    length "1..255";
+                    length "1..100";
                 }
                 mandatory true;
                 description "ELPS instance identifier";
@@ -396,7 +411,7 @@ module ipi-g8031 {
         input  {
             leaf instance-name  {
                 type string {
-                    length "1..255";
+                    length "1..100";
                 }
                 mandatory true;
                 description "EPS instance identifier";
@@ -406,6 +421,65 @@ module ipi-g8031 {
                 mandatory true;
                 description "EPS instance type";
             }
+        }
+    }
+
+    notification g8031-active-path-notification {
+        if-feature feature-list:HAVE_G8031;
+        if-feature feature-list:HAVE_ONMD;
+
+        description "Notify that the result is completed.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: INFO)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf name {
+            type  string;
+        description
+            "Instance name to identify the EPS protection group";
+        }
+
+        leaf eps-id {
+            type  uint8;
+        description
+            "use this attribute to set the eps id for eps instance";
+        }
+
+        leaf working-port {
+            type  string;
+        description
+            "Use this attribute to set the working port for eps instance";
+        }
+
+        leaf working-port-ifindex {
+            type  uint32;
+        description
+            "Use this attribute to set the working port ifindex";
+        }
+
+        leaf protection-port {
+            type  string;
+        description
+            "Use this attribute to set the protection port";
+        }
+
+        leaf protection-port-ifindex {
+            type  uint32;
+        description
+            "Use this attribute to set the protection port ifindex";
+        }
+
+        leaf active-path {
+            type  string;
+        description
+            "Use this attribute to set the active path";
         }
     }
 

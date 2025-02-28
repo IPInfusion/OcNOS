@@ -19,6 +19,11 @@ submodule ipi-segment-routing-mpls-flxalg {
 
     belongs-to  ipi-segment-routing { prefix ipi-segment-routing; }
 
+    import feature-list {
+        prefix feature-list;
+        revision-date 2025-02-27;
+    }
+
     import ipi-sr-types {
         prefix ipi-sr-types;
         revision-date 2024-03-09;
@@ -43,6 +48,21 @@ submodule ipi-segment-routing-mpls-flxalg {
                 Algorithms";
 
 
+    revision "2024-08-10" {
+        description "Commented out Flex-Algo Adjacency-SID for OcNOS-6.6";
+        reference " 0.2.0.";
+    }
+
+    revision "2024-06-25" {
+        description "Flexible Algorithm capability param added";
+        reference " 0.1.4.";
+    }
+
+    revision "2024-05-06" {
+        description "Added Adjacency Segment configuration containers for Flexible Algorithms";
+        reference " 0.1.3.";
+    }
+
     revision "2024-03-09" {
         description "Updated for dependency revisions change";
         reference " 0.1.2.";
@@ -58,6 +78,196 @@ submodule ipi-segment-routing-mpls-flxalg {
         reference " 0.1.0.";
     }
 
+    grouping sr-te-flex-algo-config {
+        description
+            "Flexible Algorithm config for SR Policies";
+        leaf flex-algo-enable  {
+            type  empty;
+            description "Enable flexible algorithm for segment routing polices";
+        } // END of flex-algo-enable definition.
+
+    } // END of sr-te-flex-algo-config definition.
+    grouping adjacency-segment-def-algo-config {
+        description
+            "Grouping for MPLS segment-routing Adjacency configurations";
+        leaf adj-sid-absolute  {
+            type  uint32 {
+                 range "16..1048575"  {
+                    description "16..1048575: Supported range 16 - 1048575";
+                 }
+            }
+            description "This attribute is used to configure Segment Route adjacency SID
+                        absolute value";
+        } // END of adj-sid-absolute definition.
+
+        leaf adj-sid-index  {
+            type  uint32 {
+                 range "0..1048575"  {
+                    description "0..1048575: Supported range 0 - 1048575";
+                 }
+            }
+            description "This attribute is used to configure Segment Route adjacency SID
+                        index-value";
+        } // END of adj-sid-index definition.
+
+    } // END of adjacency-segment-def-algo-config definition.
+    grouping adjacency-segment-flex-algo-config {
+        description
+            "Grouping for MPLS segment-route adjacency configurations";
+        leaf algorithm-num  {
+            type  ipi-sr-types:sr_algo_choice_t;
+            description "SR-Algorithm number";
+        } // END of algorithm-num definition.
+
+        leaf adj-sid-multi  {
+            type  ipi-sr-types:sr_adj_sid_choice_t;
+            description "This attribute is used to configure Segment Route Adjacency SID value";
+        } // END of adj-sid-multi definition.
+
+        leaf adj-sid-type  {
+            type  ipi-sr-types:sr_adj_sid_type_t;
+            description "This attribute is used to display Segment Route Adjacency SID type";
+        } // END of adj-sid-type definition.
+
+    } // END of adjacency-segment-flex-algo-config definition.
+    grouping prefix-segment-algorithm-config {
+        description
+            "Grouping for MPLS segment-route Prefix configurations";
+        leaf algorithm-num  {
+            type  ipi-sr-types:sr_algo_choice_t;
+            description "SR-Algorithm number";
+        } // END of algorithm-num definition.
+
+        leaf sid-absolute  {
+            type  uint32 {
+                 range "16..1048575"  {
+                    description "16..1048575: Supported range 16 - 1048575";
+                 }
+            }
+            description "This attribute is used to configure Segment Route Prefix SID absolute
+                        value";
+        } // END of sid-absolute definition.
+
+        leaf sid-index  {
+            type  uint32 {
+                 range "0..1048575"  {
+                    description "0..1048575: Supported range 0 - 1048575";
+                 }
+            }
+            description "This attribute is used to configure Segment Route Prefix SID
+                        index-value";
+        } // END of sid-index definition.
+
+        leaf exp-null  {
+            type  ipi-sr-types:if_sr_prefix_flag_t;
+            description "This attribute describes except Null";
+        } // END of exp-null definition.
+
+        leaf n-flag-clear  {
+            type  ipi-sr-types:if_sr_n_flag_clear_t;
+            description "This attribute is used to set n-flag-clear";
+        } // END of n-flag-clear definition.
+
+    } // END of prefix-segment-algorithm-config definition.
+    grouping adjacency-segment-def-algo-top {
+        description
+            "Grouping for MPLS segment-route adjacency configurations";
+        container adjacency-segment {
+            // when " ipi-interface:interfaces/interface/config/enable-switchport != '1' ";
+            if-feature feature-list:HAVE_SR_MPLS;
+            description
+                "MPLS segment-route adjacency";
+            container config {
+                // when " ../config/adj-sid-index or ../config/adj-sid-absolute ";
+                description
+                    "Configuration data for segment-route adjacency module";
+                uses adjacency-segment-def-algo-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for segment-route prefix module";
+                uses adjacency-segment-def-algo-config;
+            } // END of state-container definition.
+        } // END of adjacency-segment-container definition.
+    } // END of adjacency-segment-def-algo-top definition.
+    grouping adjacency-segment-flex-algo-top {
+        description
+            "Grouping for MPLS segment-route adjacency configurations";
+        container adjacency-segment-flex-algos {
+            if-feature feature-list:HAVE_SR_MPLS;
+            description
+                "MPLS segment-route Adjacency-SID/Algorithm list";
+
+            list adjacency-segment-flex-algo {
+            // when " ipi-interface:interfaces/interface/config/enable-switchport != '1' ";
+                key "algorithm-num adj-sid-multi";
+                description
+                    "MPLS segment-route Adjacency-SID/Algorithm pair";
+                leaf algorithm-num  {
+                    type  leafref {
+                        path  "../config/algorithm-num";
+                    }
+                    description "SR-Algorithm number";
+                } // END of algorithm-num definition.
+
+                leaf adj-sid-multi  {
+                    type  leafref {
+                        path  "../config/adj-sid-multi";
+                    }
+                    description "SR Adjacency SID value";
+                } // END of adj-sid-multi definition.
+
+                container config {
+                    // when " ../config/adj-sid-multi ";
+                    description
+                        "Configuration data for segment-route adjacency module";
+                    uses adjacency-segment-flex-algo-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for segment-route adjacency module";
+                    uses adjacency-segment-flex-algo-config;
+                } // END of state-container definition.
+            } // End of adjacency-segment-flex-algo-list
+        } // END of adjacency-segment-flex-algos-container definition.
+    } // END of adjacency-segment-flex-algo-top definition.
+    grouping prefix-segment-algorithm-top {
+        description
+            "Grouping for MPLS segment-route Prefix-SID/Algorithm configurations";
+        container prefix-segment-algorithms {
+            if-feature feature-list:HAVE_SR_MPLS;
+            description
+                "MPLS segment-route Prefix-SID/Algorithm list";
+
+            list prefix-segment-algorithm {
+            // when " ipi-interface:interfaces/interface/config/enable-switchport != '1' ";
+                key "algorithm-num";
+                description
+                    "MPLS segment-route Prefix-SID/Algorithm pair";
+                leaf algorithm-num  {
+                    type  leafref {
+                        path  "../config/algorithm-num";
+                    }
+                    description "SR-Algorithm number";
+                } // END of algorithm-num definition.
+
+                container config {
+                    // when " ../config/sid-index or ../config/sid-absolute ";
+                    description
+                        "Configuration data for segment-route prefix module";
+                    uses prefix-segment-algorithm-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for segment-route prefix module";
+                    uses prefix-segment-algorithm-config;
+                } // END of state-container definition.
+            } // End of prefix-segment-algorithm-list
+        } // END of prefix-segment-algorithms-container definition.
+    } // END of prefix-segment-algorithm-top definition.
     grouping segment-type-3-properties-common-config {
         description
             "Common properties of segment which includes it's index value and it's

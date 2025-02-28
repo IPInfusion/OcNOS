@@ -28,7 +28,7 @@ module ipi-system {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -43,6 +43,11 @@ module ipi-system {
     description
         "system global configs";
 
+
+    revision "2024-10-16" {
+        description "Added a new CLI command to disable the sysrq";
+        reference " 0.7.0.";
+    }
 
     revision "2024-08-21" {
         description "Added utils_func to time-zone";
@@ -123,6 +128,35 @@ module ipi-system {
         } // END of timezone-name definition.
 
     } // END of system-clock-config definition.
+    grouping system-request-top {
+        description
+            "Top-level grouping for system-wide request configuration";
+        container sysrq {
+            description
+                "Config data for system request";
+            container config {
+                description
+                    "config data for system request";
+                uses system-request-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for system request";
+                uses system-request-config;
+            } // END of state-container definition.
+        } // END of sysrq-container definition.
+    } // END of system-request-top definition.
+    grouping system-request-config {
+        description
+            "Configuration data for system-request";
+        leaf disable  {
+            type  boolean;
+            default true;
+            description "disable system request";
+        } // END of disable definition.
+
+    } // END of system-request-config definition.
     grouping system-global-state {
         description
             "system global state parameters";
@@ -204,6 +238,7 @@ module ipi-system {
             uses system-global-config;
             uses system-global-state;
         } // END of state-container definition.
+        uses system-request-top;
         uses system-clock-top;
     } // END of system-info-container definition.
     } // END of system-info-grouping definition.

@@ -21,12 +21,12 @@ submodule ipi-platform-cmis {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     import ipi-platform-cmis-types {
         prefix ipi-platform-cmis-types;
-        revision-date 2024-09-03;
+        revision-date 2024-12-23;
     }
 
     import ipi-platform-sff8024-types {
@@ -47,6 +47,21 @@ submodule ipi-platform-cmis {
         "This module defines a schema for CMIS transceivers in platform
                 datamodel";
 
+
+    revision "2024-12-23" {
+        description "Added media lane provision support";
+        reference " 0.8.9.";
+    }
+
+    revision "2024-12-04" {
+        description "Added CMIS module gating support";
+        reference " 0.8.8.";
+    }
+
+    revision "2024-11-27" {
+        description "Added C-CMIS revision 1.3 attributes";
+        reference " 0.8.7.";
+    }
 
     revision "2024-09-03" {
         description "Add alarm-type field for monitor recovery notifications";
@@ -459,6 +474,13 @@ submodule ipi-platform-cmis {
             description "Module CMIS revision";
         } // END of cmis-revision definition.
 
+        leaf ccmis-revision  {
+            type  string {
+                length "0..32";
+            }
+            description "Module C-CMIS revision";
+        } // END of ccmis-revision definition.
+
         leaf memory-model  {
             type  ipi-platform-cmis-types:cmm_cmis_memory_model_t;
             description "Module memory model";
@@ -539,6 +561,11 @@ submodule ipi-platform-cmis {
             units "nm";
             description "Module wavelength tolerance";
         } // END of wavelength-tolerance definition.
+
+        leaf rx-los-detection-type  {
+            type  ipi-platform-cmis-types:cmm_ccmis_rx_los_type_t;
+            description "Rx LoS detection type";
+        } // END of rx-los-detection-type definition.
 
     } // END of ipi-platform-cmis-module-eeprom-state definition.
     grouping ipi-platform-cmis-module-eeprom-top {
@@ -838,6 +865,56 @@ submodule ipi-platform-cmis {
             type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
             description "Indicates whether counting of bits and bit erros is supported or not";
         } // END of count-bits-and-errors definition.
+
+        leaf media-side-fec-prbs-error  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether media side PRBS error information is supported or
+                        not";
+        } // END of media-side-fec-prbs-error definition.
+
+        leaf host-side-fec-prbs-error  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether host side PRBS error information is supported or not";
+        } // END of host-side-fec-prbs-error definition.
+
+        leaf media-side-input-snr-measurement  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether media side SNR measurement is supported or not";
+        } // END of media-side-input-snr-measurement definition.
+
+        leaf host-side-input-snr-measurement  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether host side SNR measurement is supported or not";
+        } // END of host-side-input-snr-measurement definition.
+
+        leaf gating-support  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether gated performance monitoring (PM) is supported or
+                        not";
+        } // END of gating-support definition.
+
+        leaf gating-results  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether reporting gated performance monitoring (PM) is
+                        supported or not";
+        } // END of gating-results definition.
+
+        leaf periodic-updates  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether real-time statistics are periodically updated during
+                        measurement or not";
+        } // END of periodic-updates definition.
+
+        leaf per-lane-gating-timers  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether per lane gating timers are supported in all banks or
+                        not";
+        } // END of per-lane-gating-timers definition.
+
+        leaf gating-auto-restart  {
+            type  ipi-platform-cmis-types:cmm_cmis_yes_no_t;
+            description "Indicates whether auto-restart gating control is supported or not";
+        } // END of gating-auto-restart definition.
 
     } // END of ipi-platform-cmis-module-advertisement-diagnostics-module-state definition.
     grouping ipi-platform-cmis-module-advertisement-diagnostics-state {
@@ -2616,6 +2693,35 @@ submodule ipi-platform-cmis {
         } // END of output-power definition.
 
     } // END of ipi-platform-qsfp-dd-lane-laser-config definition.
+    grouping ipi-platform-qsfp-dd-gating-config {
+        description
+            "Grouping for global gating configurable parameters";
+        leaf interval  {
+            type  ipi-platform-cmis-types:cmm_cmis_gating_interval_t;
+            description "Configuration of gating interval";
+        } // END of interval definition.
+
+        leaf auto-restart  {
+            type  empty;
+            description "To enable auto-restart of the gating timer";
+        } // END of auto-restart definition.
+
+    } // END of ipi-platform-qsfp-dd-gating-config definition.
+    grouping ipi-platform-qsfp-dd-provisions-config {
+        description
+            "Grouping for media lane provision configurable parameters";
+        leaf tx-filter-type  {
+            type  ipi-platform-cmis-types:cmm_cmis_tx_filter_type_t;
+            description "Configuration of media lane tx filter type provisioning";
+        } // END of tx-filter-type definition.
+
+        leaf tx-filter-roll-off  {
+            type  decimal64 {
+                 fraction-digits 6;            }
+            description "Configuration of media lane tx filter roll off factor provisioning";
+        } // END of tx-filter-roll-off definition.
+
+    } // END of ipi-platform-qsfp-dd-provisions-config definition.
     grouping ipi-platform-qsfp-dd-signal-integrity-config {
         description
             "Grouping for signal integrity configurable parameters";
@@ -2732,6 +2838,63 @@ submodule ipi-platform-cmis {
         } // END of low-warning definition.
 
     } // END of ipi-platform-qsfp-dd-threshold-parameters definition.
+    grouping ipi-platform-qsfp-dd-media-provisions-top {
+        description
+            "Grouping for per media lane provisions configuration related data";
+        container provisions {
+            description
+                "Container enclosing media lane provisions related data";
+            container config {
+                description
+                    "Media provisions parameters configutation data";
+                uses ipi-platform-qsfp-dd-provisions-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Media provisions parameters operational data";
+                uses ipi-platform-qsfp-dd-provisions-config;
+            } // END of state-container definition.
+        } // END of provisions-container definition.
+    } // END of ipi-platform-qsfp-dd-media-provisions-top definition.
+    grouping ipi-platform-qsfp-dd-provisions-top {
+        description
+            "Grouping for media provisions configuration related data";
+        container provisions {
+            description
+                "Container enclosing media provisions related data";
+            container config {
+                description
+                    "Media provisions parameters configutation data";
+                uses ipi-platform-qsfp-dd-provisions-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Media provisions parameters operational data";
+                uses ipi-platform-qsfp-dd-provisions-config;
+            } // END of state-container definition.
+        } // END of provisions-container definition.
+    } // END of ipi-platform-qsfp-dd-provisions-top definition.
+    grouping ipi-platform-qsfp-dd-gating-top {
+        description
+            "Grouping for gating configuration related data";
+        container gating {
+            description
+                "Container enclosing measurement related data";
+            container config {
+                description
+                    "Gating parameters configutation data";
+                uses ipi-platform-qsfp-dd-gating-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Gating parameters operational data";
+                uses ipi-platform-qsfp-dd-gating-config;
+            } // END of state-container definition.
+        } // END of gating-container definition.
+    } // END of ipi-platform-qsfp-dd-gating-top definition.
     grouping ipi-platform-qsfp-dd-host-lane-threshold-config {
         description
             "Grouping for per host lane threshold configurable parameters";
@@ -3051,7 +3214,7 @@ submodule ipi-platform-cmis {
                     "Top level container for per media lane configuration";
 
                 list lane {
-                // when "                    ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                    ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config ";
+                // when "                    ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                    ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config  +                    ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/provisions/config ";
                     key "lane-number";
                     description
                         "List of media lanes and their configuration";
@@ -3075,6 +3238,7 @@ submodule ipi-platform-cmis {
                     } // END of state-container definition.
                     uses ipi-platform-qsfp-dd-media-laser-top;
                     uses ipi-platform-qsfp-dd-media-thresholds-top;
+                    uses ipi-platform-qsfp-dd-media-provisions-top;
                 } // End of lane-list
             } // END of lanes-container definition.
         } // END of media-container definition.
@@ -3103,7 +3267,7 @@ submodule ipi-platform-cmis {
             "ipi-platform-qsfp-dd-top";
 
         list qsfp-dd {
-        // when "                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/application  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/custom-app-host-id  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/custom-app-media-id  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/service-disable  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/signal-integrity/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/signal-integrity/config ";
+        // when "                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/application  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/custom-app-host-id  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/custom-app-media-id  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/config/service-disable  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/generator/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/prbs/checker/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/loopback/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/laser/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/thresholds/threshold/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/signal-integrity/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/host/lanes/lane/signal-integrity/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/gating/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/provisions/config  +                ipi-platform-cmis:qsfp-dds/qsfp-dd/media/lanes/lane/provisions/config ";
             key "fp-port";
             description
                 "List of configured QSFP-DD transceivers";
@@ -3130,6 +3294,8 @@ submodule ipi-platform-cmis {
             uses ipi-platform-qsfp-dd-laser-top;
             uses ipi-platform-qsfp-dd-thresholds-top;
             uses ipi-platform-qsfp-dd-signal-integrity-top;
+            uses ipi-platform-qsfp-dd-gating-top;
+            uses ipi-platform-qsfp-dd-provisions-top;
         } // End of qsfp-dd-list
     } // END of ipi-platform-qsfp-dd-top definition.
 

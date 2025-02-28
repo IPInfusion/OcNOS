@@ -23,12 +23,12 @@ module ipi-mcec {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
     }
 
     import ipi-mcec-types {
         prefix ipi-mcec-types;
-        revision-date 2022-06-01;
+        revision-date 2024-11-12;
     }
 
     import ietf-inet-types {
@@ -38,17 +38,17 @@ module ipi-mcec {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-09-18;
+        revision-date 2025-01-02;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -64,9 +64,29 @@ module ipi-mcec {
         "Multi Chassis Ethernet Channel (MCEC)";
 
 
-    revision "2024-09-13" {
+    revision "2024-12-18" {
+        description "MLAG IDL higig platform specific check addition ";
+        reference " 0.8.4.";
+    }
+
+    revision "2024-11-12" {
+        description "Remove enable option from mcec strict-active-standby cmd ";
+        reference " 1.0.3.";
+    }
+
+    revision "2024-11-08" {
+        description "Added mcec strict-active-standby cmd ";
+        reference " 1.0.2.";
+    }
+
+    revision "2024-09-16" {
         description "Added utils_func tag for attribute address";
-        reference " 0.8.1.";
+        reference " 1.0.1.";
+    }
+
+    revision "2024-09-03" {
+        description "Changed the range for the attribute revertive-timer";
+        reference " 1.0.0.";
     }
 
     revision "2024-01-05" {
@@ -240,6 +260,11 @@ module ipi-mcec {
     grouping mcec-domain-config {
         description
             "Grouping for mcec domain configuration";
+        leaf mcec-strict-active-standby  {
+            type  empty;
+            description "Use this attribute to set mcec strict active standby";
+        } // END of mcec-strict-active-standby definition.
+
         leaf system-number  {
             type  uint8 {
                  range "1..2"  {
@@ -541,7 +566,7 @@ module ipi-mcec {
         } // END of interface definition.
 
         leaf higig  {
-            // when " ipi-mcec:mcec/intra-domain/peer-link/config/interface ";
+            when " /ipi-mcec:mcec/ipi-mcec:domain/ipi-mcec:config/ipi-mcec:system-number ";
             if-feature feature-list:NOT_HAVE_DUNE;
             type  empty;
             description "Turn on/off higig on inter domain link";
@@ -948,9 +973,9 @@ module ipi-mcec {
             "Grouping for switchover type configuration";
         leaf revertive-timer  {
             // when " ipi-mcec:mcec/mlag-interfaces/mlag-interface/switchover-type/config/enable-non-revertive != '1' ";
-            type  uint8 {
-                 range "1..255"  {
-                    description "1..255: Supported range 1 - 255";
+            type  uint16 {
+                 range "1..3600"  {
+                    description "1..3600: Supported range 1 - 3600";
                  }
             }
             default "10";

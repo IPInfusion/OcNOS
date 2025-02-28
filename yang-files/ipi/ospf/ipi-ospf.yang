@@ -23,7 +23,7 @@ module ipi-ospf {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ietf-inet-types {
@@ -38,39 +38,39 @@ module ipi-ospf {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import ipi-ospf-types {
         prefix ipi-ospf-types;
-        revision-date 2023-05-11;
+        revision-date 2024-09-05;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-09-18;
+        revision-date 2025-01-02;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
-    include ipi-ospf-redistribute { revision-date 2022-06-01;}
+    include ipi-ospf-processes-state { revision-date 2024-09-18;}
+    include ipi-ospf-multi-area-interface { revision-date 2024-11-05;}
     include ipi-ospf-global { revision-date 2022-06-01;}
-    include ipi-ospf-multi-area-interface { revision-date 2024-05-24;}
-    include ipi-ospf-processes-state { revision-date 2024-07-19;}
+    include ipi-ospf-redistribute { revision-date 2022-06-01;}
     include ipi-ospf-distribute-lists { revision-date 2022-06-01;}
-    include ipi-ospf-timers { revision-date 2022-06-01;}
-    include ipi-ospf-area { revision-date 2024-08-07;}
-    include ipi-ospf-te-link { revision-date 2022-06-01;}
     include ipi-ospf-debug { revision-date 2023-05-25;}
-    include ipi-ospf-interface { revision-date 2024-09-11;}
+    include ipi-ospf-area { revision-date 2024-08-07;}
+    include ipi-ospf-timers { revision-date 2025-01-26;}
+    include ipi-ospf-te-link { revision-date 2022-06-01;}
+    include ipi-ospf-interface { revision-date 2024-10-15;}
     include ipi-ospf-authentication { revision-date 2022-06-01;}
     include ipi-ospf-interface-common { revision-date 2023-01-11;}
     organization
@@ -86,19 +86,44 @@ module ipi-ospf {
         "Layer-3 Open Shortest Path First (OSPF)";
 
 
-    revision "2024-09-11" {
+    revision "2025-01-26" {
+        description "Added implicit_delete tag for timers container";
+        reference " 0.9.5.";
+    }
+
+    revision "2025-01-16" {
+        description "Added enclosing container for discovered neighbor object list";
+        reference " 0.9.4.";
+    }
+
+    revision "2025-01-08" {
+        description "Added OSPF neighbor table support to retrieve state attributes";
+        reference " 0.9.3.";
+    }
+
+    revision "2024-11-05" {
+        description "Added vrf-name when tag to multi-area-interface name attribute";
+        reference " 0.9.2.";
+    }
+
+    revision "2024-10-15" {
         description "Updated the default cost value for the ospfv2 interface";
         reference " 0.9.1.";
+    }
+
+    revision "2024-09-18" {
+        description "ECMP change for tilfa-repair-path, tilfa-backup-path output";
+        reference " 0.9.0.";
+    }
+
+    revision "2024-09-05" {
+        description "Updated if-feature for datatype OSPF_ROUTE_SOURCE_TYPE_T";
+        reference " 0.8.6.";
     }
 
     revision "2024-08-07" {
         description "Added when tag at ospfv2-area-interface";
         reference " 0.8.5.";
-    }
-
-    revision "2024-07-19" {
-        description "ECMP change for tilfa-repair-path, tilfa-backup-path output";
-        reference " 0.9.0.";
     }
 
     revision "2024-06-27" {
@@ -2061,6 +2086,90 @@ module ipi-ospf {
         } // END of poll-interval definition.
 
     } // END of ospfv2-neighbor-config definition.
+    grouping ospfv2-discovered-neighbor-state {
+        description
+            "Grouping for discovered OSPF neighbor data";
+        leaf nbr-address  {
+            type  inet:ipv4-address;
+            config false;
+            description "OSPF Neighbor address.";
+        } // END of nbr-address definition.
+
+        leaf nbr-router-id  {
+            type  inet:ipv4-address;
+            config false;
+            description "OSPF Neighbor Router ID.";
+        } // END of nbr-router-id definition.
+
+        leaf nbr-priority  {
+            type  uint8;
+            config false;
+            description "OSPF Neighbor Priority.";
+        } // END of nbr-priority definition.
+
+        leaf nbr-state  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            config false;
+            description "OSPF Neighbor State.";
+        } // END of nbr-state definition.
+
+        leaf dead-time  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            config false;
+            description "OSPF Neighbor Dead time.";
+        } // END of dead-time definition.
+
+        leaf if-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            config false;
+            description "OSPF Neighbor Interface name.";
+        } // END of if-name definition.
+
+        leaf instanceid  {
+            type  uint8;
+            config false;
+            description "OSPF Neighbor Instance ID.";
+        } // END of instanceid definition.
+
+    } // END of ospfv2-discovered-neighbor-state definition.
+    grouping ospfv2-discovered-neighbors-top {
+        description
+            "Grouping for OSPF discovered neighbor";
+        container discovered-neighbors {
+            config false;
+            description
+                "OSPF discovered neighbor data";
+
+            list discovered-neighbor {
+                key "nbr-address";
+                config false;
+                description
+                    "List of discovered OSPF neighbors";
+                leaf nbr-address  {
+                    type  leafref {
+                        path  "../state/nbr-address";
+                    }
+                    description "OSPF Neighbor address.";
+                } // END of nbr-address definition.
+
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses ospfv2-discovered-neighbor-state;
+                } // END of state-container definition.
+            } // End of discovered-neighbor-list
+        } // END of discovered-neighbors-container definition.
+    } // END of ospfv2-discovered-neighbors-top definition.
     grouping ospfv2-neighbor-top {
         description
             "Grouping for OSPF neighbor";
@@ -2431,6 +2540,7 @@ module ipi-ospf {
                 uses ospfv2-max-metric-router-lsa-top;
                 uses ospfv2-max-metric-on-startup-top;
                 uses ospfv2-mpls-entropy-top;
+                uses ospfv2-discovered-neighbors-top;
             } // End of process-list
         } // END of processes-container definition.
     } // END of ospfv2-processes-top definition.

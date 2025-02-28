@@ -28,7 +28,7 @@ module ipi-bfd {
 
     import ipi-bfd-common {
         prefix ipi-bfd-common;
-        revision-date 2024-10-14;
+        revision-date 2024-12-27;
     }
 
     import ietf-yang-types {
@@ -43,16 +43,16 @@ module ipi-bfd {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
-    include ipi-bfd-interface { revision-date 2024-10-14;}
-    include ipi-bfd-session { revision-date 2022-06-20;}
+    include ipi-bfd-interface { revision-date 2025-01-09;}
+    include ipi-bfd-session { revision-date 2025-02-13;}
     include ipi-mpls-bfd-session { revision-date 2023-01-23;}
     organization
         "IP Infusion Inc.";
@@ -67,9 +67,34 @@ module ipi-bfd {
         "Datamodel for Bidirecional Forwarding Detection (BFD)";
 
 
+    revision "2025-02-13" {
+        description "Added attribite local-discriminator under micro-bfd-sessions";
+        reference " 0.9.7.";
+    }
+
+    revision "2025-01-09" {
+        description "Added utils-func cml_ipv6_format for the attributes 'local-address' and 'remote address'";
+        reference " 0.9.6.";
+    }
+
+    revision "2024-12-27" {
+        description "Added CML_SKIP_HITLESS_MERGE flag for bfd authentication";
+        reference " 0.9.5.";
+    }
+
+    revision "2024-12-03" {
+        description "Added bfd cli support for MHOP global command";
+        reference " 0.9.4.";
+    }
+
     revision "2024-10-14" {
         description "Added bfd cli support for irb if-mode";
-        reference " 0.10.0.";
+        reference " 0.9.3.";
+    }
+
+    revision "2024-06-12" {
+        description "Inclusion of streaming telemetry yaml file";
+        reference " 0.9.2.";
     }
 
     revision "2024-05-29" {
@@ -369,6 +394,62 @@ module ipi-bfd {
                 uses bfd-global-state;
                 uses bfd-global-counters;
             } // END of state-container definition.
+            container multihop-peer-intervals {
+                description
+                    "BFD multihop peer interval parameters.";
+
+                list multihop-peer-interval {
+                    if-feature feature-list:HAVE_BFD_MONO;
+                    key "desired-minimum-tx-interval required-minimum-rx-interval detection-multiplier";
+                    max-elements 1;
+                    description
+                        "BFD multihop peer interval parameters.";
+                    leaf desired-minimum-tx-interval  {
+                        type  leafref {
+                            path  "../config/desired-minimum-tx-interval";
+                        }
+                        description "The minimum interval between transmission of BFD control packets that
+                                    the operator desires. This value is advertised to the peer, however
+                                    the actual interval used is specified by taking the maximum of
+                                    desired-minimum-tx-interval and the        value of the remote
+                                    required-min
+                                    imum-receive interval value.";
+                    } // END of desired-minimum-tx-interval definition.
+
+                    leaf required-minimum-rx-interval  {
+                        type  leafref {
+                            path  "../config/required-minimum-rx-interval";
+                        }
+                        description "The minimum interval between received BFD control packets that this
+                                    system should support. This value is advertised to the remote peer to
+                                    indicate the maximum frequency (i.e., minimum inter-packet interval)
+                                    between BFD control packets         that is acceptable to the local
+                                    system.";
+                    } // END of required-minimum-rx-interval definition.
+
+                    leaf detection-multiplier  {
+                        type  leafref {
+                            path  "../config/detection-multiplier";
+                        }
+                        description "The number of packets that must be missed to declare this session as
+                                    down. The detection interval for the BFD session is calculated by
+                                    multiplying the value of the negotiated transmission interval by this
+                                    value.";
+                    } // END of detection-multiplier definition.
+
+                    container config {
+                        description
+                            "BFD multihop peer configuration parameters";
+                        uses ipi-bfd-common:bfd-interval-config-common;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "Operational state parameters for BFD multihop peer";
+                        uses ipi-bfd-common:bfd-interval-config-common;
+                    } // END of state-container definition.
+                } // End of multihop-peer-interval-list
+            } // END of multihop-peer-intervals-container definition.
             container intervals {
                 description
                     "BFD multihop peer interval parameters.";

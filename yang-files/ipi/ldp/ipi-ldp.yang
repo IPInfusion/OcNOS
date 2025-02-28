@@ -23,7 +23,7 @@ module ipi-ldp {
 
     import ipi-ldp-types {
         prefix ipi-ldp-types;
-        revision-date 2023-10-05;
+        revision-date 2025-02-07;
     }
 
     import ietf-inet-types {
@@ -33,16 +33,16 @@ module ipi-ldp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     include ipi-ldp-l2vpn { revision-date 2024-05-24;}
-    include ipi-ldp-interface { revision-date 2023-12-18;}
+    include ipi-ldp-interface { revision-date 2024-12-20;}
     include ipi-ldp-peer { revision-date 2024-08-07;}
     organization
         "IP Infusion Inc.";
@@ -56,6 +56,61 @@ module ipi-ldp {
     description
         "Datamodel for LDP protocol";
 
+
+    revision "2025-02-08" {
+        description "disabled common label cli attribute";
+        reference " 0.10.11.";
+    }
+
+    revision "2025-02-07" {
+        description "Removed ha message option from LDP_DEBUG_T datatype";
+        reference " 0.10.10.";
+    }
+
+    revision "2025-01-17" {
+        description "Added drop element tag for iccp container and attributes to block from netconf";
+        reference " 0.10.9.";
+    }
+
+    revision "2025-01-13" {
+        description "Added initilaized flag for tcp-mss range attribute";
+        reference " 0.10.8.";
+    }
+
+    revision "2024-12-20" {
+        description "Added when tag for interface-retention-mode attribute";
+        reference " 0.10.7.";
+    }
+
+    revision "2024-12-19" {
+        description "Added when tag validation for attribute retention-node";
+        reference " 0.10.6.";
+    }
+
+    revision "2024-12-17" {
+        description "Updated data-type to EMPTY for boolean attributes present inside router ldp";
+        reference " 0.10.5.";
+    }
+
+    revision "2024-11-26" {
+        description "added new attribute for common label allocation per prefix config";
+        reference " 0.10.4.";
+    }
+
+    revision "2024-11-19" {
+        description "Moved grouping peer-authentication-group-pwd outside config container";
+        reference " 0.10.5.";
+    }
+
+    revision "2024-11-12" {
+        description "Added new attribute ignore-mac-withdraw-bad-pdu-length for LDP";
+        reference " 0.10.4.";
+    }
+
+    revision "2024-11-07" {
+        description "Changed the help string for password size limits";
+        reference " 0.10.3.";
+    }
 
     revision "2024-08-07" {
         description "Changed the help string for targeted hello timer config";
@@ -450,7 +505,6 @@ module ipi-ldp {
                     description
                         "LDP Peer Authentication groups configuration";
                     uses peer-authentication-group-config;
-                    uses peer-authentication-group-pwd;
                 } // END of config-container definition.
                 container state {
                     config false;
@@ -458,6 +512,7 @@ module ipi-ldp {
                         "LDP Peer Authentication groups state";
                     uses peer-authentication-group-config;
                 } // END of state-container definition.
+                uses peer-authentication-group-pwd;
             } // End of authentication-group-list
         } // END of authentication-groups-container definition.
     } // END of peer-authentication-group-top definition.
@@ -665,22 +720,19 @@ module ipi-ldp {
 
         leaf pseudowire-status-tlv  {
             if-feature feature-list:HAVE_MPLS_VC;
-            type  boolean;
-            default false;
+            type  empty;
             description "This attribute enables the use of the PW Status TLV to signal the
                         pseudowire status";
         } // END of pseudowire-status-tlv definition.
 
         leaf rlfa-ilm-optimization  {
-            type  boolean;
-            default false;
+            type  empty;
             description "This attribute enables the rlfa ilm optimization";
         } // END of rlfa-ilm-optimization definition.
 
         leaf entropy-label-capability-enable  {
             if-feature feature-list:NOT_HAVE_CUSTOM1_MPLS;
-            type  boolean;
-            default false;
+            type  empty;
             description "This attribute enables ELC for the router. An ELC TLV will be inserted
                         in the label mapping message if the router is capable of processing
                         Entropy Label.";
@@ -699,8 +751,7 @@ module ipi-ldp {
         } // END of advertise-label-for-default-route definition.
 
         leaf import-bgp-routes  {
-            type  boolean;
-            default false;
+            type  empty;
             description "This attribute is used to import BGP routes into LDP. BGP routes are
                         not imported into LDP by default. Use the no parameter to flush out
                         all BGP routes currently being used by LDP, and to reject any further
@@ -708,8 +759,7 @@ module ipi-ldp {
         } // END of import-bgp-routes definition.
 
         leaf ldp-optimization  {
-            type  boolean;
-            default false;
+            type  empty;
             description "This command helps optimize the resetting of an LDP session by
                         enabling the two scalability features for LDP. It Resets the session
                         keepalive timer on receipt of a hello message and Resets the hold
@@ -717,8 +767,7 @@ module ipi-ldp {
         } // END of ldp-optimization definition.
 
         leaf explicit-null  {
-            type  boolean;
-            default false;
+            type  empty;
             description "This attribute is used to configure the router to send explicit-null
                         labels for directly connected FECs instead of implicit-null labels.
                         Implicit-nulls are the default labels.";
@@ -734,8 +783,7 @@ module ipi-ldp {
         } // END of global-merge definition.
 
         leaf propagate-release  {
-            type  boolean;
-            default false;
+            type  empty;
             description "This attribute is used to propagate the release of labels to
                         downstream routers";
         } // END of propagate-release definition.
@@ -758,6 +806,13 @@ module ipi-ldp {
             type  empty;
             description "Use this attribute to specify TE-tunnel over LDP tunnel for tunneling";
         } // END of prefer-tunnel-in-tunnel definition.
+
+        leaf ignore-mac-withdraw-bad-pdu-length  {
+            if-feature feature-list:HAVE_MPLS_VC;
+            type  empty;
+            description "This attribute is used to ignore the bad pdu length error and send a
+                        non-fatal notification (non-RFC compliance)";
+        } // END of ignore-mac-withdraw-bad-pdu-length definition.
 
     } // END of ldp-capability-config definition.
     grouping ldp-label-management-config {
@@ -823,12 +878,6 @@ module ipi-ldp {
             description "Use this attribute to enable the debugging of all LDP events.";
         } // END of ldp definition.
 
-        leaf iccp  {
-            if-feature feature-list:HAVE_ICCP_CLI;
-            type  ipi-ldp-types:ldp_iccp_debug_t;
-            description "This attribute is used to enable the iccp debug logs";
-        } // END of iccp definition.
-
     } // END of ldp-debug-config definition.
     grouping ldp-terminal-debug-state {
         description
@@ -837,12 +886,6 @@ module ipi-ldp {
             type  ipi-ldp-types:ldp_debug_t;
             description "Use this attribute to enable the debugging of all LDP events.";
         } // END of terminal-debug-options definition.
-
-        leaf terminal-debug-iccp-options  {
-            if-feature feature-list:HAVE_ICCP;
-            type  ipi-ldp-types:ldp_iccp_debug_t;
-            description "This attribute is used to enable the iccp debug logs";
-        } // END of terminal-debug-iccp-options definition.
 
     } // END of ldp-terminal-debug-state definition.
     grouping ldp-label-request-policy-config {
@@ -862,8 +905,7 @@ module ipi-ldp {
         } // END of request-retry-timeout definition.
 
         leaf request-retry  {
-            type  boolean;
-            default false;
+            type  empty;
             description "Use this attribute to enable the retry of requests once a request for
                         a label has been rejected for a valid reason. This command enables the
                         LSR to send a maximum of five label requests if a label request is
@@ -1104,6 +1146,7 @@ module ipi-ldp {
                     description "560..1440: Supported range 560 - 1440";
                  }
             }
+            mandatory true;
             description "Use this attribute to configure TCP MSS for LDP neighbors";
         } // END of tcp-mss-range definition.
 
@@ -1609,23 +1652,6 @@ module ipi-ldp {
                 } // END of tunnel-lists-container definition.
             } // End of ldp-tunnel-list
         } // END of ldp-tunnels-container definition.
-        container iccp {
-            if-feature feature-list:HAVE_ICCP_CLI;
-            description
-                "Configuration data for ICCP feature";
-            container config {
-                presence "Enable ICCP";
-                description
-                    "Structure for ICCP configuration";
-                uses ldp-inter-chassis-communication-protocol-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data";
-                uses ldp-inter-chassis-communication-protocol-config;
-            } // END of state-container definition.
-        } // END of iccp-container definition.
         uses ldp-lfa-top;
         uses ldp-transport-address-top;
         uses peer-authentication-top;
@@ -1718,32 +1744,6 @@ module ipi-ldp {
         if-feature feature-list:HAVE_SNMP;
         if-feature feature-list:HAVE_LDPD;
         description "Use this RPC to restart SNMP in LDP";
-    }
-
-    rpc iccp-terminal-debug-on {
-        if-feature feature-list:HAVE_ICCP_CLI;
-        if-feature feature-list:HAVE_LDPD;
-        description "Use this RPC to enable terminal ICCP debugs";
-        input  {
-            leaf terminal-debug-options  {
-                type ipi-ldp-types:ldp_iccp_debug_t;
-                mandatory true;
-                description "debug options for the ICCP";
-            }
-        }
-    }
-
-    rpc iccp-terminal-debug-off {
-        if-feature feature-list:HAVE_ICCP_CLI;
-        if-feature feature-list:HAVE_LDPD;
-        description "Use this RPC to disable terminal ICCP debugs";
-        input  {
-            leaf terminal-debug-options  {
-                type ipi-ldp-types:ldp_iccp_debug_t;
-                mandatory true;
-                description "debug options for the ICCP";
-            }
-        }
     }
 
     rpc ldp-terminal-debug-on {

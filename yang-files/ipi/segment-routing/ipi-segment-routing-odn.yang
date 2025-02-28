@@ -21,7 +21,7 @@ submodule ipi-segment-routing-odn {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     import ipi-sr-types {
@@ -29,11 +29,7 @@ submodule ipi-segment-routing-odn {
         revision-date 2024-03-09;
     }
 
-    import ietf-inet-types {
-        prefix inet;
-        revision-date 2013-07-15;
-    }
-
+    include ipi-segment-routing-odn-constr { revision-date 2024-12-05;}
     organization
         "IP Infusion Inc.";
 
@@ -46,6 +42,31 @@ submodule ipi-segment-routing-odn {
     description
         "Model for managing segment-routing on-demand nexthop configurations";
 
+
+    revision "2024-12-18" {
+        description "Added exit command exit-odn-cp back in constraints mode";
+        reference " 0.4.3.";
+    }
+
+    revision "2024-12-13" {
+        description "Added exit command in policy-cp-constraints mode";
+        reference " 0.4.2.";
+    }
+
+    revision "2024-12-05" {
+        description "Hide new SR-ODN constraints, EAG, SRLG, IP-Address-Filter-EAG";
+        reference " 0.4.1.";
+    }
+
+    revision "2024-10-04" {
+        description "Added Flex-Algo in ODN template";
+        reference " 0.4.0.";
+    }
+
+    revision "2024-04-25" {
+        description "Included ODN SR-Policy constraints for Flex-Algo";
+        reference " 0.3.2.";
+    }
 
     revision "2023-09-12" {
         description "Change in hierarchy for attrs under on-demand-nexthop";
@@ -128,6 +149,15 @@ submodule ipi-segment-routing-odn {
     grouping odn-properties-config {
         description
             "SR-ODN properties grouping";
+        leaf flex-algo  {
+            type  uint8 {
+                 range "128..255"  {
+                    description "128..255: Supported range 128 - 255";
+                 }
+            }
+            description "Flex algo value associated with ODN instance";
+        } // END of flex-algo definition.
+
         leaf cspf-retry-limit  {
             type  uint16 {
                  range "1..65535"  {
@@ -279,24 +309,6 @@ submodule ipi-segment-routing-odn {
         } // END of enable definition.
 
     } // END of odn-constraints-config definition.
-    grouping affinity-admin-group-properties-config {
-        description
-            "Configuration parameters for admin group";
-        leaf affinity-type  {
-            type  ipi-sr-types:sr_te_admin_group_type_t;
-            description "Use this attribute to configure the type is include-any or include-all
-                        or exclude-any";
-        } // END of affinity-type definition.
-
-        leaf admin-group-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Affinity admin-group name";
-        } // END of admin-group-name definition.
-
-    } // END of affinity-admin-group-properties-config definition.
     grouping odn-bounds-config {
         description
             "Various Bound Constraints for the Dynamic Candidate Path";
@@ -317,21 +329,6 @@ submodule ipi-segment-routing-odn {
         } // END of bound definition.
 
     } // END of odn-bounds-config definition.
-    grouping odn-include-ip-constraints-config {
-        description
-            "Ip addresses to be        included as constraints for the dynamic path";
-        leaf address  {
-            type  inet:ip-address;
-            description "Hop address which needs to be included in the LSP";
-        } // END of address definition.
-
-        leaf type  {
-            type  ipi-sr-types:srte_ip_constraint_hop_type_t;
-            description "Type of the constraints whether it is node or loose or it is a link or
-                        strict, It is highly recomeneded to use strict fro link constraint";
-        } // END of type definition.
-
-    } // END of odn-include-ip-constraints-config definition.
     grouping odn-candidate-path-types-config {
         description
             "Candidate path type grouping";
@@ -367,36 +364,6 @@ submodule ipi-segment-routing-odn {
                         "constraint state container";
                     uses odn-constraints-config;
                 } // END of state-container definition.
-                container affinity-admin-groups {
-                    // when " ipi-segment-routing-odn:on-demand-nexthops/on-demand-nexthop/candidate-paths/candidate-path/dynamic/constraints/config ";
-                    description
-                        "CP constraint admin-group";
-
-                    list affinity-admin-group {
-                        if-feature feature-list:HAVE_SR_POLICY;
-                        key "admin-group-name";
-                        description
-                            "list of affinity admin group";
-                        leaf admin-group-name  {
-                            type  leafref {
-                                path  "../config/admin-group-name";
-                            }
-                            description "admin group name";
-                        } // END of admin-group-name definition.
-
-                        container config {
-                            description
-                                "configuration container for affinity admin group";
-                            uses affinity-admin-group-properties-config;
-                        } // END of config-container definition.
-                        container state {
-                            config false;
-                            description
-                                "state container for admin group";
-                            uses affinity-admin-group-properties-config;
-                        } // END of state-container definition.
-                    } // End of affinity-admin-group-list
-                } // END of affinity-admin-groups-container definition.
                 container bounds {
                     description
                         "Upper-bound constraints container";
@@ -426,38 +393,13 @@ submodule ipi-segment-routing-odn {
                         } // END of state-container definition.
                     } // End of bound-list
                 } // END of bounds-container definition.
-                container ip {
-                    description
-                        "IP constraints to be used for dynamic candidate path";
-                    container include-hops {
-                        description
-                            "include-hops container";
-
-                        list include-hop {
-                            key "address";
-                            description
-                                "All the ip constriants should be  included for the path computation";
-                            leaf address  {
-                                type  leafref {
-                                    path  "../config/address";
-                                }
-                                description "Hop address which needs toincluded in the LSP";
-                            } // END of address definition.
-
-                            container config {
-                                description
-                                    "include-hop config container";
-                                uses odn-include-ip-constraints-config;
-                            } // END of config-container definition.
-                            container state {
-                                config false;
-                                description
-                                    "include-hop state container";
-                                uses odn-include-ip-constraints-config;
-                            } // END of state-container definition.
-                        } // End of include-hop-list
-                    } // END of include-hops-container definition.
-                } // END of ip-container definition.
+                uses odn-affinity-admin-group-constraints-top;
+                uses odn-affinity-extended-admin-group-constraints-top;
+                uses odn-srlg-group-constraints-top;
+                uses odn-ip-hop-constraints-top;
+                uses odn-ip-hop-address-filter-constraints-top;
+                uses odn-dyn-cp-cons-segrule-top;
+                uses odn-dyn-cp-cons-disjoint-path-top;
             } // END of constraints-container definition.
         } // END of dynamic-container definition.
     } // END of odn-candidate-path-types-config definition.
@@ -496,6 +438,7 @@ submodule ipi-segment-routing-odn {
                 uses odn-properties-config;
             } // END of state-container definition.
             container candidate-paths {
+                // when " !ipi-segment-routing-odn:on-demand-nexthops/on-demand-nexthop/config/flex-algo ";
                 description
                     "On-demand-nexthop candidate path(s)";
 

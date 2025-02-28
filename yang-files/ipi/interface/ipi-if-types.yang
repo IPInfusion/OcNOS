@@ -28,7 +28,7 @@ module ipi-if-types {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -43,6 +43,26 @@ module ipi-if-types {
     description
         "YANG version of the ipi-if-types";
 
+
+    revision "2025-02-12" {
+        description "Revert of EFM flag for l2pt efm CLI";
+        reference " 0.14.14.";
+    }
+
+    revision "2025-02-06" {
+        description "Changed error disable type from bits to enum";
+        reference " 0.14.13.";
+    }
+
+    revision "2024-11-18" {
+        description "Added new datatype IF_ERRDIS_STATUS";
+        reference " 0.14.11.";
+    }
+
+    revision "2024-10-29" {
+        description "Add subtypes for global mtu configuration";
+        reference " 0.14.10.";
+    }
 
     revision "2024-10-17" {
         description "Added missing interface types for IF_HW_TYPE_T";
@@ -59,12 +79,32 @@ module ipi-if-types {
         reference " 0.14.7.";
     }
 
+    revision "2024-09-03" {
+        description "CL108 FEC config support";
+        reference " 0.14.8.";
+    }
+
     revision "2024-08-21" {
         description "Added CML_MAC_AGEING_T ";
+        reference " 0.14.7.";
+    }
+
+    revision "2024-08-19" {
+        description "Added global mtu configuration support";
         reference " 0.14.6.";
     }
 
-    revision "2024-07-03" {
+    revision "2024-08-12" {
+        description "Added global l2protocol configuration";
+        reference " 0.14.5.";
+    }
+
+    revision "2024-07-26" {
+        description "Make previous revision tag consistent";
+        reference " 0.14.4.";
+    }
+
+    revision "2024-07-25" {
         description "Added UCMP CLI option";
         reference " 0.14.3.";
     }
@@ -77,6 +117,11 @@ module ipi-if-types {
     revision "2024-03-27" {
         description "Added limited autonegotiation support";
         reference " 0.14.1.";
+    }
+
+    revision "2024-01-30" {
+        description "Conditional enabling of EFM";
+        reference " 0.14.12.";
     }
 
     revision "2024-01-24" {
@@ -318,6 +363,59 @@ module ipi-if-types {
             }
         }
         description "datatype for interface type";
+    }
+
+    typedef  if_global_mtu_if_type_t {
+        type enumeration {
+            enum eth-switchport {
+                value 1;
+                description "Physical L2 interface";
+            }
+            enum eth-routed {
+                value 2;
+                description "Physical L3 interface";
+            }
+            enum l2-subif {
+                value 3;
+                description "L2 subinterface";
+            }
+            enum l3-subif {
+                value 4;
+                description "L3 subinterface";
+            }
+            enum svi {
+                value 7;
+                description "VLAN interface";
+            }
+            enum lag {
+                value 9;
+                description "Port-channel and static-aggregate";
+            }
+            enum pbb {
+                value 11;
+                if-feature feature-list:HAVE_PBB_TE;
+                description "PBB logical Port";
+            }
+            enum mlag {
+                value 16;
+                description "Mlag Aggregate interface";
+            }
+            enum bvi {
+                value 27;
+                if-feature feature-list:HAVE_SUBINTERFACE;
+                description "BVI Interface";
+            }
+            enum irb {
+                value 110;
+                description "IRB logical Interface";
+            }
+            enum nni {
+                value 113;
+                if-feature feature-list:HAVE_POND;
+                description "NNI Interface";
+            }
+        }
+        description "datatype to describe Interface Type for Global MTU configuration";
     }
 
     typedef  if_hw_type_t {
@@ -565,6 +663,10 @@ module ipi-if-types {
             enum on-cl91 {
                 value 5;
                 description "enable fec,type cl91";
+            }
+            enum on-cl108 {
+                value 6;
+                description "enable fec,type cl108";
             }
         }
         description "datatype for interface fec";
@@ -1138,30 +1240,30 @@ module ipi-if-types {
     }
 
     typedef  if_errdisable_state_t {
-        type bits {
-            bit lag-mismatch {
-                position 0;
+        type enumeration {
+            enum lag-mismatch {
+                value 1;
                 description "Lag-Mismatch";
             }
-            bit stp-bpdu-guard {
-                position 1;
+            enum stp-bpdu-guard {
+                value 2;
                 description "Stp-Bpdu-Guard";
             }
-            bit link-flap {
-                position 2;
+            enum link-flap {
+                value 4;
                 description "Link-Flap";
             }
-            bit mac-move-limit {
-                position 3;
+            enum mac-move-limit {
+                value 8;
                 description "Mac-Move-Limit";
             }
-            bit storm-control {
-                position 5;
+            enum storm-control {
+                value 32;
                 if-feature feature-list:HAVE_RATE_LIMIT;
                 description "Storm-Control";
             }
-            bit not-applicable {
-                position 6;
+            enum not-applicable {
+                value 64;
                 description "Not Applicable";
             }
         }
@@ -1309,6 +1411,20 @@ module ipi-if-types {
             }
         }
         description "type definition for IF_UCMP_STATE";
+    }
+
+    typedef  if_errdis_status_t {
+        type enumeration {
+            enum Enabled {
+                value 1;
+                description "Enable";
+            }
+            enum Disabled {
+                value 2;
+                description "Disabled";
+            }
+        }
+        description "type definition for IF_ERRDIS_STATUS_T";
     }
 
     typedef  cml_mac_ageing_t {

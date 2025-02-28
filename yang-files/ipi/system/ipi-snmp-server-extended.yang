@@ -23,12 +23,12 @@ module ipi-snmp-server-extended {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-snmp {
         prefix ipi-snmp;
-        revision-date 2024-09-07;
+        revision-date 2024-11-20;
     }
 
     import ipi-snmp-server {
@@ -43,12 +43,22 @@ module ipi-snmp-server-extended {
 
     import ipi-acl {
         prefix ipi-acl;
-        revision-date 2024-10-06;
+        revision-date 2025-01-06;
+    }
+
+    import ipi-network-instance {
+        prefix ipi-network-instance;
+        revision-date 2025-02-11;
+    }
+
+    import ipi-vrf {
+        prefix ipi-vrf;
+        revision-date 2025-01-02;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -64,6 +74,21 @@ module ipi-snmp-server-extended {
         "This module provides Simple Network Management Protocol server
                 configuration";
 
+
+    revision "2025-02-08" {
+        description "Revert the range of snmp-server host udp-port number";
+        reference " 0.12.2.";
+    }
+
+    revision "2024-10-29" {
+        description "Updated the range of snmp-server host udp-port number";
+        reference " 0.12.1.";
+    }
+
+    revision "2024-10-15" {
+        description "Support snmp-server hosts in different VRFs";
+        reference " 0.12.0.";
+    }
 
     revision "2024-10-10" {
         description "Added dependentObject tag to the snmp engine-id";
@@ -398,6 +423,13 @@ module ipi-snmp-server-extended {
     grouping snmp-server-host-config {
         description
             "SNMP server host configuration";
+        leaf host-vrf-name  {
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
+            }
+            description "SNMP host VRF name associated with this host.";
+        } // END of host-vrf-name definition.
+
         leaf host-name  {
             type  string {
                 length "1..63";
@@ -498,10 +530,17 @@ module ipi-snmp-server-extended {
 
         list host {
             if-feature feature-list:HAVE_SNMP_AGENT;
-            key "host-name";
+            key "host-vrf-name host-name";
             max-elements 8;
             description
                 "SNMP server host list configuration";
+            leaf host-vrf-name  {
+                type  leafref {
+                    path  "../config/host-vrf-name";
+                }
+                description "SNMP host VRF name associated with this host.";
+            } // END of host-vrf-name definition.
+
             leaf host-name  {
                 type  leafref {
                     path  "../config/host-name";

@@ -21,7 +21,7 @@ submodule ipi-bgp-instance {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     import ietf-inet-types {
@@ -31,21 +31,21 @@ submodule ipi-bgp-instance {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2024-08-21;
+        revision-date 2025-01-15;
     }
 
-    include ipi-bgp-common { revision-date 2024-10-14;}
+    include ipi-bgp-common { revision-date 2025-01-27;}
     include ipi-bgp-evpn-rib { revision-date 2023-09-12;}
     include ipi-bgp-link-state { revision-date 2023-09-12;}
-    include ipi-bgp-address-family { revision-date 2024-10-14;}
-    include ipi-bgp-peer-group { revision-date 2024-08-07;}
-    include ipi-bgp-peer { revision-date 2024-08-06;}
-    include ipi-bgp-address-family-vrf { revision-date 2024-10-14;}
+    include ipi-bgp-address-family { revision-date 2025-02-11;}
+    include ipi-bgp-peer-group { revision-date 2025-01-27;}
+    include ipi-bgp-peer { revision-date 2025-01-21;}
+    include ipi-bgp-address-family-vrf { revision-date 2024-12-23;}
     include ipi-bgp-epe { revision-date 2024-02-08;}
     organization
         "IP Infusion Inc.";
@@ -60,13 +60,28 @@ submodule ipi-bgp-instance {
         "";
 
 
+    revision "2025-01-03" {
+        description "Added skip-dependency-validation flag for when tag in confederation-vrfs container";
+        reference " 0.14.4.";
+    }
+
+    revision "2024-12-23" {
+        description "Added a container 'confederation-vrfs' for BGP vrf confederation.";
+        reference " 0.14.3.";
+    }
+
     revision "2024-09-13" {
         description "XPATH correction for bgp-as and external-route-leak-disable attr in new CLIs for external route leak";
-        reference " 0.14.1.";
+        reference " 0.14.2.";
     }
 
     revision "2024-09-10" {
         description "Added new CLI 'no bgp external-route-leak'";
+        reference " 0.14.1.";
+    }
+
+    revision "2024-09-03" {
+        description "Added 'auto-policy-soft-reset enable' option under router bgp";
         reference " 0.14.0.";
     }
 
@@ -398,6 +413,36 @@ submodule ipi-bgp-instance {
         } // END of peer-as-number definition.
 
     } // END of bgp-instance-confederation-config definition.
+    grouping bgp-instance-confederation-vrf-config {
+        description
+            "attributes relating to bgp confederation configurations";
+        leaf identifier  {
+            type  uint32 {
+                 range "1..4294967295"  {
+                    description "1..4294967295: Supported range 1 - 4294967295";
+                 }
+            }
+            description "Use this attribute to specify a BGP confederation vrf identifier";
+        } // END of identifier definition.
+
+        leaf-list peer-as-number  {
+            type  uint32 {
+                 range "1..4294967295"  {
+                    description "1..4294967295: Supported range 1 - 4294967295";
+                 }
+            }
+            description "Use this attribute to specify peer AS number in BGP confederation vrf";
+        } // END of peer-as-number definition.
+
+        leaf confed-vrf-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Bgp confederation vrf";
+        } // END of confed-vrf-name definition.
+
+    } // END of bgp-instance-confederation-vrf-config definition.
     grouping bgp-instance-common-config {
         description
             "attributes relating to bgp common config";
@@ -625,6 +670,12 @@ submodule ipi-bgp-instance {
                         alogorithm.";
         } // END of ignore-aigp-for-bestpath definition.
 
+        leaf auto-policy-soft-reset  {
+            type  empty;
+            description "Enable automatic soft-reset of BGP peers when their configured route
+                        policy is modified";
+        } // END of auto-policy-soft-reset definition.
+
     } // END of bgp-instance-common-config definition.
     grouping bgp-graceful-restart-config {
         description
@@ -830,6 +881,34 @@ submodule ipi-bgp-instance {
                     uses bgp-instance-confederation-config;
                 } // END of state-container definition.
             } // END of confederation-container definition.
+            container confederation-vrfs {
+                description
+                    "Container for confederation vrf parameters";
+
+                list confederation-vrf {
+                    key "confed-vrf-name";
+                    description
+                        "confederation list inside confederation-vrf container";
+                    leaf confed-vrf-name  {
+                        type  leafref {
+                            path  "../config/confed-vrf-name";
+                        }
+                        description "Bgp confederation vrf";
+                    } // END of confed-vrf-name definition.
+
+                    container config {
+                        description
+                            "configuration parameters relating to confederation vrf";
+                        uses bgp-instance-confederation-vrf-config;
+                    } // END of config-container definition.
+                    container state {
+                        config false;
+                        description
+                            "state parameters relating to confederation";
+                        uses bgp-instance-confederation-vrf-config;
+                    } // END of state-container definition.
+                } // End of confederation-vrf-list
+            } // END of confederation-vrfs-container definition.
             container view-lists {
                 description
                     "Top level container for parameters relating to the BGP view";

@@ -26,9 +26,18 @@ module ipi-oc-if-deviations {
   import openconfig-platform-port { prefix oc-port; }
   import openconfig-platform-transceiver { prefix oc-transceiver; }
 
+  revision "2024-12-30" {
+    description "Set status deprecated on deviation to interface load-interval, as OpenConfig v4.1.0 implements the support to load-interval configuration";
+  }
+
+  revision "2024-06-19" {
+    description "Remove the leaf type for ipv4 address since it is available on latest OpenConfig version supported";
+  }
+
   revision "2024-04-24" {
     description "Reverted the previous deviation for not-supported paths";
   }
+
   revision "2024-04-04" {
     description "Add deviations for not-supported paths";
   }
@@ -185,8 +194,10 @@ module ipi-oc-if-deviations {
       }
       default 300;
       units seconds;
+      status deprecated;
       description
-        "Load period in multiples of 30 seconds";
+        "Load period in multiples of 30 seconds.
+        This leaf is deprecated and will be replaced by OpenConfig v4.1 /interfaces/interface/rates/config/load-interval";
     }
   }
 
@@ -202,6 +213,10 @@ module ipi-oc-if-deviations {
       "Adds support to load interval support";
 
     uses load-interval-config;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:penalty-based-aied {
+    deviate not-supported;
   }
 
   deviation /oc-if:interfaces/oc-if:interface/oc-eth:ethernet/oc-eth:config/oc-eth:port-speed {
@@ -237,51 +252,6 @@ module ipi-oc-if-deviations {
       "Adds support to Multicahssis Link Aggregate";
 
     uses mlag-config;
-  }
-
-  typedef ipv4-address-type {
-    type enumeration {
-      enum PRIMARY {
-        description
-          "The primary address on the interface. There can only be one primary
-          address associated on an interface.";
-      }
-      enum SECONDARY {
-        description
-          "Secondary address on an interface. There can be multiple secondary
-          addresses associated on an interface.";
-      }
-    }
-  }
-
-  augment /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:addresses/oc-ip:address/oc-ip:config {
-    description
-      "Adds support to leaf type indicating ipv4 as PRIMARY or SECONDARY";
-
-    leaf type {
-      type ipv4-address-type;
-      default PRIMARY;
-      description
-        "Specifies the explicit type of the IPv4 address being assigned
-        to the interface. By default, addresses are assumed to be a primary address.
-        Where secondary addresses is to be configured, this leaf should be set
-        to SECONDARY.";
-    }
-  }
-
-  augment /oc-if:interfaces/oc-if:interface/oc-if:subinterfaces/oc-if:subinterface/oc-ip:ipv4/oc-ip:addresses/oc-ip:address/oc-ip:state {
-    description
-      "Adds support to leaf type indicating ipv4 as PRIMARY or SECONDARY";
-
-    leaf type {
-      type ipv4-address-type;
-      default PRIMARY;
-      description
-        "Specifies the explicit type of the IPv4 address being assigned
-        to the interface. By default, addresses are assumed to be a primary address.
-        Where secondary addresses is to be configured, this leaf should be set
-        to SECONDARY.";
-    }
   }
 
   deviation /oc-if:interfaces/oc-if:interface/oc-lag:aggregation/oc-lag:config/oc-lag:lag-type {
@@ -368,36 +338,6 @@ module ipi-oc-if-deviations {
       must "../../../oc-tun:config/oc-tun:enabled = 'true'" {
         error-message "Cannot set a subinterface if unnumbered is disabled";
       }
-    }
-  }
-
-  augment /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:addresses/oc-tun:address/oc-tun:config {
-    description
-      "Adds support to leaf type indicating ipv4 as PRIMARY or SECONDARY";
-
-    leaf type {
-      type ipv4-address-type;
-      default PRIMARY;
-      description
-        "Specifies the explicit type of the IPv4 address being assigned
-        to the interface. By default, addresses are assumed to be a primary address.
-        Where secondary addresses is to be configured, this leaf should be set
-        to SECONDARY.";
-    }
-  }
-
-  augment /oc-if:interfaces/oc-if:interface/oc-tun:tunnel/oc-tun:ipv4/oc-tun:addresses/oc-tun:address/oc-tun:state {
-    description
-      "Adds support to leaf type indicating ipv4 as PRIMARY or SECONDARY";
-
-    leaf type {
-      type ipv4-address-type;
-      default PRIMARY;
-      description
-        "Specifies the explicit type of the IPv4 address being assigned
-        to the interface. By default, addresses are assumed to be a primary address.
-        Where secondary addresses is to be configured, this leaf should be set
-        to SECONDARY.";
     }
   }
 
@@ -526,6 +466,10 @@ module ipi-oc-if-deviations {
   }
 
   deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-if:counters/oc-if:in-unknown-protos {
+    deviate not-supported;
+  }
+
+  deviation /oc-if:interfaces/oc-if:interface/oc-if:state/oc-if:counters/oc-if:resets {
     deviate not-supported;
   }
 

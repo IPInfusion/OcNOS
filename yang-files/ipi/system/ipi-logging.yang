@@ -28,17 +28,17 @@ module ipi-logging {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
-    include ipi-logging-remote { revision-date 2024-09-04;}
+    include ipi-logging-remote { revision-date 2025-02-08;}
     include ipi-logging-cli { revision-date 2022-06-01;}
-    include ipi-logging-fault-management { revision-date 2022-03-29;}
+    include ipi-logging-fault-management { revision-date 2024-09-23;}
     organization
         "IP Infusion Inc.";
 
@@ -52,14 +52,39 @@ module ipi-logging {
         "Syslog Configurations";
 
 
-    revision "2024-09-04" {
-        description "Added some dependencies in objects for enable-syslog";
-        reference " 0.11.2.";
+    revision "2025-02-08" {
+        description "Revert the range of logging remote server host udp-port number";
+        reference " 0.11.8.";
     }
 
-    revision "2024-08-15" {
+    revision "2025-01-27" {
+        description "Removed the log syslog and no log syslog CLI and added log syslog as hidden manual CLI";
+        reference " 0.11.7.";
+    }
+
+    revision "2024-11-08" {
+        description "Updated the range of logging remote server host udp-port number";
+        reference " 0.11.6.";
+    }
+
+    revision "2024-09-23" {
+        description "Fixed DB-sync error when deleting severity config at the snmp-syslog container";
+        reference " 0.11.5.";
+    }
+
+    revision "2024-09-05" {
+        description "Added support for SYSLOG over SNMP traps";
+        reference " 0.11.4.";
+    }
+
+    revision "2024-08-28" {
         description "Added simultaneous user defined VRF support for remote server";
-        reference " 0.12.0.";
+        reference " 0.11.3.";
+    }
+
+    revision "2024-08-22" {
+        description "Added flag in when tag to resolve the dependency failure";
+        reference " 0.11.2.";
     }
 
     revision "2024-08-02" {
@@ -230,12 +255,6 @@ module ipi-logging {
     grouping logging-syslog-config {
         description
             "Grouping for syslog configuration";
-        leaf enable-syslog  {
-            type  empty;
-            description "Use this attribute to begin logging of information to the system log
-                        and set the level to debug.";
-        } // END of enable-syslog definition.
-
         leaf timestamp-granularity  {
             type  ipi-logging-types:timestamp_units_t;
             default "milliseconds";
@@ -518,6 +537,7 @@ module ipi-logging {
         uses remote-logging-grouping;
         uses global-grouping;
         uses cli-logging-grouping;
+        uses snmp-syslog-grouping;
         uses fault-management-grouping;
     } // END of logging-container definition.
     } // END of logging-grouping definition.
@@ -526,13 +546,11 @@ module ipi-logging {
 
     rpc logging-fms-flush-db {
         if-feature feature-list:HAVE_FMS;
-        if-feature feature-list:HAVE_VLOGD;
         description "Flush the FMS database";
     }
 
     rpc logging-fms-shelve {
         if-feature feature-list:HAVE_FMS;
-        if-feature feature-list:HAVE_VLOGD;
         description "Use this RPC to shelve alarm based on type";
         input  {
             leaf alarm-type  {
@@ -545,7 +563,6 @@ module ipi-logging {
 
     rpc logging-fms-close {
         if-feature feature-list:HAVE_FMS;
-        if-feature feature-list:HAVE_VLOGD;
         description "Use this RPC to close an active alarm";
         input  {
             leaf active-alarm-id  {

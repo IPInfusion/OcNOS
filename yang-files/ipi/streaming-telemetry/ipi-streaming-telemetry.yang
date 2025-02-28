@@ -33,17 +33,17 @@ module ipi-streaming-telemetry {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-09-18;
+        revision-date 2025-01-02;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -58,6 +58,61 @@ module ipi-streaming-telemetry {
     description
         "Data model for management streaming telemetry configurations";
 
+
+    revision "2025-02-10" {
+        description "Added telemetry keyword for global mode CLIs";
+        reference " 0.2.19.";
+    }
+
+    revision "2025-01-28" {
+        description "Insecure cli moved to tls cli command";
+        reference " 0.2.18.";
+    }
+
+    revision "2025-01-17" {
+        description "Added platform specific default value in minimum-sample-interval cli helpstring";
+        reference " 0.2.17.";
+    }
+
+    revision "2025-01-09" {
+        description "moved gnmi-debug when expression to debug/config container";
+        reference " 0.2.16.";
+    }
+
+    revision "2024-12-09" {
+        description "modified debug/config container to presence container and removed CML_FORCE_SET flag";
+        reference " 0.2.15.";
+    }
+
+    revision "2024-11-28" {
+        description "moved retry-interval leaf to retry/cofig container";
+        reference " 0.2.14.";
+    }
+
+    revision "2024-11-19" {
+        description "Added runtime attribute for maximum-subscribe-path and minimum-sample-interval";
+        reference " 0.2.13.";
+    }
+
+    revision "2024-11-15" {
+        description "modifying max-element as 4 for supporting multiple vrf instances of  telemetry, and moving debug to global level";
+        reference " 0.2.12.";
+    }
+
+    revision "2024-11-12" {
+        description "TLS attributes moved under streaming-telemetry-feature-config grouping";
+        reference " 0.2.11.";
+    }
+
+    revision "2024-11-09" {
+        description "TLS CLI added";
+        reference " 0.2.10.";
+    }
+
+    revision "2024-11-07" {
+        description "Added support for max-subscribe-path and minimum-sample-interval";
+        reference " 0.2.9.";
+    }
 
     revision "2024-07-08" {
         description "Added dependent object in telemetry enable object";
@@ -236,13 +291,13 @@ module ipi-streaming-telemetry {
         description
             "Parameters related to debug";
         leaf gnmi-debug  {
-            when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
             type  empty;
+            mandatory true;
             description "Enable or Disable device's debug telemetry";
         } // END of gnmi-debug definition.
 
         leaf gnmi-severity  {
-            // when " ipi-streaming-telemetry:telemetry-system/vrfs/vrf/streaming-telemetry/debug/config/gnmi-debug ";
+            // when " ../gnmi-debug ";
             type  ipi-streaming-telemetry-types:cml_gnmi_debug_severity_t;
             default "error";
             description "device's debug telemetry severity level";
@@ -256,11 +311,14 @@ module ipi-streaming-telemetry {
             description
                 "Container for debug related configurations";
             container config {
+                when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+                presence "gnmi-debug container";
                 description
                     "Config container for debug options";
                 uses telemetry-debug-options;
             } // END of config-container definition.
             container state {
+                presence "gnmi-debug-container";
                 config false;
                 description
                     "state container for debug options";
@@ -271,16 +329,6 @@ module ipi-streaming-telemetry {
     grouping streaming-telemetry-state-details {
         description
             "State information related to streaming telemetry";
-        leaf maximum-sensor-paths  {
-            type  uint8;
-            description "Maximum number of sensor-paths supported for this device";
-        } // END of maximum-sensor-paths definition.
-
-        leaf minimum-sample-interval  {
-            type  uint8;
-            description "Minimum sample-interval supported for this device";
-        } // END of minimum-sample-interval definition.
-
         leaf platform-type  {
             type  ipi-streaming-telemetry-types:cml_telemetry_platform_type_t;
             description "Specifies type of patform whether high range or low - medium range";
@@ -314,9 +362,40 @@ module ipi-streaming-telemetry {
             "Configuration parameters related to streaming telemetry";
         leaf feature-enabled  {
             type  empty;
+            mandatory true;
             description "Use this attribute to enable or disable Telemetry feature";
         } // END of feature-enabled definition.
 
+        leaf tls-port  {
+            // when " !ipi-streaming-telemetry:telemetry-system/vrfs/vrf/streaming-telemetry/config/non-tls-port ";
+            type  uint32 {
+                 range "32768..60999"  {
+                    description "32768..60999: Supported range 32768 - 60999";
+                 }
+            }
+            description "Port for secure connection";
+        } // END of tls-port definition.
+
+        leaf insecure-tls  {
+            // when " ipi-streaming-telemetry:telemetry-system/vrfs/vrf/streaming-telemetry/config/tls-port ";
+            type  empty;
+            description "Disable certificate validation in a TLS-enabled connection";
+        } // END of insecure-tls definition.
+
+        leaf non-tls-port  {
+            // when " !ipi-streaming-telemetry:telemetry-system/vrfs/vrf/streaming-telemetry/config/tls-port ";
+            type  uint32 {
+                 range "32768..60999"  {
+                    description "32768..60999: Supported range 32768 - 60999";
+                 }
+            }
+            description "Insecure port for Telemetry feature";
+        } // END of non-tls-port definition.
+
+    } // END of streaming-telemetry-feature-config definition.
+    grouping streaming-telemetry-retry-config {
+        description
+            "Configuration parameters related to streaming telemetry";
         leaf retry-interval  {
             type  uint32 {
                  range "30..3000"  {
@@ -329,7 +408,94 @@ module ipi-streaming-telemetry {
                         connect with gnmi-client after the retry-interval";
         } // END of retry-interval definition.
 
-    } // END of streaming-telemetry-feature-config definition.
+    } // END of streaming-telemetry-retry-config definition.
+    grouping streaming-telemetry-retry-top {
+        description
+            "Telemetry retry related configuration";
+        container retry {
+            when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+            description
+                "Configuration parameters related to retry-interval";
+            container config {
+                when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+                description
+                    "Configuration parameters related to retry-interval";
+                uses streaming-telemetry-retry-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State information related to retry-interval";
+                uses streaming-telemetry-retry-config;
+            } // END of state-container definition.
+        } // END of retry-container definition.
+    } // END of streaming-telemetry-retry-top definition.
+    grouping streaming-telemetry-global-top {
+        description
+            "Telemetry global configuration";
+        container global {
+            when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+            description
+                "Configuration parameters related to global telemetry";
+            container config {
+                when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+                description
+                    "Configuration parameters related to global telemetry";
+                uses streaming-telemetry-global-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State information related to global telemetry";
+                uses streaming-telemetry-global-config;
+                uses streaming-telemetry-global-state;
+            } // END of state-container definition.
+        } // END of global-container definition.
+    } // END of streaming-telemetry-global-top definition.
+    grouping streaming-telemetry-global-config {
+        description
+            "Telemetry global configuration";
+        leaf config-maximum-subscribe-paths  {
+            type  uint32 {
+                 range "10..1000"  {
+                    description "10..1000: Supported range 10 - 1000";
+                 }
+            }
+            description "Maximum number of sensor-paths supported for this device";
+        } // END of config-maximum-subscribe-paths definition.
+
+        leaf config-minimum-sample-interval  {
+            type  uint32 {
+                 range "10..3600"  {
+                    description "10..3600: Supported range 10 - 3600";
+                 }
+            }
+            description "Minimum sample-interval supported for this device";
+        } // END of config-minimum-sample-interval definition.
+
+    } // END of streaming-telemetry-global-config definition.
+    grouping streaming-telemetry-global-state {
+        description
+            "Telemetry global configuration";
+        leaf maximum-subscribe-paths  {
+            type  uint32 {
+                 range "10..1000"  {
+                    description "10..1000: Supported range 10 - 1000";
+                 }
+            }
+            description "Maximum number of sensor-paths supported for this device";
+        } // END of maximum-subscribe-paths definition.
+
+        leaf minimum-sample-interval  {
+            type  uint32 {
+                 range "10..3600"  {
+                    description "10..3600: Supported range 10 - 3600";
+                 }
+            }
+            description "Minimum sample-interval supported for this device";
+        } // END of minimum-sample-interval definition.
+
+    } // END of streaming-telemetry-global-state definition.
     grouping streaming-telemetry-subsystem-config {
         description
             "gNMI server configuration";
@@ -353,7 +519,7 @@ module ipi-streaming-telemetry {
             list vrf {
             // when " ipi-streaming-telemetry:telemetry-system/vrfs/vrf/streaming-telemetry/config/feature-enabled ";
                 key "vrf-name";
-                max-elements 1;
+                max-elements 4;
                 description
                     "gNMI server VRF instance configurations";
                 leaf vrf-name  {
@@ -391,6 +557,7 @@ module ipi-streaming-telemetry {
                 "Top level container for enable or disable telemetry configurations";
             container config {
                 // when " ipi-streaming-telemetry:telemetry-system/vrfs/vrf/streaming-telemetry/config/feature-enabled ";
+                presence "feature-enabled";
                 description
                     "Configuration parameters related to streaming telemetry enable or
                             disable";
@@ -403,7 +570,7 @@ module ipi-streaming-telemetry {
                 uses streaming-telemetry-feature-config;
                 uses streaming-telemetry-state-details;
             } // END of state-container definition.
-            uses streaming-telemetry-debug;
+            uses streaming-telemetry-retry-top;
         } // END of streaming-telemetry-container definition.
     } // END of streaming-telemetry-top definition.
     grouping telemetry-sensor-path-config {
@@ -803,7 +970,9 @@ module ipi-streaming-telemetry {
         if-feature feature-list:HAVE_TELEMETRY;
         description
             "Top level container for device's streaming telemetry configurations";
+        uses streaming-telemetry-global-top;
         uses streaming-telemetry-subsystem-top;
+        uses streaming-telemetry-debug;
     } // END of telemetry-system-container definition.
     } // END of telemetry-system-grouping definition.
 

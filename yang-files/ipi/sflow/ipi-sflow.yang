@@ -23,7 +23,7 @@ module ipi-sflow {
 
     import ipi-sflow-types {
         prefix ipi-sflow-types;
-        revision-date 2022-08-10;
+        revision-date 2024-12-04;
     }
 
     import ietf-inet-types {
@@ -33,22 +33,22 @@ module ipi-sflow {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-09-18;
+        revision-date 2025-01-02;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -64,6 +64,16 @@ module ipi-sflow {
         "sFlow module provides user with the possibility to configure sFlow
                 parameters";
 
+
+    revision "2024-12-04" {
+        description "Updating the import of types in sflow-ipfix";
+        reference " 0.12.0.";
+    }
+
+    revision "2024-06-20" {
+        description "Added support to configure global sampling-rate and polling-interval";
+        reference " 0.11.0.";
+    }
 
     revision "2024-01-23" {
         description "Added HAVE_VRF flag";
@@ -326,6 +336,139 @@ module ipi-sflow {
             } // End of collector-list
         } // END of collectors-container definition.
     } // END of sflow-collectors-top definition.
+    grouping sflow-global-egress-config {
+        description
+            "sflow-global-egress-config";
+        leaf sampling-rate  {
+            type  uint32 {
+                 range "1024..16777215"  {
+                    description "1024..16777215: Supported range 1024 - 16777215";
+                 }
+            }
+            mandatory true;
+            description "Configure global statistical sampling rate for packet sampling. The
+                        sflow sampling configuration on interface overrides the global
+                        configuration.";
+        } // END of sampling-rate definition.
+
+        leaf sample-size  {
+            type  uint16 {
+                 range "16..256"  {
+                    description "16..256: Supported range 16 - 256";
+                 }
+            }
+            mandatory true;
+            description "Configure global statistical sampling size for packet sampling. The
+                        sflow sampling configuration on interface overrides the global
+                        configuration.";
+        } // END of sample-size definition.
+
+    } // END of sflow-global-egress-config definition.
+    grouping sflow-global-sampling-egress-top {
+        description
+            "sflow-global-sampling-egress-top";
+        container egress {
+            description
+                "sFlow egress global configuration data";
+            container config {
+                presence "Configure egress sampling globally";
+                description
+                    "Configuration data for global egress";
+                uses sflow-global-egress-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for global sFlow egress";
+                uses sflow-global-egress-config;
+            } // END of state-container definition.
+        } // END of egress-container definition.
+    } // END of sflow-global-sampling-egress-top definition.
+    grouping sflow-global-ingress-config {
+        description
+            "sflow-global-ingress-config";
+        leaf sampling-rate  {
+            type  uint32 {
+                 range "1024..16777215"  {
+                    description "1024..16777215: Supported range 1024 - 16777215";
+                 }
+            }
+            mandatory true;
+            description "Configure global statistical sampling rate for packet sampling. The
+                        sflow sampling configuration on interface overrides the global
+                        configuration.";
+        } // END of sampling-rate definition.
+
+        leaf sample-size  {
+            type  uint16 {
+                 range "16..256"  {
+                    description "16..256: Supported range 16 - 256";
+                 }
+            }
+            mandatory true;
+            description "Configure global statistical sampling size for packet sampling. The
+                        sflow sampling configuration on interface overrides the global
+                        configuration.";
+        } // END of sample-size definition.
+
+    } // END of sflow-global-ingress-config definition.
+    grouping sflow-global-sampling-ingress-top {
+        description
+            "sflow-global-sampling-ingress-top";
+        container ingress {
+            description
+                "sFlow ingress global configuration data";
+            container config {
+                presence "Configure ingress sampling globally";
+                description
+                    "Configuration data for global ingress";
+                uses sflow-global-ingress-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for global sFlow ingress";
+                uses sflow-global-ingress-config;
+            } // END of state-container definition.
+        } // END of ingress-container definition.
+    } // END of sflow-global-sampling-ingress-top definition.
+    grouping sflow-global-polling-interval-config {
+        description
+            "sflow-global-polling-interval-config";
+        leaf polling-interval  {
+            type  uint8 {
+                 range "5..60"  {
+                    description "5..60: Supported range 5 - 60";
+                 }
+            }
+            description "Configure global polling-interval for packet sampling. The sflow
+                        polling-interval configuration on interface overrides the global
+                        configuration.";
+        } // END of polling-interval definition.
+
+    } // END of sflow-global-polling-interval-config definition.
+    grouping sflow-global-configuration-top {
+        description
+            "sflow-global-configuration-top";
+        container global {
+            when " /ipi-sflow:sampling/ipi-sflow:sflow/ipi-sflow:config/ipi-sflow:enabled ";
+            description
+                "sFlow global configuration data";
+            container config {
+                description
+                    "Configuration data for global configuration";
+                uses sflow-global-polling-interval-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for global configuration";
+                uses sflow-global-polling-interval-config;
+            } // END of state-container definition.
+            uses sflow-global-sampling-ingress-top;
+            uses sflow-global-sampling-egress-top;
+        } // END of global-container definition.
+    } // END of sflow-global-configuration-top definition.
     grouping sflow-config {
         description
             "sflow-config";
@@ -407,6 +550,7 @@ module ipi-sflow {
             uses sflow-collectors-top;
             uses sflow-logging-top;
             uses sflow-debug-top;
+            uses sflow-global-configuration-top;
         } // END of sflow-container definition.
     } // END of sflow-top definition.
 

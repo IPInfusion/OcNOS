@@ -1,0 +1,497 @@
+-- ********************************************************************
+-- /* Copyright (C) 2001-2024 IP Infusion, Inc. All Rights Reserved. */
+-- ********************************************************************
+IPI-G8031-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, NOTIFICATION-TYPE,
+    OBJECT-TYPE, Unsigned32, TimeTicks, Counter32, Integer32
+        FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION, TruthValue, DisplayString
+        FROM SNMPv2-TC
+    Dot1agCfmMDLevel, Dot1agCfmMaintDomainName,Dot1agCfmMaintAssocName,
+    Dot1agCfmCcmInterval, Dot1agCfmMepIdOrZero
+        FROM IEEE8021-CFM-MIB   -- IEEE 802.1ag
+    ipi FROM IPI-MODULE-MIB;
+
+ipiG8031MIB MODULE-IDENTITY
+    LAST-UPDATED    "202007140000Z"
+    ORGANIZATION "IP Infusion"
+    CONTACT-INFO "support@ipinfusion.com"
+    DESCRIPTION
+        "g8031 mib for IPI enterprise."
+    REVISION    "202007140000Z"
+    DESCRIPTION "g8031 mib intial version"
+    ::= { ipi 8031}
+
+IpiG8031ProtectionMode ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "Protection mode"
+    REFERENCE       "Section 10 of ITU-T G.8031/Y1342"
+    SYNTAX          INTEGER {
+                        one-and-one-Bi(1),
+                        one-plus-one-Bi(2),
+                        one-and-one-Uni(3)
+                    }
+IpiG8031SwitchingMode ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "Switching mode"
+    REFERENCE       "Section 10.3 of ITU-T G.8031/Y1342"
+    SYNTAX          INTEGER {
+                        revertive (1),
+                        non-revertive(2)
+                    }
+
+IpiG8031FsmState ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "G8031 Finite State Machine state"
+    REFERENCE       "Section 11.1 of ITU-T G.8031/Y1342"
+    SYNTAX          INTEGER {
+                         no-Request(1),
+                         do-Not-Revert (2),
+                         reverse-Request (3),
+                         exercise (4),
+                         wait-To-Restore (5),
+                         manual-Switch (6),
+                         signal-Degrade (7),
+                         working-Signal-Fail (8),
+                         forced-Switch (9),
+                         signal-Fail-for-Protection (10),
+                         lockout-Of-Protection (11),
+                         invalid (12)
+                    }
+
+IpiG8031dFopState ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "G8031 Finite State Machine state of dFOP Defect state"
+    REFERENCE       "Section 11.15 of ITU-T G.8031/Y1342"
+    SYNTAX          INTEGER {
+                         b-BitMismatchError (1),
+                         d-BitMismatchError (2),
+                         r-BitMismatchError (3),
+                         aps-Rcvd-On-Working (4),
+                         aps-Not-Rcvd-After-State-Change (5),
+                         not-in-Defect-Mode (6)
+                      }
+
+IpiG8031ActivePathType ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "Timer status"
+    REFERENCE       "Section 10 of ITU-T G.8031/Y1342"
+    SYNTAX          INTEGER {
+                        working-port (1),
+                        protection-port(2)
+                    }
+
+IpiG8031LocalCmds ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "G8031 Local commands"
+    REFERENCE       "Section 9.2 of ITU-T G.8031/Y1342"
+    SYNTAX          INTEGER {
+                        local-freeze (1),
+                        local-lockout (2)
+                     }
+
+
+ipiG8031MIBNotifs    OBJECT IDENTIFIER ::= { ipiG8031MIB 0 }
+ipiG8031MIBObjects   OBJECT IDENTIFIER ::= { ipiG8031MIB 1 }
+
+
+ -- g8031 Config Instance Table
+ipiG8031ConfigInstanceTable OBJECT-TYPE
+   SYNTAX       SEQUENCE OF IpiG8031ConfigInstanceEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table containing information of G8031 Instance configured."
+   ::= { ipiG8031MIBObjects 1 }
+
+ipiG8031ConfigInstanceEntry OBJECT-TYPE
+   SYNTAX       IpiG8031ConfigInstanceEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table object containing information of G8031 Instance entries."
+   INDEX   {ipiG8031ProtectionGroupIndex}
+   ::= { ipiG8031ConfigInstanceTable 1 }
+
+IpiG8031ConfigInstanceEntry::=
+ SEQUENCE {
+              ipiG8031ProtectionGroupIndex              Integer32,
+              ipiG8031InstName                          DisplayString,
+              ipiG8031InstBridgeType                    DisplayString,
+              ipiG8031InstProfileDirection              DisplayString,
+              ipiG8031InstProfileProtectionMode         IpiG8031ProtectionMode,
+              ipiG8031InstProfileSwitchingMode          IpiG8031SwitchingMode,
+              ipiG8031InstProfileHoldOffTimer           DisplayString,
+              ipiG8031InstProfileWaitToRestoreTimer     DisplayString,
+              ipiG8031InstWorkingPortName               DisplayString,
+              ipiG8031InstWorkingPortIndex              Integer32,
+              ipiG8031InstWorkingPortStatus             DisplayString,
+              ipiG8031InstWorkingMepId                  Dot1agCfmMepIdOrZero,
+              ipiG8031InstWorkingCCIntvl                Dot1agCfmCcmInterval,
+              ipiG8031InstWorkingDomainName             Dot1agCfmMaintDomainName,
+              ipiG8031InstWorkingMaName                 Dot1agCfmMaintAssocName,
+              ipiG8031InstProtectionPortName            DisplayString,
+              ipiG8031InstProtectionPortIndex           Integer32,
+              ipiG8031InstProtectionPortStatus          DisplayString,
+              ipiG8031InstProtectionMepId               Dot1agCfmMepIdOrZero,
+              ipiG8031InstProtectionCCIntvl             Dot1agCfmCcmInterval,
+              ipiG8031InstProtectionDomainName          Dot1agCfmMaintDomainName,
+              ipiG8031InstProtectionMaName              Dot1agCfmMaintAssocName,
+              ipiG8031InstChannelLevel                  Dot1agCfmMDLevel,
+              ipiG8031InstControlVlan                   Integer32,
+              ipiG8031InstInnerVlan                     Integer32,
+              ipiG8031InstDataVlan                      DisplayString
+           }
+
+
+ipiG8031ProtectionGroupIndex OBJECT-TYPE
+     SYNTAX          Integer32(1..65535)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8031 ProtectionGroup Index."
+     ::= { ipiG8031ConfigInstanceEntry 1 }
+
+
+ipiG8031InstName OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured G8031 Instance Name."
+     ::= { ipiG8031ConfigInstanceEntry 2 }
+
+ipiG8031InstBridgeType OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured G8031 Bridge architecture
+           type is 1:1 or 1+1."
+     ::= { ipiG8031ConfigInstanceEntry 3 }
+
+ipiG8031InstProfileDirection OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured G8031 profile direction
+           uni-directional or bi-directional switching."
+     ::= { ipiG8031ConfigInstanceEntry 4 }
+
+
+ipiG8031InstProfileProtectionMode OBJECT-TYPE
+    SYNTAX          IpiG8031ProtectionMode
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the configured protection mode for an G8031 profile
+        based on ipiG8031ProtectionMode types."
+    ::= { ipiG8031ConfigInstanceEntry 5 }
+
+ipiG8031InstProfileSwitchingMode OBJECT-TYPE
+    SYNTAX          IpiG8031SwitchingMode
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the switching mode for an G8031 profile
+         based on ipiG8031SwitchingMode types."
+    DEFVAL          { revertive }
+    ::= { ipiG8031ConfigInstanceEntry 6 }
+
+ipiG8031InstProfileHoldOffTimer OBJECT-TYPE
+    SYNTAX          DisplayString (SIZE  (1..64))
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the hold-off timer status for an G8031 profile.
+         Each protection group should have a provisionable hold-off timer.
+         The suggested range of the holdoff timer is 0 to 10 seconds in steps of 100 ms."
+    ::= { ipiG8031ConfigInstanceEntry 7 }
+
+
+ipiG8031InstProfileWaitToRestoreTimer OBJECT-TYPE
+    SYNTAX          DisplayString (SIZE  (1..64))
+    UNITS           "minutes"
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the wait-to-restore timer for an G8031 profile.
+         The wait-to-restore (WTR) period, may be configured by the operator in
+         1 minute steps between 5 and 12 minutes, and default value is 5mins."
+    DEFVAL          {"5minutes"}
+    ::= { ipiG8031ConfigInstanceEntry 8 }
+
+ipiG8031InstWorkingPortName OBJECT-TYPE
+    SYNTAX          DisplayString (SIZE  (1..64))
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the configured working port name."
+    ::= {  ipiG8031ConfigInstanceEntry 9 }
+
+ipiG8031InstWorkingPortIndex OBJECT-TYPE
+    SYNTAX          Integer32(1..65535)
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the configured working port ifindex."
+    ::= {  ipiG8031ConfigInstanceEntry 10 }
+
+ipiG8031InstWorkingPortStatus  OBJECT-TYPE
+    SYNTAX          DisplayString (SIZE  (1..64))
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the working port status as UP/DOWN."
+    ::= { ipiG8031ConfigInstanceEntry 11 }
+
+ipiG8031InstWorkingMepId OBJECT-TYPE
+    SYNTAX      Dot1agCfmMepIdOrZero
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "This object specifies the MEP ID configured for working CFM Port."
+    DEFVAL { 0 }
+    ::= { ipiG8031ConfigInstanceEntry 12 }
+
+ipiG8031InstWorkingCCIntvl OBJECT-TYPE
+    SYNTAX      Dot1agCfmCcmInterval
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "This object specifies the CC Interval configured for working CFM Port"
+    ::= { ipiG8031ConfigInstanceEntry 13 }
+
+ipiG8031InstWorkingDomainName OBJECT-TYPE
+    SYNTAX      Dot1agCfmMaintDomainName
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "This object specifies the DomainName configured for working CFM Port."
+    ::= { ipiG8031ConfigInstanceEntry 14 }
+
+ipiG8031InstWorkingMaName OBJECT-TYPE
+    SYNTAX      Dot1agCfmMaintAssocName
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "This object specifies the MaintenanceAssociation name configured
+        for working CFM Port."
+    ::= { ipiG8031ConfigInstanceEntry 15 }
+
+ipiG8031InstProtectionPortName OBJECT-TYPE
+    SYNTAX          DisplayString (SIZE  (1..64))
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the cofigured protection port name."
+    ::= { ipiG8031ConfigInstanceEntry 16 }
+
+ipiG8031InstProtectionPortIndex OBJECT-TYPE
+    SYNTAX          Integer32(1..65535)
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the configured protection port ifindex."
+    ::= {  ipiG8031ConfigInstanceEntry 17 }
+
+ipiG8031InstProtectionPortStatus OBJECT-TYPE
+    SYNTAX          DisplayString (SIZE  (1..64))
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "This object specifies the protection port status as UP/DOWN."
+    ::= { ipiG8031ConfigInstanceEntry 18 }
+
+ipiG8031InstProtectionMepId OBJECT-TYPE
+    SYNTAX      Dot1agCfmMepIdOrZero
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "This object specifies the MEP ID configured for protection CFM Port."
+    DEFVAL { 0 }
+    ::= { ipiG8031ConfigInstanceEntry 19 }
+
+ipiG8031InstProtectionCCIntvl OBJECT-TYPE
+    SYNTAX      Dot1agCfmCcmInterval
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "This object specifies the CC Interval configured for protection CFM Port."
+    ::= { ipiG8031ConfigInstanceEntry 20 }
+
+ipiG8031InstProtectionDomainName OBJECT-TYPE
+    SYNTAX      Dot1agCfmMaintDomainName
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "This object specifies the DomainName configured for protection CFM Port."
+    ::= { ipiG8031ConfigInstanceEntry 21 }
+
+ipiG8031InstProtectionMaName OBJECT-TYPE
+    SYNTAX      Dot1agCfmMaintAssocName
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "This object specifies the MaintenanceAssociation name configured
+        for protection CFM Port."
+    ::= { ipiG8031ConfigInstanceEntry 22 }
+
+ipiG8031InstChannelLevel OBJECT-TYPE
+     SYNTAX          Dot1agCfmMDLevel
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the CFM level configured for G8031 Instance."
+     ::= { ipiG8031ConfigInstanceEntry 23 }
+
+ipiG8031InstControlVlan OBJECT-TYPE
+     SYNTAX          Integer32 (1..4094)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the control(primary) vlan configured in G8031 Instance."
+     ::= { ipiG8031ConfigInstanceEntry 24 }
+
+ipiG8031InstInnerVlan OBJECT-TYPE
+     SYNTAX          Integer32 (1..4094)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the secondary(inner) vlan configured in G8031 Instance."
+     ::= { ipiG8031ConfigInstanceEntry 25 }
+
+ipiG8031InstDataVlan OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the data vlan configured in G8031 Instance."
+     ::= { ipiG8031ConfigInstanceEntry 26 }
+
+
+
+ -- g8031 Status Table
+ipiG8031StatusTable OBJECT-TYPE
+   SYNTAX       SEQUENCE OF IpiG8031StatusEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table containing information of G8031 Status of FSM,APS PDU and Active Path Info"
+   ::= { ipiG8031MIBObjects 2 }
+
+ipiG8031StatusEntry OBJECT-TYPE
+   SYNTAX       IpiG8031StatusEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table object containing information of G8031 Status entries"
+   INDEX   {ipiG8031ProtectionGroupIndex}
+   ::= { ipiG8031StatusTable 1 }
+
+IpiG8031StatusEntry::=
+  SEQUENCE {
+              ipiG8031InstName                      DisplayString,
+              ipiG8031ActivePath                    IpiG8031ActivePathType,
+              ipiG8031TxCount                       Counter32,
+              ipiG8031RxCount                       Counter32,
+              ipiG8031CurrState                     DisplayString,
+              ipiG8031dFopState                     DisplayString,
+              ipiG8031ReqSignal                     DisplayString,
+              ipiG8031LocalCmd                      IpiG8031LocalCmds
+            }
+
+ipiG8031InstName OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured G8031 Instance Name."
+     ::= { ipiG8031StatusEntry 1 }
+
+ipiG8031ActivePath OBJECT-TYPE
+     SYNTAX          IpiG8031ActivePathType
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the whether the active path(transport entity)
+         is working or protection port."
+     ::= { ipiG8031StatusEntry 2 }
+
+ipiG8031TxCount OBJECT-TYPE
+     SYNTAX          Counter32
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the APS message transmitted."
+     ::= { ipiG8031StatusEntry 3 }
+
+ipiG8031RxCount OBJECT-TYPE
+     SYNTAX          Counter32
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the APS message received."
+     ::= { ipiG8031StatusEntry 4 }
+
+ipiG8031CurrState OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8031 FSM State based on ipiG8031FsmState states."
+     ::= { ipiG8031StatusEntry 5}
+
+ipiG8031dFopState OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8031 downstream failure state of port.
+          Values are based on ipiG8031dFopState states"
+     ::= { ipiG8031StatusEntry 6}
+
+ipiG8031ReqSignal OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8031 requested signal as either normal or null."
+     ::= { ipiG8031StatusEntry 7}
+
+ipiG8031LocalCmd OBJECT-TYPE
+     SYNTAX          IpiG8031LocalCmds
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8031 local commands either local-lockout/freeze."
+     ::= { ipiG8031StatusEntry 8}
+
+
+--Notification
+ipiG8031ActivePathNotify NOTIFICATION-TYPE
+    OBJECTS {
+                ipiG8031ProtectionGroupIndex,
+                ipiG8031InstName,
+                ipiG8031InstWorkingPortName,
+                ipiG8031InstWorkingPortIndex,
+                ipiG8031InstProtectionPortName,
+                ipiG8031InstProtectionPortIndex,
+                ipiG8031ActivePath
+            }
+    STATUS  current
+    DESCRIPTION
+            "An ipiG8031ActivePathNotify notification is sent when there is changes
+            in protection switching path (working/protection)."
+    ::= { ipiG8031MIBNotifs 1 }
+
+END

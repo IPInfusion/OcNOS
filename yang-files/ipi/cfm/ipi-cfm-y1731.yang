@@ -21,7 +21,7 @@ submodule ipi-cfm-y1731 {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     import ietf-yang-types {
@@ -31,15 +31,15 @@ submodule ipi-cfm-y1731 {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-cfm-data-types {
         prefix ipi-cfm-data-types;
-        revision-date 2024-03-22;
+        revision-date 2024-11-04;
     }
 
-    include ipi-cfm-common { revision-date 2024-05-15;}
+    include ipi-cfm-common { revision-date 2024-07-26;}
     organization
         "IP Infusion Inc.";
 
@@ -52,6 +52,11 @@ submodule ipi-cfm-y1731 {
     description
         "Data model for IPI CFM Y.1731 Configuration and Operational state";
 
+
+    revision "2024-11-04" {
+        description "Changing datatype to the frame-size attribute and added CIR and EIR Attributes";
+        reference " 0.9.0.";
+    }
 
     revision "2024-03-19" {
         description "Adding missing attributes for ETH-CSF";
@@ -613,15 +618,9 @@ submodule ipi-cfm-y1731 {
 
         leaf frame-size  {
             // when " ipi-cfm-y1731:ethernet-test-signal-profiles/ethernet-test-signal-profile/config/mode != 2 ";
-            type  uint32 {
-                 range "68..9600"  {
-                    description "68..9600: Supported range 68 - 9600";
-                 }
-            }
+            type  ipi-cfm-data-types:cfm_test_framesize_type_t;
             units "bytes";
-            default "68";
-            description "This attribute specifies the ETH-Test Ethernet frame size between 68
-                        bytes and the maximum transmission unit of the EVC";
+            description "This attribute specifies the ETH-Test Ethernet frame size.";
         } // END of frame-size definition.
 
         leaf pattern-type  {
@@ -717,6 +716,127 @@ submodule ipi-cfm-y1731 {
         } // END of out-test-frames definition.
 
     } // END of test-signal-counters-state definition.
+    grouping test-excess-information-rate-config {
+        description
+            "Configuration data for EIR";
+        leaf eir  {
+            type  uint64 {
+                 range "1..400000"  {
+                    description "1..400000: Supported range 1 - 400000";
+                 }
+            }
+            description "Excess Information Rate";
+        } // END of eir definition.
+
+        leaf eir-unit  {
+            // when " ../eir ";
+            type  ipi-cfm-data-types:cfm_test_rate_unit_t;
+            description "Excess Information Rate unit";
+        } // END of eir-unit definition.
+
+        leaf eir-cos  {
+            // when " ../eir ";
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7: Supported range 0 - 7";
+                 }
+            }
+            description "Specify the eir coss";
+        } // END of eir-cos definition.
+
+        leaf eir-dei  {
+            // when " ../eir ";
+            type  uint8 {
+                 range "0..1"  {
+                    description "0..1: Supported range 0 - 1";
+                 }
+            }
+            description "Specify the eir dei";
+        } // END of eir-dei definition.
+
+    } // END of test-excess-information-rate-config definition.
+    grouping test-excess-information-rate-top {
+        description
+            "Top level grouping for EIR";
+        container excess-information-rate {
+            description
+                "Container for EIR";
+            container config {
+                if-feature feature-list:Y1731_HW_OFFLOAD;
+                if-feature feature-list:HAVE_DNX;
+                description
+                    "Configuration data for EIR";
+                uses test-excess-information-rate-config;
+            } // END of config-container definition.
+            container state {
+                if-feature feature-list:Y1731_HW_OFFLOAD;
+                if-feature feature-list:HAVE_DNX;
+                config false;
+                description
+                    "Operational data for EIR";
+                uses test-excess-information-rate-config;
+            } // END of state-container definition.
+        } // END of excess-information-rate-container definition.
+    } // END of test-excess-information-rate-top definition.
+    grouping test-committed-information-rate-config {
+        description
+            "Configuration for CIR configuration data";
+        leaf cir  {
+            type  uint64 {
+                 range "1..400000"  {
+                    description "1..400000: Supported range 1 - 400000";
+                 }
+            }
+            description "commited information rate";
+        } // END of cir definition.
+
+        leaf cir-unit  {
+            // when " ../cir ";
+            type  ipi-cfm-data-types:cfm_test_rate_unit_t;
+            description "commited information rate unit";
+        } // END of cir-unit definition.
+
+        leaf cir-cos  {
+            // when " ../cir ";
+            type  uint8 {
+                 range "0..7"  {
+                    description "0..7: Supported range 0 - 7";
+                 }
+            }
+            description "commited information rate cos";
+        } // END of cir-cos definition.
+
+        leaf cir-dei  {
+            // when " ../cir ";
+            type  uint8 {
+                 range "0..1"  {
+                    description "0..1: Supported range 0 - 1";
+                 }
+            }
+            description "commited information dei";
+        } // END of cir-dei definition.
+
+    } // END of test-committed-information-rate-config definition.
+    grouping test-commited-information-rate-top {
+        description
+            "Top level grouping for CIR";
+        container commited-information-rate {
+            description
+                "Contaiener for CIR";
+            container config {
+                if-feature feature-list:Y1731_HW_OFFLOAD;
+                description
+                    "Configuration data for CIR";
+                uses test-committed-information-rate-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational data for CIR";
+                uses test-committed-information-rate-config;
+            } // END of state-container definition.
+        } // END of commited-information-rate-container definition.
+    } // END of test-commited-information-rate-top definition.
     grouping ethernet-test-signal-profiles-top {
         description
             "Top level grouping for ethernet test signal profile";
@@ -743,6 +863,8 @@ submodule ipi-cfm-y1731 {
                     "Operational state data for ethernet test signal profile";
                 uses test-signal-parameters-config;
             } // END of state-container definition.
+            uses test-excess-information-rate-top;
+            uses test-commited-information-rate-top;
         } // End of ethernet-test-signal-profile-list
     } // END of ethernet-test-signal-profiles-top definition.
     grouping cfm-loss-measurement-profile-config {

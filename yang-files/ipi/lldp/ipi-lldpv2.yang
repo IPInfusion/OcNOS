@@ -23,17 +23,17 @@ module ipi-lldpv2 {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-lldp-types {
         prefix ipi-lldp-types;
-        revision-date 2023-01-23;
+        revision-date 2024-09-05;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
     }
 
     import ietf-yang-types {
@@ -43,7 +43,7 @@ module ipi-lldpv2 {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -59,9 +59,44 @@ module ipi-lldpv2 {
         "Link Layer Discovery Protocol (LLDP)";
 
 
+    revision "2025-01-08" {
+        description "Added new attribute disable-tx-rx";
+        reference " 0.8.6.";
+    }
+
+    revision "2024-12-19" {
+        description "Added condition in when tag for attribute med-device-type";
+        reference " 0.8.5.";
+    }
+
+    revision "2024-12-05" {
+        description "Added pattern to port-mac leaf.";
+        reference " 0.8.4.";
+    }
+
+    revision "2024-10-22" {
+        description "Fixed dcbx-enable persistence and db-sync issues.";
+        reference " 0.8.3.";
+    }
+
+    revision "2024-09-05" {
+        description "Add ipv6-address support for management-address-tlv, chassis-id-tlv and port-id-tlv.";
+        reference " 0.8.2.";
+    }
+
+    revision "2024-09-02" {
+        description "Remove dcbx global enable configuration";
+        reference " 0.8.1.";
+    }
+
     revision "2024-06-30" {
         description "Added when tag for lag members while configuring data for lldb-agent ";
         reference " 0.7.4.";
+    }
+
+    revision "2024-06-26" {
+        description "Add additional LLDP global configurations";
+        reference " 0.8.0.";
     }
 
     revision "2024-06-13" {
@@ -365,6 +400,12 @@ module ipi-lldpv2 {
             type  empty;
             description "Enable or disable the LLDP protocol at node level";
         } // END of enable definition.
+
+        leaf enable-tx-rx-only  {
+            // when " ipi-lldpv2:lldp/global/config/enable ";
+            type  ipi-lldp-types:lldp_enable_rx_only_tx_only_t;
+            description "Specifies to only send or receive LLDP frames";
+        } // END of enable-tx-rx-only definition.
 
         leaf notification-interval  {
             if-feature feature-list:HAVE_SNMP;
@@ -723,6 +764,9 @@ module ipi-lldpv2 {
             } // END of state-container definition.
             uses lldp-global-custom-tlv-top;
             uses lldp-management-if-top;
+            uses transmit-global-top;
+            uses receive-global-top;
+            uses lldp-v2-agent-tlv-top;
         } // END of global-container definition.
     } // END of lldp-global-top definition.
     grouping lldp-v2-agent-tlv-config {
@@ -732,23 +776,23 @@ module ipi-lldpv2 {
             type  ipi-lldp-types:lldp_mgmt_addr_t;
             default "mac-address";
             description "This attribute specifies sub type of the Management Address TLV. Can
-                        be configured as mac-addresss or ip-address";
+                        be configured as mac-address, ip-address or ipv6-address";
         } // END of port-address definition.
 
         leaf chassis-id  {
             type  ipi-lldp-types:lldp_chassis_t;
             default "mac-address";
             description "This attribute specifies chassis ID subtype for the LLDP agent on a
-                        port. Can be configured as if-alias or ip-address or mac-address or
-                        if-name or locally-assgined name";
+                        port. Can be configured as if-alias or ip-address or ipv6-address or
+                        mac-address or if-name or locally-assgined name";
         } // END of chassis-id definition.
 
         leaf port-id  {
             type  ipi-lldp-types:lldp_port_t;
             default "mac-address";
             description "This attribute specifies sub type of the port id TLV. Can be
-                        configured as if-alias or mac-address or ip-address or if-name or
-                        agent-circuit-id or locally assigned name";
+                        configured as if-alias or mac-address or ip-address or ipv6-address or
+                        if-name or agent-circuit-id or locally assigned name";
         } // END of port-id definition.
 
     } // END of lldp-v2-agent-tlv-config definition.
@@ -861,6 +905,7 @@ module ipi-lldpv2 {
             // when " ipi-lldpv2:lldp/interfaces/interface/agents/agent/receive/config/neighbor-limit + ipi-lldpv2:lldp/interfaces/interface/agents/agent/receive/config/port-timer + !ipi-lldpv2:lldp/interfaces/interface/agents/agent/receive/config/neighbor-timer ";
             type  cml-data-types:cml_mac_addr_t {
                 length "1..1965";
+                pattern "[0-9a-fA-F]{4}.[0-9a-fA-F]{4}.[0-9a-fA-F]{4}";
             }
             description "This attribute uses given port MAC to take action when the remote
                         table is full";
@@ -878,6 +923,53 @@ module ipi-lldpv2 {
         } // END of port-timer definition.
 
     } // END of lldp-v2-receive-config definition.
+    grouping lldp-v2-global-receive-config {
+        description
+            "LLDP receive configuration attributes group";
+        leaf neighbor-limit  {
+            // when " ipi-lldpv2:lldp/global/receive/config/neighbor-timer  +  ipi-lldpv2:lldp/global/receive/config/port-timer ";
+            type  uint32 {
+                 range "1..65535"  {
+                    description "1..65535: Supported range 1 - 65535";
+                 }
+            }
+            description "This attribute configures limit for remote table entries to take
+                        action to discard or delete entries";
+        } // END of neighbor-limit definition.
+
+        leaf neighbor-timer  {
+            // when " ipi-lldpv2:lldp/global/receive/config/neighbor-limit + !ipi-lldpv2:lldp/global/receive/config/port-timer + !ipi-lldpv2:lldp/global/receive/config/port-mac ";
+            type  uint32 {
+                 range "1..65535"  {
+                    description "1..65535: Supported range 1 - 65535";
+                 }
+            }
+            description "This attribute configures timer to discard received message when
+                        remote table is full";
+        } // END of neighbor-timer definition.
+
+        leaf port-mac  {
+            // when " ipi-lldpv2:lldp/global/receive/config/neighbor-limit + ipi-lldpv2:lldp/global/receive/config/port-timer + !ipi-lldpv2:lldp/global/receive/config/neighbor-timer ";
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+                pattern "[0-9a-fA-F]{4}.[0-9a-fA-F]{4}.[0-9a-fA-F]{4}";
+            }
+            description "This attribute uses given port MAC to take action when the remote
+                        table is full";
+        } // END of port-mac definition.
+
+        leaf port-timer  {
+            // when " ipi-lldpv2:lldp/global/receive/config/neighbor-limit + ipi-lldpv2:lldp/global/receive/config/port-mac + !ipi-lldpv2:lldp/global/receive/config/neighbor-timer ";
+            type  uint32 {
+                 range "1..65535"  {
+                    description "1..65535: Supported range 1 - 65535";
+                 }
+            }
+            description "This attribute configures timer to discard or delete existing info for
+                        received message port MAC when the remote table is full";
+        } // END of port-timer definition.
+
+    } // END of lldp-v2-global-receive-config definition.
     grouping remote-vlan-info {
         description
             "remote vlan information operationl state group";
@@ -1277,6 +1369,26 @@ module ipi-lldpv2 {
             } // END of state-container definition.
         } // END of receive-container definition.
     } // END of receive-top definition.
+    grouping receive-global-top {
+        description
+            "LLDP receive information top level group";
+        container receive {
+            description
+                "Enclosing container for configuration and state data for LLDP packet
+                        reception";
+            container config {
+                description
+                    "Configuration data for LLDP agent on each interface";
+                uses lldp-v2-global-receive-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses lldp-v2-global-receive-config;
+            } // END of state-container definition.
+        } // END of receive-container definition.
+    } // END of receive-global-top definition.
     grouping lldp-v2-transmit-config {
         description
             "LLDP transmission configuration group";
@@ -1393,6 +1505,25 @@ module ipi-lldpv2 {
             } // END of state-container definition.
         } // END of transmit-container definition.
     } // END of transmit-top definition.
+    grouping transmit-global-top {
+        description
+            "LLDP transmit top level group";
+        container transmit {
+            description
+                "Enclosing container for configuration and state data LLDP transmission";
+            container config {
+                description
+                    "Configuration data for global LLDP default agent";
+                uses lldp-v2-transmit-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses lldp-v2-transmit-config;
+            } // END of state-container definition.
+        } // END of transmit-container definition.
+    } // END of transmit-global-top definition.
     grouping lldp-v2-agent-config {
         description
             "LLDP Agent for interface attributes group";
@@ -1408,9 +1539,15 @@ module ipi-lldpv2 {
                         receive packets on interface";
         } // END of enable-tx-rx definition.
 
+        leaf disable-tx-rx  {
+            type  empty;
+            description "Disables interface with LLDP protocol";
+        } // END of disable-tx-rx definition.
+
         leaf dcbx-enable  {
             if-feature feature-list:HAVE_DCB;
-            type  empty;
+            type  boolean;
+            default false;
             description "Use this attribute to enable/disable DCBX on the given interface";
         } // END of dcbx-enable definition.
 

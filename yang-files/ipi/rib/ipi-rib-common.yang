@@ -23,12 +23,12 @@ module ipi-rib-common {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-rib-types {
         prefix ipi-rib-types;
-        revision-date 2023-05-25;
+        revision-date 2024-09-05;
     }
 
     import ietf-yang-types {
@@ -41,9 +41,14 @@ module ipi-rib-common {
         revision-date 2013-07-15;
     }
 
+    import ipi-network-instance {
+        prefix ipi-network-instance;
+        revision-date 2025-02-11;
+    }
+
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -58,6 +63,26 @@ module ipi-rib-common {
     description
         "Common groupings in ipi-rib and ipi-rib-vrf-modules";
 
+
+    revision "2024-11-27" {
+        description "Added IPv6 prefix and address format for static routes";
+        reference " 1.0.2.";
+    }
+
+    revision "2024-11-05" {
+        description "Add recursive knob to the static route parameters";
+        reference " 1.0.1.";
+    }
+
+    revision "2024-09-17" {
+        description "Datamodel restructuring to make interface-name optional for VRF static routes";
+        reference " 1.0.0.";
+    }
+
+    revision "2024-09-05" {
+        description "Updated if-feature for datatype RIB_ROUTE_TYPE_T";
+        reference " 0.11.0.";
+    }
 
     revision "2023-05-25" {
         description "Updated datatype RIB_DEBUG_ROUTING_T option";
@@ -339,18 +364,8 @@ module ipi-rib-common {
                  }
             }
             default "1";
-            description "Use this attribute to set distance value for the route.";
+            description "Use this attribute to set the distance value for this route.";
         } // END of distance definition.
-
-        leaf tag  {
-            type  uint32 {
-                 range "0..4294967295"  {
-                    description "0..4294967295: Supported range 0 - 4294967295";
-                 }
-            }
-            default "0";
-            description "Use this attribute to set tag for the route.";
-        } // END of tag definition.
 
         leaf track-id  {
             if-feature feature-list:HAVE_OBJ_TRACKING;
@@ -366,10 +381,131 @@ module ipi-rib-common {
             type  cml-data-types:cml_line_t {
                 length "1..1965";
             }
-            description "Use this attribute to set description of the static route.";
+            description "Use this attribute to set the description of this static route.";
         } // END of description definition.
 
+        leaf enable-global-table-lookup  {
+            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-network-instance:config/ipi-network-instance:instance-name != 'default' ";
+            // when " ../interface ";
+            type  empty;
+            description "Use this attribute to create an VRF static route with gateway in
+                        default VRF table.";
+        } // END of enable-global-table-lookup definition.
+
     } // END of rib-attr-config definition.
+    grouping rib-attr-config-tag {
+        description
+            "Common configuration attribute tag for static routes";
+        leaf tag  {
+            type  uint32 {
+                 range "0..4294967295"  {
+                    description "0..4294967295: Supported range 0 - 4294967295";
+                 }
+            }
+            default "0";
+            description "Use this attribute to set the tag for this route.";
+        } // END of tag definition.
+
+    } // END of rib-attr-config-tag definition.
+    grouping rib-attr-config-recursive {
+        description
+            "Common configuration attribute recursive for static routes";
+        leaf recursive  {
+            type  empty;
+            description "Use this attribute to enable recursive resolution for this route.";
+        } // END of recursive definition.
+
+    } // END of rib-attr-config-recursive definition.
+    grouping rib-ipv4-static-route-config {
+        description
+            "Configuration attributes for IPv4 static routes";
+        leaf prefix  {
+            type  cml-data-types:cml_ipv4_prefix_t;
+            description "Use this attribute to configure a prefix for an IPv4 static route
+                        (e.g. 10.0.0.0/8)";
+        } // END of prefix definition.
+
+    } // END of rib-ipv4-static-route-config definition.
+    grouping rib-ipv4-next-hop-gateway-config {
+        description
+            "Configuration attributes for IPv4 next hop gateway static routes";
+        leaf gateway  {
+            type  inet:ipv4-address;
+            description "Use this attribute to configure an IPv4 gateway address for this
+                        destination prefix";
+        } // END of gateway definition.
+
+        leaf interface  {
+            // when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set the interface for this route.";
+        } // END of interface definition.
+
+        uses rib-attr-config-tag;
+        uses rib-attr-config-recursive;
+        uses rib-attr-config;
+    } // END of rib-ipv4-next-hop-gateway-config definition.
+    grouping rib-ipv4-next-hop-interface-config {
+        description
+            "Configuration attributes for IPv4 next hop interface static routes";
+        leaf interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set the interface for this route.";
+        } // END of interface definition.
+
+        uses rib-attr-config-tag;
+        uses rib-attr-config;
+    } // END of rib-ipv4-next-hop-interface-config definition.
+    grouping rib-ipv6-static-route-config {
+        description
+            "Configuration attributes for IPv6 static routes";
+        leaf prefix  {
+            type  cml-data-types:cml_ipv6_prefix_t;
+            description "Use this attribute to configure a prefix for an IPv6 static route
+                        (e.g. 3ffe:506::/32)";
+        } // END of prefix definition.
+
+    } // END of rib-ipv6-static-route-config definition.
+    grouping rib-ipv6-next-hop-gateway-config {
+        description
+            "Configuration attributes for IPv6 next hop gateway static routes";
+        leaf gateway  {
+            type  inet:ipv6-address;
+            description "Use this attribute to configure an IPv6 gateway address for this
+                        destination prefix";
+        } // END of gateway definition.
+
+        leaf interface  {
+            // when " not(/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport) ";
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set the interface for this route.";
+        } // END of interface definition.
+
+        uses rib-attr-config-recursive;
+        uses rib-attr-config;
+    } // END of rib-ipv6-next-hop-gateway-config definition.
+    grouping rib-ipv6-next-hop-interface-config {
+        description
+            "Configuration attributes for IPv6 next hop interface static routes";
+        leaf interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set the interface for this route.";
+        } // END of interface definition.
+
+        uses rib-attr-config;
+    } // END of rib-ipv6-next-hop-interface-config definition.
     grouping rib-global-bfd-config {
         description
             "Global BFD Configuration attributes";

@@ -23,7 +23,7 @@ module ipi-global-te {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -38,6 +38,21 @@ module ipi-global-te {
     description
         "Data model for Global Te";
 
+
+    revision "2024-12-23" {
+        description "Add function to validate the admin-group name";
+        reference " 0.4.1.";
+    }
+
+    revision "2024-08-10" {
+        description "Commented out EAG-mapping-Range and SRLG-Mapping-Range for OcNOS-6.6";
+        reference " 0.4.0.";
+    }
+
+    revision "2024-04-20" {
+        description "Added SRLG name-to-ID mapping CLI";
+        reference " 0.3.2.";
+    }
 
     revision "2024-04-11" {
         description "Changed Extended Administrative Group CLI to hidden";
@@ -103,28 +118,27 @@ module ipi-global-te {
         } // END of id definition.
 
     } // END of extended-admin-group-config definition.
-    grouping extended-admin-group-range-config {
+    grouping srlg-map-config {
         description
-            "Extended Administrative Group (EAG) Range Configurations";
-        leaf minimum-id  {
+            "SRLG map configurations";
+        leaf name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to create a name-to-value binding for an SRLG map";
+        } // END of name definition.
+
+        leaf id  {
             type  uint32 {
-                 range "32..95"  {
-                    description "32..95: Supported range 32 - 95";
+                 range "1..65535"  {
+                    description "1..65535: Supported range 1 - 65535";
                  }
             }
-            description "Minimum identifier value for the extended administrative group range";
-        } // END of minimum-id definition.
+            description "identifier value for the SRLG map";
+        } // END of id definition.
 
-        leaf maximum-id  {
-            type  uint32 {
-                 range "32..95"  {
-                    description "32..95: Supported range 32 - 95";
-                 }
-            }
-            description "Maximum identifier value for the extended administrative group range";
-        } // END of maximum-id definition.
-
-    } // END of extended-admin-group-range-config definition.
+    } // END of srlg-map-config definition.
 
     grouping  admin-groups-grouping {
     description
@@ -214,51 +228,51 @@ module ipi-global-te {
     } // END of extended-admin-groups-container definition.
     } // END of extended-admin-groups-grouping definition.
 
-    grouping  extended-admin-group-ranges-grouping {
+    grouping  srlg-maps-grouping {
     description
-        "This defines a YANG data model for Extended Admin Group Range config
-                for MPLS and TE configuration and operation.";
-    container extended-admin-group-ranges {
+        "This defines a YANG data model for SRLG map config for MPLS and TE
+                configuration and operation.";
+    container srlg-maps {
         if-feature feature-list:HAVE_MPLS_OR_HAVE_SRV6;
         description
-            "This defines a YANG data model for Extended Admin Group Range config
-                    for MPLS and TE configuration and operation.";
+            "This defines a YANG data model for SRLG map config for MPLS and TE
+                    configuration and operation.";
 
-        list extended-admin-group-range {
-            key "minimum-id maximum-id";
+        list srlg-map {
+            key "name id";
             description
-                "Extended Administrative Group (EAG) Range Configurations";
-            leaf minimum-id  {
+                "SRLG map configurations";
+            leaf name  {
                 type  leafref {
-                    path  "../config/minimum-id";
+                    path  "../config/name";
                 }
-                description "Minimum identifier value for the extended administrative group range";
-            } // END of minimum-id definition.
+                description "Use this attribute to create a name-to-value binding for an SRLG map";
+            } // END of name definition.
 
-            leaf maximum-id  {
+            leaf id  {
                 type  leafref {
-                    path  "../config/maximum-id";
+                    path  "../config/id";
                 }
-                description "Maximum identifier value for the extended administrative group range";
-            } // END of maximum-id definition.
+                description "identifier value for the SRLG map";
+            } // END of id definition.
 
             container config {
                 description
-                    "Config Container for Extended Administrative Group (EAG) Range";
-                uses extended-admin-group-range-config;
+                    "Config Container for SRLG maps";
+                uses srlg-map-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
-                    "State Contatiner for Extended Administrative Group (EAG) Range";
-                uses extended-admin-group-range-config;
+                    "State Contatiner for SRLG maps";
+                uses srlg-map-config;
             } // END of state-container definition.
-        } // End of extended-admin-group-range-list
-    } // END of extended-admin-group-ranges-container definition.
-    } // END of extended-admin-group-ranges-grouping definition.
+        } // End of srlg-map-list
+    } // END of srlg-maps-container definition.
+    } // END of srlg-maps-grouping definition.
 
     uses admin-groups-grouping;
     uses extended-admin-groups-grouping;
-    uses extended-admin-group-ranges-grouping;
+    uses srlg-maps-grouping;
 
 }

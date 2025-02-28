@@ -1,0 +1,790 @@
+-- ********************************************************************
+-- /* Copyright (C) 2001-2024 IP Infusion, Inc. All Rights Reserved. */
+-- ********************************************************************
+IPI-G8032-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, NOTIFICATION-TYPE,
+    OBJECT-TYPE, Unsigned32, TimeTicks, Counter32, Integer32
+        FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION, TruthValue, DisplayString
+        FROM SNMPv2-TC
+    Dot1agCfmMDLevel, Dot1agCfmMaintDomainName,Dot1agCfmMaintAssocName,
+    Dot1agCfmCcmInterval, Dot1agCfmMepIdOrZero
+        FROM IEEE8021-CFM-MIB   -- IEEE 802.1ag
+    ipi FROM IPI-MODULE-MIB;
+
+ipiG8032MIB MODULE-IDENTITY
+    LAST-UPDATED    "202007140000Z"
+    ORGANIZATION "IP Infusion"
+    CONTACT-INFO "support@ipinfusion.com"
+    DESCRIPTION
+        "g8032 mib for IPI enterprise."
+    REVISION    "202007140000Z"
+    DESCRIPTION "g8032 mib intial version"
+    ::= { ipi 8032}
+
+IpiG8032RingType ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION
+        "Ethernet Ring type"
+    REFERENCE       "Section 3.2 of ITU-T G.8031/Y.1344"
+    SYNTAX          INTEGER {
+                        major-ring(1),
+                        sub-ring(2),
+                        sub-ring-vc(3)
+                    }
+IpiG8032LinkState ::= TEXTUAL-CONVENTION
+  STATUS          current
+    DESCRIPTION
+        "Interface link state"
+    SYNTAX          INTEGER {
+                        unblocked(1),
+                        blocked(2),
+                        failed(3),
+                        invalid(4)
+                    }
+
+IpiG8032CfmState ::= TEXTUAL-CONVENTION
+  STATUS          current
+    DESCRIPTION
+        "CFM status"
+    SYNTAX          INTEGER {
+                        up(1),
+                        down(2)
+                    }
+
+IpiG8032RoleType ::= TEXTUAL-CONVENTION
+  STATUS          current
+    DESCRIPTION
+        "Ethernet ring roles"
+    REFERENCE       "Section 3.2 of ITU-T G.8031/Y.1344"
+    SYNTAX          INTEGER {
+                        none(1),
+                        non-owner(2),
+                        owner(3),
+                        neighbour(4),
+                        next-neighbor(5)
+                    }
+
+IpiG803States ::= TEXTUAL-CONVENTION
+  STATUS          current
+    DESCRIPTION
+        "Ethernet ring node states"
+    REFERENCE       "Section 10.2 of ITU-T G.8031/Y.1344"
+    SYNTAX          INTEGER {
+                        init(1),
+                        pending(2),
+                        idle(3),
+                        force-switch(4),
+                        protection(5),
+                        manual-switch(6),
+                        invalid(7)
+                    }
+IpiG8032ProtectionType ::= TEXTUAL-CONVENTION
+  STATUS          current
+    DESCRIPTION
+        "Ethernet ring protection type"
+    SYNTAX          INTEGER {
+                        revertive(1),
+                        non-revertive(2)
+                        }
+
+ipiG8032MIBNotifs    OBJECT IDENTIFIER ::= { ipiG8032MIB 0 }
+ipiG8032MIBObjects   OBJECT IDENTIFIER ::= { ipiG8032MIB 1 }
+
+ -- g8032 Config Instance Table
+ipiG8032ConfigInstanceTable OBJECT-TYPE
+   SYNTAX       SEQUENCE OF IpiG8032ConfigInstanceEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table containing information of G8032 Instance configured."
+   ::= { ipiG8032MIBObjects 1 }
+
+ipiG8032ConfigInstanceEntry OBJECT-TYPE
+   SYNTAX       IpiG8032ConfigInstanceEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table object containing information of G8032 Instance entries."
+   INDEX   {ipiG8032InstanceId}
+   ::= { ipiG8032ConfigInstanceTable 1 }
+
+IpiG8032ConfigInstanceEntry::=
+ SEQUENCE {
+               ipiG8032InstanceId                        Integer32,
+               ipiG8032InstanceName                      DisplayString,
+               ipiG8032ProfileName                       DisplayString,
+               ipiG8032NodeId                            DisplayString,
+               ipiG8032RingName                          DisplayString,
+               ipiG8032RingType                          IpiG8032RingType,
+               ipiG8032RingId                            Integer32,
+               ipiG8032InstRole                          IpiG8032RoleType,
+               ipiG8032SubVirtualVID                     Integer32,
+               ipiG8032SubVirtualRingId                  Integer32,
+               ipiG8032SubAttachedToInstance             DisplayString,
+               ipiG8032TcnPropagation                    DisplayString,
+               ipiG8032ProtectionType                    IpiG8032ProtectionType,
+               ipiG8032InstInitTimer                     DisplayString,
+               ipiG8032InstWTRTimer                      DisplayString,
+               ipiG8032InstWTBTimer                      DisplayString,
+               ipiG8032InstHoldOffTimer                  DisplayString,
+               ipiG8032InstGuardTimer                    DisplayString,
+               ipiG8032InstEastInterfaceName             DisplayString,
+               ipiG8032InstEastInterfaceIfIndex          Integer32,
+               ipiG8032InstEastInterfaceLinkState        IpiG8032LinkState,
+               ipiG8032InstEastInterfaceOperStatus       IpiG8032CfmState,
+               ipiG8032InstEastInterfaceBPR              Integer32,
+               ipiG8032InstEastInterfaceRemoteNodeId     DisplayString,
+               ipiG8032InstEastMepId                     Dot1agCfmMepIdOrZero,
+               ipiG8032InstEastCCIntvl                   Dot1agCfmCcmInterval,
+               ipiG8032InstEastDomainName                Dot1agCfmMaintDomainName,
+               ipiG8032InstEastMaName                    Dot1agCfmMaintAssocName,
+               ipiG8032InstWestInterfaceName             DisplayString,
+               ipiG8032InstWestInterfaceIfIndex          Integer32,
+               ipiG8032InstWestInterfaceLinkState        IpiG8032LinkState,
+               ipiG8032InstWestInterfaceOperStatus       IpiG8032CfmState,
+               ipiG8032InstWestInterfaceBPR              Integer32,
+               ipiG8032InstWestInterfaceRemoteNodeId     DisplayString,
+               ipiG8032InstWestMepId                     Dot1agCfmMepIdOrZero,
+               ipiG8032InstWestCCIntvl                   Dot1agCfmCcmInterval,
+               ipiG8032InstWestDomainName                Dot1agCfmMaintDomainName,
+               ipiG8032InstWestMaName                    Dot1agCfmMaintAssocName,
+               ipiG8032InstChannelLevel                  Dot1agCfmMDLevel,
+               ipiG8032InstRAPSVlan                      Integer32,
+               ipiG8032InstDataVlan                      DisplayString
+           }
+
+
+ipiG8032InstanceId OBJECT-TYPE
+     SYNTAX          Integer32(1..65535)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8032 Instance ID."
+     ::= { ipiG8032ConfigInstanceEntry 1 }
+
+ipiG8032InstanceName OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8032 Instance Name."
+     ::= { ipiG8032ConfigInstanceEntry 2 }
+
+ipiG8032ProfileName OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8032 Profile Name."
+     ::= { ipiG8032ConfigInstanceEntry 3 }
+
+ipiG8032NodeId OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8032 Local Node Id."
+     ::= { ipiG8032ConfigInstanceEntry 4 }
+
+ipiG8032RingName OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured ring name."
+     ::= { ipiG8032ConfigInstanceEntry 5 }
+
+ipiG8032RingId OBJECT-TYPE
+     SYNTAX          Integer32(1..65535)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the ring id."
+     ::= { ipiG8032ConfigInstanceEntry 6 }
+
+ipiG8032InstRole OBJECT-TYPE
+     SYNTAX          IpiG8032RoleType
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8032 roles based on IpiG8032RoleType."
+     ::= { ipiG8032ConfigInstanceEntry 7 }
+
+ipiG8032RingType OBJECT-TYPE
+     SYNTAX          IpiG8032RingType
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured ring type based on IpiG8032RingType."
+     ::= { ipiG8032ConfigInstanceEntry 8 }
+
+ipiG8032SubVirtualVID  OBJECT-TYPE
+     SYNTAX          Integer32(1..65535)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured subring virtual vlan id."
+     ::= { ipiG8032ConfigInstanceEntry 9 }
+
+ipiG8032SubVirtualRingId  OBJECT-TYPE
+     SYNTAX          Integer32(1..65535)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured subring virtual ring id."
+     ::= { ipiG8032ConfigInstanceEntry 10 }
+
+ipiG8032SubAttachedToInstance  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured subring link to attached major instance."
+     ::= { ipiG8032ConfigInstanceEntry 11 }
+
+ipiG8032TcnPropagation  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the topology change propagation process.
+         TCN messages are used to notify all nodes in the ring about changes in the network topology,
+         such as the addition or removal of nodes or changes in link status."
+     ::= { ipiG8032ConfigInstanceEntry 12 }
+
+ipiG8032ProtectionType   OBJECT-TYPE
+     SYNTAX          IpiG8032ProtectionType
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies whether the switching type is revertive or non-revertive"
+     ::= { ipiG8032ConfigInstanceEntry 13 }
+
+ipiG8032InstInitTimer  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the initialization timer.
+          Init Timer helps in managing the initialization phase of the ring
+          network.Ensuring that all network elements are properly synchronized 
+          and the network stabilizes effectively before starting normal operations.
+          This is IPI custom timer of default 30seconds"
+     ::= { ipiG8032ConfigInstanceEntry 14 }
+
+ipiG8032InstWTRTimer  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the wait to restore timer.
+          The wait to restore (WTR) timer is used to prevent frequent
+          operation of the protection switching due to intermittent signal failure defects.
+          This delay timer, called the WTR timer, may be configured by the operator
+          in 1 minute steps between 1 and 12 minutes; the default value being 5 minutes."
+    DEFVAL          {"5minutes"}
+     ::= { ipiG8032ConfigInstanceEntry 15 }
+
+
+ipiG8032InstWTBTimer  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the wait to block timer.
+         The wait to block (WTB) timer is used when clearing forced switch and
+         manual switch commands. When recovering from an operator command (i.e., FS or MS)
+         the delay timer must be long enough to receive any latent remote FS, SF or MS.
+         This delay timer, called the WTB timer,is defined to be 5 seconds longer than the guard timer."
+     ::= { ipiG8032ConfigInstanceEntry 16 }
+
+
+ipiG8032InstHoldOffTimer  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the hold-off-timer of a ring.
+          To coordinate timing of protection switches at multiple layers,
+          hold-off timer is required. Its purpose is to allow, for example, a server layer
+          protection switch to have a chance to fix the problem before switching at a client layer
+          Default value is 0 secs."
+    DEFVAL          {"0secs"}
+     ::= { ipiG8032ConfigInstanceEntry 17 }
+
+
+ipiG8032InstGuardTimer  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the guard-timer of a ring.
+         The guard timer is used to prevent Ethernet ring nodes from acting upon
+         outdated R-APS messages and prevents the possibility of forming a closed loop.
+         The guard timer is activated whenever an Ethernet ring node receives an indication
+         that a local switching request has cleared (i.e., local clear SF, Clear).
+         Default value is 500 ms."
+     ::= { ipiG8032ConfigInstanceEntry 18}
+
+ipiG8032InstEastInterfaceName  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the east interface name (east-ring-port)."
+     ::= { ipiG8032ConfigInstanceEntry 19}
+
+ipiG8032InstEastInterfaceIfIndex  OBJECT-TYPE
+     SYNTAX          Integer32
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the east interface index (east-ring-port)."
+     ::= { ipiG8032ConfigInstanceEntry 20}
+
+ipiG8032InstEastInterfaceLinkState  OBJECT-TYPE
+     SYNTAX          IpiG8032LinkState
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the east interface link state based on IpiG8032LinkState type."
+     ::= { ipiG8032ConfigInstanceEntry 21}
+
+ipiG8032InstEastInterfaceOperStatus  OBJECT-TYPE
+     SYNTAX          IpiG8032CfmState
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the cfm state for east link based on IpiG8032CfmState type."
+     ::= { ipiG8032ConfigInstanceEntry 22}
+
+ipiG8032InstEastInterfaceBPR  OBJECT-TYPE
+     SYNTAX          Integer32(1..65535)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the Blocked Port Reference (BPR) of east ring link."
+     ::= { ipiG8032ConfigInstanceEntry 23}
+
+ipiG8032InstEastInterfaceRemoteNodeId  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the remote node-id of east interface."
+     ::= { ipiG8032ConfigInstanceEntry 24}
+
+ipiG8032InstEastMepId  OBJECT-TYPE
+     SYNTAX          Dot1agCfmMepIdOrZero
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the MEP ID of east interface."
+     ::= { ipiG8032ConfigInstanceEntry 25}
+
+ipiG8032InstEastCCIntvl  OBJECT-TYPE
+     SYNTAX          Dot1agCfmCcmInterval
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the CC interval for east interface."
+     ::= { ipiG8032ConfigInstanceEntry 26}
+
+ipiG8032InstEastDomainName  OBJECT-TYPE
+     SYNTAX          Dot1agCfmMaintDomainName
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the maintenance domain name for east interface."
+     ::= { ipiG8032ConfigInstanceEntry 27}
+
+ipiG8032InstEastMaName  OBJECT-TYPE
+     SYNTAX          Dot1agCfmMaintAssocName
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the maintenance association  name for east interface."
+     ::= { ipiG8032ConfigInstanceEntry 28}
+
+ipiG8032InstWestInterfaceName  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the west interface name (west-ring-port)."
+     ::= { ipiG8032ConfigInstanceEntry 29}
+
+ipiG8032InstWestInterfaceIfIndex  OBJECT-TYPE
+     SYNTAX          Integer32
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the west interface name (west-ring-port)."
+     ::= { ipiG8032ConfigInstanceEntry 30}
+
+ipiG8032InstWestInterfaceLinkState  OBJECT-TYPE
+     SYNTAX          IpiG8032LinkState
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the west interface link state based on IpiG8032LinkState type."
+     ::= { ipiG8032ConfigInstanceEntry 31}
+
+ipiG8032InstWestInterfaceOperStatus  OBJECT-TYPE
+     SYNTAX          IpiG8032CfmState
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the cfm state for west link based on IpiG8032CfmState type."
+     ::= { ipiG8032ConfigInstanceEntry 32}
+
+ipiG8032InstWestInterfaceBPR  OBJECT-TYPE
+     SYNTAX          Integer32(1..65535)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the Blocked Port Reference (BPR) of west ring link."
+     ::= { ipiG8032ConfigInstanceEntry 33}
+
+ipiG8032InstWestInterfaceRemoteNodeId  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the remote node-id of west interface."
+     ::= { ipiG8032ConfigInstanceEntry 34}
+
+ipiG8032InstWestMepId  OBJECT-TYPE
+     SYNTAX          Dot1agCfmMepIdOrZero
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the MEP ID of west interface."
+     ::= { ipiG8032ConfigInstanceEntry 35}
+
+ipiG8032InstWestCCIntvl  OBJECT-TYPE
+     SYNTAX          Dot1agCfmCcmInterval
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the CC interval for west interface."
+     ::= { ipiG8032ConfigInstanceEntry 36}
+
+ipiG8032InstWestDomainName  OBJECT-TYPE
+     SYNTAX          Dot1agCfmMaintDomainName
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the maintenance domain name for west interface."
+     ::= { ipiG8032ConfigInstanceEntry 37}
+
+ipiG8032InstWestMaName  OBJECT-TYPE
+     SYNTAX          Dot1agCfmMaintAssocName
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the maintenance association name for west interface."
+     ::= { ipiG8032ConfigInstanceEntry 38}
+
+ipiG8032InstChannelLevel  OBJECT-TYPE
+     SYNTAX          Dot1agCfmMDLevel
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the RAPS channel level of an instance."
+     ::= { ipiG8032ConfigInstanceEntry 39}
+
+ipiG8032InstRAPSVlan  OBJECT-TYPE
+     SYNTAX          Integer32
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the RAPS vlan(control vlan) for an instance."
+     ::= { ipiG8032ConfigInstanceEntry 40}
+
+ipiG8032InstDataVlan  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the data vlan for an instance."
+     ::= { ipiG8032ConfigInstanceEntry 41}
+
+
+
+ -- g8032 Status Table
+ipiG8032StatusTable OBJECT-TYPE
+   SYNTAX       SEQUENCE OF IpiG8032StatusEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table containing information of G8032 status."
+   ::= { ipiG8032MIBObjects 2 }
+
+ipiG8032StatusEntry OBJECT-TYPE
+   SYNTAX       IpiG8032StatusEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table object containing information of G8032 status entries."
+   INDEX   {ipiG8032InstanceId}
+   ::= { ipiG8032StatusTable 1 }
+
+IpiG8032StatusEntry::=
+ SEQUENCE {
+               ipiG8032StatusInstName              DisplayString,
+               ipiG8032StatusRingName              DisplayString,
+               ipiG8032StatusRingId                Integer32,
+               ipiG8032StatusInstRole              IpiG8032RoleType,
+               ipiG8032InstCurrState               IpiG803States,
+               ipiG8032InstPrevState               IpiG803States,
+               ipiG8032EastInterfaceLinkState      IpiG8032LinkState,
+               ipiG8032WestInterfaceLinkState      IpiG8032LinkState,
+               ipiG8032ApsTransmitted              Counter32,
+               ipiG8032ApsReceived                 Counter32,
+               ipiG8032RunningWTRTimer             DisplayString,
+               ipiG8032RunningWTBTimer             DisplayString,
+               ipiG8032RunningHoldOffTimer         DisplayString,
+               ipiG8032RunningGuardTimer           DisplayString
+               }
+
+ipiG8032StatusInstName OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured G8032 instance name."
+     ::= { ipiG8032StatusEntry 1 }
+
+
+ipiG8032StatusRingName OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured G8032 ring name."
+     ::= { ipiG8032StatusEntry 2 }
+
+ipiG8032StatusRingId OBJECT-TYPE
+     SYNTAX          Integer32(1..65535)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the ring id."
+     ::= { ipiG8032StatusEntry 3 }
+
+ipiG8032StatusInstRole OBJECT-TYPE
+     SYNTAX          IpiG8032RoleType
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8032 roles based on IpiG8032RoleType."
+     ::= { ipiG8032StatusEntry 4 }
+
+ipiG8032InstCurrState OBJECT-TYPE
+     SYNTAX          IpiG803States
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8032 current states based on IpiG803States."
+     ::= { ipiG8032StatusEntry 5 }
+
+ipiG8032InstPrevState OBJECT-TYPE
+     SYNTAX          IpiG803States
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the G8032 previous states based on IpiG803States."
+     ::= { ipiG8032StatusEntry 6 }
+
+ipiG8032EastInterfaceLinkState OBJECT-TYPE
+     SYNTAX          IpiG8032LinkState
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the east interface link state based on IpiG8032LinkState type."
+     ::= { ipiG8032StatusEntry 7}
+
+
+ipiG8032WestInterfaceLinkState OBJECT-TYPE
+     SYNTAX          IpiG8032LinkState
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the west interface link state based on IpiG8032LinkState type."
+     ::= { ipiG8032StatusEntry 8}
+
+
+ipiG8032ApsTransmitted OBJECT-TYPE
+     SYNTAX          Counter32
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the APS messages transmitted."
+     ::= { ipiG8032StatusEntry 9}
+
+ipiG8032ApsReceived OBJECT-TYPE
+     SYNTAX          Counter32
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the APS messages received."
+     ::= { ipiG8032StatusEntry 10}
+
+
+ipiG8032RunningWTRTimer  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the running wait to restore timer."
+     ::= { ipiG8032StatusEntry 11 }
+
+
+ipiG8032RunningWTBTimer  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the running wait to block timer."
+     ::= { ipiG8032StatusEntry 12 }
+
+
+ipiG8032RunningHoldOffTimer  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the running hold-off-timer of a ring."
+     ::= { ipiG8032StatusEntry 13 }
+
+
+ipiG8032RunningGuardTimer  OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the running guard-timer of a ring."
+     ::= { ipiG8032StatusEntry 14}
+
+
+
+ -- g8032 AssociateRing Table
+ipiG8032AssocRingTable OBJECT-TYPE
+   SYNTAX       SEQUENCE OF IpiG8032AssocRingEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table containing information of G8032 associated ring."
+   ::= { ipiG8032MIBObjects 3 }
+
+ipiG8032AssocRingEntry OBJECT-TYPE
+   SYNTAX       IpiG8032AssocRingEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+   "A Table object containing information of G8032 associated ring entries."
+   INDEX   {ipiG8032InstanceId, ipiG8032AssocIndex}
+   ::= { ipiG8032AssocRingTable 1 }
+
+IpiG8032AssocRingEntry::=
+ SEQUENCE {
+             ipiG8032AssocInstName             DisplayString,
+             ipiG8032AssocIndex                Integer32,
+             ipiG8032AssocBridgeDomainId       DisplayString,
+             ipiG8032AssocRingName             DisplayString,
+             ipiG8032AssocEastIntfName         DisplayString,
+             ipiG8032AssocWestIntfName         DisplayString
+          }
+
+ipiG8032AssocInstName   OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the configured associate-ring for instance."
+     ::= { ipiG8032AssocRingEntry 1 }
+
+ipiG8032AssocIndex   OBJECT-TYPE
+     SYNTAX          Integer32 (1..65535)
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the index for an each associate-ring based on instance."
+     ::= { ipiG8032AssocRingEntry 2 }
+
+
+ipiG8032AssocBridgeDomainId   OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the associate-ring bridge-domain id configured."
+     ::= { ipiG8032AssocRingEntry 3 }
+
+ipiG8032AssocRingName   OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the associate-ring name configured."
+     ::= { ipiG8032AssocRingEntry 4 }
+
+ipiG8032AssocEastIntfName   OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the east interface configured for associate-ring."
+     ::= { ipiG8032AssocRingEntry 5 }
+
+ipiG8032AssocWestIntfName   OBJECT-TYPE
+     SYNTAX          DisplayString (SIZE  (1..64))
+     MAX-ACCESS      read-only
+     STATUS          current
+     DESCRIPTION
+         "This object specifies the west interface configured for associate-ring."
+     ::= { ipiG8032AssocRingEntry 6 }
+
+--------------------------Notification-----------------------------------------------------
+ipiG8032InstStateChangeNotify NOTIFICATION-TYPE
+    OBJECTS {
+                ipiG8032InstanceName,
+                ipiG8032InstCurrState,
+                ipiG8032InstPrevState
+            }
+    STATUS  current
+    DESCRIPTION
+            "An ipiG8032InstStateChangeNotify notification is sent when there is
+             change in G8032 FSM states."
+    ::= { ipiG8032MIBNotifs 1 }
+
+ipiG8032EastIntfStateChangeNotify NOTIFICATION-TYPE
+    OBJECTS {
+                ipiG8032InstanceName,
+                ipiG8032InstEastInterfaceName,
+                ipiG8032InstEastInterfaceIfIndex,
+                ipiG8032InstEastInterfaceLinkState
+            }
+    STATUS  current
+    DESCRIPTION
+            "An ipiG8032EastIntfStateChangeNotify notification is sent when there is
+             change in east interface link and its state."
+    ::= { ipiG8032MIBNotifs 2 }
+
+ipiG8032WestIntfStateChangeNotify NOTIFICATION-TYPE
+    OBJECTS {
+                ipiG8032InstanceName,
+                ipiG8032InstWestInterfaceName,
+                ipiG8032InstWestInterfaceIfIndex,
+                ipiG8032InstWestInterfaceLinkState
+            }
+    STATUS  current
+    DESCRIPTION
+            "An ipiG8032WestIntfStateChangeNotify notification is sent when there is
+             change in west interface link and its state."
+    ::= { ipiG8032MIBNotifs 3 }
+END

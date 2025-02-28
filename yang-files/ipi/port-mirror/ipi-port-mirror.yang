@@ -33,22 +33,22 @@ module ipi-port-mirror {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-port-mirror-types {
         prefix ipi-port-mirror-types;
-        revision-date 2023-09-12;
+        revision-date 2024-07-31;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -64,9 +64,44 @@ module ipi-port-mirror {
         "This module provides Port Mirroring configuration";
 
 
+    revision "2025-01-24" {
+        description "Added dependentObject for port-mirror destination config";
+        reference " 0.11.4.";
+    }
+
+    revision "2024-12-05" {
+        description "Removed ERSPAN type 3 configurations on TH/TH2 boards";
+        reference " 0.11.3.";
+    }
+
+    revision "2024-11-28" {
+        description "CLI changes for monitor destination erspan";
+        reference " 0.11.2.";
+    }
+
+    revision "2024-11-26" {
+        description "Modified ERSPAN switch ID range from 0-1023 to 0-511";
+        reference " 0.11.1.";
+    }
+
+    revision "2024-11-18" {
+        description "Removed ERSPAN truncate option on TH/TH2 boards";
+        reference " 0.11.0.";
+    }
+
+    revision "2024-07-31" {
+        description "Added data for ERSPAN implementation";
+        reference " 0.10.0.";
+    }
+
     revision "2024-07-08" {
         description "Fixed port mirror / interface dependencies";
         reference " 0.9.3.";
+    }
+
+    revision "2024-01-27" {
+        description "Added CML_SKIP_HITLESS_MERGE to port mirror filters";
+        reference " 0.11.5.";
     }
 
     revision "2023-10-17" {
@@ -361,17 +396,17 @@ module ipi-port-mirror {
             container config {
                 description
                     "Configuration data for";
-                uses pmirror-filters-dst-mac-config;
                 uses pmirror-filters-global-config;
                 uses pmirror-filters-src-mac-config;
+                uses pmirror-filters-dst-mac-config;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Operational state data for";
-                uses pmirror-filters-dst-mac-config;
                 uses pmirror-filters-global-config;
                 uses pmirror-filters-src-mac-config;
+                uses pmirror-filters-dst-mac-config;
             } // END of state-container definition.
         } // END of filters-container definition.
     } // END of pmirror-filters-global-top definition.
@@ -535,7 +570,7 @@ module ipi-port-mirror {
         description
             "Port mirror destination local top level configuration";
         container local {
-            // when " ../../config/type='local' ";
+            // when " ../config/type='local' or ../../config/type='8' ";
             description
                 "Port mirror destination local configuration";
             container config {
@@ -551,6 +586,157 @@ module ipi-port-mirror {
             } // END of state-container definition.
         } // END of local-container definition.
     } // END of pmirror-destination-local-top definition.
+    grouping pmirror-destination-erspan-config {
+        description
+            "Port mirror destination erspan attributes configuration";
+        leaf name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Configure ERSPAN destination";
+        } // END of name definition.
+
+        leaf dest-ip  {
+            type  inet:ip-address;
+            description "Set the destination IP of the GRE tunnel";
+        } // END of dest-ip definition.
+
+        leaf vrf-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set the connection VRF name";
+        } // END of vrf-name definition.
+
+        leaf erspan-id  {
+            type  uint32 {
+                 range "1..1023"  {
+                    description "1..1023: Supported range 1 - 1023";
+                 }
+            }
+            description "ERSPAN session id";
+        } // END of erspan-id definition.
+
+        leaf origin-ip  {
+            type  inet:ip-address;
+            description "Set the origin IP of the GRE tunnel";
+        } // END of origin-ip definition.
+
+        leaf ttl  {
+            type  uint16 {
+                 range "1..255"  {
+                    description "1..255: Supported range 1 - 255";
+                 }
+            }
+            description "This attribute is used to set time to live";
+        } // END of ttl definition.
+
+        leaf dscp  {
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63: Supported range 0 - 63";
+                 }
+            }
+            description "Use this attribute to set the DSCP value used for the GRE tunnel";
+        } // END of dscp definition.
+
+        leaf enable-truncate  {
+            type  boolean;
+            description "Enable/Disable packet truncate on the ERSPAN sender session";
+        } // END of enable-truncate definition.
+
+        leaf erspan-type  {
+            type  ipi-port-mirror-types:pmirror_erspan_type_t;
+            description "Use this attribute to set the ERSPAN type";
+        } // END of erspan-type definition.
+
+        leaf hardware-id  {
+            type  uint8 {
+                 range "0..63"  {
+                    description "0..63: Supported range 0 - 63";
+                 }
+            }
+            description "Unique identifier of an ERSPAN engine within a system.";
+        } // END of hardware-id definition.
+
+        leaf switch-id  {
+            type  uint16 {
+                 range "0..511"  {
+                    description "0..511: Supported range 0 - 511";
+                 }
+            }
+            description "Use this attribute to set the switch ID (platform specific info)";
+        } // END of switch-id definition.
+
+    } // END of pmirror-destination-erspan-config definition.
+    grouping pmirror-erspan-destination-list-top {
+        description
+            "Port mirror erspan destination list top level configuration";
+        container erspan-destinations {
+            description
+                "Port mirror erspan destinations";
+
+            list erspan-destination {
+                if-feature feature-list:HAVE_ADVANCE_MIRROR;
+                key "name";
+                description
+                    "Port mirror erspan destination";
+                leaf name  {
+                    type  leafref {
+                        path  "../config/name";
+                    }
+                    description "Sets the ERSPAN destination name";
+                } // END of name definition.
+
+                container config {
+                    presence "yes";
+                    description
+                        "Configuration for erspan destination";
+                    uses pmirror-destination-erspan-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for port mirror erspan";
+                    uses pmirror-destination-erspan-config;
+                } // END of state-container definition.
+            } // End of erspan-destination-list
+        } // END of erspan-destinations-container definition.
+    } // END of pmirror-erspan-destination-list-top definition.
+    grouping pmirror-destination-erspan-session-config {
+        description
+            "Port mirror destination erspan configuration";
+        leaf name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Configure ERSPAN destination name";
+        } // END of name definition.
+
+    } // END of pmirror-destination-erspan-session-config definition.
+    grouping pmirror-destination-erspan-top {
+        description
+            "Port mirror destination erspan top level configuration";
+        container erspan {
+            // when " ../../config/type='erspan-sender' ";
+            description
+                "Port mirror destination erspan configuration";
+            container config {
+                description
+                    "Configuration for port mirror erspan destination";
+                uses pmirror-destination-erspan-session-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for port mirror erspan";
+                uses pmirror-destination-erspan-session-config;
+            } // END of state-container definition.
+        } // END of erspan-container definition.
+    } // END of pmirror-destination-erspan-top definition.
     grouping pmirror-destination-top {
         description
             "Port mirror destination top configuration";
@@ -559,6 +745,7 @@ module ipi-port-mirror {
                 "Port mirror session destination configuration";
             uses pmirror-destination-local-top;
             uses pmirror-destination-remote-top;
+            uses pmirror-destination-erspan-top;
         } // END of destination-container definition.
     } // END of pmirror-destination-top definition.
     grouping pmirror-counters {
@@ -663,6 +850,7 @@ module ipi-port-mirror {
             "Container for all port-mirror configuration";
         uses pmirror-top;
         uses pmirror-interface-top;
+        uses pmirror-erspan-destination-list-top;
     } // END of port-mirror-container definition.
     } // END of port-mirror-grouping definition.
 

@@ -21,7 +21,12 @@ submodule ipi-logging-fault-management {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
+    }
+
+    import ipi-logging-types {
+        prefix ipi-logging-types;
+        revision-date 2023-08-08;
     }
 
     organization
@@ -36,6 +41,16 @@ submodule ipi-logging-fault-management {
     description
         "Logging control for fault-management";
 
+
+    revision "2024-09-23" {
+        description "Fixed DB-sync error when deleting severity config at the snmp-syslog container";
+        reference " 0.5.1.";
+    }
+
+    revision "2024-09-05" {
+        description "Added severity attribute to configure SYSLOG over SNMP traps";
+        reference " 0.5.0.";
+    }
 
     revision "2022-03-29" {
         description "Added support for shelve and close alarm RPCs";
@@ -66,12 +81,44 @@ submodule ipi-logging-fault-management {
         } // END of enable-fault-management definition.
 
     } // END of logging-fault-management-config definition.
+    grouping logging-snmp-syslog-config {
+        description
+            "Grouping for snmp-syslog configuration";
+        leaf severity  {
+            type  ipi-logging-types:log_severity_t;
+            default "3";
+            description "Use this attribute to set the severity level for the SYSLOG messages
+                        that will be sent over SNMP traps. The Default value to this attribute
+                        is 3(error).";
+        } // END of severity definition.
+
+    } // END of logging-snmp-syslog-config definition.
+
+    grouping  snmp-syslog-grouping {
+    description
+        "SYSLOG over SNMP traps configuration";
+    container snmp-syslog {
+        if-feature feature-list:HAVE_VLOGD;
+        description
+            "SYSLOG over SNMP traps configuration";
+        container config {
+            description
+                "Configuration data";
+            uses logging-snmp-syslog-config;
+        } // END of config-container definition.
+        container state {
+            config false;
+            description
+                "Operational state data";
+            uses logging-snmp-syslog-config;
+        } // END of state-container definition.
+    } // END of snmp-syslog-container definition.
+    } // END of snmp-syslog-grouping definition.
 
     grouping  fault-management-grouping {
     description
         "Fault management configuration";
     container fault-management {
-        if-feature feature-list:HAVE_VLOGD;
         if-feature feature-list:HAVE_FMS;
         description
             "Fault management configuration";

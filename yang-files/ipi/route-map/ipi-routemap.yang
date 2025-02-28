@@ -23,17 +23,17 @@ module ipi-routemap {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-routemap-types {
         prefix ipi-routemap-types;
-        revision-date 2022-10-05;
+        revision-date 2022-11-14;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-12;
     }
 
     import ietf-inet-types {
@@ -43,7 +43,7 @@ module ipi-routemap {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -59,29 +59,59 @@ module ipi-routemap {
         "Layer-3 pbr configurations";
 
 
-    revision "2024-10-15" {
+    revision "2025-03-02" {
+        description "Added length check for AS Path Prepend";
+        reference " 0.9.10.";
+    }
+
+    revision "2024-12-05" {
+        description "Updated helpstring of AA:NN for the attributes extended community rt and soo ";
+        reference " 0.9.9.";
+    }
+
+    revision "2024-11-14" {
         description "Updated type for extcommunity";
-        reference " 0.9.3.";
+        reference " 0.9.7.";
+    }
+
+    revision "2024-11-03" {
+        description "Updated flag attribute of 'set-action/communities/config' container";
+        reference " 0.9.8.";
+    }
+
+    revision "2024-10-31" {
+        description "Added length check for Extcommunity site-of-origin";
+        reference " 0.9.6.";
+    }
+
+    revision "2024-10-17" {
+        description "Enhance BGP large-community to support multiple/additive";
+        reference " 0.9.5.";
     }
 
     revision "2024-10-09" {
         description "Updated help string for attribute 'as-path-prepend'";
-        reference " 0.9.2.";
+        reference " 0.9.4.";
     }
 
     revision "2024-09-12" {
         description "Updated range value for attribute 'weight'";
-        reference " 0.9.1.";
+        reference " 0.9.3.";
     }
 
-    revision "2024-08-22" {
+    revision "2024-08-23" {
         description "Removed skip-dependency when tag for large community number set";
+        reference " 0.9.2.";
+    }
+
+    revision "2024-06-27" {
+        description "Added 'enable-blackhole' attribute inside 'set-community-attrs' grouping";
         reference " 0.9.0.";
     }
 
     revision "2024-06-13" {
         description "length validation for extcommunity and large-community";
-        reference " 0.8.3.";
+        reference " 0.9.1.";
     }
 
     revision "2023-12-11" {
@@ -359,9 +389,9 @@ module ipi-routemap {
         } // END of extended-community-identifier definition.
 
         leaf match-type  {
-            type  ipi-routemap-types:rmap_community_type_t;
+            type  ipi-routemap-types:rmap_extcommunity_type_t;
             mandatory true;
-            description "Do exact matching of communities";
+            description "Do exact matching of extcommunities";
         } // END of match-type definition.
 
     } // END of extended-community-info definition.
@@ -1114,7 +1144,7 @@ module ipi-routemap {
 
         leaf as-path-prepend  {
             type  cml-data-types:cml_line_t {
-                length "1..1965";
+                length "1..255";
             }
             description "Use this attributes to modify an autonomous system path for a route.
                         By specifying the length of the AS-Path, the router influences the
@@ -1131,7 +1161,7 @@ module ipi-routemap {
 
         leaf ext-community-site-of-origin  {
             type  cml-data-types:cml_line_t {
-                length "1..1965";
+                length "1..255";
             }
             description "Use this attribute to set an extended community attribute as
                         Site-of-origin extended community.";
@@ -1244,6 +1274,12 @@ module ipi-routemap {
                         one or more keywords.";
         } // END of enable-local-as definition.
 
+        leaf enable-blackhole  {
+            // when " !ipi-routemap:routemaps/routemap/set-action/communities/config/no-community-attribute ";
+            type  empty;
+            description "Specifies the blackhole community (well-known community).";
+        } // END of enable-blackhole definition.
+
         leaf enable-no-advertise  {
             // when " !ipi-routemap:routemaps/routemap/set-action/communities/config/no-community-attribute ";
             type  empty;
@@ -1342,33 +1378,52 @@ module ipi-routemap {
             "Set large community";
         leaf large-community-number-set  {
             type  cml-data-types:cml_line_t {
-                length "1..32";
+                length "1..255";
             }
             description "Use this attributes to set the communities attribute. and group
                         destinations in a certain community, as well as apply routing
                         decisions according to those communities.";
         } // END of large-community-number-set definition.
 
+        leaf additive-type  {
+            type  ipi-routemap-types:rmap_additive_type_t;
+            mandatory true;
+            description "use this attribute to add to the exsisting large community.";
+        } // END of additive-type definition.
+
     } // END of large-community-list definition.
     grouping set-large-community-info {
         description
             "Set timer values for dampening";
-        container large-community {
+        container large-communities {
             description
                 "set large community";
-            container config {
-                presence "set large community attr";
+
+            list large-community {
+                key "large-community-number-set";
+                max-elements 1;
                 description
-                    "Set large community entry config data";
-                uses large-community-list;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Set Operational state data";
-                uses large-community-list;
-            } // END of state-container definition.
-        } // END of large-community-container definition.
+                    "BGP LC Value";
+                leaf large-community-number-set  {
+                    type  leafref {
+                        path  "../config/large-community-number-set";
+                    }
+                    description "use this attribute to set a large community";
+                } // END of large-community-number-set definition.
+
+                container config {
+                    description
+                        "route target list";
+                    uses large-community-list;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Set Operational state data";
+                    uses large-community-list;
+                } // END of state-container definition.
+            } // End of large-community-list
+        } // END of large-communities-container definition.
     } // END of set-large-community-info definition.
     grouping match-large-community-list {
         description

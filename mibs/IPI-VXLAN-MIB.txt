@@ -20,30 +20,50 @@ IMPORTS
       ipi  FROM IPI-MODULE-MIB;
 
 ipi-vxlan MODULE-IDENTITY
-   LAST-UPDATED "202410030000Z"
+   LAST-UPDATED "202502060000Z"
 
 ORGANIZATION "IP Infusion"
 CONTACT-INFO "support@ipinfusion.com"
    DESCRIPTION 
       "This MIB module is for managing Datamodel for VxLAN protocol"
 
-   REVISION      "202410030000Z"
+   REVISION      "202502060000Z"
    DESCRIPTION 
-      "CLI implementation disable-arp-storm-control-for-cpu"
+      "CLI implementation to Disable arp/nd cache on interface"
 
-   REVISION      "202409270000Z"
+   REVISION      "202501210000Z"
    DESCRIPTION 
-      "Fix the when directive for empty flags enable-vxlan and enable-switchport"
+      "CLI implementation disable-l3-termination"
 
-   REVISION      "202409250000Z"
+   REVISION      "202411150000Z"
+   DESCRIPTION 
+      "Updated Vxlan MAC ageing and Arp-Nd refresh time"
+
+   REVISION      "202411130000Z"
+   DESCRIPTION 
+      "Added dependent object for arp-cache disable in /vxlan/global/config"
+
+   REVISION      "202410300000Z"
+   DESCRIPTION 
+      "CLI implementation for MH MAC relocate scan"
+
+   REVISION      "202410180000Z"
+   DESCRIPTION 
+      "CLI implementation evp-mac-holdtime"
+
+   REVISION      "202410080000Z"
    DESCRIPTION 
       "Added 'is-bitmap-check-enable' in vxlan-tenants container with config tenant-type"
 
-   REVISION      "202409200000Z"
+   REVISION      "202409300000Z"
+   DESCRIPTION 
+      "Fix the when directive for empty flags enable-vxlan and enable-switchport"
+
+   REVISION      "202409180000Z"
    DESCRIPTION 
       "Added pattern for destiantion-vtep-ip"
 
-   REVISION      "202407260000Z"
+   REVISION      "202407250000Z"
    DESCRIPTION 
       "Added length for description"
 
@@ -98,6 +118,10 @@ CONTACT-INFO "support@ipinfusion.com"
    REVISION      "202402010000Z"
    DESCRIPTION 
       "Changed the helpstring for interface-name of vxlan access-if"
+
+   REVISION      "202401150000Z"
+   DESCRIPTION 
+      "Added CML_SKIP_HITLESS_MERGE for xconnect-identifier attribute"
 
    REVISION      "202401060000Z"
    DESCRIPTION 
@@ -311,28 +335,28 @@ ipiVxlanVxlantunnelEntry OBJECT-TYPE
 	STATUS current
 	DESCRIPTION 
 		"An entry containing information for tunnel related display information"
-	INDEX { ipiVxlanDestinationVtepIp }
+	INDEX { ipiVxlanTunnelDestinationVtepIp }
 	::= { ipiVxlanVxlantunnelTable 1 }
 
 IpiVxlanVxlantunnelEntry::= SEQUENCE {
-	ipiVxlanDestinationVtepIp IpAddress,
-	ipiVxlanSourceVtepIp IpAddress,
-	ipiVxlanUpDownTime TimeTicks,
-	ipiVxlanTunnelStatus INTEGER,
-	ipiVxlanOutBytes Counter64,
-	ipiVxlanOutPackets Counter64,
-	ipiVxlanInBytes Counter64,
-	ipiVxlanInPackets Counter64,
-	ipiVxlanTxArpDiscardPackets Counter64,
-	ipiVxlanTxNdDiscardPackets Counter64,
-	ipiVxlanTxArpRequestPackets Counter64,
-	ipiVxlanTxArpReplyPackets Counter64,
-	ipiVxlanTxNeighborSolicitationPackets Counter64,
-	ipiVxlanTxNeighborAdvertisementPackets Counter64,
-	ipiVxlanTxGarpPackets Counter64,
-	ipiVxlanTxGnaPackets Counter64	}
+	ipiVxlanTunnelDestinationVtepIp IpAddress,
+	ipiVxlanTunnelSourceVtepIp IpAddress,
+	ipiVxlanTunnelUpDownTime TimeTicks,
+	ipiVxlanTunnelTunnelStatus INTEGER,
+	ipiVxlanCountersOutBytes Counter64,
+	ipiVxlanCountersOutPackets Counter64,
+	ipiVxlanCountersInBytes Counter64,
+	ipiVxlanCountersInPackets Counter64,
+	ipiVxlanCountersTxArpDiscardPackets Counter64,
+	ipiVxlanCountersTxNdDiscardPackets Counter64,
+	ipiVxlanCountersTxArpRequestPackets Counter64,
+	ipiVxlanCountersTxArpReplyPackets Counter64,
+	ipiVxlanCountersTxNeighborSolicitationPackets Counter64,
+	ipiVxlanCountersTxNeighborAdvertisementPackets Counter64,
+	ipiVxlanCountersTxGarpPackets Counter64,
+	ipiVxlanCountersTxGnaPackets Counter64	}
 
-ipiVxlanDestinationVtepIp OBJECT-TYPE
+ipiVxlanTunnelDestinationVtepIp OBJECT-TYPE
 	SYNTAX IpAddress 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -340,7 +364,7 @@ ipiVxlanDestinationVtepIp OBJECT-TYPE
 		"Use this attribute to set Tunnel destination IP"
 	::= { ipiVxlanVxlantunnelEntry 1 }
 
-ipiVxlanSourceVtepIp OBJECT-TYPE
+ipiVxlanTunnelSourceVtepIp OBJECT-TYPE
 	SYNTAX IpAddress 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -348,7 +372,7 @@ ipiVxlanSourceVtepIp OBJECT-TYPE
 		"Use this attribute to set Tunnel source IP"
 	::= { ipiVxlanVxlantunnelEntry 2 }
 
-ipiVxlanUpDownTime OBJECT-TYPE
+ipiVxlanTunnelUpDownTime OBJECT-TYPE
 	SYNTAX TimeTicks 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -356,7 +380,7 @@ ipiVxlanUpDownTime OBJECT-TYPE
 		"Use this attribute to indicate tunnel up/down time"
 	::= { ipiVxlanVxlantunnelEntry 3 }
 
-ipiVxlanTunnelStatus OBJECT-TYPE
+ipiVxlanTunnelTunnelStatus OBJECT-TYPE
 	SYNTAX INTEGER {deleted(0), unresolved(1), resolved(2), installed(3)} 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -364,7 +388,7 @@ ipiVxlanTunnelStatus OBJECT-TYPE
 		"Use this attribute to see the Status of tunnel"
 	::= { ipiVxlanVxlantunnelEntry 4 }
 
-ipiVxlanOutBytes OBJECT-TYPE
+ipiVxlanCountersOutBytes OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -372,7 +396,7 @@ ipiVxlanOutBytes OBJECT-TYPE
 		"This indicates total number of bytes sent out from tunnel interface"
 	::= { ipiVxlanVxlantunnelEntry 5 }
 
-ipiVxlanOutPackets OBJECT-TYPE
+ipiVxlanCountersOutPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -380,7 +404,7 @@ ipiVxlanOutPackets OBJECT-TYPE
 		"This indicates total number of packets sent out from tunnel interface"
 	::= { ipiVxlanVxlantunnelEntry 6 }
 
-ipiVxlanInBytes OBJECT-TYPE
+ipiVxlanCountersInBytes OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -388,7 +412,7 @@ ipiVxlanInBytes OBJECT-TYPE
 		"This indicates total number of bytes received on tunnel interface"
 	::= { ipiVxlanVxlantunnelEntry 7 }
 
-ipiVxlanInPackets OBJECT-TYPE
+ipiVxlanCountersInPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -396,7 +420,7 @@ ipiVxlanInPackets OBJECT-TYPE
 		"This indicates total number of packets received on tunnel interface"
 	::= { ipiVxlanVxlantunnelEntry 8 }
 
-ipiVxlanTxArpDiscardPackets OBJECT-TYPE
+ipiVxlanCountersTxArpDiscardPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -404,7 +428,7 @@ ipiVxlanTxArpDiscardPackets OBJECT-TYPE
 		"This Object describes Arp Discarded Packets"
 	::= { ipiVxlanVxlantunnelEntry 9 }
 
-ipiVxlanTxNdDiscardPackets OBJECT-TYPE
+ipiVxlanCountersTxNdDiscardPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -412,7 +436,7 @@ ipiVxlanTxNdDiscardPackets OBJECT-TYPE
 		"This Object describes Nd Discarded Packets"
 	::= { ipiVxlanVxlantunnelEntry 10 }
 
-ipiVxlanTxArpRequestPackets OBJECT-TYPE
+ipiVxlanCountersTxArpRequestPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -420,7 +444,7 @@ ipiVxlanTxArpRequestPackets OBJECT-TYPE
 		"This Object describes Arp request Transmitted Packets"
 	::= { ipiVxlanVxlantunnelEntry 11 }
 
-ipiVxlanTxArpReplyPackets OBJECT-TYPE
+ipiVxlanCountersTxArpReplyPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -428,7 +452,7 @@ ipiVxlanTxArpReplyPackets OBJECT-TYPE
 		"This Object describes Arp reply Transmitted Packets"
 	::= { ipiVxlanVxlantunnelEntry 12 }
 
-ipiVxlanTxNeighborSolicitationPackets OBJECT-TYPE
+ipiVxlanCountersTxNeighborSolicitationPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -436,7 +460,7 @@ ipiVxlanTxNeighborSolicitationPackets OBJECT-TYPE
 		"This Object describes Neighbour Solicitation Transmitted Packets"
 	::= { ipiVxlanVxlantunnelEntry 13 }
 
-ipiVxlanTxNeighborAdvertisementPackets OBJECT-TYPE
+ipiVxlanCountersTxNeighborAdvertisementPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -444,7 +468,7 @@ ipiVxlanTxNeighborAdvertisementPackets OBJECT-TYPE
 		"This Object describes Neighbour Advertisement Transmitted Packets"
 	::= { ipiVxlanVxlantunnelEntry 14 }
 
-ipiVxlanTxGarpPackets OBJECT-TYPE
+ipiVxlanCountersTxGarpPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -452,7 +476,7 @@ ipiVxlanTxGarpPackets OBJECT-TYPE
 		"This Object describes Garp Transmitted Packets"
 	::= { ipiVxlanVxlantunnelEntry 15 }
 
-ipiVxlanTxGnaPackets OBJECT-TYPE
+ipiVxlanCountersTxGnaPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -475,34 +499,34 @@ ipiVxlanAccessInterfaceEntry OBJECT-TYPE
 	STATUS current
 	DESCRIPTION 
 		"An entry containing information for access port counters list"
-	INDEX { ipiVxlanInterfaceIndex }
+	INDEX { ipiVxlanAccessInterfaceInterfaceIndex }
 	::= { ipiVxlanAccessInterfaceTable 1 }
 
 IpiVxlanAccessInterfaceEntry::= SEQUENCE {
-	ipiVxlanInterfaceIndex Unsigned32,
-	ipiVxlanIfName OCTET STRING,
-	ipiVxlanRxArpDiscardPackets Counter64,
-	ipiVxlanTxArpDiscardPacket Counter64,
-	ipiVxlanRxArpRequestPackets Counter64,
-	ipiVxlanRxArpReplyPackets Counter64,
-	ipiVxlanTxArpRequestPacket Counter64,
-	ipiVxlanTxArpReplyPacket Counter64,
-	ipiVxlanRxNdDiscardPackets Counter64,
-	ipiVxlanTxNdDiscardPacket Counter64,
-	ipiVxlanRxNeighborSolicitationPackets Counter64,
-	ipiVxlanRxNeighborAdvertisementPackets Counter64,
-	ipiVxlanTxNeighborSolicitationPacket Counter64,
-	ipiVxlanTxNeighborAdvertisementPacket Counter64,
-	ipiVxlanRxGratuitousArpPackets Counter64,
-	ipiVxlanTxGratuitousArpPackets Counter64,
-	ipiVxlanRxGratuitousNaPackets Counter64,
-	ipiVxlanTxGratuitousNaPackets Counter64,
-	ipiVxlanRxDataPackets Counter64,
-	ipiVxlanRxDataBytes Counter64,
-	ipiVxlanTxDataPackets Counter64,
-	ipiVxlanTxDataBytes Counter64	}
+	ipiVxlanAccessInterfaceInterfaceIndex Unsigned32,
+	ipiVxlanAccessInterfaceIfName OCTET STRING,
+	ipiVxlanAccessCountersRxArpDiscardPackets Counter64,
+	ipiVxlanAccessCountersTxArpDiscardPacket Counter64,
+	ipiVxlanAccessCountersRxArpRequestPackets Counter64,
+	ipiVxlanAccessCountersRxArpReplyPackets Counter64,
+	ipiVxlanAccessCountersTxArpRequestPacket Counter64,
+	ipiVxlanAccessCountersTxArpReplyPacket Counter64,
+	ipiVxlanAccessCountersRxNdDiscardPackets Counter64,
+	ipiVxlanAccessCountersTxNdDiscardPacket Counter64,
+	ipiVxlanAccessCountersRxNeighborSolicitationPackets Counter64,
+	ipiVxlanAccessCountersRxNeighborAdvertisementPackets Counter64,
+	ipiVxlanAccessCountersTxNeighborSolicitationPacket Counter64,
+	ipiVxlanAccessCountersTxNeighborAdvertisementPacket Counter64,
+	ipiVxlanAccessCountersRxGratuitousArpPackets Counter64,
+	ipiVxlanAccessCountersTxGratuitousArpPackets Counter64,
+	ipiVxlanAccessCountersRxGratuitousNaPackets Counter64,
+	ipiVxlanAccessCountersTxGratuitousNaPackets Counter64,
+	ipiVxlanAccessCountersRxDataPackets Counter64,
+	ipiVxlanAccessCountersRxDataBytes Counter64,
+	ipiVxlanAccessCountersTxDataPackets Counter64,
+	ipiVxlanAccessCountersTxDataBytes Counter64	}
 
-ipiVxlanInterfaceIndex OBJECT-TYPE
+ipiVxlanAccessInterfaceInterfaceIndex OBJECT-TYPE
 	SYNTAX Unsigned32 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -510,7 +534,7 @@ ipiVxlanInterfaceIndex OBJECT-TYPE
 		"Use this attribute to fetch nvo access port counters"
 	::= { ipiVxlanAccessInterfaceEntry 1 }
 
-ipiVxlanIfName OBJECT-TYPE
+ipiVxlanAccessInterfaceIfName OBJECT-TYPE
 	SYNTAX OCTET STRING 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -518,7 +542,7 @@ ipiVxlanIfName OBJECT-TYPE
 		"Use this attribute to fetch nvo access port name"
 	::= { ipiVxlanAccessInterfaceEntry 2 }
 
-ipiVxlanRxArpDiscardPackets OBJECT-TYPE
+ipiVxlanAccessCountersRxArpDiscardPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -526,7 +550,7 @@ ipiVxlanRxArpDiscardPackets OBJECT-TYPE
 		"This Object describes Arp Discard Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 3 }
 
-ipiVxlanTxArpDiscardPacket OBJECT-TYPE
+ipiVxlanAccessCountersTxArpDiscardPacket OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -534,7 +558,7 @@ ipiVxlanTxArpDiscardPacket OBJECT-TYPE
 		"This Object describes Arp Out Discard Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 4 }
 
-ipiVxlanRxArpRequestPackets OBJECT-TYPE
+ipiVxlanAccessCountersRxArpRequestPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -542,7 +566,7 @@ ipiVxlanRxArpRequestPackets OBJECT-TYPE
 		"This Object describes Arp request Received Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 5 }
 
-ipiVxlanRxArpReplyPackets OBJECT-TYPE
+ipiVxlanAccessCountersRxArpReplyPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -550,7 +574,7 @@ ipiVxlanRxArpReplyPackets OBJECT-TYPE
 		"This Object describes Arp reply Received Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 6 }
 
-ipiVxlanTxArpRequestPacket OBJECT-TYPE
+ipiVxlanAccessCountersTxArpRequestPacket OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -558,7 +582,7 @@ ipiVxlanTxArpRequestPacket OBJECT-TYPE
 		"This Object describes Arp request Transmitted Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 7 }
 
-ipiVxlanTxArpReplyPacket OBJECT-TYPE
+ipiVxlanAccessCountersTxArpReplyPacket OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -566,7 +590,7 @@ ipiVxlanTxArpReplyPacket OBJECT-TYPE
 		"This Object describes Arp reply Transmitted Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 8 }
 
-ipiVxlanRxNdDiscardPackets OBJECT-TYPE
+ipiVxlanAccessCountersRxNdDiscardPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -574,7 +598,7 @@ ipiVxlanRxNdDiscardPackets OBJECT-TYPE
 		"This Object describes ND Discard Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 9 }
 
-ipiVxlanTxNdDiscardPacket OBJECT-TYPE
+ipiVxlanAccessCountersTxNdDiscardPacket OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -582,7 +606,7 @@ ipiVxlanTxNdDiscardPacket OBJECT-TYPE
 		"This Object describes ND Out Discard Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 10 }
 
-ipiVxlanRxNeighborSolicitationPackets OBJECT-TYPE
+ipiVxlanAccessCountersRxNeighborSolicitationPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -590,7 +614,7 @@ ipiVxlanRxNeighborSolicitationPackets OBJECT-TYPE
 		"This Object describes ND Solicitaion Received Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 11 }
 
-ipiVxlanRxNeighborAdvertisementPackets OBJECT-TYPE
+ipiVxlanAccessCountersRxNeighborAdvertisementPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -598,7 +622,7 @@ ipiVxlanRxNeighborAdvertisementPackets OBJECT-TYPE
 		"This Object describes ND Advertisement Received Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 12 }
 
-ipiVxlanTxNeighborSolicitationPacket OBJECT-TYPE
+ipiVxlanAccessCountersTxNeighborSolicitationPacket OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -606,7 +630,7 @@ ipiVxlanTxNeighborSolicitationPacket OBJECT-TYPE
 		"This Object describes ND Solicitaion Transmitted Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 13 }
 
-ipiVxlanTxNeighborAdvertisementPacket OBJECT-TYPE
+ipiVxlanAccessCountersTxNeighborAdvertisementPacket OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -614,7 +638,7 @@ ipiVxlanTxNeighborAdvertisementPacket OBJECT-TYPE
 		"This Object describes ND Advertisement Transmitted Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 14 }
 
-ipiVxlanRxGratuitousArpPackets OBJECT-TYPE
+ipiVxlanAccessCountersRxGratuitousArpPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -622,7 +646,7 @@ ipiVxlanRxGratuitousArpPackets OBJECT-TYPE
 		"This Object describes Gratuitous ARP  (Garp) Received Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 15 }
 
-ipiVxlanTxGratuitousArpPackets OBJECT-TYPE
+ipiVxlanAccessCountersTxGratuitousArpPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -630,7 +654,7 @@ ipiVxlanTxGratuitousArpPackets OBJECT-TYPE
 		"This Object describes Gratuitous ARP (Garp) Transmitted Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 16 }
 
-ipiVxlanRxGratuitousNaPackets OBJECT-TYPE
+ipiVxlanAccessCountersRxGratuitousNaPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -638,7 +662,7 @@ ipiVxlanRxGratuitousNaPackets OBJECT-TYPE
 		"This Object describes Gratuitous NA (Gna) Received Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 17 }
 
-ipiVxlanTxGratuitousNaPackets OBJECT-TYPE
+ipiVxlanAccessCountersTxGratuitousNaPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -646,7 +670,7 @@ ipiVxlanTxGratuitousNaPackets OBJECT-TYPE
 		"This Object describes Gratuitous NA (Gna) Transmitted Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 18 }
 
-ipiVxlanRxDataPackets OBJECT-TYPE
+ipiVxlanAccessCountersRxDataPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -654,7 +678,7 @@ ipiVxlanRxDataPackets OBJECT-TYPE
 		"This Object describes Received Data Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 19 }
 
-ipiVxlanRxDataBytes OBJECT-TYPE
+ipiVxlanAccessCountersRxDataBytes OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -662,7 +686,7 @@ ipiVxlanRxDataBytes OBJECT-TYPE
 		"This Object describes Received bytes(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 20 }
 
-ipiVxlanTxDataPackets OBJECT-TYPE
+ipiVxlanAccessCountersTxDataPackets OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -670,7 +694,7 @@ ipiVxlanTxDataPackets OBJECT-TYPE
 		"This Object describes Transmitted Packets(Applicable only for logical VxLAN-access ports)"
 	::= { ipiVxlanAccessInterfaceEntry 21 }
 
-ipiVxlanTxDataBytes OBJECT-TYPE
+ipiVxlanAccessCountersTxDataBytes OBJECT-TYPE
 	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -687,7 +711,7 @@ ipiCMLSEPvxlanNotificationsPrefix OBJECT IDENTIFIER ::=
         { ipi-vxlan 0 }
 
 vxlantunnelstatuschangenotification NOTIFICATION-TYPE
-   OBJECTS { ipiVxlanDestinationVtepIp, ipiVxlanTunnelStatus }
+   OBJECTS { ipiVxlanTunnelDestinationVtepIp, ipiVxlanTunnelTunnelStatus }
    STATUS  current
    DESCRIPTION
            "The nvoTunnelStatus trap is generated when there is any status change in Tunnel Severity level is INFO for tunnel status going to Unresolved/Deleted status and MINOR for Resolved status."

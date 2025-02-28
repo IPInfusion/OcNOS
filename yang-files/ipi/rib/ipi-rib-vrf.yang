@@ -21,39 +21,29 @@ module ipi-rib-vrf {
 
     prefix "ipi-rib-vrf";
 
-    import ipi-rib-types {
-        prefix ipi-rib-types;
-        revision-date 2023-05-25;
-    }
-
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ipi-rib-common {
         prefix ipi-rib-common;
-        revision-date 2023-05-25;
+        revision-date 2024-11-27;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-09-18;
-    }
-
-    import ietf-inet-types {
-        prefix inet;
-        revision-date 2013-07-15;
+        revision-date 2025-01-02;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     organization
@@ -69,12 +59,32 @@ module ipi-rib-vrf {
         "Datamodel for VRF RIB object";
 
 
+    revision "2024-12-16" {
+        description "Fix DB-sync issue for global/config container";
+        reference " 1.0.2.";
+    }
+
+    revision "2024-11-06" {
+        description "Added telemetry support for ribs,ipv4 and ipv6, total-routes attribute";
+        reference " 1.0.1.";
+    }
+
+    revision "2024-09-17" {
+        description "Datamodel restructuring to make interface-name optional for VRF static routes. Module were transfered to ipi-rib";
+        reference " 1.0.0.";
+    }
+
+    revision "2024-09-05" {
+        description "Updated if-feature for datatype RIB_ROUTE_TYPE_T";
+        reference " 0.15.2.";
+    }
+
     revision "2024-07-16" {
         description "Removed implicit delete tag 'gateway-interface-route-global' in config container";
         reference " 0.15.1.";
     }
 
-    revision "2024-07-10" {
+    revision "2024-07-04" {
         description "Removed implicit delete interface-route inside config container";
         reference " 0.15.0.";
     }
@@ -194,176 +204,6 @@ module ipi-rib-vrf {
         reference " 0.1.0.";
     }
 
-    grouping rib-vrf-ipv4-gateway-config {
-        description
-            "Configuration attributes for ipv4 static route with gateway address";
-        leaf destination-prefix  {
-            type  cml-data-types:cml_ipv4_prefix_t;
-            description "IP destination prefix (e.g. 10.0.0.0/8)";
-        } // END of destination-prefix definition.
-
-        leaf gateway-address  {
-            type  inet:ipv4-address;
-            description "Use this attribute to configure IP gateway address for  IPv4 static
-                        route.";
-        } // END of gateway-address definition.
-
-    } // END of rib-vrf-ipv4-gateway-config definition.
-    grouping rib-vrf-ipv4-vrfglobal-config {
-        description
-            "Configuration attributes related to vrf ipv4 static route with gateway
-                        address and interface name";
-        leaf interface-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to create an IPv4 static route where nexthop is
-                        interface name.";
-        } // END of interface-name definition.
-
-        leaf enable-global-table-lookup  {
-            type  empty;
-            description "Use this attribute to create an IPv4 vrf static route with gateway in
-                        default vrf table.";
-        } // END of enable-global-table-lookup definition.
-
-        leaf track-id  {
-            if-feature feature-list:HAVE_OBJ_TRACKING;
-            type  uint16 {
-                 range "1..500"  {
-                    description "1..500: Supported range 1 - 500";
-                 }
-            }
-            description "Use this attribute to track a object.";
-        } // END of track-id definition.
-
-    } // END of rib-vrf-ipv4-vrfglobal-config definition.
-    grouping rib-vrf-ipv4-interface-config {
-        description
-            "Configuration attributes for static routes with interface";
-        leaf destination-prefix  {
-            type  cml-data-types:cml_ipv4_prefix_t;
-            description "IP destination prefix (e.g. 10.0.0.0/8)";
-        } // END of destination-prefix definition.
-
-        leaf interface-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to create an IPv4 static route where nexthop is
-                        interface name.";
-        } // END of interface-name definition.
-
-        uses ipi-rib-common:rib-attr-config;
-    } // END of rib-vrf-ipv4-interface-config definition.
-    grouping rib-vrf-ipv6-gateway-config {
-        description
-            "Configuration attributes for ipv6 static routes";
-        leaf destination-prefix  {
-            type  cml-data-types:cml_ipv6_prefix_t;
-            description "IPv6 destination prefix (e.g. 3ffe:506::/32)";
-        } // END of destination-prefix definition.
-
-        leaf gateway-address  {
-            type  inet:ipv6-address;
-            description "Use this attribute to create an IPv6 static route for a subnet.";
-        } // END of gateway-address definition.
-
-        leaf enable-ipv6-global-table-lookup  {
-            type  empty;
-            description "To create an IPv6 vrf static route with gateway in default vrf table
-                        with global keyword";
-        } // END of enable-ipv6-global-table-lookup definition.
-
-    } // END of rib-vrf-ipv6-gateway-config definition.
-    grouping rib-vrf-ipv6-gateway-ifname-config {
-        description
-            "Interface name for VRF route";
-        leaf interface-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to create an IPv6 static route where nexthop is
-                        interface name.";
-        } // END of interface-name definition.
-
-        leaf track-id  {
-            if-feature feature-list:HAVE_OBJ_TRACKING;
-            type  uint16 {
-                 range "1..500"  {
-                    description "1..500: Supported range 1 - 500";
-                 }
-            }
-            description "Use this attribute to track a object.";
-        } // END of track-id definition.
-
-        leaf description  {
-            type  cml-data-types:cml_line_t {
-                length "1..1965";
-            }
-            description "Use this attribute to set description of the static route.";
-        } // END of description definition.
-
-    } // END of rib-vrf-ipv6-gateway-ifname-config definition.
-    grouping rib-vrf-ipv6-interface-config {
-        description
-            "Configuration attributes for ipv6 static routes with interface";
-        leaf destination-prefix  {
-            type  cml-data-types:cml_ipv6_prefix_t;
-            description "IPv6 destination prefix (e.g. 3ffe:506::/32)";
-        } // END of destination-prefix definition.
-
-        leaf interface-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to create an IPv6 static route where nexthop is
-                        interface name.";
-        } // END of interface-name definition.
-
-        leaf track-id  {
-            if-feature feature-list:HAVE_OBJ_TRACKING;
-            type  uint16 {
-                 range "1..500"  {
-                    description "1..500: Supported range 1 - 500";
-                 }
-            }
-            description "Use this attribute to track a object.";
-        } // END of track-id definition.
-
-        leaf description  {
-            type  cml-data-types:cml_line_t {
-                length "1..1965";
-            }
-            description "Use this attribute to set description of the static route.";
-        } // END of description definition.
-
-    } // END of rib-vrf-ipv6-interface-config definition.
-    grouping rib-vrf-bfd-config {
-        description
-            "Configuration attributes related to bfd for vrf static routes";
-        leaf bfd-state  {
-            when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-rib-vrf:static-routes/ipi-rib-vrf:ipv4/ipi-rib-vrf:routes/ipi-rib-vrf:route/ipi-rib-vrf:gateway-interface-routes/ipi-rib-vrf:gateway-interface-route/ipi-rib-vrf:interface-name ";
-            if-feature feature-list:HAVE_BFD;
-            type  ipi-rib-types:rib_static_bfd_enable_disable_t;
-            description "Use this attribute to set fall-over detection.";
-        } // END of bfd-state definition.
-
-    } // END of rib-vrf-bfd-config definition.
-    grouping rib-vrf-ipv6-bfd-config {
-        description
-            "Configuration attributes related to bfd for vrf static routes";
-        leaf bfd-state  {
-            if-feature feature-list:HAVE_BFD;
-            type  ipi-rib-types:rib_static_bfd_enable_disable_t;
-            description "Use this attribute to set fall-over detection.";
-        } // END of bfd-state definition.
-
-    } // END of rib-vrf-ipv6-bfd-config definition.
     grouping rib-global-vrf-bfd-config {
         description
             "Global BFD Configuration attributes";
@@ -381,129 +221,6 @@ module ipi-rib-vrf {
         } // END of ipv6-enable-bfd-all-interfaces definition.
 
     } // END of rib-global-vrf-bfd-config definition.
-    grouping rib-gw-ifname-config {
-        description
-            "Interface name for VRF route";
-        leaf interface-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to create an IPv4 static route where nexthop is
-                        interface name.";
-        } // END of interface-name definition.
-
-    } // END of rib-gw-ifname-config definition.
-    grouping rib-vrf-ipv4-interface-global-config {
-        description
-            "Configuration attributes for ipv4 static route with interface in
-                        global vrf";
-        leaf destination-prefix  {
-            type  cml-data-types:cml_ipv4_prefix_t;
-            description "IP destination prefix (e.g. 10.0.0.0/8)";
-        } // END of destination-prefix definition.
-
-        leaf interface-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to create an IPv4 static route where nexthop is a
-                        global interface.";
-        } // END of interface-name definition.
-
-        leaf enable-global-table-lookup  {
-            type  empty;
-            description "Use this attribute to create an IPv4 vrf static route with gateway in
-                        default vrf table.";
-        } // END of enable-global-table-lookup definition.
-
-        leaf track-id  {
-            if-feature feature-list:HAVE_OBJ_TRACKING;
-            type  uint16 {
-                 range "1..500"  {
-                    description "1..500: Supported range 1 - 500";
-                 }
-            }
-            description "Use this attribute to track a object.";
-        } // END of track-id definition.
-
-    } // END of rib-vrf-ipv4-interface-global-config definition.
-    grouping rib-vrf-ipv6-interface-global-config {
-        description
-            "Configuration attributes for ipv6 static route with interface in
-                        global vrf";
-        leaf destination-prefix  {
-            type  cml-data-types:cml_ipv6_prefix_t;
-            description "IPV6 destination prefix  (e.g. 3ffe:506::/32)";
-        } // END of destination-prefix definition.
-
-        leaf interface-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to create an IPv6 static route where nexthop is a
-                        global interface.";
-        } // END of interface-name definition.
-
-        leaf enable-ipv6-global-table-lookup  {
-            type  empty;
-            description "To create an IPv6 vrf static route with gateway in default vrf table
-                        with global keyword";
-        } // END of enable-ipv6-global-table-lookup definition.
-
-        leaf track-id  {
-            if-feature feature-list:HAVE_OBJ_TRACKING;
-            type  uint16 {
-                 range "1..500"  {
-                    description "1..500: Supported range 1 - 500";
-                 }
-            }
-            description "Use this attribute to track a object.";
-        } // END of track-id definition.
-
-    } // END of rib-vrf-ipv6-interface-global-config definition.
-    grouping rib-vrf-ipv6-prefix-gw-interface-global-config {
-        description
-            "Configuration attributes for ipv6 static route with interface in
-                        global vrf";
-        leaf destination-prefix  {
-            type  cml-data-types:cml_ipv6_prefix_t;
-            description "IPV6 destination prefix  (e.g. 3ffe:506::/32)";
-        } // END of destination-prefix definition.
-
-        leaf gateway-address  {
-            type  inet:ipv6-address;
-            description "Use this attribute to create an IPv6 static route for a subnet.";
-        } // END of gateway-address definition.
-
-        leaf interface-name  {
-            type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
-            }
-            description "Use this attribute to create an IPv6 static route where nexthop is a
-                        global interface.";
-        } // END of interface-name definition.
-
-        leaf enable-ipv6-global-table-lookup  {
-            type  empty;
-            description "To create an IPv6 vrf static route with gateway in default vrf table
-                        with global keyword";
-        } // END of enable-ipv6-global-table-lookup definition.
-
-        leaf track-id  {
-            if-feature feature-list:HAVE_OBJ_TRACKING;
-            type  uint16 {
-                 range "1..500"  {
-                    description "1..500: Supported range 1 - 500";
-                 }
-            }
-            description "Use this attribute to track a object.";
-        } // END of track-id definition.
-
-    } // END of rib-vrf-ipv6-prefix-gw-interface-global-config definition.
 
     grouping  global-grouping {
     description
@@ -538,194 +255,6 @@ module ipi-rib-vrf {
         container ipv4 {
             description
                 "IPV4 Static Route configurations";
-            container gateway-interface-routes-global {
-                description
-                    "Container for IPV4 VRF static routes with global gateway";
-
-                list gateway-interface-route-global {
-                // when " ipi-rib-vrf:static-routes/ipv4/gateway-interface-routes-global/gateway-interface-route-global/interface-name ";
-                    key "destination-prefix interface-name enable-global-table-lookup";
-                    description
-                        "IPV4 VRF static route with global gateway";
-                    leaf destination-prefix  {
-                        type  leafref {
-                            path  "../config/destination-prefix";
-                        }
-                        description "IP destination prefix (e.g. 10.0.0.0/8)";
-                    } // END of destination-prefix definition.
-
-                    leaf interface-name  {
-                        type  leafref {
-                            path  "../config/interface-name";
-                        }
-                        description "Use this attribute to create an IPv4 static route where nexthop is a
-                                    global interface.";
-                    } // END of interface-name definition.
-
-                    leaf enable-global-table-lookup  {
-                        type  leafref {
-                            path  "../config/enable-global-table-lookup";
-                        }
-                        description "Use this attribute to create an IPv4 vrf static route with gateway in
-                                    default vrf table.";
-                    } // END of enable-global-table-lookup definition.
-
-                    container config {
-                        description
-                            "configuration attributes for static route with global interface";
-                        uses rib-vrf-ipv4-interface-global-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "Operational data for static route with global interface";
-                        uses rib-vrf-ipv4-interface-global-config;
-                    } // END of state-container definition.
-                } // End of gateway-interface-route-global-list
-            } // END of gateway-interface-routes-global-container definition.
-            container routes {
-                description
-                    "Container for IPV4 static routes config with gateways";
-
-                list route {
-                // when " ipi-rib-vrf:static-routes/ipv4/routes/route/gateway-interface-routes/gateway-interface-route/interface-name  +  ipi-rib-vrf:static-routes/ipv4/routes/route/interface-routes-global/interface-route-global/interface-name ";
-                    key "destination-prefix gateway-address";
-                    description
-                        "IPV4 static route config with gateway";
-                    leaf destination-prefix  {
-                        type  leafref {
-                            path  "../config/destination-prefix";
-                        }
-                        description "IP destination prefix (e.g. 10.0.0.0/8)";
-                    } // END of destination-prefix definition.
-
-                    leaf gateway-address  {
-                        type  leafref {
-                            path  "../config/gateway-address";
-                        }
-                        description "Gateway address to create an IPv4 static route.";
-                    } // END of gateway-address definition.
-
-                    container config {
-                        description
-                            "configuration attributes for IPV4 static route with gateway";
-                        uses rib-vrf-bfd-config;
-                        uses rib-vrf-ipv4-gateway-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "Operational data for IPV4 static route with gateway";
-                        uses rib-vrf-bfd-config;
-                        uses rib-vrf-ipv4-gateway-config;
-                    } // END of state-container definition.
-                    container gateway-interface-routes {
-                        description
-                            "Container for IPV4 static routes with gateways and interface name";
-
-                        list gateway-interface-route {
-                            key "interface-name";
-                            description
-                                "IPV4 VRF static route with gateway and interface name";
-                            leaf interface-name  {
-                                type  leafref {
-                                    path  "../config/interface-name";
-                                }
-                                description "Use this attribute to create an IPv4 static route where nexthop is
-                                            interface name.";
-                            } // END of interface-name definition.
-
-                            container config {
-                                description
-                                    "configuration attributes for static route with interface name";
-                                uses ipi-rib-common:rib-attr-config;
-                                uses rib-gw-ifname-config;
-                            } // END of config-container definition.
-                            container state {
-                                config false;
-                                description
-                                    "Operational data for static route with interface name";
-                                uses ipi-rib-common:rib-attr-config;
-                                uses rib-gw-ifname-config;
-                            } // END of state-container definition.
-                        } // End of gateway-interface-route-list
-                    } // END of gateway-interface-routes-container definition.
-                    container interface-routes-global {
-                        description
-                            "Container for IPV4 VRF static routes with global gateways";
-
-                        list interface-route-global {
-                        // when " ipi-rib-vrf:static-routes/ipv4/routes/route/interface-routes-global/interface-route-global/config/enable-global-table-lookup ";
-                            key "interface-name enable-global-table-lookup";
-                            description
-                                "IPV4 VRF static route with global gateway";
-                            leaf interface-name  {
-                                type  leafref {
-                                    path  "../config/interface-name";
-                                }
-                                description "Use this attribute to create an IPv4 static route where nexthop is a
-                                            global interface.";
-                            } // END of interface-name definition.
-
-                            leaf enable-global-table-lookup  {
-                                type  leafref {
-                                    path  "../config/enable-global-table-lookup";
-                                }
-                                description "Use this attribute to create an IPv4 vrf static route with gateway in
-                                            default vrf table.";
-                            } // END of enable-global-table-lookup definition.
-
-                            container config {
-                                description
-                                    "configuration attributes for static route with global interface";
-                                uses rib-vrf-ipv4-vrfglobal-config;
-                            } // END of config-container definition.
-                            container state {
-                                config false;
-                                description
-                                    "Operational data for static route with global interface";
-                                uses rib-vrf-ipv4-vrfglobal-config;
-                            } // END of state-container definition.
-                        } // End of interface-route-global-list
-                    } // END of interface-routes-global-container definition.
-                } // End of route-list
-            } // END of routes-container definition.
-            container interface-routes {
-                description
-                    "Container for IPV4 static routes with interface names";
-
-                list interface-route {
-                    key "destination-prefix interface-name";
-                    description
-                        "IPV4 static route with interface name";
-                    leaf destination-prefix  {
-                        type  leafref {
-                            path  "../config/destination-prefix";
-                        }
-                        description "IP destination prefix (e.g. 10.0.0.0/8)";
-                    } // END of destination-prefix definition.
-
-                    leaf interface-name  {
-                        type  leafref {
-                            path  "../config/interface-name";
-                        }
-                        description "Use this attribute to create an IPv4 static route where nexthop is
-                                    interface name.";
-                    } // END of interface-name definition.
-
-                    container config {
-                        description
-                            "configuration attributes for static route with interface name";
-                        uses rib-vrf-ipv4-interface-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "Operational data for static route with interface name";
-                        uses rib-vrf-ipv4-interface-config;
-                    } // END of state-container definition.
-                } // End of interface-route-list
-            } // END of interface-routes-container definition.
             container multicast-routes {
                 description
                     "Container for multicast routes";
@@ -766,205 +295,6 @@ module ipi-rib-vrf {
             if-feature feature-list:HAVE_IPV6;
             description
                 "VRF IPV6 Static Route configurations";
-            container interface-routes-global {
-                description
-                    "Container for IPV6 static routes with global gateway";
-
-                list interface-route-global {
-                // when " ipi-rib-vrf:static-routes/ipv6/interface-routes-global/interface-route-global/config/interface-name ";
-                    key "destination-prefix interface-name enable-ipv6-global-table-lookup";
-                    description
-                        "IPV6 VRF static route with global gateway";
-                    leaf destination-prefix  {
-                        type  leafref {
-                            path  "../config/destination-prefix";
-                        }
-                        description "IPv6 destination prefix (e.g. 3ffe:506::/32)";
-                    } // END of destination-prefix definition.
-
-                    leaf interface-name  {
-                        type  leafref {
-                            path  "../config/interface-name";
-                        }
-                        description "Use this attribute to create an IPv6 static route where nexthop is a
-                                    globalinterface.";
-                    } // END of interface-name definition.
-
-                    leaf enable-ipv6-global-table-lookup  {
-                        type  leafref {
-                            path  "../config/enable-ipv6-global-table-lookup";
-                        }
-                        description "To create an IPv6 vrf static route with gateway in default vrf table
-                                    with global keyword";
-                    } // END of enable-ipv6-global-table-lookup definition.
-
-                    container config {
-                        description
-                            "configuration attributes for static route with global interface";
-                        uses rib-vrf-ipv6-interface-global-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "Operational data for static route with global interface";
-                        uses rib-vrf-ipv6-interface-global-config;
-                    } // END of state-container definition.
-                } // End of interface-route-global-list
-            } // END of interface-routes-global-container definition.
-            container gateway-interface-routes-global {
-                description
-                    "Container for IPV6 VRF static routes with global gateways";
-
-                list gateway-interface-route-global {
-                // when " ipi-rib-vrf:static-routes/ipv6/gateway-interface-routes-global/gateway-interface-route-global/config/interface-name ";
-                    key "destination-prefix gateway-address interface-name enable-ipv6-global-table-lookup";
-                    description
-                        "IPV6 VRF static route with global gateway";
-                    leaf destination-prefix  {
-                        type  leafref {
-                            path  "../config/destination-prefix";
-                        }
-                        description "IPv6 destination prefix (e.g. 3ffe:506::/32)";
-                    } // END of destination-prefix definition.
-
-                    leaf gateway-address  {
-                        type  leafref {
-                            path  "../config/gateway-address";
-                        }
-                        description "Use this attribute to create an IPv6 static route for a subnet.";
-                    } // END of gateway-address definition.
-
-                    leaf interface-name  {
-                        type  leafref {
-                            path  "../config/interface-name";
-                        }
-                        description "Use this attribute to create an IPv6 static route where nexthop is a
-                                    globalinterface.";
-                    } // END of interface-name definition.
-
-                    leaf enable-ipv6-global-table-lookup  {
-                        type  leafref {
-                            path  "../config/enable-ipv6-global-table-lookup";
-                        }
-                        description "To create an IPv6 vrf static route with gateway in default vrf table
-                                    with global keyword";
-                    } // END of enable-ipv6-global-table-lookup definition.
-
-                    container config {
-                        description
-                            "configuration attributes for static route with global interface";
-                        uses rib-vrf-ipv6-prefix-gw-interface-global-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "Operational data for static route with global interface";
-                        uses rib-vrf-ipv6-prefix-gw-interface-global-config;
-                    } // END of state-container definition.
-                } // End of gateway-interface-route-global-list
-            } // END of gateway-interface-routes-global-container definition.
-            container routes {
-                description
-                    "Container for RIB IPV6 destination prefixes";
-
-                list route {
-                    key "destination-prefix gateway-address";
-                    description
-                        "RIB IPv6 destination prefix";
-                    leaf destination-prefix  {
-                        type  leafref {
-                            path  "../config/destination-prefix";
-                        }
-                        description "IPv6 destination prefix (e.g. 3ffe:506::/32)";
-                    } // END of destination-prefix definition.
-
-                    leaf gateway-address  {
-                        type  leafref {
-                            path  "../config/gateway-address";
-                        }
-                        description "Use this attribute to create an IPv6 static route for a subnet.";
-                    } // END of gateway-address definition.
-
-                    container config {
-                        description
-                            "configuration attributes for IPV6 static route with gateway";
-                        uses rib-vrf-ipv6-bfd-config;
-                        uses rib-vrf-ipv6-gateway-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "Operational data for IPV6 static route with gateway";
-                        uses rib-vrf-ipv6-bfd-config;
-                        uses rib-vrf-ipv6-gateway-config;
-                    } // END of state-container definition.
-                    container out-interfaces {
-                        description
-                            "Container for IPV6 VRF static routes with gateway and interface name";
-
-                        list out-interface {
-                            key "interface-name";
-                            description
-                                "IPV6 VRF static route with gateway and interface name";
-                            leaf interface-name  {
-                                type  leafref {
-                                    path  "../config/interface-name";
-                                }
-                                description "Use this attribute to create an IPv6 static route where nexthop is
-                                            interface name.";
-                            } // END of interface-name definition.
-
-                            container config {
-                                description
-                                    "configuration attributes for static route with interface name";
-                                uses rib-vrf-ipv6-gateway-ifname-config;
-                            } // END of config-container definition.
-                            container state {
-                                config false;
-                                description
-                                    "Operational data for IPV6 static route with gateway";
-                                uses rib-vrf-ipv6-gateway-ifname-config;
-                            } // END of state-container definition.
-                        } // End of out-interface-list
-                    } // END of out-interfaces-container definition.
-                } // End of route-list
-            } // END of routes-container definition.
-            container interface-routes {
-                description
-                    "Container for RIB IPv6 static routes with interface name";
-
-                list interface-route {
-                    key "destination-prefix interface-name";
-                    description
-                        "RIB IPv6 static route with interface name";
-                    leaf destination-prefix  {
-                        type  leafref {
-                            path  "../config/destination-prefix";
-                        }
-                        description "IPv6 destination prefix (e.g. 3ffe:506::/32)";
-                    } // END of destination-prefix definition.
-
-                    leaf interface-name  {
-                        type  leafref {
-                            path  "../config/interface-name";
-                        }
-                        description "Use this attribute to create an IPv6 static route where nexthop is
-                                    interface name.";
-                    } // END of interface-name definition.
-
-                    container config {
-                        description
-                            "configuration attributes for IPV6 static route with interface name";
-                        uses rib-vrf-ipv6-interface-config;
-                    } // END of config-container definition.
-                    container state {
-                        config false;
-                        description
-                            "Operational data for IPV6 static route with interface name";
-                        uses rib-vrf-ipv6-interface-config;
-                    } // END of state-container definition.
-                } // End of interface-route-list
-            } // END of interface-routes-container definition.
             container multicast-routes {
                 description
                     "Container for IPv6 multicast routes";

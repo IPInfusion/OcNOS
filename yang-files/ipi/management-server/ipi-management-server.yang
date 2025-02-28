@@ -23,17 +23,12 @@ module ipi-management-server {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-10-15;
+        revision-date 2024-11-14;
     }
 
     import ietf-inet-types {
         prefix inet;
         revision-date 2013-07-15;
-    }
-
-    import ipi-interface {
-        prefix ipi-interface;
-        revision-date 2024-10-17;
     }
 
     import ipi-management-server-types {
@@ -43,17 +38,17 @@ module ipi-management-server {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2023-07-13;
+        revision-date 2025-02-11;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-09-18;
+        revision-date 2025-01-02;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-02-27;
     }
 
     include ipi-management-server-notification { revision-date 2023-05-05;}
@@ -69,6 +64,41 @@ module ipi-management-server {
     description
         "Data model for management server related configurations";
 
+
+    revision "2025-01-30" {
+        description "Introduction of cml bulk-config limit cpu feature";
+        reference " 0.1.38.";
+    }
+
+    revision "2024-12-04" {
+        description "changes for commit-history unset cli to cml commit-history enable";
+        reference " 0.1.37.";
+    }
+
+    revision "2024-11-25" {
+        description "changeg the commit-history cli to cml commit-history";
+        reference " 0.1.36.";
+    }
+
+    revision "2024-11-20" {
+        description "Initial version to include commit-history configs";
+        reference " 0.1.35.";
+    }
+
+    revision "2024-11-05" {
+        description "Add a dependency between netconf callhome debug and callhome enable config";
+        reference " 0.1.34.";
+    }
+
+    revision "2024-11-04" {
+        description "Multiple VRF support added to netconf callhome removing the interface reference";
+        reference " 0.1.33.";
+    }
+
+    revision "2024-10-14" {
+        description "Multiple VRF support added to netconf callhome";
+        reference " 0.1.32.";
+    }
 
     revision "2024-10-09" {
         description "Added CML_SKIP_HITLESS_MERGE tag for feature-netconf-ssh and feature-netconf-tls attributes ";
@@ -248,6 +278,7 @@ module ipi-management-server {
         description
             "Grouping for debug";
         container debug {
+            when " /ipi-management-server:netconf-server/ipi-management-server:callhomes/ipi-management-server:callhome/ipi-management-server:config/ipi-management-server:feature-enabled ";
             description
                 "NETCONF server debug";
             container config {
@@ -276,6 +307,7 @@ module ipi-management-server {
         description
             "Grouping for NETCONF translation";
         container netconf-translation {
+            if-feature feature-list:HAVE_NETCONF;
             if-feature feature-list:HAVE_NETCONF_OC_TRANSLATION;
             description
                 "NETCONF translation";
@@ -330,7 +362,7 @@ module ipi-management-server {
         description
             "Grouping for reconnect";
         container reconnect {
-            when " /ipi-management-server:netconf-server/ipi-management-server:callhome/ipi-management-server:config/ipi-management-server:feature-enabled ";
+            when " /ipi-management-server:netconf-server/ipi-management-server:callhomes/ipi-management-server:callhome/ipi-management-server:config/ipi-management-server:feature-enabled ";
             description
                 "NETCONF server reconnect";
             container config {
@@ -387,9 +419,8 @@ module ipi-management-server {
                 "NETCONF client data";
 
             list netconf-client {
-            when " /ipi-management-server:netconf-server/ipi-management-server:callhome/ipi-management-server:config/ipi-management-server:feature-enabled ";
+            when " /ipi-management-server:netconf-server/ipi-management-server:callhomes/ipi-management-server:callhome/ipi-management-server:config/ipi-management-server:feature-enabled ";
                 key "name";
-                max-elements 5;
                 description
                     "Object list for configuring callhome servers";
                 leaf name  {
@@ -416,42 +447,59 @@ module ipi-management-server {
     grouping callhome-config {
         description
             "Grouping for callhome configuration data";
+        leaf vrf-name  {
+            if-feature feature-list:HAVE_VRF;
+            type  leafref {
+                path  "/ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name";
+            }
+            description "VRF Name associated with this instance";
+        } // END of vrf-name definition.
+
         leaf feature-enabled  {
             type  empty;
             mandatory true;
             description "Enable callhome feature on the NETCONF server";
         } // END of feature-enabled definition.
 
-        leaf management-port  {
-            type  leafref {
-                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
-            }
-            description "Interface to be used to connect the callhome server";
-        } // END of management-port definition.
-
     } // END of callhome-config definition.
     grouping callhome-top {
         description
             "Grouping for callhome";
-        container callhome {
+        container callhomes {
             if-feature feature-list:HAVE_NETCONF;
             description
                 "Callhome related data";
-            container config {
-                presence "yes";
+
+            list callhome {
+            // when " ipi-management-server:netconf-server/callhomes/callhome/config/feature-enabled ";
+                key "vrf-name";
+                max-elements 8;
                 description
-                    "Configuration data for callhome attributes";
-                uses callhome-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data for callhome callhome related attributes";
-                uses callhome-config;
-            } // END of state-container definition.
-            uses netconf-clients-top;
-            uses reconnect-top;
-        } // END of callhome-container definition.
+                    "List of callhomes";
+                leaf vrf-name  {
+                    type  leafref {
+                        path  "../config/vrf-name";
+                    }
+                    description "Use this attribute to specify the VRF for which NETCONF callhome
+                                feature is enabled";
+                } // END of vrf-name definition.
+
+                container config {
+                    description
+                        "Configuration data for callhome attributes";
+                    uses callhome-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for callhome callhome related attributes";
+                    uses callhome-config;
+                } // END of state-container definition.
+                uses netconf-clients-top;
+                uses reconnect-top;
+                uses debug-top;
+            } // End of callhome-list
+        } // END of callhomes-container definition.
     } // END of callhome-top definition.
     grouping netconf-server-subsystem-config {
         description
@@ -555,6 +603,7 @@ module ipi-management-server {
         description
             "Grouping for NETCONF subsystem related configuration";
         container vrfs {
+            if-feature feature-list:HAVE_NETCONF;
             if-feature feature-list:HAVE_VRF;
             description
                 "NETCONF server VRF configurations";
@@ -641,20 +690,77 @@ module ipi-management-server {
             } // END of state-container definition.
         } // END of notification-cache-container definition.
     } // END of notification-cache-top definition.
+    grouping commit-history-config {
+        description
+            "grouping for commit confirmed feature configurations";
+        leaf disable-commit-history  {
+            type  empty;
+            description "This attribute is used to disable features like commit confirmed and
+                        commit rollback";
+        } // END of disable-commit-history definition.
+
+    } // END of commit-history-config definition.
+    grouping commit-history-top {
+        description
+            "grouping for commit confirmed feature";
+        container commit-history {
+            description
+                "Top level container for commit history configurations";
+            container config {
+                description
+                    "Configuration data for commit-history";
+                uses commit-history-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "commit-history operational state data";
+                uses commit-history-config;
+            } // END of state-container definition.
+        } // END of commit-history-container definition.
+    } // END of commit-history-top definition.
+    grouping cml-bulk-config {
+        description
+            "grouping for cml bulk configurations cpu usage limit";
+        leaf bulk-config-cpu-limit-enabled  {
+            type  empty;
+            description "This attribute is used to enable and disable bulk config cpu limit";
+        } // END of bulk-config-cpu-limit-enabled definition.
+
+    } // END of cml-bulk-config definition.
+    grouping cml-bulk-config-top {
+        description
+            "grouping for cml bulk-config limit cpu feature";
+        container bulk-config {
+            description
+                "Top level container for cml bulk-config";
+            container config {
+                description
+                    "Configuration data for cml bulk-config";
+                uses cml-bulk-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "bulk-config operational state data";
+                uses cml-bulk-config;
+            } // END of state-container definition.
+        } // END of bulk-config-container definition.
+    } // END of cml-bulk-config-top definition.
 
     grouping  netconf-server-grouping {
     description
         "Top level container for NETCONF server configurations";
     container netconf-server {
-        if-feature feature-list:HAVE_NETCONF;
         if-feature feature-list:HAVE_CMLD;
         description
             "Top level container for NETCONF server configurations";
         uses callhome-top;
         uses netconf-translation-top;
-        uses debug-top;
         uses netconf-server-subsystem-top;
         uses notification-cache-top;
+        uses commit-history-top;
+        uses cml-bulk-config-top;
     } // END of netconf-server-container definition.
     } // END of netconf-server-grouping definition.
 

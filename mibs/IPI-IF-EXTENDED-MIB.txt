@@ -20,20 +20,52 @@ IMPORTS
       ipi  FROM IPI-MODULE-MIB;
 
 ipi-if-extended MODULE-IDENTITY
-   LAST-UPDATED "202410170000Z"
+   LAST-UPDATED "202502120000Z"
 
 ORGANIZATION "IP Infusion"
 CONTACT-INFO "support@ipinfusion.com"
    DESCRIPTION 
       "This MIB module is for managing Datamodel for IPI Interface extended module"
 
+   REVISION      "202502120000Z"
+   DESCRIPTION 
+      "Revert of EFM flag for l2pt efm CLI"
+
+   REVISION      "202502060000Z"
+   DESCRIPTION 
+      "Changed error disable type from bits to enum"
+
+   REVISION      "202502030000Z"
+   DESCRIPTION 
+      "Added when tag to clear L2CP state from interface configuration for IDL interfaces"
+
+   REVISION      "202412220000Z"
+   DESCRIPTION 
+      "Added when tag to clear the storm-control configs from Db on mapping the mlag on po"
+
+   REVISION      "202412030000Z"
+   DESCRIPTION 
+      "Removed llf-enable attr from subinterface to access-if"
+
+   REVISION      "202411180000Z"
+   DESCRIPTION 
+      "Getapi implementation for show errdisable details"
+
+   REVISION      "202411120000Z"
+   DESCRIPTION 
+      "Support for Link-loss Forwarding"
+
+   REVISION      "202411080000Z"
+   DESCRIPTION 
+      "Added support for sub-interface translation to prio-tag, range will be 0-4094 for translation"
+
+   REVISION      "202410290000Z"
+   DESCRIPTION 
+      "Add subtypes for global mtu configuration"
+
    REVISION      "202410170000Z"
    DESCRIPTION 
       "Added missing interface types for IF_HW_TYPE_T"
-
-   REVISION      "202410100000Z"
-   DESCRIPTION 
-      "Fix the when directive for empty flags enable-vxlan"
 
    REVISION      "202410030000Z"
    DESCRIPTION 
@@ -43,17 +75,41 @@ CONTACT-INFO "support@ipinfusion.com"
    DESCRIPTION 
       "Modified cli helpstring for mac ageing mode"
 
+   REVISION      "202409040000Z"
+   DESCRIPTION 
+      "CL108 FEC config support"
+
+   REVISION      "202409030000Z"
+   DESCRIPTION 
+      "Added link-scan-timer support"
+
+   REVISION      "202409020000Z"
+   DESCRIPTION 
+      "Fix global l2protocol vlan-d parameter after 0.22.1 change and move L2C type when tag to tunnel-vlan attribute"
+
+   REVISION      "202408290000Z"
+   DESCRIPTION 
+      "Added HW_SWFDR for L2C type when tag "
+
    REVISION      "202408210000Z"
    DESCRIPTION 
       "CLI implementation mac-ageing"
 
    REVISION      "202408200000Z"
    DESCRIPTION 
-      "Added HW_SWFDR for L2C type when tag "
+      "Added global mtu configuration support"
 
-   REVISION      "202408130000Z"
+   REVISION      "202408190000Z"
+   DESCRIPTION 
+      "Adding support for configure global load-interval global. Interface level configuration has priority."
+
+   REVISION      "202408160000Z"
    DESCRIPTION 
       "Added the range for vlan-id and when tag under l2protocol"
+
+   REVISION      "202408120000Z"
+   DESCRIPTION 
+      "Added global l2protocol configuration"
 
    REVISION      "202408090000Z"
    DESCRIPTION 
@@ -63,21 +119,29 @@ CONTACT-INFO "support@ipinfusion.com"
    DESCRIPTION 
       "Support for egress pcp disable"
 
+   REVISION      "202407260000Z"
+   DESCRIPTION 
+      "Make previous revision tag consistent"
+
+   REVISION      "202407250000Z"
+   DESCRIPTION 
+      "Added UCMP CLI option"
+
    REVISION      "202407190000Z"
    DESCRIPTION 
       "Fix storm-control and hardware-profile filter dependency in Q2 boards"
 
-   REVISION      "202407030000Z"
+   REVISION      "202406270000Z"
    DESCRIPTION 
-      "Added UCMP CLI option"
-
-   REVISION      "202406200000Z"
-   DESCRIPTION 
-      "Added platform Clis checks for switchport protected CLI"
+      "Changed xPathExpr in tunnel-config"
 
    REVISION      "202406180000Z"
    DESCRIPTION 
       "Added BVI element in hardware type datatype"
+
+   REVISION      "202406120000Z"
+   DESCRIPTION 
+      "Added platform Clis checks for switchport protected CLI"
 
    REVISION      "202405240000Z"
    DESCRIPTION 
@@ -150,6 +214,10 @@ CONTACT-INFO "support@ipinfusion.com"
    REVISION      "202312270000Z"
    DESCRIPTION 
       "Removed raon CLIs dependency on mlag mode"
+
+   REVISION      "202312260000Z"
+   DESCRIPTION 
+      "Added static MAC support for bridge-domain"
 
    REVISION      "202312200000Z"
    DESCRIPTION 
@@ -513,14 +581,14 @@ ipiIfExtendedExtendedCountersEntry OBJECT-TYPE
 	STATUS current
 	DESCRIPTION 
 		"An entry containing information for A collection of extended interface-related statistics counters"
-	INDEX { ipiInterfaceName }
+	INDEX { ipiInterfaceInterfaceName }
 	::= { ipiIfExtendedExtendedCountersTable 1 }
 
 IpiIfExtendedExtendedCountersEntry::= SEQUENCE {
-	ipiInterfaceName OCTET STRING,
-	ipiIfExtendedErrorDisableReason BITS	}
+	ipiInterfaceInterfaceName OCTET STRING,
+	ipiIfExtendedExtendedCountersErrorDisableReason INTEGER	}
 
-ipiInterfaceName OBJECT-TYPE
+ipiInterfaceInterfaceName OBJECT-TYPE
 	SYNTAX OCTET STRING 
 	MAX-ACCESS read-only
 	STATUS current 
@@ -542,8 +610,8 @@ ipiInterfaceName OBJECT-TYPE
           "
 	::= { ipiIfExtendedExtendedCountersEntry 1 }
 
-ipiIfExtendedErrorDisableReason OBJECT-TYPE
-	SYNTAX BITS {lagmismatch(0), stpbpduguard(1), linkflap(2), macmovelimit(3), stormcontrol(5), notapplicable(6)} 
+ipiIfExtendedExtendedCountersErrorDisableReason OBJECT-TYPE
+	SYNTAX INTEGER {lagmismatch(1), stpbpduguard(2), linkflap(4), macmovelimit(8), stormcontrol(32), notapplicable(64)} 
 	MAX-ACCESS read-only
 	STATUS current 
 	DESCRIPTION 
@@ -559,7 +627,7 @@ ipiCMLSEPifCMLSEPextendedNotificationsPrefix OBJECT IDENTIFIER ::=
         { ipi-if-extended 0 }
 
 interfaceerrordisablenotification NOTIFICATION-TYPE
-   OBJECTS { ipiInterfaceName, ipiIfExtendedErrorDisableReason }
+   OBJECTS { ipiInterfaceInterfaceName, ipiIfExtendedExtendedCountersErrorDisableReason }
    STATUS  current
    DESCRIPTION
            "The interface-Errdis-Notif/interfaceErrdisNotif is generated when an interface is error-disabled(error-disable-reason will have non-zero value) and when it recovers from errdisabled state (error-disable-reason will have '0'). Severity level is CRITICAL for interface going down and MINOR for interface moving to UP state when it recovers from errdisabled state."
