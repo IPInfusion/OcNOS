@@ -38,12 +38,12 @@ module ipi-ldp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-04-03;
     }
 
     include ipi-ldp-l2vpn { revision-date 2024-05-24;}
     include ipi-ldp-interface { revision-date 2023-12-18;}
-    include ipi-ldp-peer { revision-date 2024-08-07;}
+    include ipi-ldp-peer { revision-date 2025-02-21;}
     organization
         "IP Infusion Inc.";
 
@@ -56,6 +56,31 @@ module ipi-ldp {
     description
         "Datamodel for LDP protocol";
 
+
+    revision "2025-02-21" {
+        description "Added new attribute tunnel inside targeted peer objectlist";
+        reference " 0.11.0.";
+    }
+
+    revision "2025-02-03" {
+        description "removed common-label-per-fec attribute";
+        reference " 0.10.7.";
+    }
+
+    revision "2025-01-16" {
+        description "Updated attributes name for install-labels cli support";
+        reference " 0.10.6.";
+    }
+
+    revision "2025-01-08" {
+        description "CLI support to block received label processing";
+        reference " 0.10.5.";
+    }
+
+    revision "2024-11-11" {
+        description "Added new attribute ignore-mac-withdraw-bad-pdu-length for LDP";
+        reference " 0.10.3.";
+    }
 
     revision "2024-08-07" {
         description "Changed the help string for targeted hello timer config";
@@ -75,6 +100,11 @@ module ipi-ldp {
     revision "2024-03-19" {
         description "CLI support for LDP over RSVP";
         reference " 0.9.13.";
+    }
+
+    revision "2024-01-06" {
+        description "added new attribute for common label allocation per prefix config";
+        reference " 0.10.4.";
     }
 
     revision "2023-12-18" {
@@ -759,6 +789,14 @@ module ipi-ldp {
             description "Use this attribute to specify TE-tunnel over LDP tunnel for tunneling";
         } // END of prefer-tunnel-in-tunnel definition.
 
+        leaf ignore-mac-withdraw-bad-pdu-length  {
+            if-feature feature-list:HAVE_MPLS_VC;
+            type  boolean;
+            default false;
+            description "This attribute is used to ignore the bad pdu length error and send a
+                        non-fatal notification (non-RFC compliance)";
+        } // END of ignore-mac-withdraw-bad-pdu-length definition.
+
     } // END of ldp-capability-config definition.
     grouping ldp-label-management-config {
         description
@@ -1216,6 +1254,72 @@ module ipi-ldp {
         } // END of label-deny-request definition.
 
     } // END of ldp-peer-list-statistics-advertise-labels-state definition.
+    grouping ldp-received-label-control-top {
+        description
+            "Top-Level Grouping for LDP to block received labels";
+        container received-label-control-lists {
+            description
+                "lists for ldp peer information";
+
+            list received-label-control-list {
+            when " /ipi-ldp:ldp/ipi-ldp:global/ipi-ldp:config ";
+                key "peer-control-list-name prefix-control-list-name";
+                description
+                    "Object list for ldp information";
+                leaf peer-control-list-name  {
+                    type  leafref {
+                        path  "../config/peer-control-list-name";
+                    }
+                    description "Use this command to prevent processing of received labels";
+                } // END of peer-control-list-name definition.
+
+                leaf prefix-control-list-name  {
+                    type  leafref {
+                        path  "../config/prefix-control-list-name";
+                    }
+                    description "Use this attribute to prevent processing of received labels";
+                } // END of prefix-control-list-name definition.
+
+                container config {
+                    description
+                        "Configuration data";
+                    uses peer-list-name-config;
+                    uses prefix-list-name-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data";
+                    uses peer-list-name-config;
+                    uses prefix-list-name-config;
+                } // END of state-container definition.
+            } // End of received-label-control-list-list
+        } // END of received-label-control-lists-container definition.
+    } // END of ldp-received-label-control-top definition.
+    grouping prefix-list-name-config {
+        description
+            "Grouping for LDP prefix-ACL name configuration";
+        leaf prefix-control-list-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this command to prevent processing of received labels";
+        } // END of prefix-control-list-name definition.
+
+    } // END of prefix-list-name-config definition.
+    grouping peer-list-name-config {
+        description
+            "Grouping for LDP label-advertisement-peer list name configuration";
+        leaf peer-control-list-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to prevent processing of received labels";
+        } // END of peer-control-list-name definition.
+
+    } // END of peer-list-name-config definition.
     grouping ldp-inter-area-config {
         description
             "Grouping for LDP Inter-Area configuration";
@@ -1631,6 +1735,7 @@ module ipi-ldp {
         uses peer-authentication-top;
         uses ldp-label-mapping-access-control-top;
         uses ldp-tcp-mss-top;
+        uses ldp-received-label-control-top;
         uses interfaces-grouping;
         uses l2vpn-grouping;
         uses targeted-peers-grouping;

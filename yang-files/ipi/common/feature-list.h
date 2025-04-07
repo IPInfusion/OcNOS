@@ -2,7 +2,7 @@
 #define _H_feature_list
 
 #define y_feature_list_M_feature_list (const xmlChar  *)"feature-list"
-#define y_feature_list_R_feature_list (const xmlChar *)"2024-10-29"
+#define y_feature_list_R_feature_list (const xmlChar *)"2025-04-03"
 
 #include <xmlstring.h>
 #include "dlq.h"
@@ -60,6 +60,7 @@ extern "C" {
 #define u_feature_list_F_HAVE_BGP_EPE 1
 #define u_feature_list_F_HAVE_BGP_EVPN 1
 #define u_feature_list_F_HAVE_BGP_FLOWSPEC 1
+#define u_feature_list_F_HAVE_BGP_HS_REGEXEC 1
 #define u_feature_list_F_HAVE_BGP_LS 1
 #define u_feature_list_F_HAVE_BGP_LU 1
 #define u_feature_list_F_HAVE_BGP_PIC_CORE_EDGE 1
@@ -220,6 +221,7 @@ extern "C" {
 #define u_feature_list_F_HAVE_NET_ROUTE_H 1
 #define u_feature_list_F_HAVE_NSM 1
 #define u_feature_list_F_HAVE_NSM_IF_UNNUMBERED 1
+#define u_feature_list_F_HAVE_NSM_SERVER_UNBUNDLE_MSGS 1
 #define u_feature_list_F_HAVE_NSSA 1
 #define u_feature_list_F_HAVE_NVO 1
 #define u_feature_list_F_HAVE_OBJ_TRACKING 1
@@ -263,6 +265,7 @@ extern "C" {
 #define u_feature_list_F_HAVE_PIM_SM_VRRP_AWARE 1
 #define u_feature_list_F_HAVE_PIM_SSM 1
 #define u_feature_list_F_HAVE_PLATFORM_RAS 1
+#define u_feature_list_F_HAVE_PLIST_PTREE_LOOKUP 1
 #define u_feature_list_F_HAVE_PROC_NET_DEV 1
 #define u_feature_list_F_HAVE_PROC_NET_IF_INET6 1
 #define u_feature_list_F_HAVE_PROTOCOL_TOPOLOGY 1

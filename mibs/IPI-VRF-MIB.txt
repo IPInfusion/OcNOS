@@ -1,30 +1,30 @@
 IPI-VRF-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
-  OBJECT-TYPE, MODULE-IDENTITY,
-  Integer32, Unsigned32,
-  DisplayString,
-  RowStatus
-  FROM SNMPv2-TC
-  enterprises, OBJECT-IDENTITY
-  FROM SNMPv2-SMI
-  InterfaceIndex
-        FROM IF-MIB
-  ipi  FROM IPI-MODULE-MIB;
+  MODULE-IDENTITY, OBJECT-TYPE, Counter32, Gauge32, Counter64,
+  Integer32, TimeTicks, mib-2,
+  NOTIFICATION-TYPE                        FROM SNMPv2-SMI
+  TEXTUAL-CONVENTION, DisplayString,
+  PhysAddress, TruthValue, RowStatus   FROM SNMPv2-TC
+  InterfaceIndex                           FROM IF-MIB
+  ipi                                      FROM IPI-MODULE-MIB;
 
   ipiVrfMib MODULE-IDENTITY
-  LAST-UPDATED "202106171230Z"
+  LAST-UPDATED "202412119230Z"
   ORGANIZATION "IP Infusion"
   CONTACT-INFO "support@ipinfusion.com"
   DESCRIPTION
-  "IPI VRF MIB."
-  ::= { ipi 3 }
+    "IPI VRF MIB."
+
+  ::= { ipi 2 }
  
 ipiVrf   OBJECT IDENTIFIER ::={ ipiVrfMib 1 }
 ipiVrfObjects   OBJECT IDENTIFIER ::={ ipiVrf 1 }
 ipiVrfTableObjects OBJECT IDENTIFIER ::={ipiVrfObjects 1}
 ipiVrfInterfaceTableObjects OBJECT IDENTIFIER ::={ipiVrfObjects 2}
- 
+ipiVrfNotificationObjects  OBJECT IDENTIFIER ::= { ipiVrfMib 30 }
+ipiVrfIfNotificationObjects OBJECT IDENTIFIER ::= { ipiVrfNotificationObjects 0 }
+
 ipiVrfTable  OBJECT-TYPE
   SYNTAX      SEQUENCE OF IpiVrfEntry
   MAX-ACCESS  not-accessible
@@ -182,5 +182,31 @@ ipiVrfInterfaceRowStatus OBJECT-TYPE
    " This variable is used to create, modify, and/or
    delete a row in this table."
    ::= { ipiVrfInterfaceEntry 4 }
+
+ipiVrfIfUpNotification NOTIFICATION-TYPE
+        OBJECTS { ipiVrfInterfaceIndex,
+                  ipiInterfaceVrfName
+                }
+        STATUS  current
+        DESCRIPTION
+                "The vrfIfUpNotification event is generated
+                 when the interface ifOperStatus object for
+                 one of its communication links has transitioned
+                 from down to up state."
+
+        ::= { ipiVrfIfNotificationObjects 1 }
+
+ipiVrfIfDownNotification NOTIFICATION-TYPE
+        OBJECTS { ipiVrfInterfaceIndex,
+                  ipiInterfaceVrfName
+                }
+        STATUS  current
+        DESCRIPTION
+                "The vrfIfUpNotification event is generated
+                 when the interface ifOperStatus object for
+                 one of its communication links has transitioned
+                 from up to down state."
+ 
+        ::= { ipiVrfIfNotificationObjects 2 }
  
 END

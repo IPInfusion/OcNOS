@@ -21,7 +21,7 @@ submodule ipi-platform-profile {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-04-03;
     }
 
     import cml-data-types {
@@ -47,6 +47,26 @@ submodule ipi-platform-profile {
     description
         "Datamodel for Platform profile object";
 
+
+    revision "2025-01-31" {
+        description "Fix for the issue while enabling hardware-profile twamp";
+        reference " 0.29.4.";
+    }
+
+    revision "2024-12-16" {
+        description "Supported ipv4/ipv6 acl on l2 interfaces";
+        reference " 0.29.9.";
+    }
+
+    revision "2024-11-14" {
+        description "updated the xml changes to create the group first, which has more qualifier";
+        reference " 0.29.3.";
+    }
+
+    revision "2024-11-11" {
+        description "Added new ingress-ipv4-l2,ingress-ipv6-l2 filter for L2 interface";
+        reference " 0.29.0.";
+    }
 
     revision "2024-10-08" {
         description "added symmetric type for load balance l2 and ipv4 ";
@@ -586,6 +606,13 @@ submodule ipi-platform-profile {
     grouping hardware-profile-filters-config {
         description
             "Grouping for hardware-profile filter config objects.";
+        leaf ingress-ip-outer  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_CUSTOM3_ACL;
+            type  empty;
+            description "Use this attribute to enable or disable the outer ip header filter";
+        } // END of ingress-ip-outer definition.
+
         leaf egress-ipv6  {
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:NOT_HAVE_DUNE;
@@ -618,6 +645,15 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-ipv6-dnx definition.
 
+        leaf qos-policer  {
+            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-extended ";
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable QoS policer filter groups.
+                        Disabling filter groups increases the configurable filter entries.";
+        } // END of qos-policer definition.
+
         leaf ingress-ipv6  {
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:HAVE_DUNE;
@@ -626,6 +662,15 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of ingress-ipv6 definition.
 
+        leaf qos-ipv6  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable QoS filter group for IPv6
+                        traffic. Disabling filter groups increases the configurable filter
+                        entries.";
+        } // END of qos-ipv6 definition.
+
         leaf ingress-ipv6-acl  {
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:NOT_HAVE_DUNE;
@@ -633,6 +678,62 @@ submodule ipi-platform-profile {
             description "Use this attribute to enable or disable Ingress IPv6 filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of ingress-ipv6-acl definition.
+
+        leaf ipv4-bgp-flowspec  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_BGP_FLOWSPEC;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress IPv4 BGP FLOWSPEC
+                        filter groups. Disabling filter groups increases the configurable
+                        filter entries.";
+        } // END of ipv4-bgp-flowspec definition.
+
+        leaf qos-extended  {
+            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-policer ";
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable QoS extended filter groups.
+                        Disabling filter groups increases the configurable filter entries.";
+        } // END of qos-extended definition.
+
+        leaf ingress-ipv4-extended  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress IPv4 extended filter
+                        groups. Disabling filter groups increases the configurable filter
+                        entries.";
+        } // END of ingress-ipv4-extended definition.
+
+        leaf ingress-ipv6-qos  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress IPv6 QoS filter
+                        groups. Disabling filter groups increases the configurable filter
+                        entries.";
+        } // END of ingress-ipv6-qos definition.
+
+        leaf ingress-ipv4-qos  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress IPv4 QoS filter
+                        groups. Disabling filter groups increases the configurable filter
+                        entries.";
+        } // END of ingress-ipv4-qos definition.
+
+        leaf ingress-layer2-extended  {
+            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/ingress-layer2 ";
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress L2 extended filter
+                        groups. Disabling filter groups increases the configurable filter
+                        entries.";
+        } // END of ingress-layer2-extended definition.
 
         leaf ingress-ipv6-extended  {
             if-feature feature-list:HAVE_ACL;
@@ -669,15 +770,6 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of ingress-ipv4-custom0 definition.
 
-        leaf ingress-ipv4-extended  {
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable Ingress IPv4 extended filter
-                        groups. Disabling filter groups increases the configurable filter
-                        entries.";
-        } // END of ingress-ipv4-extended definition.
-
         leaf ingress-ipv4-subif  {
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:HAVE_DUNE;
@@ -687,39 +779,11 @@ submodule ipi-platform-profile {
                         entries.";
         } // END of ingress-ipv4-subif definition.
 
-        leaf ingress-ipv4-qos  {
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable Ingress IPv4 QoS filter
-                        groups. Disabling filter groups increases the configurable filter
-                        entries.";
-        } // END of ingress-ipv4-qos definition.
-
         leaf ingress-arp  {
             if-feature feature-list:HAVE_ACL;
             type  empty;
             description "Use this attribute to enable or disable Ingress ARP filter groups.";
         } // END of ingress-arp definition.
-
-        leaf ingress-ipv6-qos  {
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable Ingress IPv6 QoS filter
-                        groups. Disabling filter groups increases the configurable filter
-                        entries.";
-        } // END of ingress-ipv6-qos definition.
-
-        leaf ipv4-bgp-flowspec  {
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            if-feature feature-list:HAVE_BGP_FLOWSPEC;
-            type  empty;
-            description "Use this attribute to enable or disable Ingress IPv4 BGP FLOWSPEC
-                        filter groups. Disabling filter groups increases the configurable
-                        filter entries.";
-        } // END of ipv4-bgp-flowspec definition.
 
         leaf ipv6-bgp-flowspec  {
             if-feature feature-list:HAVE_ACL;
@@ -730,24 +794,6 @@ submodule ipi-platform-profile {
                         filter groups. Disabling filter groups increases the configurable
                         filter entries.";
         } // END of ipv6-bgp-flowspec definition.
-
-        leaf qos-extended  {
-            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-policer ";
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable QoS extended filter groups.
-                        Disabling filter groups increases the configurable filter entries.";
-        } // END of qos-extended definition.
-
-        leaf qos-policer  {
-            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-extended ";
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable QoS policer filter groups.
-                        Disabling filter groups increases the configurable filter entries.";
-        } // END of qos-policer definition.
 
         leaf egress-qos-policer  {
             if-feature feature-list:HAVE_ACL;
@@ -767,15 +813,6 @@ submodule ipi-platform-profile {
                         groups. Disabling filter groups increases the configurable filter
                         entries.";
         } // END of egress-qos-policer-ext definition.
-
-        leaf qos-ipv6  {
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable QoS filter group for IPv6
-                        traffic. Disabling filter groups increases the configurable filter
-                        entries.";
-        } // END of qos-ipv6 definition.
 
         leaf egress-ipv4  {
             if-feature feature-list:HAVE_ACL;
@@ -836,16 +873,6 @@ submodule ipi-platform-profile {
             description "Use this attribute to enable or disable Egress L2 ext filter groups.
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-layer2-ext definition.
-
-        leaf ingress-layer2-extended  {
-            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/ingress-layer2 ";
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DUNE;
-            type  empty;
-            description "Use this attribute to enable or disable Ingress L2 extended filter
-                        groups. Disabling filter groups increases the configurable filter
-                        entries.";
-        } // END of ingress-layer2-extended definition.
 
         leaf ingress-layer2-subif  {
             // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/ingress-layer2 ";

@@ -33,12 +33,12 @@ module ipi-vxlan {
 
     import ipi-vxlan-types {
         prefix ipi-vxlan-types;
-        revision-date 2024-06-21;
+        revision-date 2024-10-23;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2024-10-17;
+        revision-date 2025-02-18;
     }
 
     import ipi-bridge {
@@ -48,17 +48,17 @@ module ipi-vxlan {
 
     import ipi-vlan {
         prefix ipi-vlan;
-        revision-date 2024-09-20;
+        revision-date 2025-01-06;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2024-09-18;
+        revision-date 2024-12-24;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2024-09-20;
+        revision-date 2024-11-08;
     }
 
     import ipi-network-instance {
@@ -73,7 +73,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2024-10-29;
+        revision-date 2025-04-03;
     }
 
     organization
@@ -88,6 +88,31 @@ module ipi-vxlan {
     description
         "Datamodel for VxLAN protocol";
 
+
+    revision "2025-02-06" {
+        description "CLI implementation to Disable arp/nd cache on interface";
+        reference " 0.12.13.";
+    }
+
+    revision "2025-01-17" {
+        description "CLI implementation disable-l3-termination";
+        reference " 0.12.7.";
+    }
+
+    revision "2024-11-15" {
+        description "Updated Vxlan MAC ageing and Arp-Nd refresh time";
+        reference " 0.12.11.";
+    }
+
+    revision "2024-10-23" {
+        description "CLI implementation for MH MAC relocate scan";
+        reference " 0.12.7.";
+    }
+
+    revision "2024-10-18" {
+        description "CLI implementation evp-mac-holdtime";
+        reference " 0.12.6.";
+    }
 
     revision "2024-10-03" {
         description "CLI implementation disable-arp-storm-control-for-cpu";
@@ -442,8 +467,9 @@ module ipi-vxlan {
 
         leaf mac-ageing-timer  {
             type  uint32 {
-                 range "10..572"  {
-                    description "10..572: Supported range 10 - 572";
+                 range "10..1000000"  {
+                    description "10..1000000:Feature : HAVE_DUNE Supported range 10 - 572Not Feature :
+                            HAVE_DUNE  Supported range 10 - 1000000";
                  }
             }
             units "seconds";
@@ -455,8 +481,9 @@ module ipi-vxlan {
         leaf arp-nd-refresh-timer  {
             if-feature feature-list:HAVE_BGP_EVPN;
             type  uint32 {
-                 range "3..190"  {
-                    description "3..190: Supported range 3 - 190";
+                 range "3..21600"  {
+                    description "3..21600:Feature : HAVE_DUNE Supported range 3 - 190Not Feature :
+                            HAVE_DUNE  Supported range 3 - 21600";
                  }
             }
             units "seconds";
@@ -493,6 +520,12 @@ module ipi-vxlan {
             type  empty;
             description "Use this attribute to set the vxlan disable arp storm control for cpu";
         } // END of disable-arp-storm-control-for-cpu definition.
+
+        leaf mh-mac-relocate-scan  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  ipi-vxlan-types:vxlan_mac_relocate_t;
+            description "Use this attribute to set the vxlan mh mac relocate scan";
+        } // END of mh-mac-relocate-scan definition.
 
     } // END of vxlan-global-config definition.
     grouping vxlan-qos-global-config {
@@ -625,6 +658,14 @@ module ipi-vxlan {
             description "Use this attribute to to configure default gateway behavior on a VTEP
                         for particular VNID.";
         } // END of irb-name definition.
+
+        leaf disable-l3-termination  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  cml-data-types:cml_mac_addr_t {
+                length "1..1965";
+            }
+            description "Use this attribute to set the disable l3 terminaation";
+        } // END of disable-l3-termination definition.
 
     } // END of vxlan-tenant-config definition.
     grouping vxlan-tenant-route-count-state {
@@ -2394,9 +2435,34 @@ module ipi-vxlan {
         } // END of name definition.
 
         leaf access-if  {
+            if-feature feature-list:HAVE_XGS5;
+            if-feature feature-list:NOT_HAVE_DUNE;
             type  empty;
             description "VXLAN logical access port per physical interface";
         } // END of access-if definition.
+
+        leaf evpn-mac-holdtime  {
+            if-feature feature-list:HAVE_BGP_EVPN;
+            type  uint32 {
+                 range "1..600"  {
+                    description "1..600: Supported range 1 - 600";
+                 }
+            }
+            units "seconds";
+            description "Use this attribute to set the evpn mac hold time";
+        } // END of evpn-mac-holdtime definition.
+
+        leaf arp-cache  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to set the ARP cache in interface";
+        } // END of arp-cache definition.
+
+        leaf nd-cache  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to set the ND cache in interface";
+        } // END of nd-cache definition.
 
     } // END of vxlan-access-if-config definition.
     grouping vxlan-access-if-top {
@@ -2408,8 +2474,6 @@ module ipi-vxlan {
 
             list interface {
             when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config/ipi-vxlan:enable-vxlan and /ipi-interface:interfaces/ipi-interface:interface/ipi-interface:config/ipi-interface:enable-switchport ";
-                if-feature feature-list:HAVE_XGS5;
-                if-feature feature-list:NOT_HAVE_DUNE;
                 key "name";
                 description
                     "VXLAN access port related configurations";
