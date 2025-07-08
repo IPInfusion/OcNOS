@@ -28,22 +28,22 @@ module ipi-dns-client {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2025-01-02;
+        revision-date 2025-03-21;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -59,6 +59,21 @@ module ipi-dns-client {
         "This module provides user with the possibility to configure the device
                 DNS client parameters";
 
+
+    revision "2025-06-10" {
+        description "Added custom error code for lookup-enabled attribute.";
+        reference " 0.6.1.";
+    }
+
+    revision "2025-06-09" {
+        description "Added when tag to remove vrfs when none of its child exist";
+        reference " 0.6.0.";
+    }
+
+    revision "2025-05-09" {
+        description "Added disable-default attribute to resolve show running-config issue";
+        reference " 0.5.5.";
+    }
 
     revision "2024-09-12" {
         description "Updated the helpstring of domain-name";
@@ -298,7 +313,7 @@ module ipi-dns-client {
         } // END of vrf-name definition.
 
         leaf lookup-enabled  {
-            type  boolean;
+            type  empty;
             description "Enable DNS translation.";
         } // END of lookup-enabled definition.
 
@@ -384,6 +399,35 @@ module ipi-dns-client {
             } // END of state-container definition.
         } // END of debug-container definition.
     } // END of dns-debug-top definition.
+    grouping dns-default-config {
+        description
+            "ip domain-lookup disable default configuration";
+        leaf disable-default-instance  {
+            type  empty;
+            description "Use this attribute to prevent default DNS config from being enabled at
+                        start up";
+        } // END of disable-default-instance definition.
+
+    } // END of dns-default-config definition.
+    grouping dns-default-top {
+        description
+            "ip domain-lookup disable default configuration";
+        container default-instance {
+            description
+                "dns client default container configuration";
+            container config {
+                description
+                    "Configuration data for dns client configuration";
+                uses dns-default-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data for DNS configuration";
+                uses dns-default-config;
+            } // END of state-container definition.
+        } // END of default-instance-container definition.
+    } // END of dns-default-top definition.
 
     grouping  dns-grouping {
     description
@@ -394,6 +438,7 @@ module ipi-dns-client {
             "Container for DNS";
         uses dns-vrfs-top;
         uses dns-debug-top;
+        uses dns-default-top;
     } // END of dns-container definition.
     } // END of dns-grouping definition.
 

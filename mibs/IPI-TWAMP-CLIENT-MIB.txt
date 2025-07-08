@@ -1,0 +1,244 @@
+IPI-TWAMP-CLIENT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+      OBJECT-TYPE, MODULE-IDENTITY,
+      Gauge32, Counter32, Integer32, Unsigned32,
+      IpAddress, Counter64,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC
+      ipi  FROM IPI-MODULE-MIB;
+
+ipi-twamp-client MODULE-IDENTITY
+   LAST-UPDATED "202502130000Z"
+
+ORGANIZATION "IP Infusion"
+CONTACT-INFO "support@ipinfusion.com"
+   DESCRIPTION 
+      "This MIB module is for managing Two-Way Active Measurement Protocol (TWAMP)"
+
+   REVISION      "202502130000Z"
+   DESCRIPTION 
+      "Limited session name to 128 characters long"
+
+   REVISION      "202502030000Z"
+   DESCRIPTION 
+      "Added SNMP Traps support for TWAMP"
+
+   REVISION      "202501220000Z"
+   DESCRIPTION 
+      "Fixed checking the value of the control admin state when creating a session"
+
+   REVISION      "202501200000Z"
+   DESCRIPTION 
+      "Correct twamp session attributes description"
+
+   REVISION      "202412120000Z"
+   DESCRIPTION 
+      "Added ignore snmp generation tag"
+
+   REVISION      "202411210000Z"
+   DESCRIPTION 
+      "Fixed maximum values ranges for sessions and connections to start from 1 instead of 0"
+
+   REVISION      "202403270000Z"
+   DESCRIPTION 
+      "Added pattern checking for connection and session names"
+
+   REVISION      "202309060000Z"
+   DESCRIPTION 
+      "Added Reset CLI for the dead sessions"
+
+   REVISION      "202308310000Z"
+   DESCRIPTION 
+      "Remove unnecessary import"
+
+   REVISION      "202305120000Z"
+   DESCRIPTION 
+      "Initial Version"
+   ::= { ipi  1603 } 
+
+
+ipiTwampClientConnectionsconnectionTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiTwampClientConnectionsconnectionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for List of Twamp client connections"
+	::= { ipi-twamp-client 1 }
+
+ipiTwampClientConnectionsconnectionEntry OBJECT-TYPE
+	SYNTAX IpiTwampClientConnectionsconnectionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for List of Twamp client connections"
+	INDEX { ipiTwampClientConnectionConnectionName,ipiTwampClientConnectionVrfName }
+	::= { ipiTwampClientConnectionsconnectionTable 1 }
+
+IpiTwampClientConnectionsconnectionEntry::= SEQUENCE { 
+	ipiTwampClientConnectionClientPort Unsigned32,
+	ipiTwampClientConnectionClientAddress OCTET STRING,
+	ipiTwampClientConnectionConnectionTime DateAndTime,
+	ipiTwampClientConnectionLastActivityTime DateAndTime,
+	ipiTwampClientConnectionConnectionState OCTET STRING,
+	ipiTwampClientConnectionNbSessionRequested Unsigned32,
+	ipiTwampClientConnectionNbSessionsAccepted Unsigned32	}
+
+ipiTwampClientConnectionConnectionName OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Sets client connection Name"
+	::= { ipiTwampClientConnectionsconnectionEntry 1 }
+
+ipiTwampClientConnectionVrfName OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Use this attribute to set the Connection VRF name"
+	::= { ipiTwampClientConnectionsconnectionEntry 2 }
+
+ipiTwampClientConnectionClientPort OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Use this attribute to display the client port"
+	::= { ipiTwampClientConnectionsconnectionEntry 3 }
+
+ipiTwampClientConnectionClientAddress OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"IP address of the client"
+	::= { ipiTwampClientConnectionsconnectionEntry 4 }
+
+ipiTwampClientConnectionConnectionTime OBJECT-TYPE
+	SYNTAX DateAndTime 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Time when the connection was established"
+	::= { ipiTwampClientConnectionsconnectionEntry 5 }
+
+ipiTwampClientConnectionLastActivityTime OBJECT-TYPE
+	SYNTAX DateAndTime 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Time of the last activity that happened on the connection"
+	::= { ipiTwampClientConnectionsconnectionEntry 6 }
+
+ipiTwampClientConnectionConnectionState OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"State of the connection with the client"
+	::= { ipiTwampClientConnectionsconnectionEntry 7 }
+
+ipiTwampClientConnectionNbSessionRequested OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Number of session requests received on the connection"
+	::= { ipiTwampClientConnectionsconnectionEntry 8 }
+
+ipiTwampClientConnectionNbSessionsAccepted OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Number of accepted sessions on the connection"
+	::= { ipiTwampClientConnectionsconnectionEntry 9 }
+
+
+ipiTwampClientSessionssessionTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiTwampClientSessionssessionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for List of Twamp client sessions"
+	::= { ipi-twamp-client 2 }
+
+ipiTwampClientSessionssessionEntry OBJECT-TYPE
+	SYNTAX IpiTwampClientSessionssessionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for List of Twamp client sessions"
+	INDEX { ipiTwampClientConnectionConnectionName,ipiTwampClientConnectionVrfName,ipiTwampClientSessionSessionName }
+	::= { ipiTwampClientSessionssessionTable 1 }
+
+IpiTwampClientSessionssessionEntry::= SEQUENCE { 
+	ipiTwampClientSessionRequestedReceiverPort Unsigned32,
+	ipiTwampClientSessionSessionId OCTET STRING	}
+
+ipiTwampClientSessionSessionName OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Sets client connection Name"
+	::= { ipiTwampClientSessionssessionEntry 1 }
+
+ipiTwampClientSessionRequestedReceiverPort OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Use this attribute to display the port requested by server"
+	::= { ipiTwampClientSessionssessionEntry 2 }
+
+ipiTwampClientSessionSessionId OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"session id of the server"
+	::= { ipiTwampClientSessionssessionEntry 3 }
+
+
+--
+-- Notifications
+--
+
+ipiCMLSEPtwampCMLSEPclientNotificationsPrefix OBJECT IDENTIFIER ::=
+        { ipi-twamp-client 0 }
+
+twampclientsessionaccepted NOTIFICATION-TYPE
+   OBJECTS { ipiTwampClientSessionSessionName, ipiTwampClientConnectionConnectionName, ipiTwampClientConnectionVrfName }
+   STATUS  current
+   DESCRIPTION
+           "The TWAMP Client session has been accepted by the TWAMP Server"
+   ::= { ipiCMLSEPtwampCMLSEPclientNotificationsPrefix 1 }
+
+twampclientsessionsstarted NOTIFICATION-TYPE
+   OBJECTS { ipiTwampClientSessionSessionName, ipiTwampClientConnectionConnectionName, ipiTwampClientConnectionVrfName }
+   STATUS  current
+   DESCRIPTION
+           "The TWAMP Client session has been started with the TWAMP Server"
+   ::= { ipiCMLSEPtwampCMLSEPclientNotificationsPrefix 2 }
+
+twampclientsessionsstopped NOTIFICATION-TYPE
+   OBJECTS { ipiTwampClientSessionSessionName, ipiTwampClientConnectionConnectionName, ipiTwampClientConnectionVrfName }
+   STATUS  current
+   DESCRIPTION
+           "The TWAMP Client session has been stopped with the TWAMP Server"
+   ::= { ipiCMLSEPtwampCMLSEPclientNotificationsPrefix 3 }
+END

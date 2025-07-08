@@ -23,7 +23,7 @@ module ipi-ethernet-vpn {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ietf-inet-types {
@@ -33,32 +33,37 @@ module ipi-ethernet-vpn {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2025-01-02;
+        revision-date 2025-03-21;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
+    }
+
+    import ipi-mac-limit {
+        prefix ipi-mac-limit;
+        revision-date 2025-05-22;
     }
 
     import ipi-evpn-mpls {
         prefix ipi-evpn-mpls;
-        revision-date 2025-02-05;
+        revision-date 2025-05-15;
     }
 
     import ipi-evpn-srv6 {
         prefix ipi-evpn-srv6;
-        revision-date 2024-01-11;
+        revision-date 2025-03-24;
     }
 
     import ipi-if-extended {
         prefix ipi-if-extended;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ipi-ethernet-vpn-types {
@@ -68,7 +73,7 @@ module ipi-ethernet-vpn {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -83,6 +88,36 @@ module ipi-ethernet-vpn {
     description
         "Datamodel for EVPN protocol";
 
+
+    revision "2025-05-20" {
+        description "Added attribute for EVPN arp-nd storm control";
+        reference " 0.13.5.";
+    }
+
+    revision "2025-05-16" {
+        description "Updated the type and validate_func for the attributes 'evpn-segment-id' and 'system-mac' in the cli-command";
+        reference " 0.13.4.";
+    }
+
+    revision "2025-05-09" {
+        description "Fix compilation warnings";
+        reference " 0.13.3.";
+    }
+
+    revision "2025-05-05" {
+        description "Added input displayString and helpString for ac-learning-limit";
+        reference " 0.13.2.";
+    }
+
+    revision "2025-04-08" {
+        description "Added ac-learning-limit for access-if-evpn mode";
+        reference " 0.13.1.";
+    }
+
+    revision "2025-03-24" {
+        description "Added 'CML_UNIQUE' for attributes 'evpn-segment-id' and 'system-mac'";
+        reference " 0.13.0.";
+    }
 
     revision "2024-12-03" {
         description "Added attribute for LLF under access-interface";
@@ -425,6 +460,15 @@ module ipi-ethernet-vpn {
             description "Use this attribute to enable evpn etree module on evpn mpls or vxlan.";
         } // END of enable-evpn-etree definition.
 
+        leaf enable-evpn-storm-control  {
+            if-feature feature-list:HAVE_DNX;
+            if-feature feature-list:HAVE_BGP_EVPN;
+            if-feature feature-list:HAVE_NVO;
+            type  empty;
+            description "Use this attribute to enable evpn arp/nd storm-control on evpn mpls or
+                        vxlan.";
+        } // END of enable-evpn-storm-control definition.
+
     } // END of evpn-global-config definition.
     grouping evpn-multihoming-config {
         description
@@ -524,7 +568,6 @@ module ipi-ethernet-vpn {
         } // END of system-mac definition.
 
         leaf redundancy-mode  {
-            if-feature feature-list:HAVE_DUNE;
             type  ipi-ethernet-vpn-types:evpn_esi_load_balance_mode_t;
             description "Use this attribute to configure load balancing type";
         } // END of redundancy-mode definition.
@@ -642,6 +685,13 @@ module ipi-ethernet-vpn {
             description "This attribute is used to enable link loss forwarding on subif";
         } // END of llf-enable definition.
 
+        leaf ac-learning-limit  {
+            type  leafref {
+                path  "/ipi-mac-limit:mac-limit-global/ipi-mac-limit:mac-limit-profiles/ipi-mac-limit:mac-limit-profile-inst/ipi-mac-limit:config/ipi-mac-limit:mac-lim-profile-name";
+            }
+            description "Attach MAC learning limit profile for EVPN AC";
+        } // END of ac-learning-limit definition.
+
     } // END of evpn-access-interface-config definition.
     grouping evpn-access-interface-map-vpn-id-config {
         description
@@ -702,6 +752,7 @@ module ipi-ethernet-vpn {
 
             list interface {
                 key "name";
+                unique "config/evpn-segment-id config/system-mac";
                 description
                     "EVPN interface related operations";
                 leaf name  {

@@ -23,17 +23,17 @@ module ipi-sflow-interface {
 
     import ipi-sflow {
         prefix ipi-sflow;
-        revision-date 2024-12-04;
+        revision-date 2025-05-17;
     }
 
     import ipi-sflow-types {
         prefix ipi-sflow-types;
-        revision-date 2024-12-04;
+        revision-date 2025-03-06;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ietf-yang-types {
@@ -43,7 +43,7 @@ module ipi-sflow-interface {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -59,6 +59,31 @@ module ipi-sflow-interface {
         "This module provides user with the possibility to configure sflow
                 interface parameters";
 
+
+    revision "2025-05-17" {
+        description "Change sampling configuration verification";
+        reference " 0.7.4.";
+    }
+
+    revision "2025-04-28" {
+        description "Add dependency object on interface to control sampling configuration be applied before sflow enable configuration";
+        reference " 0.7.3.";
+    }
+
+    revision "2025-04-07" {
+        description "Modify sampling direction CLI submenu level prompt";
+        reference " 0.7.2.";
+    }
+
+    revision "2025-03-14" {
+        description "Add verification to avoid sflow sampling object without meaningful configuration";
+        reference " 0.7.1.";
+    }
+
+    revision "2025-03-06" {
+        description "Change sflow sampling CLI format";
+        reference " 0.7.0.";
+    }
 
     revision "2025-01-09" {
         description "Removed sampling when tag for sflow enable command";
@@ -110,110 +135,36 @@ module ipi-sflow-interface {
         reference "Initial Version";
     }
 
-    grouping sflow-interface-egress-state {
+    grouping sflow-interface-sampling-state {
         description
-            "sflow-interface-egress-state";
+            "sflow-interface-sampling-state";
         leaf sampling-status  {
             type  ipi-sflow-types:sflow_egress_ingress_t;
-            description "Egress status";
+            description "This leaf indicates the current state of the sampling direction.";
         } // END of sampling-status definition.
 
         leaf sampled-packet-count  {
             type  yang:counter32;
-            description "Retrieved from SFLOWSampler";
+            description "This leaf is a counter of the sampled packets.";
         } // END of sampled-packet-count definition.
 
-    } // END of sflow-interface-egress-state definition.
-    grouping sflow-interface-egress-config {
+    } // END of sflow-interface-sampling-state definition.
+    grouping sflow-interface-sampling-config {
         description
-            "sflow-interface-egress-config";
-        leaf sampling-rate  {
+            "sflow-interface-sampling-config";
+        leaf sampling-direction  {
+            type  ipi-sflow-types:sflow_sampling_direction_t;
+            description "sflow sampling direction";
+        } // END of sampling-direction definition.
+
+        leaf rate  {
+            // when " ipi-sflow-interface:interfaces/interface/samplings/sampling/config/max-header-size ";
             type  uint32 {
                  range "1024..16777215"  {
                     description "1024..16777215: Supported range 1024 - 16777215";
                  }
             }
-            mandatory true;
-            description "The statistical sampling rate for packet sampling from this source Set
-                        to N to sample 1/Nth of the packets in the monitored flows.An agent
-                        should choose its own algorithm to introduce variance into the
-                        sampling so that exactly every Nth packet is not counted. A sampling
-                        rateof 1 counts all packets. A sampling rate of 0 disables
-                        sampling.The agent is permitted to have minimum and maximum allowable
-                        values for the sampling rate. A minimum rate lets the agent designer
-                        set an upper bound on the overhead associated with sampling, and a
-                        maximum rate may be the result of hardware restrictions (such as
-                        counter size). In addition not all values between the maximum and
-                        minimum may be realizable as the sampling rate (again because of
-                        implementation considerations).When the sampling rate is set the agent
-                        is free to adjust the value so that it lies between the maximum and
-                        minimum values and has the closest achievable value.When read, the
-                        agent must return the actual sampling rate it will be using (after the
-                        adjustments previously described). The sampling algorithm must
-                        converge so that over time the number of packets sampled approaches
-                        1/Nth of the total number of packets in the monitored flows.";
-        } // END of sampling-rate definition.
-
-        leaf sample-size  {
-            type  uint16 {
-                 range "16..256"  {
-                    description "16..256: Supported range 16 - 256";
-                 }
-            }
-            mandatory true;
-            description "The maximum number of bytes that should be copied from a sampled
-                        packet. The agent may have an internal maximum and minimum permissible
-                        sizes. If an attempt is made to set this value outside the permissible
-                        range then the agent should adjust the value to the closest
-                        permissible value.";
-        } // END of sample-size definition.
-
-    } // END of sflow-interface-egress-config definition.
-    grouping sflow-interface-egress-top {
-        description
-            "sflow-interface-egress-top";
-        container egress {
-            description
-                "sFlow egress configuration data";
-            container config {
-                presence "yes";
-                description
-                    "Configuration data for interface sFlow egress";
-                uses sflow-interface-egress-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data for for interface sFlow egress";
-                uses sflow-interface-egress-config;
-                uses sflow-interface-egress-state;
-            } // END of state-container definition.
-        } // END of egress-container definition.
-    } // END of sflow-interface-egress-top definition.
-    grouping sflow-interface-ingress-state {
-        description
-            "sflow-interface-ingress-state";
-        leaf sampling-status  {
-            type  ipi-sflow-types:sflow_egress_ingress_t;
-            description "Sampling ingress status";
-        } // END of sampling-status definition.
-
-        leaf sampled-packet-count  {
-            type  yang:counter32;
-            description "Retrieved from SFLOWSampler";
-        } // END of sampled-packet-count definition.
-
-    } // END of sflow-interface-ingress-state definition.
-    grouping sflow-interface-ingress-config {
-        description
-            "sflow-interface-ingress-config";
-        leaf sampling-rate  {
-            type  uint32 {
-                 range "1024..16777215"  {
-                    description "1024..16777215: Supported range 1024 - 16777215";
-                 }
-            }
-            mandatory true;
+            default "16777215";
             description "The statistical sampling rate for packet sampling from this source.
                         Set to N to sample 1/Nth of the packets in the monitored flows.An
                         agent should choose its own algorithm to introduce variance into the
@@ -232,44 +183,76 @@ module ipi-sflow-interface {
                         adjustments previously described). The sampling algorithm must
                         converge so that over time the number of packets sampled approaches
                         1/Nth of the total number of packets in the monitored flows.";
-        } // END of sampling-rate definition.
+        } // END of rate definition.
 
-        leaf sample-size  {
+        leaf max-header-size  {
+            // when " ipi-sflow-interface:interfaces/interface/samplings/sampling/config/rate ";
             type  uint16 {
                  range "16..256"  {
                     description "16..256: Supported range 16 - 256";
                  }
             }
-            mandatory true;
-            description "The maximum number of bytes that should be copied from a sampled
-                        packet. The agent may have an internal maximum and minimum permissible
-                        sizes. If an attempt is made to set this value outside the permissible
-                        range then the agent should adjust the value to the closest
-                        permissible value.";
-        } // END of sample-size definition.
+            default "16";
+            description "The statistical sampling rate for packet sampling from this source.
+                        Set to N to sample 1/Nth of the packets in the monitored flows.An
+                        agent should choose its own algorithm to introduce variance into the
+                        sampling so that exactly every Nth packet is not counted. A sampling
+                        rateof 1 counts all packets. A sampling rate of 0 disables
+                        sampling.The agent is permitted to have minimum and maximum allowable
+                        values for the sampling rate. A minimum rate lets the agent designer
+                        set an upper bound on the overhead associated with sampling, and a
+                        maximum rate may be the result of hardware restrictions (such as
+                        counter size). In addition not all values between the maximum and
+                        minimum may be realizable as the sampling rate (again because of
+                        implementation considerations).When the sampling rate is set the agent
+                        is free to adjust the value so that it lies between the maximum and
+                        minimum values and has the closest achievable value.When read, the
+                        agent must return the actual sampling rate it will be using (after the
+                        adjustments previously described). The sampling algorithm must
+                        converge so that over time the number of packets sampled approaches
+                        1/Nth of the total number of packets in the monitored flows.";
+        } // END of max-header-size definition.
 
-    } // END of sflow-interface-ingress-config definition.
-    grouping sflow-interface-ingress-top {
+        leaf disabled  {
+            type  empty;
+            description "This leaf is used to disable sampling on given direction, but it keeps
+                        the sFlow feature running on interface.";
+        } // END of disabled definition.
+
+    } // END of sflow-interface-sampling-config definition.
+    grouping sflow-interface-sampling-top {
         description
-            "sflow-interface-ingress-top";
-        container ingress {
+            "sflow-interface-sampling-top";
+        container samplings {
             description
-                "sFlow ingress configuration data";
-            container config {
-                presence "yes";
+                "sflow sampling configuration on interface";
+
+            list sampling {
+                key "sampling-direction";
                 description
-                    "Configuration data for interface sFlow ingress";
-                uses sflow-interface-ingress-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data for interface sFlow ingress";
-                uses sflow-interface-ingress-config;
-                uses sflow-interface-ingress-state;
-            } // END of state-container definition.
-        } // END of ingress-container definition.
-    } // END of sflow-interface-ingress-top definition.
+                    "sflow sampling on given direction configuration on interface";
+                leaf sampling-direction  {
+                    type  leafref {
+                        path  "../config/sampling-direction";
+                    }
+                    description "sflow sampling direction";
+                } // END of sampling-direction definition.
+
+                container config {
+                    description
+                        "Configuration data for interface sFlow sampling";
+                    uses sflow-interface-sampling-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for interface sFlow sampling";
+                    uses sflow-interface-sampling-config;
+                    uses sflow-interface-sampling-state;
+                } // END of state-container definition.
+            } // End of sampling-list
+        } // END of samplings-container definition.
+    } // END of sflow-interface-sampling-top definition.
     grouping sflow-interface-state {
         description
             "sflow-interface-state";
@@ -384,8 +367,7 @@ module ipi-sflow-interface {
                 uses sflow-interface-config;
                 uses sflow-interface-state;
             } // END of state-container definition.
-            uses sflow-interface-ingress-top;
-            uses sflow-interface-egress-top;
+            uses sflow-interface-sampling-top;
         } // End of interface-list
     } // END of interfaces-container definition.
     } // END of interfaces-grouping definition.

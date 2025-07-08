@@ -23,12 +23,12 @@ module ipi-igp-te {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ipi-twamp {
         prefix ipi-twamp;
-        revision-date 2025-01-22;
+        revision-date 2025-06-12;
     }
 
     import ietf-yang-types {
@@ -38,12 +38,17 @@ module ipi-igp-te {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
+    }
+
+    import ipi-twamp-types {
+        prefix ipi-twamp-types;
+        revision-date 2025-05-01;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -58,6 +63,21 @@ module ipi-igp-te {
     description
         "Datamodel for IGP-TE";
 
+
+    revision "2025-05-01" {
+        description "Modified the TWAMP ports to include the default value 862 in the configguration range";
+        reference " 0.5.2.";
+    }
+
+    revision "2025-02-19" {
+        description "Removed empty attr as key from twamp session list and added streaming telemetry support";
+        reference " 0.5.1.";
+    }
+
+    revision "2025-02-03" {
+        description "Added SNMP Traps support for TWAMP";
+        reference " 0.5.0.";
+    }
 
     revision "2024-12-12" {
         description "Added ignore snmp generation tag";
@@ -181,7 +201,7 @@ module ipi-igp-te {
         description
             "loss-dynamic-config";
         leaf loss-dynamic  {
-            when " /ipi-igp-te:igp-te/ipi-igp-te:interfaces/ipi-igp-te:interface/ipi-igp-te:uni-link/ipi-igp-te:twamp-session-parameters/ipi-igp-te:twamp-session-parameter/ipi-igp-te:config/ipi-igp-te:delay-dynamic-twamp ";
+            when " /ipi-igp-te:igp-te/ipi-igp-te:interfaces/ipi-igp-te:interface/ipi-igp-te:uni-link/ipi-igp-te:twamp-session-parameters/ipi-igp-te:twamp-session-parameter/ipi-igp-te:config/ipi-igp-te:reflector-ip ";
             type  empty;
             description "Use this attribute to specify a loss percentage value dynamically for
                         the interface";
@@ -192,7 +212,7 @@ module ipi-igp-te {
         description
             "irb-loss-dynamic-config";
         leaf loss-dynamic  {
-            when " /ipi-igp-te:igp-te/ipi-igp-te:interfaces/ipi-igp-te:interface/ipi-igp-te:uni-link/ipi-igp-te:twamp-session-parameters/ipi-igp-te:irb-twamp-session-parameter/ipi-igp-te:config/ipi-igp-te:delay-dynamic-twamp ";
+            when " /ipi-igp-te:igp-te/ipi-igp-te:interfaces/ipi-igp-te:interface/ipi-igp-te:uni-link/ipi-igp-te:twamp-session-parameters/ipi-igp-te:irb-twamp-session-parameter/ipi-igp-te:config/ipi-igp-te:reflector-ip ";
             type  empty;
             description "Use this attribute to specify a loss percentage value dynamically for
                         the interface";
@@ -347,22 +367,13 @@ module ipi-igp-te {
     grouping twamp-session-parameters-config {
         description
             "TWAMP session parameters";
-        leaf delay-dynamic-twamp  {
-            type  empty;
-            description "Use this command to start the delay measurement for the interface";
-        } // END of delay-dynamic-twamp definition.
-
         leaf reflector-ip  {
             type  cml-data-types:cml_hostpname_t;
             description "Use this attribute to set the reflector IP.";
         } // END of reflector-ip definition.
 
         leaf reflector-port  {
-            type  uint16 {
-                 range "1025..65535"  {
-                    description "1025..65535: Supported range 1025 - 65535";
-                 }
-            }
+            type  ipi-twamp-types:twamp_udp_port_t;
             description "Use this attribute to set the reflector port.";
         } // END of reflector-port definition.
 
@@ -372,11 +383,7 @@ module ipi-igp-te {
         } // END of sender-ip definition.
 
         leaf sender-port  {
-            type  uint16 {
-                 range "1025..65535"  {
-                    description "1025..65535: Supported range 1025 - 65535";
-                 }
-            }
+            type  ipi-twamp-types:twamp_udp_port_t;
             description "Use this attribute to set the sender port.";
         } // END of sender-port definition.
 
@@ -557,22 +564,16 @@ module ipi-igp-te {
 
                 list twamp-session-parameter {
                 when " /ipi-twamp:twamp/ipi-twamp:light/ipi-twamp:control/ipi-twamp:config/ipi-twamp:administrative-state ";
-                    key "delay-dynamic-twamp reflector-ip";
+                    key "reflector-ip";
                     max-elements 1;
                     description
                         "TWAMP session parameter list";
-                    leaf delay-dynamic-twamp  {
-                        type  leafref {
-                            path  "../config/delay-dynamic-twamp";
-                        }
-                        description "Use this command to start the delay measurement for the interface";
-                    } // END of delay-dynamic-twamp definition.
-
                     leaf reflector-ip  {
                         type  leafref {
                             path  "../config/reflector-ip";
                         }
-                        description "Use this attribute to set the reflector IP.";
+                        description "Use this attribute to set the reflector IP and start TWAMP delay
+                                    measurement for the interface";
                     } // END of reflector-ip definition.
 
                     container config {
@@ -595,22 +596,16 @@ module ipi-igp-te {
                 } // End of twamp-session-parameter-list
 
                 list irb-twamp-session-parameter {
-                    key "delay-dynamic-twamp reflector-ip";
+                    key "reflector-ip";
                     max-elements 1;
                     description
                         "TWAMP session parameter list for IRB interfaces";
-                    leaf delay-dynamic-twamp  {
-                        type  leafref {
-                            path  "../config/delay-dynamic-twamp";
-                        }
-                        description "Use this command to start the delay measurement for the interface";
-                    } // END of delay-dynamic-twamp definition.
-
                     leaf reflector-ip  {
                         type  leafref {
                             path  "../config/reflector-ip";
                         }
-                        description "Use this attribute to set the reflector IP.";
+                        description "Use this attribute to set the reflector IP and start TWAMP delay
+                                    measurement for the interface";
                     } // END of reflector-ip definition.
 
                     container config {
@@ -888,6 +883,80 @@ module ipi-igp-te {
         leaf message {
             type string;
             description " alarm message notification";
+        }
+    }
+
+    notification twamp-delay-measurement-threshold-crossed {
+        if-feature feature-list:HAVE_TE;
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates that the TWAMP Delay Measurement has crossed the configured threshold.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf reflector-ip {
+            type cml-data-types:cml_hostpname_t;
+        description
+            "Use this attribute to set the reflector IP and start TWAMP delay
+                    measurement for the interface";
+        }
+
+        leaf name {
+            type  string;
+        description
+            "Interface name for which igp-te params are being configured";
+        }
+
+        leaf last-calculated-average-delay {
+            type  uint64;
+        description
+            "This attribute represents the average delay value";
+        }
+    }
+
+    notification twamp-delay-measurement-loss-changed {
+        if-feature feature-list:HAVE_TE;
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates that the TWAMP Delay Measurement loss has changed.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf reflector-ip {
+            type cml-data-types:cml_hostpname_t;
+        description
+            "Use this attribute to set the reflector IP and start TWAMP delay
+                    measurement for the interface";
+        }
+
+        leaf name {
+            type  string;
+        description
+            "Interface name for which igp-te params are being configured";
+        }
+
+        leaf last-advertised-packet-loss {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "This attribute represents the percentage of lost packets in a
+                    measurement interval";
         }
     }
 

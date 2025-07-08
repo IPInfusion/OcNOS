@@ -21,17 +21,22 @@ submodule ipi-acl-copp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     import ipi-acl-types {
         prefix ipi-acl-types;
-        revision-date 2024-12-13;
+        revision-date 2025-04-10;
     }
 
     import ipi-acl-common {
         prefix ipi-acl-common;
-        revision-date 2024-12-13;
+        revision-date 2025-06-08;
+    }
+
+    import ipi-prefix-group {
+        prefix ipi-prefix-group;
+        revision-date 2025-04-18;
     }
 
     organization
@@ -47,6 +52,56 @@ submodule ipi-acl-copp {
         "Datamodel for ACL Control Plane Policing (CoPP) object";
 
 
+    revision "2025-05-14" {
+        description "Removed default value for log-action";
+        reference " 0.0.10.";
+    }
+
+    revision "2025-05-08" {
+        description "Blocked Fragment option for TD4";
+        reference " 0.0.9.";
+    }
+
+    revision "2025-05-02" {
+        description "Updated flags for CoPP log-action";
+        reference " 0.0.8.";
+    }
+
+    revision "2025-04-28" {
+        description "Updated flag with reset for CoPP log-action";
+        reference " 0.0.7.";
+    }
+
+    revision "2025-04-22" {
+        description "Added default values for resequence attributes";
+        reference " 0.0.6.";
+    }
+
+    revision "2025-04-10" {
+        description "Moved COPP specific IPv6 options inside a new protocols type";
+        reference " 0.0.5.";
+    }
+
+    revision "2025-04-08" {
+        description "Added new types including prefix groups";
+        reference " 0.0.6.";
+    }
+
+    revision "2025-04-01" {
+        description "Adding new flag to log-action";
+        reference " 0.0.5.";
+    }
+
+    revision "2025-03-07" {
+        description "Adding new ACL of type IPV6 CoPP";
+        reference " 0.0.4.";
+    }
+
+    revision "2025-02-28" {
+        description "Refactor upgrade functions";
+        reference " 0.0.3.";
+    }
+
     revision "2024-12-17" {
         description "In-port and ethertype attributes removed";
         reference " 0.0.2.";
@@ -57,7 +112,7 @@ submodule ipi-acl-copp {
         reference " 0.0.1.";
     }
 
-    grouping acl-copp-ipv4-dst-port-config {
+    grouping acl-copp-dst-port-config {
         description
             "Configuration data for CoPP dst port configurations";
         leaf lower-destination-port-in-range  {
@@ -82,8 +137,8 @@ submodule ipi-acl-copp {
                         range";
         } // END of upper-destination-port-in-range definition.
 
-    } // END of acl-copp-ipv4-dst-port-config definition.
-    grouping acl-copp-ipv4-src-port-config {
+    } // END of acl-copp-dst-port-config definition.
+    grouping acl-copp-src-port-config {
         description
             "Configuration data for CoPP src port configurations";
         leaf lower-source-port-in-range  {
@@ -106,7 +161,7 @@ submodule ipi-acl-copp {
             description "Use this attribute to set the upper boundary for source port range";
         } // END of upper-source-port-in-range definition.
 
-    } // END of acl-copp-ipv4-src-port-config definition.
+    } // END of acl-copp-src-port-config definition.
     grouping acl-copp-ipv4-icmp-config {
         description
             "Configuration data for CoPP ICMP";
@@ -126,7 +181,7 @@ submodule ipi-acl-copp {
         } // END of icmp-type definition.
 
     } // END of acl-copp-ipv4-icmp-config definition.
-    grouping acl-copp-ipv4-port-op-config {
+    grouping acl-copp-port-op-config {
         description
             "Configuration data specific for CoPP source and destination port
                         operators";
@@ -142,7 +197,7 @@ submodule ipi-acl-copp {
                         destination-port";
         } // END of destination-port-operator definition.
 
-    } // END of acl-copp-ipv4-port-op-config definition.
+    } // END of acl-copp-port-op-config definition.
     grouping acl-ipv4-copp-tcp-config {
         description
             "Configuration data specific for IPv4 TCP ACL entry";
@@ -155,16 +210,6 @@ submodule ipi-acl-copp {
     grouping acl-copp-ipv4-config {
         description
             "Configuration data for CoPP IPv4 entry";
-        leaf source-address  {
-            type  ipi-acl-types:acl_any_ipv4_src_addr_t;
-            description "Source IPv4 address prefix.";
-        } // END of source-address definition.
-
-        leaf destination-address  {
-            type  ipi-acl-types:acl_any_ipv4_dest_addr_t;
-            description "Destination IPv4 address prefix.";
-        } // END of destination-address definition.
-
         leaf ttl  {
             type  uint8 {
                  range "0..255"  {
@@ -226,6 +271,62 @@ submodule ipi-acl-copp {
 
             }
         } // END of protocol-choice definition.
+        choice source-ipv4-type {
+            description
+                "Source IPv4 Types";
+            case source-ipv4-address-type {
+
+                description
+                    "Source IPv4 address";
+
+                leaf source-address  {
+                    type  ipi-acl-types:acl_any_ipv4_src_addr_t;
+                    description "Source IPv4 address prefix.";
+                } // END of source-address definition.
+
+            }
+            case source-ipv4-prefix-group-type {
+
+                description
+                    "Source IPv4 prefix group";
+
+                leaf source-prefix-group  {
+                    type  leafref {
+                        path  "/ipi-prefix-group:prefix-groups/ipi-prefix-group:prefix-group/ipi-prefix-group:name";
+                    }
+                    description "Source IPv4 prefix group";
+                } // END of source-prefix-group definition.
+
+            }
+        } // END of source-ipv4-type-choice definition.
+        choice destination-ipv4-type {
+            description
+                "Destination IPv4 Types";
+            case destination-ipv4-address-type {
+
+                description
+                    "Destination IPv4 address";
+
+                leaf destination-address  {
+                    type  ipi-acl-types:acl_any_ipv4_dest_addr_t;
+                    description "Destination IPv4 address prefix.";
+                } // END of destination-address definition.
+
+            }
+            case destination-ipv4-prefix-group-type {
+
+                description
+                    "Destination IPv4 prefix group";
+
+                leaf destination-prefix-group  {
+                    type  leafref {
+                        path  "/ipi-prefix-group:prefix-groups/ipi-prefix-group:prefix-group/ipi-prefix-group:name";
+                    }
+                    description "Destination IPv4 prefix group";
+                } // END of destination-prefix-group definition.
+
+            }
+        } // END of destination-ipv4-type-choice definition.
     } // END of acl-copp-ipv4-config definition.
     grouping acl-copp-config {
         description
@@ -236,11 +337,25 @@ submodule ipi-acl-copp {
                         specified for each ACL entry.";
         } // END of forwarding-action definition.
 
+        leaf log-action  {
+            if-feature feature-list:HAVE_SFLOW;
+            type  uint32 {
+                 range "1..16777215"  {
+                    description "1..16777215: Supported range 1 - 16777215";
+                 }
+            }
+            description "Use this attribute to enable logging of the packets on which the match
+                        occurred. The sampling rate in number of packets, meaning 1 sample per
+                        X packets.
+                        By default 1 log pkt per each matching packet is sent to CPU.";
+        } // END of log-action definition.
+
     } // END of acl-copp-config definition.
     grouping acl-copp-ipv4-top {
         description
             "Top container data for CoPP IPv4 entry";
         container ipv4 {
+            // when " ipi-acl:acl/acl-sets/acl-set/type == 8 ";
             description
                 "IPv4 CoPP access-list attributes";
             container config {
@@ -248,9 +363,9 @@ submodule ipi-acl-copp {
                     "ACL global configuration attributes";
                 uses acl-copp-config;
                 uses acl-copp-ipv4-config;
-                uses acl-copp-ipv4-port-op-config;
-                uses acl-copp-ipv4-src-port-config;
-                uses acl-copp-ipv4-dst-port-config;
+                uses acl-copp-port-op-config;
+                uses acl-copp-src-port-config;
+                uses acl-copp-dst-port-config;
             } // END of config-container definition.
             container state {
                 config false;
@@ -258,22 +373,168 @@ submodule ipi-acl-copp {
                     "Global Operational data for ACL";
                 uses acl-copp-config;
                 uses acl-copp-ipv4-config;
-                uses acl-copp-ipv4-port-op-config;
-                uses acl-copp-ipv4-src-port-config;
-                uses acl-copp-ipv4-dst-port-config;
+                uses acl-copp-port-op-config;
+                uses acl-copp-src-port-config;
+                uses acl-copp-dst-port-config;
             } // END of state-container definition.
         } // END of ipv4-container definition.
     } // END of acl-copp-ipv4-top definition.
+    grouping acl-copp-ipv6-icmp-config {
+        description
+            "Configuration data for IPv6 CoPP ICMP";
+        leaf protocol-icmpv6  {
+            type  empty;
+            description "Use this attribute to indicates that protocol carried in the IPv6
+                        packet is ICMPv6.";
+        } // END of protocol-icmpv6 definition.
+
+    } // END of acl-copp-ipv6-icmp-config definition.
+    grouping acl-copp-ipv6-config {
+        description
+            "Configuration data for CoPP IPv6 entry";
+        leaf hop-limit  {
+            type  uint8 {
+                 range "0..255"  {
+                    description "0..255: Supported range 0 - 255";
+                 }
+            }
+            description "Use this attribute to set hop-limit value";
+        } // END of hop-limit definition.
+
+        choice protocol {
+            description
+                "Protocol Types";
+            case tcp {
+
+                description
+                    "Transmission Control Protocol";
+
+                uses ipi-acl-common:acl-tcp-config;
+            }
+            case udp {
+
+                description
+                    "User Datagram Protocol";
+
+                uses ipi-acl-common:acl-udp-config;
+            }
+            case icmp {
+
+                description
+                    "Internet Control Message Protocol";
+
+                uses acl-copp-ipv6-icmp-config;
+            }
+            case other-protocols {
+
+                description
+                    "Other protocols";
+
+                leaf protocol-name  {
+                    type  ipi-acl-types:acl_copp_ipv6_protocols_t;
+                    description "Use this attribute to set the protocol carried in the IPv6 packet,
+                                expressed by its name.";
+                } // END of protocol-name definition.
+
+            }
+        } // END of protocol-choice definition.
+        choice source-ipv6-type {
+            description
+                "Source IPv6 Types";
+            case source-ipv6-address-type {
+
+                description
+                    "Source IPv6 address";
+
+                leaf source-address  {
+                    type  ipi-acl-types:acl_copp_any_ipv6_src_addr_t;
+                    description "Source IPv6 address prefix.";
+                } // END of source-address definition.
+
+            }
+            case source-ipv6-prefix-group-type {
+
+                description
+                    "Source IPv6 prefix group";
+
+                leaf source-prefix-group  {
+                    type  leafref {
+                        path  "/ipi-prefix-group:prefix-groups/ipi-prefix-group:prefix-group/ipi-prefix-group:name";
+                    }
+                    description "Source IPv6 prefix group";
+                } // END of source-prefix-group definition.
+
+            }
+        } // END of source-ipv6-type-choice definition.
+        choice destination-ipv6-type {
+            description
+                "Destination IPv6 Types";
+            case destination-ipv6-address-type {
+
+                description
+                    "Destination IPv6 address";
+
+                leaf destination-address  {
+                    type  ipi-acl-types:acl_copp_any_ipv6_dest_addr_t;
+                    description "Destination IPv6 address prefix.";
+                } // END of destination-address definition.
+
+            }
+            case destination-ipv6-prefix-group-type {
+
+                description
+                    "Destination IPv6 prefix group";
+
+                leaf destination-prefix-group  {
+                    type  leafref {
+                        path  "/ipi-prefix-group:prefix-groups/ipi-prefix-group:prefix-group/ipi-prefix-group:name";
+                    }
+                    description "Destination IPv6 prefix group";
+                } // END of destination-prefix-group definition.
+
+            }
+        } // END of destination-ipv6-type-choice definition.
+    } // END of acl-copp-ipv6-config definition.
+    grouping acl-copp-ipv6-top {
+        description
+            "Top container data for CoPP IPv6 entry";
+        container ipv6 {
+            // when " ipi-acl:acl/acl-sets/acl-set/type == 9 ";
+            if-feature feature-list:HAVE_IPV6;
+            description
+                "IPv6 CoPP access-list attributes";
+            container config {
+                description
+                    "ACL global configuration attributes";
+                uses acl-copp-config;
+                uses acl-copp-ipv6-config;
+                uses acl-copp-port-op-config;
+                uses acl-copp-src-port-config;
+                uses acl-copp-dst-port-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Global Operational data for ACL";
+                uses acl-copp-config;
+                uses acl-copp-ipv6-config;
+                uses acl-copp-port-op-config;
+                uses acl-copp-src-port-config;
+                uses acl-copp-dst-port-config;
+            } // END of state-container definition.
+        } // END of ipv6-container definition.
+    } // END of acl-copp-ipv6-top definition.
 
     grouping  copp-grouping {
     description
         "CoPP ACL set configuration attributes";
     container copp {
-        if-feature feature-list:HAVE_ACL;
         if-feature feature-list:HAVE_COPP_FILTER;
+        if-feature feature-list:HAVE_ACL;
         description
             "CoPP ACL set configuration attributes";
         uses acl-copp-ipv4-top;
+        uses acl-copp-ipv6-top;
     } // END of copp-container definition.
     } // END of copp-grouping definition.
 

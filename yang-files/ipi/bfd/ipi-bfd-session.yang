@@ -21,12 +21,12 @@ submodule ipi-bfd-session {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     import ipi-bfd-types {
         prefix ipi-bfd-types;
-        revision-date 2023-01-23;
+        revision-date 2025-02-14;
     }
 
     import ietf-inet-types {
@@ -36,7 +36,7 @@ submodule ipi-bfd-session {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ietf-yang-types {
@@ -58,6 +58,11 @@ submodule ipi-bfd-session {
         "Datamodel for Bidirecional Forwarding Detection (BFD) session
                 information";
 
+
+    revision "2025-02-24" {
+        description "Added the grouping micro-bfd-session-state-common for micro-BFD sessions";
+        reference " 0.6.3.";
+    }
 
     revision "2025-02-13" {
         description "Added attribite local-discriminator under micro-bfd-sessions";
@@ -465,6 +470,78 @@ submodule ipi-bfd-session {
         } // END of negotiated-rx-interval definition.
 
     } // END of bfd-session-state-common definition.
+    grouping micro-bfd-session-state-common {
+        description
+            "Grouping for common runtime attributes for BFD sessions";
+        leaf interface-index  {
+            type  uint32;
+            description "Interface index associated with this BFD session";
+        } // END of interface-index definition.
+
+        leaf interface-name  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Interface name associated with this BFD session";
+        } // END of interface-name definition.
+
+        leaf remote-discriminator  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "A unique identified used by the remote system to identify this BFD
+                        session";
+        } // END of remote-discriminator definition.
+
+        leaf local-discriminator  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "A unique identifier used by the local system to identify this BFD
+                        session";
+        } // END of local-discriminator definition.
+
+        leaf microbfd-local-discriminator  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "A unique identifier used by the local system to identify this BFD
+                        session";
+        } // END of microbfd-local-discriminator definition.
+
+        leaf session-state  {
+            type  ipi-bfd-types:oambfd_session_state_t;
+            description "The state of the BFD session perceived by the local system";
+        } // END of session-state definition.
+
+        leaf session-type  {
+            type  ipi-bfd-types:bfd_session_type_state_t;
+            description "Session type configured for this BFD session";
+        } // END of session-type definition.
+
+        leaf session-diagnostics  {
+            type  ipi-bfd-types:oambfd_perform_diag_t;
+            description "The local BFD diagnostic code indicating the most recent reason for
+                        failure of this BFD session";
+        } // END of session-diagnostics definition.
+
+        leaf negotiated-tx-interval  {
+            type  uint32;
+            units "milliseconds";
+            description "Negotiated transmit interval";
+        } // END of negotiated-tx-interval definition.
+
+        leaf negotiated-rx-interval  {
+            type  uint32;
+            units "milliseconds";
+            description "Negotiated receive interval";
+        } // END of negotiated-rx-interval definition.
+
+    } // END of micro-bfd-session-state-common definition.
     grouping bfd-session-microbfd-state {
         description
             "Operational state parameters relating to a micro-BFD session on an
@@ -700,19 +777,11 @@ submodule ipi-bfd-session {
 
                 list interface {
                     if-feature feature-list:HAVE_BFD_HW_OFFLOAD;
-                    key "local-discriminator member-interface";
+                    key "member-interface";
                     config false;
                     description
                         "This list contains configuration and state parameters relating to
                                     micro-BFD session";
-                    leaf local-discriminator  {
-                        type  leafref {
-                            path  "../state/local-discriminator";
-                        }
-                        description "A unique identifier used by the local system to identify this BFD
-                                    session";
-                    } // END of local-discriminator definition.
-
                     leaf member-interface  {
                         type  leafref {
                             path  "../state/member-interface";
@@ -725,7 +794,7 @@ submodule ipi-bfd-session {
                         description
                             "Operational state parameters for the micro-BFD session";
                         uses bfd-session-microbfd-state;
-                        uses bfd-session-state-common;
+                        uses micro-bfd-session-state-common;
                     } // END of state-container definition.
                 } // End of interface-list
             } // END of micro-bfd-sessions-container definition.

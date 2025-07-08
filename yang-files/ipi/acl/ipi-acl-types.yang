@@ -23,7 +23,7 @@ module ipi-acl-types {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -38,6 +38,21 @@ module ipi-acl-types {
     description
         "YANG version of the ipi-acl-types";
 
+
+    revision "2025-04-10" {
+        description "Defined a new V6 protocls type for COPP ACL";
+        reference " 0.9.2.";
+    }
+
+    revision "2025-04-08" {
+        description "Added new types including prefix groups";
+        reference " 0.9.1.";
+    }
+
+    revision "2025-03-07" {
+        description "Adding new ACL type IPv6 copp";
+        reference " 0.9.0.";
+    }
 
     revision "2024-12-13" {
         description "Adding new ACL type copp";
@@ -123,6 +138,12 @@ module ipi-acl-types {
                 value 8;
                 if-feature feature-list:HAVE_COPP_FILTER;
                 description "Configure copp parameters";
+            }
+            enum ipv6-copp {
+                value 9;
+                if-feature feature-list:HAVE_COPP_FILTER;
+                if-feature feature-list:HAVE_IPV6;
+                description "Configure IPv6 copp parameters";
             }
         }
         description "type definition for ACL_TYPES_T";
@@ -278,6 +299,14 @@ module ipi-acl-types {
         description "type definition for ACL_IPV4_PREFIX_SRC_T";
     }
 
+    typedef  acl_prefix_group_t {
+        type string {
+            length 1..64;
+            pattern "[a-zA-Z0-9][^?' =,>|]*";
+        }
+        description "type definition for ACL_PREFIX_GROUP_T";
+    }
+
     typedef  acl_any_ipv4_src_addr_t {
         type union {
             type acl_any_src_t {
@@ -366,6 +395,44 @@ module ipi-acl-types {
             }
         }
         description "type definition for ACL_ANY_IPV6_DEST_ADDR_T";
+    }
+
+    typedef  acl_copp_ipv6_prefix_src_t {
+        type string {
+            length 0..92;
+        }
+        description "type definition for ACL_COPP_IPV6_PREFIX_SRC_T";
+    }
+
+    typedef  acl_copp_ipv6_prefix_dest_t {
+        type string {
+            length 0..92;
+        }
+        description "type definition for ACL_COPP_IPV6_PREFIX_DEST_T";
+    }
+
+    typedef  acl_copp_any_ipv6_src_addr_t {
+        type union {
+            type acl_any_src_t {
+
+            }
+            type acl_copp_ipv6_prefix_src_t {
+
+            }
+        }
+        description "type definition for ACL_COPP_ANY_IPV6_SRC_ADDR_T";
+    }
+
+    typedef  acl_copp_any_ipv6_dest_addr_t {
+        type union {
+            type acl_any_dest_t {
+
+            }
+            type acl_copp_ipv6_prefix_dest_t {
+
+            }
+        }
+        description "type definition for ACL_COPP_ANY_IPV6_DEST_ADDR_T";
     }
 
     typedef  acl_udp_keyword_t {
@@ -805,6 +872,66 @@ module ipi-acl-types {
         description "type definition for ACL_IPV6_PROTOCOL_NAMES_T";
     }
 
+    typedef  acl_copp_ipv6_protocol_names_t {
+        type enumeration {
+            enum ipipv6 {
+                value 4;
+                description "IPv4 Encapsulation within IPv6 packet (4)";
+            }
+            enum ipv6ipv6 {
+                value 41;
+                description "IPv6 Encapsulation within IPv6 packet (41)";
+            }
+            enum ipv6-route-header {
+                value 43;
+                if-feature feature-list:HAVE_COPP_FILTER;
+                description "Routing Header for IPv6 (43)";
+            }
+            enum rsvp {
+                value 46;
+                description "Resource ReSerVation Protocol (46)";
+            }
+            enum gre {
+                value 47;
+                description "Generic Routing Encapsulation (47)";
+            }
+            enum esp {
+                value 50;
+                description "Encapsulating Security Payload (50)";
+            }
+            enum ahp {
+                value 51;
+                description "Authentication Header Protocol (51)";
+            }
+            enum ipv6-opts {
+                value 60;
+                if-feature feature-list:HAVE_COPP_FILTER;
+                description "Destination Options for IPv6 (60)";
+            }
+            enum ospf {
+                value 89;
+                description "Open Shortest Path First protocol (89)";
+            }
+            enum pim {
+                value 103;
+                description "Protocol Independent Multicast (103)";
+            }
+            enum ipcomp {
+                value 108;
+                description "IP payload COMPression Protocol (108)";
+            }
+            enum vrrp {
+                value 112;
+                description "Virtual Router Redundancy Protocol (112)";
+            }
+            enum any {
+                value 256;
+                description "Any IPv6 protocol ";
+            }
+        }
+        description "type definition for ACL_COPP_IPV6_PROTOCOL_NAMES_T";
+    }
+
     typedef  acl_ipv6_protocols_t {
         type union {
             type acl_ipv6_protocol_names_t {
@@ -816,6 +943,19 @@ module ipi-acl-types {
             }
         }
         description "type definition for ACL_IPV6_PROTOCOLS_T";
+    }
+
+    typedef  acl_copp_ipv6_protocols_t {
+        type union {
+            type acl_copp_ipv6_protocol_names_t {
+
+            }
+            type uint8 {
+                range "0..255";
+
+            }
+        }
+        description "type definition for ACL_COPP_IPV6_PROTOCOLS_T";
     }
 
     typedef  acl_dscp_class_type_t {

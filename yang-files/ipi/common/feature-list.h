@@ -2,7 +2,7 @@
 #define _H_feature_list
 
 #define y_feature_list_M_feature_list (const xmlChar  *)"feature-list"
-#define y_feature_list_R_feature_list (const xmlChar *)"2025-02-27"
+#define y_feature_list_R_feature_list (const xmlChar *)"2025-07-01"
 
 #include <xmlstring.h>
 #include "dlq.h"
@@ -15,6 +15,7 @@
 extern "C" {
 #endif
 
+#define u_feature_list_F___CONFIG_H_INCLUDE_GUARD 1
 #define u_feature_list_F_BCM_SDK_VERSION 1
 #define u_feature_list_F_BUILDDATE 1
 #define u_feature_list_F_BUILD_DEFAULT_USERNAME 1
@@ -205,6 +206,7 @@ extern "C" {
 #define u_feature_list_F_HAVE_MTU_PROFILE 1
 #define u_feature_list_F_HAVE_MULTIPATH 1
 #define u_feature_list_F_HAVE_MULTI_TOPOLOGY 1
+#define u_feature_list_F_HAVE_NACM 1
 #define u_feature_list_F_HAVE_NDD 1
 #define u_feature_list_F_HAVE_NETCONF 1
 #define u_feature_list_F_HAVE_NETCONF_OC_TRANSLATION 1
@@ -221,6 +223,7 @@ extern "C" {
 #define u_feature_list_F_HAVE_NET_ROUTE_H 1
 #define u_feature_list_F_HAVE_NSM 1
 #define u_feature_list_F_HAVE_NSM_IF_UNNUMBERED 1
+#define u_feature_list_F_HAVE_NSM_SERVER_UNBUNDLE_MSGS 1
 #define u_feature_list_F_HAVE_NSSA 1
 #define u_feature_list_F_HAVE_NVO 1
 #define u_feature_list_F_HAVE_OBJ_TRACKING 1
@@ -505,6 +508,7 @@ extern "C" {
 #define u_feature_list_F_NOT_HAVE_BFD_MAIN 1
 #define u_feature_list_F_NOT_HAVE_MPLS_TP 1
 #define u_feature_list_F_NOT_HAVE_MPLS_TUNNEL 1
+#define u_feature_list_F_NOT_HAVE_COPP_FILTER 1
 #define u_feature_list_F_NOT_HAVE_MPLS_P2MP 1
 #define u_feature_list_F_NOT_HAVE_PIM_IPV6 1
 #define u_feature_list_F_NOT_HAVE_PIM_SMDM 1
@@ -525,15 +529,16 @@ extern "C" {
 #define u_feature_list_F_NOT_HAVE_ICCP 1
 #define u_feature_list_F_NOT_HAVE_ICCP_CLI 1
 #define u_feature_list_F_NOT_HAVE_CUSTOM1_MPLS 1
+#define u_feature_list_F_NOT_HAVE_LDP_RLFA_MAX_TUNNELS 1
 #define u_feature_list_F_NOT_HAVE_CUSTOM1_QOS 1
 #define u_feature_list_F_NOT_HAVE_EXTENDED_QOS 1
 #define u_feature_list_F_NOT_HAVE_POLICE_MAX_RATE_500GBPS 1
 #define u_feature_list_F_NOT_HAVE_CUSTOM3_QOS 1
-#define u_feature_list_F_NOT_HAVE_COPP_FILTER 1
 #define u_feature_list_F_NOT_HAVE_MPLS_FWD 1
 #define u_feature_list_F_NOT_HAVE_PCE 1
 #define u_feature_list_F_NOT_HAVE_CUSTOM_INTRA 1
 #define u_feature_list_F_NOT_IF_BANDWIDTH_INFO 1
+#define u_feature_list_F_NOT_HAVE_L2VPN_STITCHING 1
 #define u_feature_list_F_NOT_HAVE_PCEP_SRV6 1
 #define u_feature_list_F_NOT_HAVE_GMPLS_SONET_SIMULATION 1
 #define u_feature_list_F_NOT_HAVE_TRIDENT2 1
@@ -543,6 +548,7 @@ extern "C" {
 #define u_feature_list_F_NOT_ENABLE_HAL_PATH 1
 #define u_feature_list_F_NOT_HAVE_L2_AGE_SHOW 1
 #define u_feature_list_F_NOT_HAVE_ARM_ARCH 1
+#define u_feature_list_F_NOT_HAVE_XCVR_MODEL 1
 #define u_feature_list_F_NOT_HAVE_TRILL_OAM 1
 #define u_feature_list_F_NOT_PNE_VERSION_6_9 1
 #define u_feature_list_F_NOT_HAVE_REBOOT 1
@@ -553,6 +559,8 @@ extern "C" {
 #define u_feature_list_F_NOT_HAVE_IPSEC_HW 1
 #define u_feature_list_F_NOT_HAVE_FLEXE 1
 #define u_feature_list_F_NOT_HAVE_HWTABLE_SNMP 1
+#define u_feature_list_F_NOT_HAVE_AI_ML 1
+#define u_feature_list_F_NOT_HAVE_DLB 1
 #define u_feature_list_F_NOT_PNE_VERSION_3_7 1
 #define u_feature_list_F_NOT_HAVE_SERVICE_MAPPING_OR_HAVE_SRV6 1
 #define u_feature_list_F_NOT_HAVE_MPLS_OR_HAVE_SRV6 1
@@ -565,6 +573,7 @@ extern "C" {
 #define u_feature_list_F_NOT_HAVE_PIM_IPV4_OR_HAVE_PIM_IPV6 1
 #define u_feature_list_F_NOT_HAVE_MPLS_OR_HAVE_VXLAN_OR_HAVE_SRV6 1
 #define u_feature_list_F_NOT_HAVE_DHCP_CLIENT_OR_HAVE_HOSTPD_OR_HAVE_DHCP_SNOOP 1
+#define u_feature_list_F_NOT_HAVE_CUSTOM1_ACL_OR_HAVE_COPP_FILTER 1
 #define u_feature_list_F_NOT_NOT_HAVE_DUNE_OR_HAVE_DNX 1
 #define u_feature_list_F_NOT_HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM3_QOS_OR_HAVE_CUSTOM4_QOS 1
 #define u_feature_list_F_NOT_HAVE_CUSTOM3_QOS_OR_HAVE_CUSTOM4_QOS 1

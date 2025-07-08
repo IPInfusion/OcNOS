@@ -23,22 +23,22 @@ module ipi-isis {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2025-01-02;
+        revision-date 2025-03-21;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
     }
 
     import ipi-isis-types {
         prefix ipi-isis-types;
-        revision-date 2024-12-22;
+        revision-date 2025-04-23;
     }
 
     import ietf-inet-types {
@@ -48,22 +48,22 @@ module ipi-isis {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
-    include ipi-isis-extended { revision-date 2024-12-22;}
-    include ipi-isis-interface { revision-date 2025-02-04;}
-    include ipi-isis-sr { revision-date 2024-12-22;}
-    include ipi-isis-fad { revision-date 2024-12-28;}
-    include ipi-isis-lsp { revision-date 2024-12-22;}
     include ipi-isis-cspf { revision-date 2024-12-22;}
+    include ipi-isis-extended { revision-date 2024-12-22;}
+    include ipi-isis-fad { revision-date 2025-03-17;}
+    include ipi-isis-interface { revision-date 2025-06-09;}
+    include ipi-isis-lsp { revision-date 2024-12-22;}
+    include ipi-isis-sr { revision-date 2025-06-05;}
     include ipi-isis-lsp-flxalg { revision-date 2024-04-22;}
-    include ipi-isis-interface-flxalg { revision-date 2025-02-04;}
+    include ipi-isis-interface-flxalg { revision-date 2025-06-09;}
     organization
         "IP Infusion Inc.";
 
@@ -76,6 +76,56 @@ module ipi-isis {
     description
         "Model for managing IS-IS Instance";
 
+
+    revision "2025-06-10" {
+        description "Flex-Algo ASLA TE-Metric Max Value changes dependency";
+        reference " 0.14.00.";
+    }
+
+    revision "2025-06-05" {
+        description "Added a new objectlist to display SRLB range information";
+        reference " 0.13.50.";
+    }
+
+    revision "2025-06-02" {
+        description "Changed the Datatype of nexthop-ip";
+        reference " 0.14.1.";
+    }
+
+    revision "2025-05-31" {
+        description "ISIS Interface and global ASLA params change";
+        reference " 0.13.49.";
+    }
+
+    revision "2025-05-28" {
+        description "Remove if-feature from isis-microloop-avoidance-sr-protocols-config";
+        reference " 0.13.48.";
+    }
+
+    revision "2025-04-30" {
+        description "Micro-loop/sr-micro-loop configs are made mutually exclusive";
+        reference " 0.13.47.";
+    }
+
+    revision "2025-04-23" {
+        description "Updated element position for micro-loop-avoidance";
+        reference " 0.13.46.";
+    }
+
+    revision "2025-03-30" {
+        description "Added micro-loop avoidance data-model changes";
+        reference " 0.13.45.";
+    }
+
+    revision "2025-03-28" {
+        description "Changed display string for flexalgo clis";
+        reference " 0.13.44.";
+    }
+
+    revision "2025-02-20" {
+        description "ISIS authentication help string changed";
+        reference " 0.13.43.";
+    }
 
     revision "2025-02-04" {
         description "Changed Inteface Flex-Algo ASLA SRLG params to hidden";
@@ -695,8 +745,11 @@ module ipi-isis {
             type  empty;
             description "Use this attribute to configure the policy of ASLA Link attributes
                         usage in ASLA Sub-TLV (RFC-8919) for Flexible Algorithm. ISIS uses
-                        ASLA Link attributes by default. The command with no keyword enables
-                        this usage.";
+                        ASLA Link attributes by default, i.e. does not use legacy link
+                        attributes. The command with no keyword disables Flex-Algo ASLA usage,
+                        i.e. enables advertisement of legacy bit in ASLA. Command without no
+                        keyword enables ASLA Flex-Algo advertisement, i.e. disables legacy bit
+                        in ASLA sub-tlv.";
         } // END of disable-asla-usage-flex-algo definition.
 
         leaf enable-asla-strict-flex-algo  {
@@ -704,8 +757,16 @@ module ipi-isis {
             description "Use this attribute to configure the policy of strict ASLA Link
                         attributes usage for Flexible Algorithm path calculations. ISIS uses
                         ASLA Link attributes by default, may also use legacy TE Link
-                        attributes. The command with no keyword enables this usage.";
+                        attributes. The command with no keyword disables this usage.";
         } // END of enable-asla-strict-flex-algo definition.
+
+        leaf enable-asla-usage-all-apps  {
+            type  empty;
+            description "Use this attribute to configure the policy of ASLA Link attributes
+                        usage for all applications for path calculations. ISIS does not use
+                        ASLA Link attributes for all applications by default. The command with
+                        no keyword disables this usage.";
+        } // END of enable-asla-usage-all-apps definition.
 
         leaf enable-flex-algo-routing  {
             type  empty;
@@ -1104,6 +1165,106 @@ module ipi-isis {
             uses isis-disable-passive-interface-name-top;
         } // END of passive-interfaces-container definition.
     } // END of isis-passive-interface-top definition.
+    grouping isis-microloop-avoidance-sr-protocols-config {
+        description
+            "configuration items for microloop-avoidance";
+        leaf protocol  {
+            type  ipi-isis-types:isis_level_proto_t;
+            description "Protocol Address Family";
+        } // END of protocol definition.
+
+        leaf fib-delay  {
+            type  uint32 {
+                 range "100..300000"  {
+                    description "100..300000: Supported range 100 - 300000";
+                 }
+            }
+            default "1500";
+            description "Fib-delay";
+        } // END of fib-delay definition.
+
+    } // END of isis-microloop-avoidance-sr-protocols-config definition.
+    grouping isis-microloop-avoidance-sr-protocols-top {
+        description
+            "Description";
+        container protocols {
+            if-feature feature-list:HAVE_ISIS_SR;
+            if-feature feature-list:HAVE_ISIS_LFA_OR_HAVE_ISIS_TI_LFA;
+            description
+                "This container defines the Protocol Address Family Information";
+
+            list protocol {
+                key "protocol";
+                description
+                    "Protocol Address Family Information";
+                leaf protocol  {
+                    type  leafref {
+                        path  "../config/protocol";
+                    }
+                    description "Protocol Address Family";
+                } // END of protocol definition.
+
+                container config {
+                    description
+                        "This container defines the ISIS Microloop-avoidances Segemnt-Routing
+                                Configurations";
+                    uses isis-microloop-avoidance-sr-protocols-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container defines the ISIS Microloop Avoidance State";
+                    uses isis-microloop-avoidance-sr-protocols-config;
+                } // END of state-container definition.
+            } // End of protocol-list
+        } // END of protocols-container definition.
+    } // END of isis-microloop-avoidance-sr-protocols-top definition.
+    grouping isis-microloop-avoidance-params-sr-config {
+        description
+            "configuration items for microloop-avoidance";
+        leaf level-type  {
+            type  ipi-isis-types:isis_level2_t;
+            description "IS-IS instance level,(1|2)";
+        } // END of level-type definition.
+
+    } // END of isis-microloop-avoidance-params-sr-config definition.
+    grouping isis-microloop-avoidance-sr-top {
+        description
+            "Description";
+        container microloop-avoidance-segment-routing {
+            // when " not(/ipi-isis:isis/ipi-isis:isis-instances/ipi-isis:isis-instance/ipi-isis:microloop-avoidances/ipi-isis:microloop-avoidance/ipi-isis:config/ipi-isis:enable) ";
+            if-feature feature-list:HAVE_ISIS_SR;
+            if-feature feature-list:HAVE_ISIS_LFA_OR_HAVE_ISIS_TI_LFA;
+            description
+                "This container defines the ISIS Microloop Avoidance segment-routing";
+
+            list segment-routing {
+            // when " ipi-isis:isis/isis-instances/isis-instance/microloop-avoidance-segment-routing/segment-routing/protocols/protocol/config ";
+                key "level-type";
+                description
+                    "This objectlist defines the microloop-avoidance segment-routing";
+                leaf level-type  {
+                    type  leafref {
+                        path  "../config/level-type";
+                    }
+                    description "IS-IS instance level,(1|2)";
+                } // END of level-type definition.
+
+                container config {
+                    description
+                        "This container defines the ISIS Microloop Avoidance SR configurations";
+                    uses isis-microloop-avoidance-params-sr-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "This container defines the ISIS Microloop Avoidance SR State";
+                    uses isis-microloop-avoidance-params-sr-config;
+                } // END of state-container definition.
+                uses isis-microloop-avoidance-sr-protocols-top;
+            } // End of segment-routing-list
+        } // END of microloop-avoidance-segment-routing-container definition.
+    } // END of isis-microloop-avoidance-sr-top definition.
     grouping isis-microloop-avoidance-top {
         description
             "Grouping for ISIS Microloop Avoidance";
@@ -1137,6 +1298,7 @@ module ipi-isis {
                 } // END of state-container definition.
             } // End of microloop-avoidance-list
         } // END of microloop-avoidances-container definition.
+        uses isis-microloop-avoidance-sr-top;
     } // END of isis-microloop-avoidance-top definition.
     grouping isis-microloop-avoidance-params-config {
         description

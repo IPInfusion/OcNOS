@@ -23,17 +23,17 @@ module ipi-qos {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-qos-types {
         prefix ipi-qos-types;
-        revision-date 2025-01-14;
+        revision-date 2025-04-30;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -48,6 +48,91 @@ module ipi-qos {
     description
         "Quality of Service (QoS)";
 
+
+    revision "2025-06-10" {
+        description "Add match-any cmap dependecyObject on CoPP ACL and CoPP service-policy dependecyObject on CoPP pmap police";
+        reference " 8.0.5.";
+    }
+
+    revision "2025-06-04" {
+        description "Changed the class-map queuing name length from 32 to 64";
+        reference " 8.0.4.";
+    }
+
+    revision "2025-05-28" {
+        description "Fix policy-map type queuing default configuration";
+        reference " 8.0.3.";
+    }
+
+    revision "2025-05-27" {
+        description "Fix policy-map delete command for queuing default type";
+        reference " 8.0.2.";
+    }
+
+    revision "2025-05-13" {
+        description "Turn type into a key for policy-map objectlist. Rename attributes named type inside policy-map";
+        reference " 8.0.1.";
+    }
+
+    revision "2025-05-07" {
+        description "For 'cos' attr removed 'all' input for set/unset call";
+        reference " 7.0.3.";
+    }
+
+    revision "2025-04-30" {
+        description "wred limits max-threshold updated for DC boards";
+        reference " 7.0.2.";
+    }
+
+    revision "2025-04-20" {
+        description "changed rtp-all type from int to string";
+        reference " 7.0.1.";
+    }
+
+    revision "2025-04-10" {
+        description "Turn class-map type into a key for class-map objectlist";
+        reference " 7.0.0.";
+    }
+
+    revision "2025-04-08" {
+        description "Add dependencies between copp service-policy and other objects and access-list";
+        reference " 6.0.37.";
+    }
+
+    revision "2025-04-07" {
+        description "Adding child service policy support only for custom2_QoS ";
+        reference " 6.0.36.";
+    }
+
+    revision "2025-04-02" {
+        description "qos-mode police and color config cannot configured together in Q2";
+        reference " 6.0.35.";
+    }
+
+    revision "2025-03-27" {
+        description "Remove CoPP service-policy when dependecy";
+        reference " 6.0.34.";
+    }
+
+    revision "2025-03-25" {
+        description "Added proper help string for port-all";
+        reference " 6.0.33.";
+    }
+
+    revision "2025-03-13" {
+        description "Add trigger to delete containing config container when cir is reset to default";
+        reference " 6.0.32.";
+    }
+
+    revision "2025-03-12" {
+        description "Changed the type for port-all from int to range";
+        reference " 6.0.31.";
+    }
+
+    revision "2025-03-03" {
+        description "Changed the class-map and policy-map name length from 32 to 64";
+        reference " 6.0.30.";
+    }
 
     revision "2025-02-15" {
         description "Add trident4 commands inner vlan/cos as supported for ingress only";
@@ -635,7 +720,7 @@ module ipi-qos {
 
             list class-map {
             when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
-                key "name";
+                key "name type";
                 description
                     "Configuration data list for QoS class-map";
                 leaf name  {
@@ -644,6 +729,13 @@ module ipi-qos {
                     }
                     description "Use this attribute to set the class-map name";
                 } // END of name definition.
+
+                leaf type  {
+                    type  leafref {
+                        path  "../config/type";
+                    }
+                    description "Use this attribute to set the class-map type";
+                } // END of type definition.
 
                 container config {
                     description
@@ -860,7 +952,7 @@ module ipi-qos {
             "Grouping for QoS class match configuration";
         leaf name  {
             type  string {
-                length "1..32";
+                length "1..64";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to set the class-map name";
@@ -868,7 +960,6 @@ module ipi-qos {
 
         leaf type  {
             type  ipi-qos-types:qos_class_map_t;
-            mandatory true;
             description "Use this attribute to set the class-map type. Default value is 1.";
         } // END of type definition.
 
@@ -925,12 +1016,9 @@ module ipi-qos {
         } // END of port-type-all definition.
 
         leaf port-all  {
-            type  uint16 {
-                 range "1..65535"  {
-                    description "1..65535: Supported range 1 - 65535";
-                 }
-            }
-            description "Use this attribute to classify traffic based on the port";
+            type  cml-data-types:cml_range_t;
+            description "Use this attribute to classify traffic based on the port. Enter
+                        TCP/UDP port value 1-65535 or range of values.";
         } // END of port-all definition.
 
     } // END of qos-layer4-match-all-config definition.
@@ -1131,10 +1219,9 @@ module ipi-qos {
         } // END of inner-vlan-all definition.
 
         leaf rtp-all  {
-            type  uint32 {
-                 range "2000..65535"  {
-                    description "2000..65535: Supported range 2000 - 65535";
-                 }
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
             }
             description "Use this attribute to classify traffic based on the Real-time
                         Transport Protocol (RTP)";
@@ -1312,7 +1399,7 @@ module ipi-qos {
             "Grouping for QoS class-map-queuing configuration";
         leaf name  {
             type  string {
-                length "1..32";
+                length "1..64";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to set the class-map name";
@@ -3201,7 +3288,7 @@ module ipi-qos {
                 "Configuration data for QoS policy-map";
 
             list policy-map {
-                key "policy-map-name";
+                key "policy-map-name type";
                 description
                     "Configuration data list for QoS policy-map";
                 leaf policy-map-name  {
@@ -3210,6 +3297,13 @@ module ipi-qos {
                     }
                     description "Use this attribute to set the policy-map name";
                 } // END of policy-map-name definition.
+
+                leaf type  {
+                    type  leafref {
+                        path  "../config/type";
+                    }
+                    description "Use this attribute to set the policy-map type. Default value is 1.";
+                } // END of type definition.
 
                 container config {
                     description
@@ -3231,7 +3325,7 @@ module ipi-qos {
             "Grouping for QoS policy-map configuration";
         leaf policy-map-name  {
             type  string {
-                length "1..32";
+                length "1..64";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to set the policy-map name";
@@ -3239,7 +3333,6 @@ module ipi-qos {
 
         leaf type  {
             type  ipi-qos-types:qos_policy_map_t;
-            mandatory true;
             description "Use this attribute to set the policy-map type. Default value is 1.";
         } // END of type definition.
 
@@ -3297,13 +3390,14 @@ module ipi-qos {
                         policy-map";
         } // END of class-map-name definition.
 
-        leaf type  {
+        leaf class-type  {
             type  ipi-qos-types:qos_policy_map_t;
             mandatory true;
             description "Use this attribute to set the class-map type. Default value is 1.";
-        } // END of type definition.
+        } // END of class-type definition.
 
         leaf child-service-policy-name  {
+            if-feature feature-list:HAVE_CUSTOM2_QOS;
             type  leafref {
                 path  "/qos/global/policy-maps/policy-map/policy-map-name";
             }
@@ -3323,7 +3417,7 @@ module ipi-qos {
         description
             "Grouping for QoS queue";
         container queue-mode {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:config/ipi-qos:type = 'queuing' or /ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:config/ipi-qos:type = 'queuing-default' ";
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:config/ipi-qos:class-type = 'queuing' or /ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:config/ipi-qos:class-type = 'queuing-default' ";
             description
                 "Configuration data for QoS queue";
             container config {
@@ -3828,7 +3922,7 @@ module ipi-qos {
         description
             "Grouping for QoS qos";
         container qos-mode {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:config/ipi-qos:type = 'qos' ";
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:config/ipi-qos:class-type = 'qos' ";
             description
                 "Configuration data for QoS qos";
             container config {
@@ -3859,6 +3953,7 @@ module ipi-qos {
         } // END of priority definition.
 
         leaf color-value-remark  {
+            // when " not(/ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:qos-mode/ipi-qos:police/ipi-qos:config) ";
             if-feature feature-list:HAVE_CUSTOM3_QOS;
             type  ipi-qos-types:qos_color_action_t;
             description "Use this attribute to match traffic classes set action as change color
@@ -4047,10 +4142,10 @@ module ipi-qos {
     grouping qos-police-config {
         description
             "Grouping for QoS police configuration";
-        leaf type  {
+        leaf police-type  {
             type  ipi-qos-types:qos_police_t;
             description "Use this attribute to set policer type. Default value is 0.";
-        } // END of type definition.
+        } // END of police-type definition.
 
         leaf cir  {
             type  uint64 {
@@ -4585,7 +4680,7 @@ module ipi-qos {
         description
             "Grouping for QoS CoPP";
         container copp-mode {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:config/ipi-qos:type = 'copp' ";
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:policy-maps/ipi-qos:policy-map/ipi-qos:classes/ipi-qos:class/ipi-qos:config/ipi-qos:class-type = 'copp' ";
             if-feature feature-list:HAVE_COPP_FILTER;
             description
                 "Configuration data for QoS CoPP";

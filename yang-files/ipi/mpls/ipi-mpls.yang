@@ -23,7 +23,7 @@ module ipi-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-mpls-types {
@@ -33,7 +33,7 @@ module ipi-mpls {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ipi-global-te {
@@ -48,7 +48,7 @@ module ipi-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -63,6 +63,31 @@ module ipi-mpls {
     description
         "Data model for MPLS";
 
+
+    revision "2025-04-30" {
+        description "Fix compilation warnings";
+        reference " 0.10.4.";
+    }
+
+    revision "2025-04-29" {
+        description "New command added to enable or disable l2vpn network traffic statistics for Qumran2 devices";
+        reference " 0.10.3.";
+    }
+
+    revision "2025-03-07" {
+        description "Introduced a new CLI to enable or disable L2VPN stitching";
+        reference " 0.10.2.";
+    }
+
+    revision "2025-02-20" {
+        description "Added unique flag for group id in acces circuit group objectlist";
+        reference " 0.10.1.";
+    }
+
+    revision "2025-02-19" {
+        description "Added streaming telemetry support";
+        reference " 0.10.0.";
+    }
 
     revision "2024-12-23" {
         description "Changes to mpls global-te module";
@@ -522,6 +547,20 @@ module ipi-mpls {
                         header.";
         } // END of propagate-exp-to-cos definition.
 
+        leaf l2vpn-nw-statistics  {
+            if-feature feature-list:HAVE_DNX;
+            if-feature feature-list:HAVE_MPLS_STATS;
+            type  empty;
+            description "Use this attribute to allow counting the network side L2VPN traffic
+                        statistics at service level instead of counting them under transport.
+                        In Qumran2 devices, since a single counting profile is used, L2VPN
+                        traffic can be counted either at transport level or at service level
+                        but not both. In order to support auto bandwidth feature in RSVP,
+                        counting the traffic under transport is important. So, by default,
+                        L2VPN traffic is counted under transport. This attribute provisions
+                        the user to prefer network traffic statistics at L2VPN service level.";
+        } // END of l2vpn-nw-statistics definition.
+
         leaf six-pe-dscp-preserve  {
             if-feature feature-list:HAVE_6PE;
             if-feature feature-list:HAVE_DUNE;
@@ -534,6 +573,13 @@ module ipi-mpls {
             type  ipi-mpls-types:mpls_services_t;
             description "Use this attribute to suppress oper logs for the MPLS services";
         } // END of suppress-oper-log-mpls definition.
+
+        leaf l2vpn-stitching  {
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:HAVE_L2VPN_STITCHING;
+            type  empty;
+            description "Use this attribute to enable L2VPN stitching";
+        } // END of l2vpn-stitching definition.
 
     } // END of mpls-global-config definition.
     grouping mpls-debug-config {
@@ -885,6 +931,7 @@ module ipi-mpls {
             list access-circuit-group {
                 if-feature feature-list:HAVE_MPLS_VC;
                 key "group-name";
+                unique "config/group-identifier";
                 description
                     "List for config data for access-circuit-group";
                 leaf group-name  {

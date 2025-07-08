@@ -23,17 +23,17 @@ module ipi-acl {
 
     import ipi-acl-types {
         prefix ipi-acl-types;
-        revision-date 2024-12-13;
+        revision-date 2025-04-10;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-acl-common {
         prefix ipi-acl-common;
-        revision-date 2024-12-13;
+        revision-date 2025-06-08;
     }
 
     import ietf-yang-types {
@@ -43,14 +43,14 @@ module ipi-acl {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
-    include ipi-acl-ports { revision-date 2025-01-06;}
-    include ipi-acl-copp { revision-date 2024-12-17;}
-    include ipi-acl-mac { revision-date 2024-12-10;}
-    include ipi-acl-ipv6 { revision-date 2024-12-10;}
     include ipi-acl-arp { revision-date 2024-12-10;}
+    include ipi-acl-copp { revision-date 2025-05-14;}
+    include ipi-acl-ipv6 { revision-date 2025-02-28;}
+    include ipi-acl-mac { revision-date 2025-06-08;}
+    include ipi-acl-ports { revision-date 2025-01-06;}
     organization
         "IP Infusion Inc.";
 
@@ -63,6 +63,66 @@ module ipi-acl {
     description
         "Datamodel for Access Control List (ACL) object";
 
+
+    revision "2025-06-08" {
+        description "learning disable option for mac access control";
+        reference " 0.13.23.";
+    }
+
+    revision "2025-05-15" {
+        description "Adding remark support form CoPP access-lists";
+        reference " 0.13.22.";
+    }
+
+    revision "2025-05-14" {
+        description "Removed default value for log-action in copp access-list";
+        reference " 0.13.21.";
+    }
+
+    revision "2025-05-08" {
+        description "Blocked Fragment option for TD4";
+        reference " 0.13.20.";
+    }
+
+    revision "2025-05-02" {
+        description "Updated flags for CoPP log-action";
+        reference " 0.13.19.";
+    }
+
+    revision "2025-04-28" {
+        description "Updated flag with reset for CoPP log-action";
+        reference " 0.13.18.";
+    }
+
+    revision "2025-04-22" {
+        description "Added default values for resequence attributes";
+        reference " 0.13.17.";
+    }
+
+    revision "2025-04-10" {
+        description "Moved COPP IPv6 protocol types into a new type";
+        reference " 0.13.16.";
+    }
+
+    revision "2025-04-08" {
+        description "Added new types for copp including prefix groups";
+        reference " 0.13.15.";
+    }
+
+    revision "2025-04-01" {
+        description "Adding new flag to log-action in ipi-acl-copp";
+        reference " 0.13.14.";
+    }
+
+    revision "2025-03-07" {
+        description "New IPv6 CoPP ACL added";
+        reference " 0.13.13.";
+    }
+
+    revision "2025-02-28" {
+        description "Refactor upgrade functions";
+        reference " 0.13.12.";
+    }
 
     revision "2025-01-06" {
         description "ACL configuration should be removed from Db on mapping mlag";
@@ -823,6 +883,104 @@ module ipi-acl {
                 mandatory true;
                 description "The name of the access-list set";
             }
+        }
+    }
+
+    notification acl-copp-ipv4-prefix-install-failure {
+        if-feature feature-list:HAVE_ACL;
+        if-feature feature-list:HAVE_COPP_FILTER;
+
+        description "Indicates that an IPv4 prefix added to the prefix group was not installed successfully into the copp ACL.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: CRITICAL)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf name {
+            type  string;
+        description
+            "The name of the access-list set";
+        }
+
+        leaf type {
+            type ipi-acl-types:acl_types_t;
+        description
+            "Type indicates the fields allowed in the ACL entries belonging to the
+                    ACL set (e.g., ip, ipv6, etc.)";
+        }
+
+        leaf sequence-id {
+            type  uint32;
+        description
+            "The sequence id determines the order in which ACL entries are applied.
+                    The sequence id must be unique for each entry in an ACL set.";
+        }
+
+        leaf source-address {
+            type ipi-acl-types:acl_any_ipv4_src_addr_t;
+        description
+            "Source IPv4 address prefix.";
+        }
+
+        leaf destination-address {
+            type ipi-acl-types:acl_any_ipv4_dest_addr_t;
+        description
+            "Destination IPv4 address prefix.";
+        }
+    }
+
+    notification acl-copp-ipv6-prefix-install-failure {
+        if-feature feature-list:HAVE_ACL;
+        if-feature feature-list:HAVE_COPP_FILTER;
+
+        description "Indicates that an IPv6 prefix added to the prefix group was not installed successfully into the copp ACL.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: CRITICAL)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf name {
+            type  string;
+        description
+            "The name of the access-list set";
+        }
+
+        leaf type {
+            type ipi-acl-types:acl_types_t;
+        description
+            "Type indicates the fields allowed in the ACL entries belonging to the
+                    ACL set (e.g., ip, ipv6, etc.)";
+        }
+
+        leaf sequence-id {
+            type  uint32;
+        description
+            "The sequence id determines the order in which ACL entries are applied.
+                    The sequence id must be unique for each entry in an ACL set.";
+        }
+
+        leaf source-address {
+            type ipi-acl-types:acl_copp_any_ipv6_src_addr_t;
+        description
+            "Source IPv6 address prefix.";
+        }
+
+        leaf destination-address {
+            type ipi-acl-types:acl_copp_any_ipv6_dest_addr_t;
+        description
+            "Destination IPv6 address prefix.";
         }
     }
 

@@ -23,7 +23,7 @@ module ipi-evpn-mpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ietf-inet-types {
@@ -38,17 +38,22 @@ module ipi-evpn-mpls {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2025-01-02;
+        revision-date 2025-03-21;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
+    }
+
+    import ipi-mac-limit {
+        prefix ipi-mac-limit;
+        revision-date 2025-05-22;
     }
 
     import ietf-yang-types {
@@ -58,7 +63,7 @@ module ipi-evpn-mpls {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -73,6 +78,31 @@ module ipi-evpn-mpls {
     description
         "Datamodel for EVPN-MPLS protocol";
 
+
+    revision "2025-05-15" {
+        description "Added dependent Object under config contianer for mpls-tenants container";
+        reference " 0.14.4.";
+    }
+
+    revision "2025-05-05" {
+        description "Added input displayString and helpString for evi-learning-limit";
+        reference " 0.14.3.";
+    }
+
+    revision "2025-04-28" {
+        description "Added CML_SKIP_HITLESS_MERGE for control-word attribute";
+        reference " 0.14.2.";
+    }
+
+    revision "2025-04-08" {
+        description "Added learning-limit configurability for EVI instance";
+        reference " 0.14.1.";
+    }
+
+    revision "2025-03-24" {
+        description "Added 'CML_UNIQUE' for attributes 'vpws-identifier', 'tenant-description' and 'irb-name'";
+        reference " 0.14.0.";
+    }
 
     revision "2025-02-05" {
         description "Changing the route-map keyword to evpn-route-map";
@@ -314,6 +344,7 @@ module ipi-evpn-mpls {
             list mpls-tenant {
             when " /ipi-evpn-mpls:evpn-mpls/ipi-evpn-mpls:global/ipi-evpn-mpls:config ";
                 key "tenant-identifier";
+                unique "config/vpws-identifier config/tenant-description config/irb-name";
                 description
                     "Tenant configurations for EVPN-MPLS";
                 leaf tenant-identifier  {
@@ -614,6 +645,13 @@ module ipi-evpn-mpls {
             description "Use this attribute to provide default gateway behavior on a VTEP for
                         particular VNID.";
         } // END of irb-name definition.
+
+        leaf evi-learning-limit  {
+            type  leafref {
+                path  "/ipi-mac-limit:mac-limit-global/ipi-mac-limit:mac-limit-profiles/ipi-mac-limit:mac-limit-profile-inst/ipi-mac-limit:config/ipi-mac-limit:mac-lim-profile-name";
+            }
+            description "Attach MAC learning limit profile for EVPN MPLS EVI";
+        } // END of evi-learning-limit definition.
 
     } // END of evpn-mpls-tenant-config definition.
     grouping evpn-mpls-global-route-count-info {

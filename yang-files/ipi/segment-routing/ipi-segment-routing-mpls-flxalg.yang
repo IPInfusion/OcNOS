@@ -21,12 +21,12 @@ submodule ipi-segment-routing-mpls-flxalg {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     import ipi-sr-types {
         prefix ipi-sr-types;
-        revision-date 2024-03-09;
+        revision-date 2024-12-09;
     }
 
     import ietf-inet-types {
@@ -47,6 +47,16 @@ submodule ipi-segment-routing-mpls-flxalg {
         "Segment-routing configurations for MPLS Segments with Flexible
                 Algorithms";
 
+
+    revision "2025-05-30" {
+        description "Removed delete sequence under config container in adjacency segment and changed suppress cli to suppress-set-cli under adj-sid-proto attribute";
+        reference " 0.2.2.";
+    }
+
+    revision "2024-12-09" {
+        description "Modified existing adjacency-sid cli to handle per proto functionality";
+        reference " 0.2.1.";
+    }
 
     revision "2024-08-10" {
         description "Commented out Flex-Algo Adjacency-SID for OcNOS-6.6";
@@ -90,6 +100,11 @@ submodule ipi-segment-routing-mpls-flxalg {
     grouping adjacency-segment-def-algo-config {
         description
             "Grouping for MPLS segment-routing Adjacency configurations";
+        leaf adj-sid-proto  {
+            type  ipi-sr-types:sr_adj_proto_type;
+            description "This attribute is used to handle adjacency sid per proto configuration";
+        } // END of adj-sid-proto definition.
+
         leaf adj-sid-absolute  {
             type  uint32 {
                  range "16..1048575"  {
@@ -172,24 +187,37 @@ submodule ipi-segment-routing-mpls-flxalg {
     grouping adjacency-segment-def-algo-top {
         description
             "Grouping for MPLS segment-route adjacency configurations";
-        container adjacency-segment {
-            // when " ipi-interface:interfaces/interface/config/enable-switchport != '1' ";
+        container adjacency-segments {
             if-feature feature-list:HAVE_SR_MPLS;
             description
                 "MPLS segment-route adjacency";
-            container config {
-                // when " ../config/adj-sid-index or ../config/adj-sid-absolute ";
+
+            list adjacency-segment {
+            // when " ipi-interface:interfaces/interface/config/enable-switchport != '1' ";
+                key "adj-sid-proto";
                 description
-                    "Configuration data for segment-route adjacency module";
-                uses adjacency-segment-def-algo-config;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Operational state data for segment-route prefix module";
-                uses adjacency-segment-def-algo-config;
-            } // END of state-container definition.
-        } // END of adjacency-segment-container definition.
+                    "MPLS segment-route adjacency sid proto";
+                leaf adj-sid-proto  {
+                    type  leafref {
+                        path  "../config/adj-sid-proto";
+                    }
+                    description "This attribute is used to configure Segment Route adjacency SID
+                                absolute value";
+                } // END of adj-sid-proto definition.
+
+                container config {
+                    description
+                        "Configuration data for segment-route adjacency module";
+                    uses adjacency-segment-def-algo-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational state data for segment-route prefix module";
+                    uses adjacency-segment-def-algo-config;
+                } // END of state-container definition.
+            } // End of adjacency-segment-list
+        } // END of adjacency-segments-container definition.
     } // END of adjacency-segment-def-algo-top definition.
     grouping adjacency-segment-flex-algo-top {
         description

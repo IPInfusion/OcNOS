@@ -21,21 +21,21 @@ submodule ipi-bgp-peer-group {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2025-01-15;
+        revision-date 2025-06-11;
     }
 
-    include ipi-bgp-address-family { revision-date 2025-02-11;}
-    include ipi-bgp-common { revision-date 2025-01-27;}
+    include ipi-bgp-address-family { revision-date 2025-04-29;}
+    include ipi-bgp-common { revision-date 2025-04-29;}
     organization
         "IP Infusion Inc.";
 
@@ -48,6 +48,41 @@ submodule ipi-bgp-peer-group {
     description
         "";
 
+
+    revision "2025-05-06" {
+        description "Updated input displayString for attribute 'password' and Added cli-commands for 'password' delete";
+        reference " 0.15.9.";
+    }
+
+    revision "2025-04-24" {
+        description "Added dependentObject tag for 'peer-groups/peer-group/address-families/address-family/config'";
+        reference " 0.15.8.";
+    }
+
+    revision "2025-04-09" {
+        description "Updated range for group-limit attribute ";
+        reference " 0.15.7.";
+    }
+
+    revision "2025-04-03" {
+        description "Updated helpstring of peer-group for attribute 'advertisement-interval' and 'as-origination-interval' ";
+        reference " 0.15.6.";
+    }
+
+    revision "2025-04-01" {
+        description "Removed Neighbor BGP port from IPv6 labeled-unicast";
+        reference " 0.15.5.";
+    }
+
+    revision "2025-03-10" {
+        description "Added support for AIGP in peer group";
+        reference " 0.15.4.";
+    }
+
+    revision "2025-02-20" {
+        description "Added peer-adj-out-routes container for dynamic-peers peer-group container";
+        reference " 0.15.3.";
+    }
 
     revision "2025-01-27" {
         description "Added dynamic-peers container inside peer-group address-family state container";
@@ -349,9 +384,9 @@ submodule ipi-bgp-peer-group {
         } // END of peer-group-range definition.
 
         leaf group-limit  {
-            type  uint8 {
-                 range "1..200"  {
-                    description "1..200: Supported range 1 - 200";
+            type  uint16 {
+                 range "1..512"  {
+                    description "1..512: Supported range 1 - 512";
                  }
             }
             description "This attribute specifies maximum number of peer-groups in a dynamic
@@ -391,9 +426,64 @@ submodule ipi-bgp-peer-group {
                     } // END of counters-container definition.
                     uses bgp-peer-run-time-attribute-state;
                 } // END of state-container definition.
+                uses bgp-address-family-peer-group-dynamic-peer-adj-out-route-top;
             } // End of dynamic-peer-list
         } // END of dynamic-peers-container definition.
     } // END of bgp-address-family-dynamic-peer-group-config definition.
+    grouping bgp-address-family-peer-group-dynamic-peer-adj-out-route-top {
+        description
+            "Top level grouping for adj out routes for dynamic peer in a peer group";
+        container peer-adj-out-routes {
+            config false;
+            description
+                "Container for BGP Peer adj out route for peer-group";
+
+            list peer-adj-out-route {
+                key "network-address";
+                config false;
+                description
+                    "List of BGP Peer adj out routes for dynamic peers in a peer-group";
+                leaf network-address  {
+                    type  leafref {
+                        path  "../state/network-address";
+                    }
+                    description "Dynamic Peer Adj-Out Network address";
+                } // END of network-address definition.
+
+                container state {
+                    config false;
+                    description
+                        "State parameters relating to Adj out route";
+                    uses bgp-peer-adj-out-route-state;
+                } // END of state-container definition.
+                container next-hops {
+                    config false;
+                    description
+                        "Container for next-hop address and state parameters";
+
+                    list next-hop {
+                        key "next-hop-address";
+                        config false;
+                        description
+                            "List of next-hop address and state parameters";
+                        leaf next-hop-address  {
+                            type  leafref {
+                                path  "../state/next-hop-address";
+                            }
+                            description "Peer Adj-Out Nexthop address";
+                        } // END of next-hop-address definition.
+
+                        container state {
+                            config false;
+                            description
+                                "State attributes for next-hop";
+                            uses bgp-next-hop-state;
+                        } // END of state-container definition.
+                    } // End of next-hop-list
+                } // END of next-hops-container definition.
+            } // End of peer-adj-out-route-list
+        } // END of peer-adj-out-routes-container definition.
+    } // END of bgp-address-family-peer-group-dynamic-peer-adj-out-route-top definition.
     grouping bgp-address-family-peer-group-config {
         description
             "Configuration parameters for peer";
@@ -582,6 +672,90 @@ submodule ipi-bgp-peer-group {
         } // END of unsuppress-route-map-name definition.
 
     } // END of bgp-address-family-peer-group-config definition.
+    grouping bgp-peer-group-address-family-aigp-config {
+        description
+            "Config parameters of peer's aigp cost-community for BGP address family";
+        leaf admin-status  {
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
+            if-feature feature-list:HAVE_BGP_AIGP;
+            type  cml-data-types:cml_enable_disable_t;
+            description "Enable or disable AIGP";
+        } // END of admin-status definition.
+
+        leaf aigp-send-med  {
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
+            type  empty;
+            description "Enable AIGP send multi exit discriminator.";
+        } // END of aigp-send-med definition.
+
+    } // END of bgp-peer-group-address-family-aigp-config definition.
+    grouping bgp-peer-group-address-family-aigp-cost-community-config {
+        description
+            "Config parameters of peer's aigp cost-community for BGP address family";
+        leaf send-cost-community-id  {
+            // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate ";
+            if-feature feature-list:HAVE_BGP_AIGP;
+            type  uint8 {
+                 range "0..255"  {
+                    description "0..255: Supported range 0 - 255";
+                 }
+            }
+            mandatory true;
+            description "Send AIGP value in Cost community. And get the Community ID.";
+        } // END of send-cost-community-id definition.
+
+        leaf point-of-insertion  {
+            if-feature feature-list:HAVE_BGP_AIGP;
+            type  ipi-bgp-types:bgp_aigp_metric_cost_community_poi_t;
+            mandatory true;
+            description "Send AIGP value in Cost community. And get point of insertion.";
+        } // END of point-of-insertion definition.
+
+        leaf enable-transitive  {
+            if-feature feature-list:HAVE_BGP_AIGP;
+            type  empty;
+            description "Send AIGP value in Cost community and Enable Transitive Cost Community";
+        } // END of enable-transitive definition.
+
+    } // END of bgp-peer-group-address-family-aigp-cost-community-config definition.
+    grouping bgp-peer-group-address-family-aigp-config-top {
+        description
+            "Config parameters of peer group's AIGP for BGP address family";
+        container aigp {
+            if-feature feature-list:HAVE_BGP_AIGP;
+            description
+                "configuration parameters relating to AIGP";
+            container config {
+                description
+                    "Configuration parameters relating to the BGP peer group AIGP";
+                uses bgp-peer-group-address-family-aigp-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "State parameters relating to the BGP peer groups's AIGP";
+                uses bgp-peer-group-address-family-aigp-config;
+            } // END of state-container definition.
+            container cost-community {
+                if-feature feature-list:HAVE_BGP_AIGP;
+                description
+                    "configuration parameters relating to AIGP cost-community";
+                container config {
+                    presence "To configure cost-community";
+                    description
+                        "Configuration parameters relating to the BGP peer group's AIGP
+                                cost-community";
+                    uses bgp-peer-group-address-family-aigp-cost-community-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "State parameters relating to the BGP peer group's aigp cost-community";
+                    uses bgp-peer-group-address-family-aigp-cost-community-config;
+                } // END of state-container definition.
+            } // END of cost-community-container definition.
+        } // END of aigp-container definition.
+    } // END of bgp-peer-group-address-family-aigp-config-top definition.
     grouping bgp-peer-group-common-config {
         description
             "Configuration parameters common for BGP groups";
@@ -683,7 +857,6 @@ submodule ipi-bgp-peer-group {
                     description "1..65535: Supported range 1 - 65535";
                  }
             }
-            default "1";
             description "Configures the minimum interval between the sending of AS-origination
                         routing updates.";
         } // END of peer-as-origin-interval definition.
@@ -695,7 +868,6 @@ submodule ipi-bgp-peer-group {
                     description "0..65535: Supported range 0 - 65535";
                  }
             }
-            default "0";
             description "Sets a minimum route advertisement interval between the sending of BGP
                         routing updates. To reduce the flapping of routes to internet, a
                         minimum advertisement interval is set, so that the BGP routing updates
@@ -1086,7 +1258,6 @@ submodule ipi-bgp-peer-group {
                             "State parameters relating to the address-family for BGP Peer";
                         uses bgp-peer-group-address-family-common-config;
                         uses bgp-address-family-peer-group-config;
-                        uses bgp-address-family-dynamic-peer-group-config;
                     } // END of state-container definition.
                     container maximum-prefixes {
                         description
@@ -1212,7 +1383,7 @@ submodule ipi-bgp-peer-group {
                             "Container for Route map Filters";
 
                         list route-map-filter {
-                        // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/config/activate + ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/route-map-filters/route-map-filter/config/route-map-name ";
+                        // when " ipi-bgp-peer-group:peer-groups/peer-group/address-families/address-family/route-map-filters/route-map-filter/config/route-map-name ";
                             key "route-map-direction";
                             description
                                 "List of Route map Filter";
@@ -1236,6 +1407,8 @@ submodule ipi-bgp-peer-group {
                             } // END of state-container definition.
                         } // End of route-map-filter-list
                     } // END of route-map-filters-container definition.
+                    uses bgp-peer-group-address-family-aigp-config-top;
+                    uses bgp-address-family-dynamic-peer-group-config;
                 } // End of address-family-list
             } // END of address-families-container definition.
         } // End of peer-group-list

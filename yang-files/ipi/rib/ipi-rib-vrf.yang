@@ -21,29 +21,44 @@ module ipi-rib-vrf {
 
     prefix "ipi-rib-vrf";
 
+    import ipi-rib-types {
+        prefix ipi-rib-types;
+        revision-date 2025-02-07;
+    }
+
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-rib-common {
         prefix ipi-rib-common;
-        revision-date 2024-11-27;
+        revision-date 2025-02-07;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
+    }
+
+    import ipi-network-instance-types {
+        prefix ipi-network-instance-types;
+        revision-date 2023-03-14;
+    }
+
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2025-01-02;
+        revision-date 2025-03-21;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -58,6 +73,16 @@ module ipi-rib-vrf {
     description
         "Datamodel for VRF RIB object";
 
+
+    revision "2025-03-19" {
+        description "Added custom error msg for rejecting max FIB routes config on default and mgmt VRF";
+        reference " 1.1.1.";
+    }
+
+    revision "2025-02-07" {
+        description "Added an option to configure maximum-fib-routes";
+        reference " 1.1.0.";
+    }
 
     revision "2024-12-16" {
         description "Fix DB-sync issue for global/config container";
@@ -221,6 +246,57 @@ module ipi-rib-vrf {
         } // END of ipv6-enable-bfd-all-interfaces definition.
 
     } // END of rib-global-vrf-bfd-config definition.
+    grouping maximum-fib-route-config {
+        description
+            "Maximum FIB Route Configuration attributes";
+        leaf max-limit  {
+            type  uint32 {
+                 range "1..2147483647"  {
+                    description "1..2147483647: Supported range 1 - 2147483647";
+                 }
+            }
+            mandatory true;
+            description "Use this attribute to limit the maximum number of routes to be
+                        installed in VRF FIB.";
+        } // END of max-limit definition.
+
+        leaf limit-action  {
+            type  ipi-rib-types:rib_max_route_action_t;
+            mandatory true;
+            description "Use this attribute to define the action to be performed when the limit
+                        is reached.";
+        } // END of limit-action definition.
+
+        leaf warning-threshold  {
+            type  uint8 {
+                 range "1..100"  {
+                    description "1..100: Supported range 1 - 100";
+                 }
+            }
+            units "%";
+            default "80";
+            description "Use this attribute to define a percentage of the maximum route limit
+                        which when crossed results in a warning message and Netconf
+                        notification being raised. Default is 80%.";
+        } // END of warning-threshold definition.
+
+    } // END of maximum-fib-route-config definition.
+    grouping maximum-fib-route-state {
+        description
+            "Maximum FIB Route state attributes";
+        leaf threshold-exceeded  {
+            type  boolean;
+            description "This attribute indicates whether the max route threshold is exceeded
+                        or not.";
+        } // END of threshold-exceeded definition.
+
+        leaf utilization-percentage  {
+            type  uint32;
+            units "%";
+            description "This attribute specifies utilization percentage of routes.";
+        } // END of utilization-percentage definition.
+
+    } // END of maximum-fib-route-state definition.
 
     grouping  global-grouping {
     description
@@ -612,6 +688,52 @@ module ipi-rib-vrf {
     } // END of ribs-container definition.
     } // END of ribs-grouping definition.
 
+    grouping  maximum-fib-routes-grouping {
+    description
+        "VRF Max Route configurations";
+    container maximum-fib-routes {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
+        description
+            "VRF Max Route configurations";
+        container ipv4 {
+            description
+                "IPV4 Max Route configurations";
+            container config {
+                presence "To configure max IPv4 fib routes";
+                description
+                    "Configuration attributes for IPv4 max routes";
+                uses maximum-fib-route-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational data for IPv4 max routes";
+                uses maximum-fib-route-config;
+                uses maximum-fib-route-state;
+            } // END of state-container definition.
+        } // END of ipv4-container definition.
+        container ipv6 {
+            if-feature feature-list:HAVE_IPV6;
+            description
+                "IPV6 Max Route configurations";
+            container config {
+                presence "To configure max IPv6 fib routes";
+                description
+                    "Configuration attributes for IPv6 max routes";
+                uses maximum-fib-route-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational data for IPv6 max routes";
+                uses maximum-fib-route-config;
+                uses maximum-fib-route-state;
+            } // END of state-container definition.
+        } // END of ipv6-container definition.
+    } // END of maximum-fib-routes-container definition.
+    } // END of maximum-fib-routes-grouping definition.
+
     augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf {
         if-feature feature-list:HAVE_VRF;
         description
@@ -631,6 +753,14 @@ module ipi-rib-vrf {
         description
             "RIB run-time attributes";
         uses ribs-grouping;
+    }
+
+    augment /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf {
+    when " /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-network-instance:instance-type = 'vrf' and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name != 'default'  and /ipi-network-instance:network-instances/ipi-network-instance:network-instance/ipi-vrf:vrf/ipi-vrf:config/ipi-vrf:vrf-name != 'management'  ";
+        if-feature feature-list:HAVE_VRF;
+        description
+            "VRF Max Route configurations";
+        uses maximum-fib-routes-grouping;
     }
 
 
@@ -699,6 +829,498 @@ module ipi-rib-vrf {
                 mandatory true;
                 description "Prefix to be cleared(e.g. 3ffe:506::/32)";
             }
+        }
+    }
+
+    notification vrf-ipv4-fib-routes-above-threshold {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
+
+        description "Notify when the installed VRF FIB IPv4 routes crosses the configured threshold.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: WARNING)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.
+                    For Bridge-domain, instance, instance name has to be a number between
+                    (1-2147483647).";
+        }
+
+        leaf max-limit {
+            type  uint32;
+        description
+            "Use this attribute to limit the maximum number of routes to be
+                    installed in VRF FIB.";
+        }
+
+        leaf warning-threshold {
+            type  uint8;
+        description
+            "Use this attribute to define a percentage of the maximum route limit
+                    which when crossed results in a warning message and Netconf
+                    notification being raised. Default is 80%.";
+        }
+
+        leaf threshold-exceeded {
+            type  boolean;
+        description
+            "This attribute indicates whether the max route threshold is exceeded
+                    or not.";
+        }
+
+        leaf total-routes {
+            type  yang:counter32;
+        description
+            "Total routes in the RIB from all protocols";
+        }
+    }
+
+    notification vrf-ipv4-fib-routes-below-threshold {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
+
+        description "Notify when the installed VRF FIB IPv4 routes fall below the configured threshold.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: WARNING)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.
+                    For Bridge-domain, instance, instance name has to be a number between
+                    (1-2147483647).";
+        }
+
+        leaf max-limit {
+            type  uint32;
+        description
+            "Use this attribute to limit the maximum number of routes to be
+                    installed in VRF FIB.";
+        }
+
+        leaf warning-threshold {
+            type  uint8;
+        description
+            "Use this attribute to define a percentage of the maximum route limit
+                    which when crossed results in a warning message and Netconf
+                    notification being raised. Default is 80%.";
+        }
+
+        leaf threshold-exceeded {
+            type  boolean;
+        description
+            "This attribute indicates whether the max route threshold is exceeded
+                    or not.";
+        }
+
+        leaf total-routes {
+            type  yang:counter32;
+        description
+            "Total routes in the RIB from all protocols";
+        }
+    }
+
+    notification vrf-ipv6-fib-routes-above-threshold {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
+        if-feature feature-list:HAVE_IPV6;
+
+        description "Notify when the installed VRF FIB IPv6 routes crosses the configured threshold.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: WARNING)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.
+                    For Bridge-domain, instance, instance name has to be a number between
+                    (1-2147483647).";
+        }
+
+        leaf max-limit {
+            type  uint32;
+        description
+            "Use this attribute to limit the maximum number of routes to be
+                    installed in VRF FIB.";
+        }
+
+        leaf warning-threshold {
+            type  uint8;
+        description
+            "Use this attribute to define a percentage of the maximum route limit
+                    which when crossed results in a warning message and Netconf
+                    notification being raised. Default is 80%.";
+        }
+
+        leaf threshold-exceeded {
+            type  boolean;
+        description
+            "This attribute indicates whether the max route threshold is exceeded
+                    or not.";
+        }
+
+        leaf total-routes {
+            type  yang:counter32;
+        description
+            "Total routes in the RIB from all protocols";
+        }
+    }
+
+    notification vrf-ipv6-fib-routes-below-threshold {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
+        if-feature feature-list:HAVE_IPV6;
+
+        description "Notify when the installed VRF FIB IPv6 routes fall below the configured threshold.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: WARNING)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.
+                    For Bridge-domain, instance, instance name has to be a number between
+                    (1-2147483647).";
+        }
+
+        leaf max-limit {
+            type  uint32;
+        description
+            "Use this attribute to limit the maximum number of routes to be
+                    installed in VRF FIB.";
+        }
+
+        leaf warning-threshold {
+            type  uint8;
+        description
+            "Use this attribute to define a percentage of the maximum route limit
+                    which when crossed results in a warning message and Netconf
+                    notification being raised. Default is 80%.";
+        }
+
+        leaf threshold-exceeded {
+            type  boolean;
+        description
+            "This attribute indicates whether the max route threshold is exceeded
+                    or not.";
+        }
+
+        leaf total-routes {
+            type  yang:counter32;
+        description
+            "Total routes in the RIB from all protocols";
+        }
+    }
+
+    notification vrf-ipv4-max-fib-routes-limit-reached {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
+
+        description "Notify when the installed VRF FIB IPv4 routes reaches the configured limit.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: WARNING)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.
+                    For Bridge-domain, instance, instance name has to be a number between
+                    (1-2147483647).";
+        }
+
+        leaf max-limit {
+            type  uint32;
+        description
+            "Use this attribute to limit the maximum number of routes to be
+                    installed in VRF FIB.";
+        }
+
+        leaf limit-action {
+            type ipi-rib-types:rib_max_route_action_t;
+        description
+            "Use this attribute to define the action to be performed when the limit
+                    is reached.";
+        }
+
+        leaf total-routes {
+            type  yang:counter32;
+        description
+            "Total routes in the RIB from all protocols";
+        }
+    }
+
+    notification vrf-ipv4-max-fib-routes-below-route-limit {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
+
+        description "Notify when the installed VRF FIB IPv4 routes fall below the configured limit.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: WARNING)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.
+                    For Bridge-domain, instance, instance name has to be a number between
+                    (1-2147483647).";
+        }
+
+        leaf max-limit {
+            type  uint32;
+        description
+            "Use this attribute to limit the maximum number of routes to be
+                    installed in VRF FIB.";
+        }
+
+        leaf limit-action {
+            type ipi-rib-types:rib_max_route_action_t;
+        description
+            "Use this attribute to define the action to be performed when the limit
+                    is reached.";
+        }
+
+        leaf total-routes {
+            type  yang:counter32;
+        description
+            "Total routes in the RIB from all protocols";
+        }
+    }
+
+    notification vrf-ipv6-max-fib-routes-limit-reached {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
+        if-feature feature-list:HAVE_IPV6;
+
+        description "Notify when the installed VRF FIB IPv6 routes reaches the configured limit.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: WARNING)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.
+                    For Bridge-domain, instance, instance name has to be a number between
+                    (1-2147483647).";
+        }
+
+        leaf max-limit {
+            type  uint32;
+        description
+            "Use this attribute to limit the maximum number of routes to be
+                    installed in VRF FIB.";
+        }
+
+        leaf limit-action {
+            type ipi-rib-types:rib_max_route_action_t;
+        description
+            "Use this attribute to define the action to be performed when the limit
+                    is reached.";
+        }
+
+        leaf total-routes {
+            type  yang:counter32;
+        description
+            "Total routes in the RIB from all protocols";
+        }
+    }
+
+    notification vrf-ipv6-max-fib-routes-below-route-limit {
+        if-feature feature-list:HAVE_VRF;
+        if-feature feature-list:HAVE_RIBD;
+        if-feature feature-list:HAVE_IPV6;
+
+        description "Notify when the installed VRF FIB IPv6 routes fall below the configured limit.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: WARNING)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf instance-type {
+            type ipi-network-instance-types:net_inst_type_t;
+        description
+            "Network Instance Type";
+        }
+
+        leaf instance-name {
+            type  string;
+        description
+            "Network Instance Name.
+                    For VRF and MAC VRF, instance name can be up to 32 chars long.
+                    For VPWS and VPLS instances, instance name can be up to 128 chars
+                    long.
+                    For L2NI (bridge) instance, instance name has to be a number between
+                    (1-32).
+                    For Cross-Connect, instance name can be up to 30 chars long.
+                    For Bridge-domain, instance, instance name has to be a number between
+                    (1-2147483647).";
+        }
+
+        leaf max-limit {
+            type  uint32;
+        description
+            "Use this attribute to limit the maximum number of routes to be
+                    installed in VRF FIB.";
+        }
+
+        leaf limit-action {
+            type ipi-rib-types:rib_max_route_action_t;
+        description
+            "Use this attribute to define the action to be performed when the limit
+                    is reached.";
+        }
+
+        leaf total-routes {
+            type  yang:counter32;
+        description
+            "Total routes in the RIB from all protocols";
         }
     }
 

@@ -21,15 +21,15 @@ submodule ipi-platform-transceiver {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     import ipi-platform-transceiver-types {
         prefix ipi-platform-transceiver-types;
-        revision-date 2024-12-09;
+        revision-date 2025-04-28;
     }
 
-    include ipi-platform-cmis { revision-date 2024-12-23;}
+    include ipi-platform-cmis { revision-date 2025-04-28;}
     include ipi-platform-transceiver-tibit { revision-date 2022-07-14;}
     organization
         "IP Infusion Inc.";
@@ -43,6 +43,21 @@ submodule ipi-platform-transceiver {
     description
         "This module defines a schema for ram components in platform datamodel";
 
+
+    revision "2025-04-28" {
+        description "Revert transceiver CLI migration changes";
+        reference " 0.8.1.";
+    }
+
+    revision "2025-03-14" {
+        description "CLI migration from qsfp-dd references to xcvr references";
+        reference " 0.8.0.";
+    }
+
+    revision "2025-01-28" {
+        description "Added default cache timer for transceiver state data";
+        reference " 0.7.0.";
+    }
 
     revision "2023-12-13" {
         description "Added transceiver module-functional-type attribute";
@@ -831,6 +846,41 @@ submodule ipi-platform-transceiver {
         } // END of qsfp-options-implemented definition.
 
     } // END of qsfp-state definition.
+    grouping transceiver-mapping-state {
+        description
+            "Operational state data for transceiver mapping info";
+        leaf port  {
+            type  uint8;
+            description "Transceiver port number";
+        } // END of port definition.
+
+        leaf front-panel-port  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Transceiver front panel port label";
+        } // END of front-panel-port definition.
+
+        leaf port-type  {
+            type  ipi-platform-transceiver-types:ddm_cmm_trans_port_type_t;
+            description "Transceiver port type";
+        } // END of port-type definition.
+
+        leaf module-type  {
+            type  ipi-platform-transceiver-types:ddm_cmm_trans_module_type_t;
+            description "Transceiver module type";
+        } // END of module-type definition.
+
+        leaf interface  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Interface attached to the transceiver";
+        } // END of interface definition.
+
+    } // END of transceiver-mapping-state definition.
 
     grouping  transceiver-grouping {
     description
@@ -888,6 +938,17 @@ submodule ipi-platform-transceiver {
                 "Container for transceivers channels information";
             uses transceiver-channel-top;
         } // END of channels-container definition.
+        container mapping {
+            config false;
+            description
+                "Container for transceiver mapping information";
+            container state {
+                config false;
+                description
+                    "Operational state data for transceiver mapping";
+                uses transceiver-mapping-state;
+            } // END of state-container definition.
+        } // END of mapping-container definition.
         uses cmis-module-grouping;
         uses tibit-olt-microplug-grouping;
     } // END of transceiver-container definition.

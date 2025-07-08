@@ -21,17 +21,17 @@ submodule ipi-platform-profile {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-platform-profile-types {
         prefix ipi-platform-profile-types;
-        revision-date 2025-01-30;
+        revision-date 2025-04-07;
     }
 
     include ipi-platform-profile-extended { revision-date 2024-10-08;}
@@ -48,9 +48,94 @@ submodule ipi-platform-profile {
         "Datamodel for Platform profile object";
 
 
+    revision "2025-06-11" {
+        description "Added Dependent Object for advanced parser to address the sequence during reboot";
+        reference " 0.29.29.";
+    }
+
+    revision "2025-06-09" {
+        description "Blocking forwarding profile for Hurican4 family";
+        reference " 0.29.28.";
+    }
+
+    revision "2025-05-22" {
+        description "Blocking hardware-profile filter ingress-ipv6 for TD4";
+        reference " 0.29.27.";
+    }
+
+    revision "2025-05-14" {
+        description "Blocking hardware-profile filter bfd-group for TH5";
+        reference " 0.29.26.";
+    }
+
+    revision "2025-05-01" {
+        description "Moved up ingress-ipv4-qos-copp/ingress-ipv6-qos-copp attr";
+        reference " 0.29.25.";
+    }
+
+    revision "2025-04-28" {
+        description "Added hardware-profile filter ingress-qos-ipv6";
+        reference " 0.29.24.";
+    }
+
+    revision "2025-04-25" {
+        description "hardware-profile filter egress-ipv6 CLI disabled for ltsw_new";
+        reference " 0.29.23.";
+    }
+
+    revision "2025-04-10" {
+        description "Added hardware-profile qos-subif-policer and qos-subif-extended";
+        reference " 0.29.22.";
+    }
+
+    revision "2025-04-08" {
+        description "added hardware-profile ingress-ipv4-subif-ext";
+        reference " 0.29.21.";
+    }
+
+    revision "2025-04-07" {
+        description "Added support for Speculative options for DPI";
+        reference " 0.29.20.";
+    }
+
+    revision "2025-04-04" {
+        description "Added mode2/mode3 for hardware-profile port mode for S9600-28dx/64x/56dx/32x";
+        reference " 0.29.19.";
+    }
+
+    revision "2025-03-27" {
+        description "Added Roce Qpairs for Load-balance";
+        reference " 0.29.18.";
+    }
+
+    revision "2025-03-25" {
+        description "Add ingress-ipv6-qos-copp filter and remove ingress-ipv4-qos and copp when dependency";
+        reference " 0.29.17.";
+    }
+
+    revision "2025-03-20" {
+        description "rearranged attribute order for qos-policer and ingress-ipv6";
+        reference " 0.29.16.";
+    }
+
+    revision "2025-03-17" {
+        description "Added kbp-disable to hardware-profile--config";
+        reference " 0.29.15.";
+    }
+
+    revision "2025-02-21" {
+        description "removed mode2/mode3 for hardware-profile port mode for S9600-28dx/64x/56dx/32x";
+        reference " 0.29.14.";
+    }
+
+    revision "2025-02-14" {
+        description "Added support for hardware-profile port mode for S9610-46DX and 48DX";
+        reference " 0.29.13.";
+    }
+
     revision "2025-01-31" {
         description "Fix for the issue while enabling hardware-profile twamp";
-        reference " 0.29.4.";
+        reference " 0.29.12.";
     }
 
     revision "2025-01-30" {
@@ -566,6 +651,12 @@ submodule ipi-platform-profile {
             description "Use this attribute to enable or disable hardware profile seamless-bfd.";
         } // END of seamless-bfd definition.
 
+        leaf kbp-disable  {
+            if-feature feature-list:HAVE_DNX;
+            type  empty;
+            description "Use this attribute to enable or disable kbp hardware profile.";
+        } // END of kbp-disable definition.
+
         leaf ufis9600-64x-port-mode  {
             if-feature feature-list:HAVE_DUNE;
             type  ipi-platform-profile-types:platform_ufis9600_64x_port_mode_type_t;
@@ -638,6 +729,22 @@ submodule ipi-platform-profile {
                         modes";
         } // END of ufis9610-36d-port-mode definition.
 
+        leaf ufis9610-46dx-port-mode  {
+            if-feature feature-list:HAVE_DUNE;
+            type  ipi-platform-profile-types:platform_ufis9610_46dx_port_mode_type_t;
+            default "mode1";
+            description "use this attribute to configure or unconfigure hardware profile port
+                        modes";
+        } // END of ufis9610-46dx-port-mode definition.
+
+        leaf ufis9610-48dx-port-mode  {
+            if-feature feature-list:HAVE_DUNE;
+            type  ipi-platform-profile-types:platform_ufis9610_48dx_port_mode_type_t;
+            default "mode1";
+            description "use this attribute to configure or unconfigure hardware profile port
+                        modes";
+        } // END of ufis9610-48dx-port-mode definition.
+
         leaf as9947_36xkb-port-mode  {
             if-feature feature-list:HAVE_DNX;
             type  ipi-platform-profile-types:platform_as9947_36kbx_port_mode_type_t;
@@ -705,6 +812,14 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of egress-ipv6-dnx definition.
 
+        leaf ingress-ipv6  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress IPv6 filter groups.
+                        Disabling filter groups increases the configurable filter entries.";
+        } // END of ingress-ipv6 definition.
+
         leaf qos-policer  {
             // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-extended ";
             if-feature feature-list:HAVE_ACL;
@@ -714,13 +829,16 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of qos-policer definition.
 
-        leaf ingress-ipv6  {
+        leaf qos-subif-policer  {
+            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-extended + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-policer ";
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
             type  empty;
-            description "Use this attribute to enable or disable Ingress IPv6 filter groups.
-                        Disabling filter groups increases the configurable filter entries.";
-        } // END of ingress-ipv6 definition.
+            description "Use this attribute to enable or disable QoS subif policer filter
+                        groups. Disabling filter groups increases the configurable filter
+                        entries.";
+        } // END of qos-subif-policer definition.
 
         leaf qos-ipv6  {
             if-feature feature-list:HAVE_ACL;
@@ -758,6 +876,16 @@ submodule ipi-platform-profile {
                         Disabling filter groups increases the configurable filter entries.";
         } // END of qos-extended definition.
 
+        leaf qos-subif-extended  {
+            // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/qos + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-policer + !ipi-platform-profile:profiles/hardware-profile/filters/config/qos-extended ";
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
+            type  empty;
+            description "Use this attribute to enable or disable QoS extended filter groups.
+                        Disabling filter groups increases the configurable filter entries.";
+        } // END of qos-subif-extended definition.
+
         leaf ingress-ipv4-extended  {
             if-feature feature-list:HAVE_ACL;
             if-feature feature-list:HAVE_DUNE;
@@ -766,6 +894,16 @@ submodule ipi-platform-profile {
                         groups. Disabling filter groups increases the configurable filter
                         entries.";
         } // END of ingress-ipv4-extended definition.
+
+        leaf ingress-ipv4-subif-extended  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress IPv4 subif extended
+                        filter groups. Disabling filter groups increases the configurable
+                        filter entries.";
+        } // END of ingress-ipv4-subif-extended definition.
 
         leaf ingress-ipv6-qos  {
             if-feature feature-list:HAVE_ACL;
@@ -784,6 +922,27 @@ submodule ipi-platform-profile {
                         groups. Disabling filter groups increases the configurable filter
                         entries.";
         } // END of ingress-ipv4-qos definition.
+
+        leaf ingress-ipv6-qos-copp  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DNX;
+            if-feature feature-list:HAVE_COPP_FILTER;
+            if-feature feature-list:HAVE_IPV6;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress IPv6 QoS and CoPP
+                        filter groups. Disabling filter groups increases the configurable
+                        filter entries.";
+        } // END of ingress-ipv6-qos-copp definition.
+
+        leaf ingress-ipv4-qos-copp  {
+            if-feature feature-list:HAVE_ACL;
+            if-feature feature-list:HAVE_DNX;
+            if-feature feature-list:HAVE_COPP_FILTER;
+            type  empty;
+            description "Use this attribute to enable or disable Ingress IPv4 QoS and CoPP
+                        filter groups. Disabling filter groups increases the configurable
+                        filter entries.";
+        } // END of ingress-ipv4-qos-copp definition.
 
         leaf ingress-layer2-extended  {
             // when " !ipi-platform-profile:profiles/hardware-profile/filters/config/ingress-layer2 ";
@@ -1106,16 +1265,6 @@ submodule ipi-platform-profile {
                         filter groups increases the configurable filter entries.";
         } // END of qos definition.
 
-        leaf ingress-ipv4-qos-copp  {
-            if-feature feature-list:HAVE_ACL;
-            if-feature feature-list:HAVE_DNX;
-            if-feature feature-list:HAVE_COPP_FILTER;
-            type  empty;
-            description "Use this attribute to enable or disable Ingress IPv4 QoS and CoPP
-                        filter groups. Disabling filter groups increases the configurable
-                        filter entries.";
-        } // END of ingress-ipv4-qos-copp definition.
-
     } // END of hardware-profile-filters-config definition.
     grouping hardware-profile-filter-evpn-mpls-multi-homing {
         description
@@ -1141,6 +1290,14 @@ submodule ipi-platform-profile {
             type  empty;
             description "This Object is set parser enable";
         } // END of parser-enable definition.
+
+        leaf parser-nibble-map  {
+            if-feature feature-list:HAVE_MPLS;
+            if-feature feature-list:HAVE_DUNE;
+            if-feature feature-list:NOT_HAVE_DNX;
+            type  ipi-platform-profile-types:platform_parser_type_t;
+            description "This Object is to set speculation option";
+        } // END of parser-nibble-map definition.
 
     } // END of platform-advanced-parser-soc-enable definition.
     grouping hardware-profiles-statistics-config {
@@ -1628,6 +1785,12 @@ submodule ipi-platform-profile {
             description "This Object is set for Protocol Id based load balancing";
         } // END of protocol-id-based definition.
 
+        leaf rocev2-dest-qpairs  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  empty;
+            description "This Object is set for qpairs based load balancing on ROCE";
+        } // END of rocev2-dest-qpairs definition.
+
     } // END of platform-load-balance-ipv4-config definition.
     grouping platform-load-balance-flb-base-config {
         description
@@ -1711,6 +1874,12 @@ submodule ipi-platform-profile {
             type  empty;
             description "This Object is set for Next Header Field for IPV6";
         } // END of next-header-based definition.
+
+        leaf rocev2-dest-qpairs  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  empty;
+            description "This Object is set for qpairs based load balancing on ROCE";
+        } // END of rocev2-dest-qpairs definition.
 
     } // END of platform-load-balance-ipv6-config definition.
     grouping mvl-platform-load-balance-config {

@@ -23,17 +23,17 @@ module ipi-routemap {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-routemap-types {
         prefix ipi-routemap-types;
-        revision-date 2022-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ietf-inet-types {
@@ -43,7 +43,7 @@ module ipi-routemap {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -59,9 +59,69 @@ module ipi-routemap {
         "Layer-3 pbr configurations";
 
 
+    revision "2025-06-13" {
+        description "Updated the description for the large community";
+        reference " 0.10.11.";
+    }
+
+    revision "2025-06-12" {
+        description "Added range value for extcommunity rt and soo description";
+        reference " 0.10.10.";
+    }
+
+    revision "2025-06-11" {
+        description "Updated the description for the large community";
+        reference " 0.10.9.";
+    }
+
+    revision "2025-06-05" {
+        description "Removed CML_RESET_INSTANCE_FORCE flag and added CML_SKIP_HITLESS_MERGE for verify-availabilty and track-id attributes";
+        reference " 0.10.8.";
+    }
+
+    revision "2025-05-30" {
+        description "Removed CML_RESET_INSTANCE_FORCE flag for ipv6-nexthop-address";
+        reference " 0.10.7.";
+    }
+
+    revision "2025-05-28" {
+        description "Added 'HAVE_DUNE' for verify-availability and tracking of ipv4/ipv6 next-hop";
+        reference " 0.10.6.";
+    }
+
+    revision "2025-05-27" {
+        description "removed flag cmlresetinstantforce which caused the db-sync issue";
+        reference " 0.10.5.";
+    }
+
+    revision "2025-03-24" {
+        description "Added if-feature for cli-set-sequence for verify-availability and tracking of ipv4/ipv6 next-hop";
+        reference " 0.10.4.";
+    }
+
+    revision "2025-03-14" {
+        description "Updated displayString and helpstring for the attributes extended community rt and soo";
+        reference " 0.10.3.";
+    }
+
+    revision "2025-03-12" {
+        description "Updated type for track-id attribute";
+        reference " 0.10.2.";
+    }
+
+    revision "2025-03-03" {
+        description "Added new attribute verify-availabilty and track-id for next-hop object track";
+        reference " 0.10.1.";
+    }
+
     revision "2025-03-02" {
         description "Added length check for AS Path Prepend";
         reference " 0.9.10.";
+    }
+
+    revision "2025-02-12" {
+        description "Added large-community-list";
+        reference " 0.10.0.";
     }
 
     revision "2024-12-05" {
@@ -499,6 +559,69 @@ module ipi-routemap {
             } // End of community-list
         } // END of communities-container definition.
     } // END of community-list-entry definition.
+    grouping large-community-list-info {
+        description
+            "Match community list";
+        leaf large-community-list-identifier  {
+            type  ipi-routemap-types:rmap_large_community_string_t;
+            description "Use this attribute to specify the community to be matched.Communities
+                        are used to group and filter routes. They are designed to provide the
+                        ability to apply policies to large numbers of routes by using match
+                        and set commands.Community lists are used to identify and filter
+                        routes by their common attributes. This command allows the matching
+                        based on community lists.The values set by the match community command
+                        overrides the global values. The route that does not match at least
+                        one match clause is ignored.";
+        } // END of large-community-list-identifier definition.
+
+        leaf match-type  {
+            type  ipi-routemap-types:rmap_community_type_t;
+            mandatory true;
+            description "Do exact matching of communities";
+        } // END of match-type definition.
+
+    } // END of large-community-list-info definition.
+    grouping match-community-list-entry {
+        description
+            "Match community list";
+        container match-communities {
+            description
+                "Match community info";
+
+            list match-community {
+            // when " ipi-routemap:routemaps/routemap/match-condition/match-communities/match-community/config/match-type ";
+                key "large-community-list-identifier";
+                max-elements 1;
+                description
+                    "Match community list";
+                leaf large-community-list-identifier  {
+                    type  leafref {
+                        path  "../config/large-community-list-identifier";
+                    }
+                    description "Use this attribute to specify the community to be matched.Communities
+                                are used to group and filter routes. They are designed to provide the
+                                ability to apply policies to large numbers of routes by using match
+                                and set commands.Community lists are used to identify and filter
+                                routes by their common attributes. This command allows the matching
+                                based on community lists.The values set by the match community command
+                                overrides the global values. The route that does not match at least
+                                one match clause is ignored.";
+                } // END of large-community-list-identifier definition.
+
+                container config {
+                    description
+                        "Match community list";
+                    uses large-community-list-info;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Match Community Operational state data";
+                    uses large-community-list-info;
+                } // END of state-container definition.
+            } // End of match-community-list
+        } // END of match-communities-container definition.
+    } // END of match-community-list-entry definition.
     grouping length-info {
         description
             "Match community length list";
@@ -750,9 +873,9 @@ module ipi-routemap {
             uses spf-length-entry;
             uses community-list-entry;
             uses extended-community-list-entry;
+            uses match-community-list-entry;
             uses ipv4-entry;
             uses ipv6-entry;
-            uses match-large-community-info;
         } // END of match-condition-container definition.
     } // END of match-entry-list definition.
     grouping continue-entry {
@@ -1130,6 +1253,13 @@ module ipi-routemap {
                         route-map.";
         } // END of delete-community-value definition.
 
+        leaf delete-large-community-value  {
+            type  ipi-routemap-types:rmap_community_string_t;
+            description "Use this attribute to delete the matched large-communities from the
+                        community attribute of an inbound or outbound update when applying
+                        route-map.";
+        } // END of delete-large-community-value definition.
+
         leaf bgp-originator-id  {
             type  inet:ipv4-address;
             description "Use this command to set the originator ID attribute. To use this
@@ -1425,40 +1555,28 @@ module ipi-routemap {
             } // End of large-community-list
         } // END of large-communities-container definition.
     } // END of set-large-community-info definition.
-    grouping match-large-community-list {
+    grouping pbr-nh-track {
         description
-            "Match large community";
-        leaf large-community-number-match  {
-            // when " not(/ipi-routemap:routemaps/ipi-routemap:routemap/ipi-routemap:set-action/ipi-routemap:communities/ipi-routemap:config/ipi-routemap:no-community-attribute) ";
-            type  cml-data-types:cml_line_t {
-                length "1..1965";
-            }
-            description "Use this attributes to set the communities attribute. and group
-                        destinations in a certain community, as well as apply routing
-                        decisions according to those communities.";
-        } // END of large-community-number-match definition.
+            "next-hop track";
+        leaf verify-availability  {
+            // when " ipi-routemap:routemaps/routemap/set-action/ipv6/config/ipv6-nexthop-address  +  ipi-routemap:routemaps/routemap/set-action/ipv4/config/ip-nexthop-address ";
+            if-feature feature-list:HAVE_OBJ_TRACKING;
+            type  empty;
+            description "Use this attrubute to enable ipv4/ipv6 nexthop tracking";
+        } // END of verify-availability definition.
 
-    } // END of match-large-community-list definition.
-    grouping match-large-community-info {
-        description
-            "Set timer values for dampening";
-        container large-match-community {
-            description
-                "set large community";
-            container config {
-                presence "set large community attr";
-                description
-                    "Set large community entry config data";
-                uses match-large-community-list;
-            } // END of config-container definition.
-            container state {
-                config false;
-                description
-                    "Set Operational state data";
-                uses match-large-community-list;
-            } // END of state-container definition.
-        } // END of large-match-community-container definition.
-    } // END of match-large-community-info definition.
+        leaf track-id  {
+            // when " ipi-routemap:routemaps/routemap/set-action/ipv6/config/verify-availability  +  ipi-routemap:routemaps/routemap/set-action/ipv4/config/verify-availability ";
+            if-feature feature-list:HAVE_OBJ_TRACKING;
+            type  uint16 {
+                 range "1..500"  {
+                    description "1..500: Supported range 1 - 500";
+                 }
+            }
+            description "Use this attribute to configure track-id for next hop with oamd";
+        } // END of track-id definition.
+
+    } // END of pbr-nh-track definition.
     grouping set-ipv4-info {
         description
             "Set ipv4 entry";
@@ -1527,12 +1645,14 @@ module ipi-routemap {
                 description
                     "Set ipv6 entry config data";
                 uses set-ipv6-info;
+                uses pbr-nh-track;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Set ipv6 Operational state data";
                 uses set-ipv6-info;
+                uses pbr-nh-track;
             } // END of state-container definition.
         } // END of ipv6-container definition.
     } // END of set-ipv6-entry definition.
@@ -1546,12 +1666,14 @@ module ipi-routemap {
                 description
                     "Set ipv4 entry config data";
                 uses set-ipv4-info;
+                uses pbr-nh-track;
             } // END of config-container definition.
             container state {
                 config false;
                 description
                     "Set ipv4 Operational state data";
                 uses set-ipv4-info;
+                uses pbr-nh-track;
             } // END of state-container definition.
         } // END of ipv4-container definition.
     } // END of set-ipv4-entry definition.

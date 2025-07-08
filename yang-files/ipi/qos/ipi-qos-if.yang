@@ -23,7 +23,7 @@ module ipi-qos-if {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ietf-yang-types {
@@ -33,22 +33,22 @@ module ipi-qos-if {
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2025-02-15;
+        revision-date 2025-06-10;
     }
 
     import ipi-qos-types {
         prefix ipi-qos-types;
-        revision-date 2025-01-14;
+        revision-date 2025-04-30;
     }
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -64,8 +64,33 @@ module ipi-qos-if {
         "Quality of Service (QoS) interface information";
 
 
-    revision "2025-02-19" {
-        description "Revert due to breakage create/delete QoS interfaces as needed in order to show statistics in default queuing policy maps";
+    revision "2025-06-15" {
+        description "Remove aggregator related triggers in qos interfaces, and keep qos interface name config when aggregating";
+        reference " 0.4.21.";
+    }
+
+    revision "2025-06-05" {
+        description "Added when tag to delete the service-policy configs when we attach po or sa to member";
+        reference " 0.4.20.";
+    }
+
+    revision "2025-04-30" {
+        description "wred limits max-threshold updated for DC boards";
+        reference " 0.4.19.";
+    }
+
+    revision "2025-04-08" {
+        description "Add dependencies between copp service-policy and other objects and access-list";
+        reference " 0.4.18.";
+    }
+
+    revision "2025-03-07" {
+        description "Fixed new dbsync issues caused by the BCOM-124 fix";
+        reference " 0.4.17.";
+    }
+
+    revision "2025-03-03" {
+        description "Changed the class-map and policy-map name length from 32 to 64";
         reference " 0.4.16.";
     }
 
@@ -419,7 +444,7 @@ module ipi-qos-if {
         description
             "Grouping for QoS remark";
         container remark {
-            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+            when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos = 'enable' ";
             description
                 "Configuration data for QoS remark";
             container config {
@@ -965,7 +990,7 @@ module ipi-qos-if {
             "Grouping for QoS service policy configuration";
         leaf type-qos-policy-map-name  {
             type  string {
-                length "1..32";
+                length "1..64";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to attach a service-policy of type qos to the
@@ -979,7 +1004,7 @@ module ipi-qos-if {
         leaf type-qos-policy-map-name  {
             if-feature feature-list:HAVE_CUSTOM1_QOS_OR_HAVE_CUSTOM3_QOS_OR_HAVE_CUSTOM4_QOS;
             type  string {
-                length "1..32";
+                length "1..64";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to attach a service-policy of type qos to the
@@ -988,7 +1013,7 @@ module ipi-qos-if {
 
         leaf type-queuing-policy-map-name  {
             type  string {
-                length "1..32";
+                length "1..64";
                 pattern "[^?' =,>|]+";
             }
             description "Use this attribute to attach a service-policy of type queue to the
@@ -1056,7 +1081,7 @@ module ipi-qos-if {
             "Configuration data for interface QoS";
 
         list interface {
-        when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos ";
+        when " /ipi-qos:qos/ipi-qos:global/ipi-qos:config/ipi-qos:enable-qos = 'enable' ";
             key "name";
             description
                 "Configuration data list for interface QoS";

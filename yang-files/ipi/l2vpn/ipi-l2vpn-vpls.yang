@@ -23,12 +23,12 @@ module ipi-l2vpn-vpls {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-if-types {
         prefix ipi-if-types;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ipi-vpls-types {
@@ -48,37 +48,37 @@ module ipi-l2vpn-vpls {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
     }
 
     import ipi-mpls {
         prefix ipi-mpls;
-        revision-date 2024-12-23;
+        revision-date 2025-04-30;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2025-02-15;
+        revision-date 2025-06-10;
     }
 
     import ipi-l2vpn-vpws {
         prefix ipi-l2vpn-vpws;
-        revision-date 2025-02-06;
+        revision-date 2025-05-14;
     }
 
     import ipi-bgp-types {
         prefix ipi-bgp-types;
-        revision-date 2025-01-15;
+        revision-date 2025-06-11;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -94,23 +94,58 @@ module ipi-l2vpn-vpls {
         "YANG version of the ipi-l2vpn-vpls";
 
 
+    revision "2025-06-11" {
+        description "Updated the description for the large community";
+        reference " 0.12.47.";
+    }
+
+    revision "2025-06-03" {
+        description "Added port dfe and unreliable-los support";
+        reference " 0.12.46.";
+    }
+
+    revision "2025-05-09" {
+        description "Fix compilation warnings";
+        reference " 0.12.45.";
+    }
+
+    revision "2025-04-28" {
+        description "VPLS mac limit made correction to group name to match datamodel";
+        reference " 0.12.44.";
+    }
+
+    revision "2025-04-25" {
+        description "Added helpstring to the unset cli command of static flow-label";
+        reference " 0.12.43.";
+    }
+
+    revision "2025-03-19" {
+        description "VPLS mac move support updated state container";
+        reference " 0.12.42.";
+    }
+
+    revision "2025-03-17" {
+        description "Revert of EFM flag for l2pt efm CLI";
+        reference " 0.12.41.";
+    }
+
+    revision "2025-02-25" {
+        description "Removed BGP AD VPLS commit check for vpls-peer";
+        reference " 0.12.40.";
+    }
+
+    revision "2025-02-24" {
+        description "Added unique flag for secondary-pseudowire-name attributes";
+        reference " 0.12.39.";
+    }
+
     revision "2025-02-14" {
         description "Setting the default value for action attribute in mac limit profile";
         reference " 0.12.38.";
     }
 
-    revision "2025-02-12" {
-        description "Revert of EFM flag for l2pt efm CLI";
-        reference " 0.12.37.";
-    }
-
     revision "2025-02-11" {
         description "Added skip-dependency-validation flag in when tag inside vpls-peer objectlist";
-        reference " 0.12.36.";
-    }
-
-    revision "2025-02-06" {
-        description "Changed error disable type from bits to enum";
         reference " 0.12.35.";
     }
 
@@ -961,7 +996,7 @@ module ipi-l2vpn-vpls {
             description
                 "Top level container for vpls mac move instance";
 
-            list mac-limit-profile-inst {
+            list mac-limit-profile {
                 if-feature feature-list:HAVE_VPLS;
                 key "profile-name";
                 description
@@ -984,7 +1019,7 @@ module ipi-l2vpn-vpls {
                         "Operation state data for Mac limit profile VPLS";
                     uses vpls-mac-limit-profile-config;
                 } // END of state-container definition.
-            } // End of mac-limit-profile-inst-list
+            } // End of mac-limit-profile-list
         } // END of mac-limit-profiles-container definition.
     } // END of vpls-mac-limit-profiles-top definition.
     grouping vpls-mac-limit-profile-config {
@@ -1204,11 +1239,21 @@ module ipi-l2vpn-vpls {
     grouping vpls-mac-move-top {
         description
             "Top level Grouping Mac Move in VPLS";
-        container config {
+        container mac-move-global {
             description
-                "Enclosing container for VPLS mac move configuration";
-            uses vpls-mac-move-config;
-        } // END of config-container definition.
+                "Globacl Mac move container";
+            container config {
+                description
+                    "Enclosing container for VPLS mac move configuration";
+                uses vpls-mac-move-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operation state data for VPLS mac move";
+                uses vpls-mac-move-config;
+            } // END of state-container definition.
+        } // END of mac-move-global-container definition.
     } // END of vpls-mac-move-top definition.
     grouping vpls-mac-move-config {
         description
@@ -1229,6 +1274,7 @@ module ipi-l2vpn-vpls {
                     description "5..300: Supported range 5 - 300";
                  }
             }
+            units "seconds";
             default "15";
             description "Mac move detection interval";
         } // END of detect-interval definition.
@@ -1385,6 +1431,7 @@ module ipi-l2vpn-vpls {
 
             list spoke-pseudowire {
                 key "pseudowire-name";
+                unique "config/secondary-pseudowire-name";
                 description
                     "Spoke Pseudowire list for H-VPLS";
                 leaf pseudowire-name  {
@@ -1427,13 +1474,13 @@ module ipi-l2vpn-vpls {
             description "Specify secondary pseudowire name to be added";
         } // END of secondary-pseudowire-name definition.
 
-        leaf spoke-learning-limit  {
+        leaf learning-limit  {
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specify vc mac learning limit profile";
-        } // END of spoke-learning-limit definition.
+        } // END of learning-limit definition.
 
         leaf split-horizon  {
             if-feature feature-list:HAVE_CUSTOM2_MPLS;
@@ -1454,6 +1501,12 @@ module ipi-l2vpn-vpls {
                     "Mac Move VPLS Instance config";
                 uses vpls-mac-move-instance-config;
             } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operation state data for VPLS mac move instance";
+                uses vpls-mac-move-instance-config;
+            } // END of state-container definition.
         } // END of vpls-mac-move-instance-container definition.
     } // END of vpls-mac-move-instance-top definition.
     grouping vpls-mac-move-instance-config {
@@ -1481,6 +1534,7 @@ module ipi-l2vpn-vpls {
                     description "5..300: Supported range 5 - 300";
                  }
             }
+            units "seconds";
             default "15";
             description "Mac move detection interval";
         } // END of detect-interval definition.
@@ -2159,13 +2213,13 @@ module ipi-l2vpn-vpls {
             description "Use this attribute to disable dynamic learning of MAC's";
         } // END of disable-mac-learning definition.
 
-        leaf ac-learning-limit  {
+        leaf learning-limit  {
             type  string {
                 length "1..1965";
                 pattern "[^?' =,>|]+";
             }
             description "Specify AC mac learning limit profile";
-        } // END of ac-learning-limit definition.
+        } // END of learning-limit definition.
 
         leaf-list static-mac-address  {
             type  cml-data-types:cml_mac_addr_t {
@@ -2238,11 +2292,7 @@ module ipi-l2vpn-vpls {
             uses vpls-static-vpls-top;
             uses vpls-static-hvpls-top;
         } // END of static-forwarding-container definition.
-        container mac-move-global {
-            description
-                "Globacl Mac move container";
-            uses vpls-mac-move-top;
-        } // END of mac-move-global-container definition.
+        uses vpls-mac-move-top;
         uses vpls-mac-limit-profiles-top;
         uses vpls-interface-top;
         uses vpls-global-top;

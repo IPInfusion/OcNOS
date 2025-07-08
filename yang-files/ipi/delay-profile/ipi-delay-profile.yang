@@ -28,7 +28,7 @@ module ipi-delay-profile {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -43,6 +43,16 @@ module ipi-delay-profile {
     description
         "Datamodel for configuring the delay measurement profile";
 
+
+    revision "2025-06-12" {
+        description "Adjusted the sender port help string";
+        reference " 0.8.1.";
+    }
+
+    revision "2025-02-03" {
+        description "Added SNMP Traps support for TWAMP";
+        reference " 0.8.0.";
+    }
 
     revision "2024-12-12" {
         description "Added drop-yang tag to drop some unnecessary groupings";
@@ -181,6 +191,57 @@ module ipi-delay-profile {
             } // END of state-container definition.
         } // END of accelerated-advertisement-container definition.
     } // END of profile-accelerated-top definition.
+    grouping profile-notifications-config {
+        description
+            "notifications";
+        leaf enabled  {
+            type  empty;
+            mandatory true;
+            description "Enable the notifications for advertising via NETCONF/SNMP Traps when
+                        thresholds are crossed";
+        } // END of enabled definition.
+
+        leaf threshold  {
+            type  uint8 {
+                 range "1..100"  {
+                    description "1..100: Supported range 1 - 100";
+                 }
+            }
+            description "Configure the notifications advertisement threshold";
+        } // END of threshold definition.
+
+        leaf minimum-change  {
+            type  uint16 {
+                 range "0..10000"  {
+                    description "0..10000: Supported range 0 - 10000";
+                 }
+            }
+            description "Configure the notifications advertisement minimum-change in
+                        microseconds (default=1000)";
+        } // END of minimum-change definition.
+
+    } // END of profile-notifications-config definition.
+    grouping profile-notifications-top {
+        description
+            "Set the delay profile notifications parameters";
+        container notifications {
+            if-feature feature-list:HAVE_TE;
+            description
+                "Definition of delay profile notifications parameters";
+            container config {
+                presence "delay profile notifications config";
+                description
+                    "Configuration data";
+                uses profile-notifications-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses profile-notifications-config;
+            } // END of state-container definition.
+        } // END of notifications-container definition.
+    } // END of profile-notifications-top definition.
     grouping profile-accelerated-config {
         description
             "accelerated";
@@ -341,6 +402,7 @@ module ipi-delay-profile {
             uses profile-parameters-top;
             uses profile-periodic-top;
             uses profile-accelerated-top;
+            uses profile-notifications-top;
         } // End of delay-profile-list
         uses twamp-client-delay-profile-top;
     } // END of delay-profiles-container definition.

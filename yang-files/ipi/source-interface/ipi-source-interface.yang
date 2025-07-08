@@ -28,27 +28,27 @@ module ipi-source-interface {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2025-01-02;
+        revision-date 2025-03-21;
     }
 
     import ipi-source-interface-types {
         prefix ipi-source-interface-types;
-        revision-date 2024-09-26;
+        revision-date 2025-03-19;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -63,6 +63,16 @@ module ipi-source-interface {
     description
         "Source Interface Rules";
 
+
+    revision "2025-05-20" {
+        description "moved unset to correct xpath and updated cli-delete-sequence";
+        reference " 0.6.1.";
+    }
+
+    revision "2025-03-19" {
+        description "Added support for multiple ports per protocol and made port number as RDN";
+        reference " 0.6.0.";
+    }
 
     revision "2024-09-29" {
         description "Enable Source Interface service on user defined VRFs";
@@ -141,7 +151,6 @@ module ipi-source-interface {
 
         leaf port-number  {
             type  ipi-source-interface-types:src_intf_port_number_t;
-            mandatory true;
             description "Protocol port number to apply the source-interface.";
         } // END of port-number definition.
 
@@ -162,7 +171,7 @@ module ipi-source-interface {
                 "Source NAT Mappings";
 
             list source-nat-mapping {
-                key "interface-name protocol-type vrf-name";
+                key "interface-name protocol-type port-number vrf-name";
                 description
                     "Source NAT Mapping";
                 leaf interface-name  {
@@ -178,6 +187,13 @@ module ipi-source-interface {
                     }
                     description "Protocol type to apply the source-interface.";
                 } // END of protocol-type definition.
+
+                leaf port-number  {
+                    type  leafref {
+                        path  "../config/port-number";
+                    }
+                    description "Protocol port number to apply the source-interface.";
+                } // END of port-number definition.
 
                 leaf vrf-name  {
                     type  leafref {

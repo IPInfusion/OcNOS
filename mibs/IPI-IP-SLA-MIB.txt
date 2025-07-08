@@ -20,12 +20,40 @@ IMPORTS
       ipi  FROM IPI-MODULE-MIB;
 
 ipi-ip-sla MODULE-IDENTITY
-   LAST-UPDATED "202312070000Z"
+   LAST-UPDATED "202506120000Z"
 
 ORGANIZATION "IP Infusion"
 CONTACT-INFO "support@ipinfusion.com"
    DESCRIPTION 
       "This MIB module is for managing Datamodel for ipsla definations"
+
+   REVISION      "202506120000Z"
+   DESCRIPTION 
+      "Added .h file ipsla_api.h for protocol-api-header-file "
+
+   REVISION      "202505080000Z"
+   DESCRIPTION 
+      "Added Support for IP-Source"
+
+   REVISION      "202505070000Z"
+   DESCRIPTION 
+      "Removed 'when' statement for the 'scheduled-processes' container and added a leafref for the 'scheduled-pid' attribute referencing the 'identifier' attribute."
+
+   REVISION      "202504150000Z"
+   DESCRIPTION 
+      "Adding dependentObject for object level reordering of ip-sla and icmp-echo-process "
+
+   REVISION      "202504110000Z"
+   DESCRIPTION 
+      "Updated data types of packets-sent and packets-received from UINT32 to UINT64"
+
+   REVISION      "202504040000Z"
+   DESCRIPTION 
+      "Added when tag for 'scheduled-processes' container"
+
+   REVISION      "202502190000Z"
+   DESCRIPTION 
+      "Added streaming telemetry support"
 
    REVISION      "202312070000Z"
    DESCRIPTION 
@@ -74,12 +102,13 @@ ipiIpSlaProcessesprocessEntry OBJECT-TYPE
 	INDEX { ipiIpSlaProcessIdentifier }
 	::= { ipiIpSlaProcessesprocessTable 1 }
 
-IpiIpSlaProcessesprocessEntry::= SEQUENCE {
+IpiIpSlaProcessesprocessEntry::= SEQUENCE { 
 	ipiIpSlaProcessIdentifier Unsigned32,
+	ipiIpSlaIpSlaStatisticsDestination OCTET STRING,
 	ipiIpSlaIpSlaStatisticsStartTime DateAndTime,
 	ipiIpSlaIpSlaStatisticsElapsedTime Counter64,
-	ipiIpSlaIpSlaStatisticsPacketsSent Unsigned32,
-	ipiIpSlaIpSlaStatisticsPacketsReceived Unsigned32,
+	ipiIpSlaIpSlaStatisticsPacketsSent Counter64,
+	ipiIpSlaIpSlaStatisticsPacketsReceived Counter64,
 	ipiIpSlaIpSlaStatisticsPacketsLost INTEGER,
 	ipiIpSlaIpSlaStatisticsInvalidTests Unsigned32,
 	ipiIpSlaIpSlaStatisticsMinimumRoundTripDelay Counter64,
@@ -94,13 +123,21 @@ ipiIpSlaProcessIdentifier OBJECT-TYPE
 		"Use this attribute to set the IPSLA."
 	::= { ipiIpSlaProcessesprocessEntry 1 }
 
+ipiIpSlaIpSlaStatisticsDestination OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Destination IP or host name for ICMP Echo for this SLA session"
+	::= { ipiIpSlaProcessesprocessEntry 2 }
+
 ipiIpSlaIpSlaStatisticsStartTime OBJECT-TYPE
 	SYNTAX DateAndTime 
 	MAX-ACCESS read-only
 	STATUS current 
 	DESCRIPTION 
 		"Time at which ip sla measurement started"
-	::= { ipiIpSlaProcessesprocessEntry 2 }
+	::= { ipiIpSlaProcessesprocessEntry 3 }
 
 ipiIpSlaIpSlaStatisticsElapsedTime OBJECT-TYPE
 	SYNTAX Counter64 
@@ -108,23 +145,23 @@ ipiIpSlaIpSlaStatisticsElapsedTime OBJECT-TYPE
 	STATUS current 
 	DESCRIPTION 
 		"Time elapsed since the ip sla measurement started. In milliseconds"
-	::= { ipiIpSlaProcessesprocessEntry 3 }
+	::= { ipiIpSlaProcessesprocessEntry 4 }
 
 ipiIpSlaIpSlaStatisticsPacketsSent OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
 	DESCRIPTION 
 		"Number of test packets sent"
-	::= { ipiIpSlaProcessesprocessEntry 4 }
+	::= { ipiIpSlaProcessesprocessEntry 5 }
 
 ipiIpSlaIpSlaStatisticsPacketsReceived OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Counter64 
 	MAX-ACCESS read-only
 	STATUS current 
 	DESCRIPTION 
 		"Number of test packets received"
-	::= { ipiIpSlaProcessesprocessEntry 5 }
+	::= { ipiIpSlaProcessesprocessEntry 6 }
 
 ipiIpSlaIpSlaStatisticsPacketsLost OBJECT-TYPE
 	SYNTAX INTEGER 
@@ -133,7 +170,7 @@ ipiIpSlaIpSlaStatisticsPacketsLost OBJECT-TYPE
 	STATUS current 
 	DESCRIPTION 
 		"Packet loss percentage"
-	::= { ipiIpSlaProcessesprocessEntry 6 }
+	::= { ipiIpSlaProcessesprocessEntry 7 }
 
 ipiIpSlaIpSlaStatisticsInvalidTests OBJECT-TYPE
 	SYNTAX Unsigned32 
@@ -141,7 +178,7 @@ ipiIpSlaIpSlaStatisticsInvalidTests OBJECT-TYPE
 	STATUS current 
 	DESCRIPTION 
 		"Number of Invalid tests"
-	::= { ipiIpSlaProcessesprocessEntry 7 }
+	::= { ipiIpSlaProcessesprocessEntry 8 }
 
 ipiIpSlaIpSlaStatisticsMinimumRoundTripDelay OBJECT-TYPE
 	SYNTAX Counter64 
@@ -149,7 +186,7 @@ ipiIpSlaIpSlaStatisticsMinimumRoundTripDelay OBJECT-TYPE
 	STATUS current 
 	DESCRIPTION 
 		"Minimum Round trip delay time"
-	::= { ipiIpSlaProcessesprocessEntry 8 }
+	::= { ipiIpSlaProcessesprocessEntry 9 }
 
 ipiIpSlaIpSlaStatisticsMaximumRoundTripDelay OBJECT-TYPE
 	SYNTAX Counter64 
@@ -157,7 +194,7 @@ ipiIpSlaIpSlaStatisticsMaximumRoundTripDelay OBJECT-TYPE
 	STATUS current 
 	DESCRIPTION 
 		"Maximum Round Trip delay time"
-	::= { ipiIpSlaProcessesprocessEntry 9 }
+	::= { ipiIpSlaProcessesprocessEntry 10 }
 
 ipiIpSlaIpSlaStatisticsAverageRoundTripDelay OBJECT-TYPE
 	SYNTAX Counter64 
@@ -165,7 +202,7 @@ ipiIpSlaIpSlaStatisticsAverageRoundTripDelay OBJECT-TYPE
 	STATUS current 
 	DESCRIPTION 
 		"Average Round Trip delay time"
-	::= { ipiIpSlaProcessesprocessEntry 10 }
+	::= { ipiIpSlaProcessesprocessEntry 11 }
 
 
 ipiIpSlaIcmpEchoProcessTable OBJECT-TYPE 
@@ -185,9 +222,10 @@ ipiIpSlaIcmpEchoProcessEntry OBJECT-TYPE
 	INDEX { ipiIpSlaProcessIdentifier,ipiIpSlaIcmpEchoProcessHost }
 	::= { ipiIpSlaIcmpEchoProcessTable 1 }
 
-IpiIpSlaIcmpEchoProcessEntry::= SEQUENCE {
+IpiIpSlaIcmpEchoProcessEntry::= SEQUENCE { 
 	ipiIpSlaIcmpEchoProcessHost OCTET STRING,
 	ipiIpSlaIcmpEchoProcessSourceInterface OCTET STRING,
+	ipiIpSlaIcmpEchoProcessSourceIp OCTET STRING,
 	ipiIpSlaIcmpEchoProcessFrequency Unsigned32,
 	ipiIpSlaIcmpEchoProcessTimeout Unsigned32,
 	ipiIpSlaIcmpEchoProcessThreshold Unsigned32	}
@@ -208,6 +246,14 @@ ipiIpSlaIcmpEchoProcessSourceInterface OBJECT-TYPE
 		"Source Interface name"
 	::= { ipiIpSlaIcmpEchoProcessEntry 2 }
 
+ipiIpSlaIcmpEchoProcessSourceIp OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Source IP Interface name"
+	::= { ipiIpSlaIcmpEchoProcessEntry 3 }
+
 ipiIpSlaIcmpEchoProcessFrequency OBJECT-TYPE
 	SYNTAX Unsigned32(1..60) 
 	UNITS "seconds"
@@ -215,7 +261,7 @@ ipiIpSlaIcmpEchoProcessFrequency OBJECT-TYPE
 	STATUS current 
 	DESCRIPTION 
 		"The frequency (interval) correlates to how often the ICMP packet is sent. The unit of this parameter is in seconds."
-	::= { ipiIpSlaIcmpEchoProcessEntry 3 }
+	::= { ipiIpSlaIcmpEchoProcessEntry 4 }
 
 ipiIpSlaIcmpEchoProcessTimeout OBJECT-TYPE
 	SYNTAX Unsigned32(1000..60000) 
@@ -224,7 +270,7 @@ ipiIpSlaIcmpEchoProcessTimeout OBJECT-TYPE
 	STATUS current 
 	DESCRIPTION 
 		"The timeout value correlates to how long the Ping application will wait for the response after sending packets ICMP Echo packets."
-	::= { ipiIpSlaIcmpEchoProcessEntry 4 }
+	::= { ipiIpSlaIcmpEchoProcessEntry 5 }
 
 ipiIpSlaIcmpEchoProcessThreshold OBJECT-TYPE
 	SYNTAX Unsigned32(1000..60000) 
@@ -233,7 +279,7 @@ ipiIpSlaIcmpEchoProcessThreshold OBJECT-TYPE
 	STATUS current 
 	DESCRIPTION 
 		"The threshold value correlates to the limit the administrator sets as what would be a successful test. Threshold can be configured in milli-seconds."
-	::= { ipiIpSlaIcmpEchoProcessEntry 5 }
+	::= { ipiIpSlaIcmpEchoProcessEntry 6 }
 
 
 ipiIpSlaScheduledProcessTable OBJECT-TYPE 
@@ -250,11 +296,10 @@ ipiIpSlaScheduledProcessEntry OBJECT-TYPE
 	STATUS current
 	DESCRIPTION 
 		"An entry containing information for IP SLA Schedule process"
-	INDEX { ipiIpSlaScheduledProcessTimeRangeName,ipiIpSlaScheduledProcessScheduledPid }
+	INDEX { ipiIpSlaScheduledProcessScheduledPid,ipiIpSlaScheduledProcessTimeRangeName }
 	::= { ipiIpSlaScheduledProcessTable 1 }
 
-IpiIpSlaScheduledProcessEntry::= SEQUENCE {
-	ipiIpSlaScheduledProcessScheduledPid Unsigned32,
+IpiIpSlaScheduledProcessEntry::= SEQUENCE { 
 	ipiIpSlaScheduledProcessTimeRangeName OCTET STRING,
 	ipiIpSlaScheduledProcessVrfName OCTET STRING	}
 

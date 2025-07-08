@@ -1,0 +1,792 @@
+IPI-TWAMP-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+      OBJECT-TYPE, MODULE-IDENTITY,
+      Gauge32, Counter32, Integer32, Unsigned32,
+      IpAddress, Counter64,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC
+      ipi  FROM IPI-MODULE-MIB;
+
+ipi-twamp MODULE-IDENTITY
+   LAST-UPDATED "202506120000Z"
+
+ORGANIZATION "IP Infusion"
+CONTACT-INFO "support@ipinfusion.com"
+   DESCRIPTION 
+      "This MIB module is for managing Two-Way Active Measurement Protocol (TWAMP)"
+
+   REVISION      "202506120000Z"
+   DESCRIPTION 
+      "Adjusted the reflector name regex to support adding the . character in the name (to accomodate customer config upgrade)"
+
+   REVISION      "202505150000Z"
+   DESCRIPTION 
+      "Default value of the VRF set to default"
+
+   REVISION      "202505020000Z"
+   DESCRIPTION 
+      "Fixed types for time value leaves"
+
+   REVISION      "202505010000Z"
+   DESCRIPTION 
+      "Modified the ipi-twamp-types if-feature level so it can be used in igp te datamodel"
+
+   REVISION      "202503260000Z"
+   DESCRIPTION 
+      "Updated TWAMP Session datamodel"
+
+   REVISION      "202503220000Z"
+   DESCRIPTION 
+      "Added pattern verification for reflector attributes"
+
+   REVISION      "202503130000Z"
+   DESCRIPTION 
+      "Added support for upstream interface for TWAMP"
+
+   REVISION      "202502250000Z"
+   DESCRIPTION 
+      "Insert dependentObject directive"
+
+   REVISION      "202502130000Z"
+   DESCRIPTION 
+      "Limited session name to 128 characters long"
+
+   REVISION      "202502030000Z"
+   DESCRIPTION 
+      "Added SNMP Traps support for TWAMP"
+
+   REVISION      "202501220000Z"
+   DESCRIPTION 
+      "Fixed checking the value of the control admin state in the twamp client when creating a session"
+
+   REVISION      "202501200000Z"
+   DESCRIPTION 
+      "Correct twamp session attributes description"
+
+   REVISION      "202501150000Z"
+   DESCRIPTION 
+      "Removed unnecessary vrf cli under config-twamp-light-ref"
+
+   REVISION      "202501140000Z"
+   DESCRIPTION 
+      "Revert the flag CML_RESET_INSTANCE added in 0.1.42"
+
+   REVISION      "202412180000Z"
+   DESCRIPTION 
+      "Added CML_RESET_INSTANCE for name and vrf-name attribute under session container"
+
+   REVISION      "202412120000Z"
+   DESCRIPTION 
+      "Added ignore snmp generation tag"
+
+   REVISION      "202411210000Z"
+   DESCRIPTION 
+      "Fixed maximum values ranges for sessions and connections to start from 1 instead of 0 in the client submodule"
+
+   REVISION      "202403270000Z"
+   DESCRIPTION 
+      "Added pattern checking for connection and session names in twamp client"
+
+   REVISION      "202310110000Z"
+   DESCRIPTION 
+      "Set reflector session parameters to CML_INITIALIZED"
+
+   REVISION      "202309060000Z"
+   DESCRIPTION 
+      "Added Reset CLI for the TWAMP client dead sessions"
+
+   REVISION      "202308310000Z"
+   DESCRIPTION 
+      "Remove unnecessary import"
+
+   REVISION      "202305120000Z"
+   DESCRIPTION 
+      "Added datatype for twamp client module"
+
+   REVISION      "202210200000Z"
+   DESCRIPTION 
+      "Fixed a cli generation problem related to vrf-name"
+
+   REVISION      "202210180000Z"
+   DESCRIPTION 
+      "Added TWAMP server implementation"
+
+   REVISION      "202210150000Z"
+   DESCRIPTION 
+      "Modified the vrf-name attribute to be as RDN and add ipi-vrf dependency"
+
+   REVISION      "202208220000Z"
+   DESCRIPTION 
+      "Added delay-threshold and notification"
+
+   REVISION      "202208100000Z"
+   DESCRIPTION 
+      "Debug hierarchy change"
+
+   REVISION      "202207080000Z"
+   DESCRIPTION 
+      "Increased the test-session max-elements from 8 to 64"
+
+   REVISION      "202207050000Z"
+   DESCRIPTION 
+      "Changed the data type for the reflector source UDP port"
+
+   REVISION      "202206010000Z"
+   DESCRIPTION 
+      "Updated the yang file with feature"
+
+   REVISION      "202203170000Z"
+   DESCRIPTION 
+      "Added sender ip and port in reflector session"
+
+   REVISION      "202201310000Z"
+   DESCRIPTION 
+      "Added VRF name handling for both test-session and reflector"
+
+   REVISION      "202201280000Z"
+   DESCRIPTION 
+      "Introduced Multiple Reflector Session"
+
+   REVISION      "202109100000Z"
+   DESCRIPTION 
+      "Restructured module in accordance with OpenConfig style"
+
+   REVISION      "202002200000Z"
+   DESCRIPTION 
+      "Initial Version"
+   ::= { ipi  1601 } 
+
+ipiTwampServerMaxConnections OBJECT-TYPE
+	SYNTAX Unsigned32(1..32) 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Set the maximum connections"
+	::= { ipi-twamp 1 }
+
+ipiTwampServerMaxConnectionsPerClient OBJECT-TYPE
+	SYNTAX Unsigned32(1..4) 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Set the maximum number of connections per client"
+	::= { ipi-twamp 2 }
+
+ipiTwampServerMaximumSessions OBJECT-TYPE
+	SYNTAX Unsigned32(1..64) 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Set the maximum number of test sessions for the server"
+	::= { ipi-twamp 3 }
+
+ipiTwampServerMaximumSessionsPerConnection OBJECT-TYPE
+	SYNTAX Unsigned32(1..64) 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Set the maximum number of test sessions per client connection"
+	::= { ipi-twamp 4 }
+
+ipiTwampServerNbConnections OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the number of connections to the TWAMP server"
+	::= { ipi-twamp 5 }
+
+ipiTwampServerNbSessions OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the number of sessions accepted by the server"
+	::= { ipi-twamp 6 }
+
+ipiTwampServerNbRunningSessions OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the number of running sessions on the server"
+	::= { ipi-twamp 7 }
+
+
+ipiTwampTestSessionTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiTwampTestSessionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for List of TWAMP Light Control Test Session"
+	::= { ipi-twamp 8 }
+
+ipiTwampTestSessionEntry OBJECT-TYPE
+	SYNTAX IpiTwampTestSessionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for List of TWAMP Light Control Test Session"
+	INDEX { ipiTwampTestSessionSessionName,ipiTwampTestSessionVrfName }
+	::= { ipiTwampTestSessionTable 1 }
+
+IpiTwampTestSessionEntry::= SEQUENCE { 
+	ipiTwampTestSessionStartTime DateAndTime,
+	ipiTwampTestSessionElapsedTime Unsigned32,
+	ipiTwampTestSessionPacketsSent Counter64,
+	ipiTwampTestSessionPacketsReceived Counter64,
+	ipiTwampTestSessionPacketLoss INTEGER,
+	ipiTwampRoundTripDelayMinimum Counter64,
+	ipiTwampRoundTripDelayMaximum Counter64,
+	ipiTwampRoundTripDelayAverage Counter64,
+	ipiTwampForwardDelayMinimum Counter64,
+	ipiTwampForwardDelayMaximum Counter64,
+	ipiTwampForwardDelayAverage Counter64,
+	ipiTwampReverseDelayMinimum Counter64,
+	ipiTwampReverseDelayMaximum Counter64,
+	ipiTwampReverseDelayAverage Counter64,
+	ipiTwampRoundTripDelayVariationMinimum Counter64,
+	ipiTwampRoundTripDelayVariationMaximum Counter64,
+	ipiTwampRoundTripDelayVariationAverage Counter64,
+	ipiTwampForwardDelayVariationMinimum Counter64,
+	ipiTwampForwardDelayVariationMaximum Counter64,
+	ipiTwampForwardDelayVariationAverage Counter64,
+	ipiTwampReverseDelayVariationMinimum Counter64,
+	ipiTwampReverseDelayVariationMaximum Counter64,
+	ipiTwampReverseDelayVariationAverage Counter64	}
+
+ipiTwampTestSessionSessionName OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Test Session name associated with this instance"
+	::= { ipiTwampTestSessionEntry 1 }
+
+ipiTwampTestSessionVrfName OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Use this attribute to set the session VRF name"
+	::= { ipiTwampTestSessionEntry 2 }
+
+ipiTwampTestSessionStartTime OBJECT-TYPE
+	SYNTAX DateAndTime 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the start time of a Test Session"
+	::= { ipiTwampTestSessionEntry 3 }
+
+ipiTwampTestSessionElapsedTime OBJECT-TYPE
+	SYNTAX Unsigned32 
+	UNITS "milliseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the elapsed time of a Test Session"
+	::= { ipiTwampTestSessionEntry 4 }
+
+ipiTwampTestSessionPacketsSent OBJECT-TYPE
+	SYNTAX Counter64 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the amount of sent packets for a Test Session"
+	::= { ipiTwampTestSessionEntry 5 }
+
+ipiTwampTestSessionPacketsReceived OBJECT-TYPE
+	SYNTAX Counter64 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the amount of received packets for a Test Session"
+	::= { ipiTwampTestSessionEntry 6 }
+
+ipiTwampTestSessionPacketLoss OBJECT-TYPE
+	SYNTAX INTEGER 
+	UNITS "0.000100"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the amount of lost packets for a Test Session"
+	::= { ipiTwampTestSessionEntry 7 }
+
+ipiTwampRoundTripDelayMinimum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the minimum value within the statistics"
+	::= { ipiTwampTestSessionEntry 8 }
+
+ipiTwampRoundTripDelayMaximum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the maximum value within the statistics"
+	::= { ipiTwampTestSessionEntry 9 }
+
+ipiTwampRoundTripDelayAverage OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the average value within the statistics"
+	::= { ipiTwampTestSessionEntry 10 }
+
+ipiTwampForwardDelayMinimum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the minimum value within the statistics"
+	::= { ipiTwampTestSessionEntry 11 }
+
+ipiTwampForwardDelayMaximum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the maximum value within the statistics"
+	::= { ipiTwampTestSessionEntry 12 }
+
+ipiTwampForwardDelayAverage OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the average value within the statistics"
+	::= { ipiTwampTestSessionEntry 13 }
+
+ipiTwampReverseDelayMinimum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the minimum value within the statistics"
+	::= { ipiTwampTestSessionEntry 14 }
+
+ipiTwampReverseDelayMaximum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the maximum value within the statistics"
+	::= { ipiTwampTestSessionEntry 15 }
+
+ipiTwampReverseDelayAverage OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the average value within the statistics"
+	::= { ipiTwampTestSessionEntry 16 }
+
+ipiTwampRoundTripDelayVariationMinimum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the minimum value within the statistics"
+	::= { ipiTwampTestSessionEntry 17 }
+
+ipiTwampRoundTripDelayVariationMaximum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the maximum value within the statistics"
+	::= { ipiTwampTestSessionEntry 18 }
+
+ipiTwampRoundTripDelayVariationAverage OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the average value within the statistics"
+	::= { ipiTwampTestSessionEntry 19 }
+
+ipiTwampForwardDelayVariationMinimum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the minimum value within the statistics"
+	::= { ipiTwampTestSessionEntry 20 }
+
+ipiTwampForwardDelayVariationMaximum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the maximum value within the statistics"
+	::= { ipiTwampTestSessionEntry 21 }
+
+ipiTwampForwardDelayVariationAverage OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the average value within the statistics"
+	::= { ipiTwampTestSessionEntry 22 }
+
+ipiTwampReverseDelayVariationMinimum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the minimum value within the statistics"
+	::= { ipiTwampTestSessionEntry 23 }
+
+ipiTwampReverseDelayVariationMaximum OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the maximum value within the statistics"
+	::= { ipiTwampTestSessionEntry 24 }
+
+ipiTwampReverseDelayVariationAverage OBJECT-TYPE
+	SYNTAX Counter64 
+	UNITS "microseconds"
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"This attribute represents the average value within the statistics"
+	::= { ipiTwampTestSessionEntry 25 }
+
+
+ipiTwampConnectionTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiTwampConnectionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for Top level list for client connections to the TWAMP server"
+	::= { ipi-twamp 9 }
+
+ipiTwampConnectionEntry OBJECT-TYPE
+	SYNTAX IpiTwampConnectionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for Top level list for client connections to the TWAMP server"
+	INDEX { ipiTwampConnectionConnectionId }
+	::= { ipiTwampConnectionTable 1 }
+
+IpiTwampConnectionEntry::= SEQUENCE { 
+	ipiTwampConnectionConnectionId Unsigned32,
+	ipiTwampConnectionClientAddress OCTET STRING,
+	ipiTwampConnectionClientPort Unsigned32,
+	ipiTwampConnectionClientVrf OCTET STRING,
+	ipiTwampConnectionConnectionState OCTET STRING,
+	ipiTwampConnectionConnectionTime DateAndTime,
+	ipiTwampConnectionLastActivityTime DateAndTime,
+	ipiTwampConnectionNbSessionRequests Unsigned32,
+	ipiTwampConnectionNbAcceptedSessions Unsigned32	}
+
+ipiTwampConnectionConnectionId OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Connection ID"
+	::= { ipiTwampConnectionEntry 1 }
+
+ipiTwampConnectionClientAddress OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"IP address of the client"
+	::= { ipiTwampConnectionEntry 2 }
+
+ipiTwampConnectionClientPort OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Port used by the client"
+	::= { ipiTwampConnectionEntry 3 }
+
+ipiTwampConnectionClientVrf OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"VRF where the client is connected"
+	::= { ipiTwampConnectionEntry 4 }
+
+ipiTwampConnectionConnectionState OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"State of the connection with the client"
+	::= { ipiTwampConnectionEntry 5 }
+
+ipiTwampConnectionConnectionTime OBJECT-TYPE
+	SYNTAX DateAndTime 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Time when the connection was established"
+	::= { ipiTwampConnectionEntry 6 }
+
+ipiTwampConnectionLastActivityTime OBJECT-TYPE
+	SYNTAX DateAndTime 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Time of the last activity that happened on the connection"
+	::= { ipiTwampConnectionEntry 7 }
+
+ipiTwampConnectionNbSessionRequests OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Number of session requests received on the connection"
+	::= { ipiTwampConnectionEntry 8 }
+
+ipiTwampConnectionNbAcceptedSessions OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Number of accepted sessions on the connection"
+	::= { ipiTwampConnectionEntry 9 }
+
+
+ipiTwampSessionssessionTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiTwampSessionssessionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for Top level list for sessions accepted by the TWAMP server"
+	::= { ipi-twamp 10 }
+
+ipiTwampSessionssessionEntry OBJECT-TYPE
+	SYNTAX IpiTwampSessionssessionEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for Top level list for sessions accepted by the TWAMP server"
+	INDEX { ipiTwampSessionSessionId }
+	::= { ipiTwampSessionssessionTable 1 }
+
+IpiTwampSessionssessionEntry::= SEQUENCE { 
+	ipiTwampSessionSessionId OCTET STRING,
+	ipiTwampSessionConnectionId Unsigned32,
+	ipiTwampSessionSessionState OCTET STRING,
+	ipiTwampSessionSenderAddress OCTET STRING,
+	ipiTwampSessionSenderPort Unsigned32,
+	ipiTwampSessionReceiverAddress OCTET STRING,
+	ipiTwampSessionReceiverPort Unsigned32,
+	ipiTwampSessionReceiverVrf OCTET STRING,
+	ipiTwampSessionStartTime DateAndTime,
+	ipiTwampSessionTimeout Unsigned32	}
+
+ipiTwampSessionSessionId OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Session ID"
+	::= { ipiTwampSessionssessionEntry 1 }
+
+ipiTwampSessionConnectionId OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Connection ID"
+	::= { ipiTwampSessionssessionEntry 2 }
+
+ipiTwampSessionSessionState OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Session state"
+	::= { ipiTwampSessionssessionEntry 3 }
+
+ipiTwampSessionSenderAddress OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"IP address of the TWAMP sender"
+	::= { ipiTwampSessionssessionEntry 4 }
+
+ipiTwampSessionSenderPort OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Port used by the sender"
+	::= { ipiTwampSessionssessionEntry 5 }
+
+ipiTwampSessionReceiverAddress OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"IP address of the TWAMP receiver"
+	::= { ipiTwampSessionssessionEntry 6 }
+
+ipiTwampSessionReceiverPort OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Port used by the receiver"
+	::= { ipiTwampSessionssessionEntry 7 }
+
+ipiTwampSessionReceiverVrf OBJECT-TYPE
+	SYNTAX OCTET STRING 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"VRF where the receiver is running"
+	::= { ipiTwampSessionssessionEntry 8 }
+
+ipiTwampSessionStartTime OBJECT-TYPE
+	SYNTAX DateAndTime 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Start-Time requested by the client for the session"
+	::= { ipiTwampSessionssessionEntry 9 }
+
+ipiTwampSessionTimeout OBJECT-TYPE
+	SYNTAX Unsigned32 
+	MAX-ACCESS read-only
+	STATUS current 
+	DESCRIPTION 
+		"Timeout requested for the session"
+	::= { ipiTwampSessionssessionEntry 10 }
+
+
+--
+-- Notifications
+--
+
+ipiCMLSEPtwampNotificationsPrefix OBJECT IDENTIFIER ::=
+        { ipi-twamp 0 }
+
+twampserverclientconnected NOTIFICATION-TYPE
+   OBJECTS { ipiTwampConnectionConnectionId, ipiTwampConnectionClientAddress, ipiTwampConnectionClientPort, ipiTwampConnectionClientVrf }
+   STATUS  current
+   DESCRIPTION
+           "Indicates when a remote Client connected to the TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 1 }
+
+twampserverclientdisconnected NOTIFICATION-TYPE
+   OBJECTS { ipiTwampConnectionConnectionId, ipiTwampConnectionClientAddress, ipiTwampConnectionClientPort, ipiTwampConnectionClientVrf }
+   STATUS  current
+   DESCRIPTION
+           "Indicates when a remote Client disconnected from the TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 2 }
+
+twampserversessionaccepted NOTIFICATION-TYPE
+   OBJECTS { ipiTwampSessionSessionId, ipiTwampSessionConnectionId, ipiTwampSessionSenderAddress, ipiTwampSessionSenderPort, ipiTwampSessionReceiverAddress, ipiTwampSessionReceiverPort, ipiTwampSessionReceiverVrf }
+   STATUS  current
+   DESCRIPTION
+           "Indicates that a Session from the connection-id has been Accepted in the TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 3 }
+
+twampserversessionsstarted NOTIFICATION-TYPE
+   OBJECTS { ipiTwampSessionSessionId, ipiTwampSessionConnectionId }
+   STATUS  current
+   DESCRIPTION
+           "Indicates that a Session from the connection-id has been Started in the TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 4 }
+
+twampserversessionsstopped NOTIFICATION-TYPE
+   OBJECTS { ipiTwampSessionSessionId, ipiTwampSessionConnectionId }
+   STATUS  current
+   DESCRIPTION
+           "Indicates that a Session from the connection-id has been Stopped in the TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 5 }
+
+twampserverclientinactivitytimeout NOTIFICATION-TYPE
+   OBJECTS { ipiTwampConnectionConnectionId, ipiTwampConnectionLastActivityTime }
+   STATUS  current
+   DESCRIPTION
+           "TWAMP Client reached the inactivity timeout and will be disconnected from TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 6 }
+
+twampserverclientmaximumconnectiondurationtimeout NOTIFICATION-TYPE
+   OBJECTS { ipiTwampConnectionConnectionId, ipiTwampConnectionConnectionTime }
+   STATUS  current
+   DESCRIPTION
+           "TWAMP Client reached the maximum connection duration with the TWAMP Server and Client will be disconnected"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 7 }
+
+twampservermaximumconnectionsexceeded NOTIFICATION-TYPE
+   OBJECTS { ipiTwampServerMaxConnections }
+   STATUS  current
+   DESCRIPTION
+           "Indicates that the maximum number of Connections allowed has been exceeded on TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 8 }
+
+twampservermaximumsessionsexceeded NOTIFICATION-TYPE
+   OBJECTS { ipiTwampServerMaximumSessions }
+   STATUS  current
+   DESCRIPTION
+           "Indicates that the maximum number of Sessions allowed has been exceeded on TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 9 }
+
+twampservermaximumconnectionsperclientexceeded NOTIFICATION-TYPE
+   OBJECTS { ipiTwampServerMaxConnectionsPerClient, ipiTwampConnectionConnectionId }
+   STATUS  current
+   DESCRIPTION
+           "The TWAMP Client reached the maximum allowed connections with the TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 10 }
+
+twampservermaximumsessionsperconnectionexceeded NOTIFICATION-TYPE
+   OBJECTS { ipiTwampServerMaximumSessionsPerConnection, ipiTwampConnectionConnectionId }
+   STATUS  current
+   DESCRIPTION
+           "The TWAMP Client reached the maximum allowed number of sessions per connection with the TWAMP Server"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 11 }
+
+twampdelaythresholdbreached NOTIFICATION-TYPE
+   OBJECTS { ipiTwampTestSessionSessionName, ipiTwampTestSessionVrfName, ipiTwampRoundTripDelayAverage }
+   STATUS  current
+   DESCRIPTION
+           "This event is generated when the RTT delay value is greater than the threshold value"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 12 }
+END

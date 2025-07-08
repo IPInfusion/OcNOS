@@ -23,7 +23,7 @@ module ipi-vxlan {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ietf-inet-types {
@@ -38,12 +38,12 @@ module ipi-vxlan {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ipi-bridge {
         prefix ipi-bridge;
-        revision-date 2024-10-07;
+        revision-date 2025-04-21;
     }
 
     import ipi-vlan {
@@ -53,17 +53,22 @@ module ipi-vxlan {
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2025-01-02;
+        revision-date 2025-03-21;
     }
 
     import ipi-qos {
         prefix ipi-qos;
-        revision-date 2025-02-15;
+        revision-date 2025-06-10;
     }
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
+    }
+
+    import ipi-mac-limit {
+        prefix ipi-mac-limit;
+        revision-date 2025-05-22;
     }
 
     import ietf-yang-types {
@@ -73,7 +78,7 @@ module ipi-vxlan {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -88,6 +93,41 @@ module ipi-vxlan {
     description
         "Datamodel for VxLAN protocol";
 
+
+    revision "2025-05-22" {
+        description "Added dependent Object in vxlan-tenants container for tunnel/config";
+        reference " 0.13.5.";
+    }
+
+    revision "2025-05-09" {
+        description "Fix compilation warnings";
+        reference " 0.13.4.";
+    }
+
+    revision "2025-05-05" {
+        description "Added input displayString and helpString for learning-limit EVI and AC";
+        reference " 0.13.3.";
+    }
+
+    revision "2025-04-28" {
+        description "Added CML_SKIP_HITLESS_MERGE for tenant-xconnect-type attribute";
+        reference " 0.13.2.";
+    }
+
+    revision "2025-04-08" {
+        description "Added learning-limit for 'nvo vxlan access-if' modes and also for 'nvo vxlan' EVI instance.";
+        reference " 0.13.1.";
+    }
+
+    revision "2025-03-24" {
+        description "Added 'CML_UNIQUE' for attributes 'xconnect-identifier','tenant-description'and 'irb-name'";
+        reference " 0.13.0.";
+    }
+
+    revision "2025-02-20" {
+        description "CLI implementation disable-l3-termination check removed for Trident 4";
+        reference " 0.12.14.";
+    }
 
     revision "2025-02-06" {
         description "CLI implementation to Disable arp/nd cache on interface";
@@ -121,6 +161,11 @@ module ipi-vxlan {
 
     revision "2024-10-08" {
         description "Added 'is-bitmap-check-enable' in vxlan-tenants container with config tenant-type";
+        reference " 0.12.8.";
+    }
+
+    revision "2024-10-03" {
+        description "CLI implementation disable-arp-storm-control-for-cpu";
         reference " 0.12.8.";
     }
 
@@ -526,6 +571,12 @@ module ipi-vxlan {
             description "Use this attribute to set the vxlan mh mac relocate scan";
         } // END of mh-mac-relocate-scan definition.
 
+        leaf disable-arp-storm-control-for-cpu  {
+            if-feature feature-list:NOT_HAVE_DUNE;
+            type  empty;
+            description "Use this attribute to set the vxlan disable arp storm control for cpu";
+        } // END of disable-arp-storm-control-for-cpu definition.
+
     } // END of vxlan-global-config definition.
     grouping vxlan-qos-global-config {
         description
@@ -665,6 +716,13 @@ module ipi-vxlan {
             }
             description "Use this attribute to set the disable l3 terminaation";
         } // END of disable-l3-termination definition.
+
+        leaf evi-learning-limit  {
+            type  leafref {
+                path  "/ipi-mac-limit:mac-limit-global/ipi-mac-limit:mac-limit-profiles/ipi-mac-limit:mac-limit-profile-inst/ipi-mac-limit:config/ipi-mac-limit:mac-lim-profile-name";
+            }
+            description "Attach (EVPN-VxLAN) EVI MAC learning limit profile";
+        } // END of evi-learning-limit definition.
 
     } // END of vxlan-tenant-config definition.
     grouping vxlan-tenant-route-count-state {
@@ -1152,6 +1210,13 @@ module ipi-vxlan {
             description "Use this attribute to set the static mac address of host";
         } // END of mac-address definition.
 
+        leaf ac-learning-limit  {
+            type  leafref {
+                path  "/ipi-mac-limit:mac-limit-global/ipi-mac-limit:mac-limit-profiles/ipi-mac-limit:mac-limit-profile-inst/ipi-mac-limit:config/ipi-mac-limit:mac-lim-profile-name";
+            }
+            description "Attach MAC learning limit profile to VxLAN AC port";
+        } // END of ac-learning-limit definition.
+
     } // END of vxlan-access-interface-config definition.
     grouping vxlan-untagged-access-interface-cache-config {
         description
@@ -1574,6 +1639,7 @@ module ipi-vxlan {
             list vxlan-tenant {
             when " /ipi-vxlan:vxlan/ipi-vxlan:global/ipi-vxlan:config ";
                 key "vxlan-identifier";
+                unique "config/xconnect-identifier config/tenant-description config/irb-name";
                 description
                     "Tenant related configurations";
                 leaf vxlan-identifier  {

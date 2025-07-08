@@ -36,6 +36,10 @@ module zebm-cli {
     description "List of RPCs used for CML actions";
 
 
+    revision "2025-03-26" {
+        description "Added the support for load-config-filepath and load-config-server RPC.";
+        reference "0.12.0";}
+
     revision "2024-11-12" {
         description "Added the support for load-config-filepath and load-config-server RPC.";
         reference "0.11.0";}
@@ -312,28 +316,39 @@ module zebm-cli {
         description "This RPC will replace the current config with the configuration in the source attribute";
 
         input {
-            container target {
-                description "Particular configuration to copy to.";
-                choice config-target {
-                    mandatory true;
-                    description "Configuration target to be modified";
-                    leaf startup {
-                        type empty;
-                        description "Modify the startup config";
-                    }
-                    leaf running {
-                        type empty;
-                        description "Modify the currently running-config";
-                    }
-                }
+            leaf mode {
+                type cml-data-types:cml_remote_mgmt_t;
+                mandatory true;
+                description "copy-text-config download file mode";
             }
-                    leaf source {
+            leaf target {
+                type enumeration {
+                    enum running-config {
+                    description "running config-store";
+                     }
+                    enum startup-config {
+                    description "startup config-store";
+                     }
+                }
+                mandatory true;
+                description "Type of config store";
+            }
+            leaf source {
                 type string;
                 mandatory true;
-                description "Name of the source backup file to be restored into running-config Enter URL <source>:[//server][/path/filename]";
+                description "Name of the source backup file to be restored into running-config Enter URL <source>:[//server][/path/filename]";            }
+            leaf vrf {
+                type string;
+                description "VRF Name";
+            }
+            }
+        output {
+            leaf show-cli-status {
+                type string;
+                description "Show the result of cli execution";
+            }
             }
         }
-    }
     rpc custom-cmlsh-show-rpc {
         description "This RPC will execute the cmlsh show command";
 
@@ -350,6 +365,31 @@ module zebm-cli {
                 description "Show the result of cli execution";
             }
         }
+    }
+
+    rpc netconf-config-diff {
+        description "This RPC will comparing two NETCONF datastores (e.g., candidate vs. running) and display the diff-generated";
+
+        input {
+            leaf diff-format {
+                type enumeration {
+                    enum xml {
+                        description "Output diff format is xml(default)";
+                    }
+                    enum json {
+                        description "Output diff format is json";
+                    }
+                }
+                description "The diff format represents the format in which differences are displayed";
+            }
+        }
+        output {
+            leaf show-diff {
+                type string;
+                description "Show the result of diff";
+            }
+        }
+
     }
 
     rpc set-feature-netconf-status {

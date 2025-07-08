@@ -23,7 +23,7 @@ module ipi-streaming-telemetry {
 
     import ipi-streaming-telemetry-types {
         prefix ipi-streaming-telemetry-types;
-        revision-date 2024-05-23;
+        revision-date 2025-04-09;
     }
 
     import ietf-inet-types {
@@ -33,17 +33,17 @@ module ipi-streaming-telemetry {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2025-01-02;
+        revision-date 2025-03-21;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -58,6 +58,31 @@ module ipi-streaming-telemetry {
     description
         "Data model for management streaming telemetry configurations";
 
+
+    revision "2025-06-13" {
+        description "do-not-suppress cli moved to hidded cli";
+        reference " 0.2.24.";
+    }
+
+    revision "2025-05-07" {
+        description "removal of debug telemetry configuration,while doing no debug all in config mode";
+        reference " 0.2.23.";
+    }
+
+    revision "2025-04-18" {
+        description "CPU default threshold value updated";
+        reference " 0.2.22.";
+    }
+
+    revision "2025-04-09" {
+        description "Copy right year update ";
+        reference " 0.2.21.";
+    }
+
+    revision "2025-03-28" {
+        description "CPU Monitoring feature added";
+        reference " 0.2.20.";
+    }
 
     revision "2025-02-10" {
         description "Added telemetry keyword for global mode CLIs";
@@ -961,6 +986,108 @@ module ipi-streaming-telemetry {
             uses streaming-telemetry-dial-out-top;
         } // END of subscriptions-container definition.
     } // END of streaming-telemetry-subscription-groups definition.
+    grouping telemetry-cpu-monitoring {
+        description
+            "Configuration objects related to CPU Utilization";
+        container cpu-monitoring {
+            description
+                "CPU utilization container";
+            container config {
+                when " /ipi-streaming-telemetry:telemetry-system/ipi-streaming-telemetry:vrfs/ipi-streaming-telemetry:vrf/ipi-streaming-telemetry:streaming-telemetry/ipi-streaming-telemetry:config/ipi-streaming-telemetry:feature-enabled ";
+                presence "enable-cpu-limit";
+                description
+                    "Configuration data for cpu-utlization";
+                uses telemetry-cpu-monitoring-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational data for cpu-utlization";
+                uses telemetry-cpu-monitoring-config;
+            } // END of state-container definition.
+            uses telemetry-cpu-monitoring-sensor-group;
+        } // END of cpu-monitoring-container definition.
+    } // END of telemetry-cpu-monitoring definition.
+    grouping telemetry-cpu-monitoring-config {
+        description
+            "Configuration objects related to CPU Utilization configs";
+        leaf enable-cpu-limit  {
+            type  ipi-streaming-telemetry-types:cml_telemetry_cpu_monitoring_t;
+            mandatory true;
+            description "Enable CPU monitoring for streaming telemetry";
+        } // END of enable-cpu-limit definition.
+
+        leaf suppress-threshold  {
+            type  uint16 {
+                 range "20..80"  {
+                    description "20..80: Supported range 20 - 80";
+                 }
+            }
+            default "40";
+            description "Set CPU threshold for suppressing active streaming";
+        } // END of suppress-threshold definition.
+
+    } // END of telemetry-cpu-monitoring-config definition.
+    grouping telemetry-cpu-monitoring-sensor-group {
+        description
+            "Configuration objects related to do not suppress sensor group";
+        container no-suppress-grps {
+            description
+                "CPU utilization container";
+
+            list no-suppress-grp {
+                if-feature feature-list:HAVE_VRF;
+                key "vrf-name sensor-group-id";
+                description
+                    "List of suppressed groups";
+                leaf vrf-name  {
+                    type  leafref {
+                        path  "../config/vrf-name";
+                    }
+                    description "VRF Name associated with this instance";
+                } // END of vrf-name definition.
+
+                leaf sensor-group-id  {
+                    type  leafref {
+                        path  "../config/sensor-group-id";
+                    }
+                    description "Reference to the sensor group which is used in the profile";
+                } // END of sensor-group-id definition.
+
+                container config {
+                    presence "CPU Utilization";
+                    description
+                        "Configuration data for cpu-utlization";
+                    uses telemetry-cpu-monitoring-sensor-group-config;
+                } // END of config-container definition.
+                container state {
+                    presence "CPU Utilization";
+                    description
+                        "State data for cpu-utlization";
+                    uses telemetry-cpu-monitoring-sensor-group-config;
+                } // END of state-container definition.
+            } // End of no-suppress-grp-list
+        } // END of no-suppress-grps-container definition.
+    } // END of telemetry-cpu-monitoring-sensor-group definition.
+    grouping telemetry-cpu-monitoring-sensor-group-config {
+        description
+            "Configuration objects related to do not suppress sensor group";
+        leaf vrf-name  {
+            if-feature feature-list:HAVE_VRF;
+            type  leafref {
+                path  "/telemetry-system/vrfs/vrf/vrf-name";
+            }
+            description "VRF Name associated with this instance";
+        } // END of vrf-name definition.
+
+        leaf sensor-group-id  {
+            type  leafref {
+                path  "/telemetry-system/vrfs/vrf/sensor-groups/sensor-group/sensor-group-id";
+            }
+            description "Reference to the sensor group which is used in the profile";
+        } // END of sensor-group-id definition.
+
+    } // END of telemetry-cpu-monitoring-sensor-group-config definition.
 
     grouping  telemetry-system-grouping {
     description
@@ -973,6 +1100,7 @@ module ipi-streaming-telemetry {
         uses streaming-telemetry-global-top;
         uses streaming-telemetry-subsystem-top;
         uses streaming-telemetry-debug;
+        uses telemetry-cpu-monitoring;
     } // END of telemetry-system-container definition.
     } // END of telemetry-system-grouping definition.
 

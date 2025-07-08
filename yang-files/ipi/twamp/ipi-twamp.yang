@@ -23,7 +23,7 @@ module ipi-twamp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ietf-yang-types {
@@ -33,7 +33,7 @@ module ipi-twamp {
 
     import ipi-twamp-types {
         prefix ipi-twamp-types;
-        revision-date 2023-05-12;
+        revision-date 2025-05-01;
     }
 
     import ietf-inet-types {
@@ -43,20 +43,21 @@ module ipi-twamp {
 
     import ipi-network-instance {
         prefix ipi-network-instance;
-        revision-date 2025-02-11;
+        revision-date 2025-04-14;
     }
 
     import ipi-vrf {
         prefix ipi-vrf;
-        revision-date 2025-01-02;
+        revision-date 2025-03-21;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
-    include ipi-twamp-client { revision-date 2025-01-22;}
+    include ipi-twamp-client { revision-date 2025-02-13;}
+    include ipi-twamp-session { revision-date 2025-05-15;}
     organization
         "IP Infusion Inc.";
 
@@ -69,6 +70,56 @@ module ipi-twamp {
     description
         "Two-Way Active Measurement Protocol (TWAMP)";
 
+
+    revision "2025-06-12" {
+        description "Adjusted the reflector name regex to support adding the . character in the name (to accomodate customer config upgrade)";
+        reference " 0.15.8.";
+    }
+
+    revision "2025-05-15" {
+        description "Default value of the VRF set to default";
+        reference " 0.15.8.";
+    }
+
+    revision "2025-05-02" {
+        description "Fixed types for time value leaves";
+        reference " 0.15.7.";
+    }
+
+    revision "2025-05-01" {
+        description "Modified the ipi-twamp-types if-feature level so it can be used in igp te datamodel";
+        reference " 0.15.6.";
+    }
+
+    revision "2025-03-26" {
+        description "Updated TWAMP Session datamodel";
+        reference " 0.15.5.";
+    }
+
+    revision "2025-03-22" {
+        description "Added pattern verification for reflector attributes";
+        reference " 0.15.4.";
+    }
+
+    revision "2025-03-13" {
+        description "Added support for upstream interface for TWAMP";
+        reference " 0.15.3.";
+    }
+
+    revision "2025-02-25" {
+        description "Insert dependentObject directive";
+        reference " 0.15.2.";
+    }
+
+    revision "2025-02-13" {
+        description "Limited session name to 128 characters long";
+        reference " 0.15.1.";
+    }
+
+    revision "2025-02-03" {
+        description "Added SNMP Traps support for TWAMP";
+        reference " 0.15.0.";
+    }
 
     revision "2025-01-22" {
         description "Fixed checking the value of the control admin state in the twamp client when creating a session";
@@ -257,7 +308,7 @@ module ipi-twamp {
         leaf name  {
             type  string {
                 length "1..128";
-                pattern "[^?' =,>|]+";
+                pattern "[a-zA-Z0-9][a-zA-Z0-9_.-]*";
             }
             description "Sets Reflector Session Name";
         } // END of name definition.
@@ -288,11 +339,19 @@ module ipi-twamp {
 
         leaf vrf-name  {
             type  string {
-                length "1..1965";
-                pattern "[^?' =,>|]+";
+                length "1..32";
+                pattern "[a-zA-Z0-9_-]*";
             }
             description "Use this attribute to set the Reflector VRF name";
         } // END of vrf-name definition.
+
+        leaf upstream-intf  {
+            type  string {
+                length "1..32";
+                pattern "[^?' =,>|]+";
+            }
+            description "Use this attribute to set the VPN Network Interface for the reflector";
+        } // END of upstream-intf definition.
 
     } // END of twamp-session-reflector-address-config definition.
     grouping twamp-session-reflector-top {
@@ -982,6 +1041,7 @@ module ipi-twamp {
         uses twamp-debug-top;
         uses twamp-server-top;
         uses client-grouping;
+        uses sessions-grouping;
     } // END of twamp-container definition.
     } // END of twamp-grouping definition.
 
@@ -1058,6 +1118,25 @@ module ipi-twamp {
         }
     }
 
+    rpc twamp-session-clear-measurement {
+        if-feature feature-list:HAVE_TWAMP;
+        description "Clear and restart the TWAMP Session measurement";
+        input  {
+            leaf session-name  {
+                type string {
+                    length "1..32";
+                }
+                mandatory true;
+                description "Session name";
+            }
+        }
+    }
+
+    rpc twamp-session-clear-measurement-all {
+        if-feature feature-list:HAVE_TWAMP;
+        description "Clear and restart all the TWAMP Sessions measurement";
+    }
+
     rpc twamp-test-session-start {
         if-feature feature-list:HAVE_TWAMP;
         description "Start TWAMP Light Control Test Session";
@@ -1132,6 +1211,356 @@ module ipi-twamp {
         }
     }
 
+    notification twamp-server-client-connected {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates when a remote Client connected to the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf connection-id {
+            type  uint32;
+        description
+            "Connection ID";
+        }
+
+        leaf client-address {
+            type  inet:ip-address;
+        description
+            "IP address of the client";
+        }
+
+        leaf client-port {
+            type  uint16;
+        description
+            "Port used by the client";
+        }
+
+        leaf client-vrf {
+            type  string;
+        description
+            "VRF where the client is connected";
+        }
+    }
+
+    notification twamp-server-client-disconnected {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates when a remote Client disconnected from the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf connection-id {
+            type  uint32;
+        description
+            "Connection ID";
+        }
+
+        leaf client-address {
+            type  inet:ip-address;
+        description
+            "IP address of the client";
+        }
+
+        leaf client-port {
+            type  uint16;
+        description
+            "Port used by the client";
+        }
+
+        leaf client-vrf {
+            type  string;
+        description
+            "VRF where the client is connected";
+        }
+    }
+
+    notification twamp-server-session-accepted {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates that a Session from the connection-id has been Accepted in the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf session-id {
+            type  string;
+        description
+            "Session ID";
+        }
+
+        leaf connection-id {
+            type  uint32;
+        description
+            "Connection ID";
+        }
+
+        leaf sender-address {
+            type  inet:ip-address;
+        description
+            "IP address of the TWAMP sender";
+        }
+
+        leaf sender-port {
+            type  uint16;
+        description
+            "Port used by the sender";
+        }
+
+        leaf receiver-address {
+            type  inet:ip-address;
+        description
+            "IP address of the TWAMP receiver";
+        }
+
+        leaf receiver-port {
+            type  uint16;
+        description
+            "Port used by the receiver";
+        }
+
+        leaf receiver-vrf {
+            type  string;
+        description
+            "VRF where the receiver is running";
+        }
+    }
+
+    notification twamp-server-sessions-started {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates that a Session from the connection-id has been Started in the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf session-id {
+            type  string;
+        description
+            "Session ID";
+        }
+
+        leaf connection-id {
+            type  uint32;
+        description
+            "Connection ID";
+        }
+    }
+
+    notification twamp-server-sessions-stopped {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates that a Session from the connection-id has been Stopped in the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf session-id {
+            type  string;
+        description
+            "Session ID";
+        }
+
+        leaf connection-id {
+            type  uint32;
+        description
+            "Connection ID";
+        }
+    }
+
+    notification twamp-server-client-inactivity-timeout {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "TWAMP Client reached the inactivity timeout and will be disconnected from TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf connection-id {
+            type  uint32;
+        description
+            "Connection ID";
+        }
+
+        leaf last-activity-time {
+            type  yang:date-and-time;
+        description
+            "Time of the last activity that happened on the connection";
+        }
+    }
+
+    notification twamp-server-client-maximum-connection-duration-timeout {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "TWAMP Client reached the maximum connection duration with the TWAMP Server and Client will be disconnected.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf connection-id {
+            type  uint32;
+        description
+            "Connection ID";
+        }
+
+        leaf connection-time {
+            type  yang:date-and-time;
+        description
+            "Time when the connection was established";
+        }
+    }
+
+    notification twamp-server-maximum-connections-exceeded {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates that the maximum number of Connections allowed has been exceeded on TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf max-connections {
+            type  uint8;
+        description
+            "Set the maximum connections";
+        }
+    }
+
+    notification twamp-server-maximum-sessions-exceeded {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates that the maximum number of Sessions allowed has been exceeded on TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf maximum-sessions {
+            type  uint8;
+        description
+            "Set the maximum number of test sessions for the server";
+        }
+    }
+
+    notification twamp-server-maximum-connections-per-client-exceeded {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "The TWAMP Client reached the maximum allowed connections with the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf max-connections-per-client {
+            type  uint8;
+        description
+            "Set the maximum number of connections per client";
+        }
+
+        leaf connection-id {
+            type  uint32;
+        description
+            "Connection ID";
+        }
+    }
+
+    notification twamp-server-maximum-sessions-per-connection-exceeded {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "The TWAMP Client reached the maximum allowed number of sessions per connection with the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf maximum-sessions-per-connection {
+            type  uint8;
+        description
+            "Set the maximum number of test sessions per client connection";
+        }
+
+        leaf connection-id {
+            type  uint32;
+        description
+            "Connection ID";
+        }
+    }
+
     notification twamp-delay-threshold-breached {
         if-feature feature-list:HAVE_TWAMP;
 
@@ -1163,6 +1592,166 @@ module ipi-twamp {
             type  uint64;
         description
             "This attribute represents the average value within the statistics";
+        }
+    }
+
+    notification twamp-client-session-accepted {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "The TWAMP Client session has been accepted by the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf session-name {
+            type  string;
+        description
+            "Sets client connection Name";
+        }
+
+        leaf connection-name {
+            type  string;
+        description
+            "Sets client connection Name";
+        }
+
+        leaf vrf-name {
+            type  string;
+        description
+            "Use this attribute to set the Connection VRF name";
+        }
+    }
+
+    notification twamp-client-sessions-started {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "The TWAMP Client session has been started with the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf session-name {
+            type  string;
+        description
+            "Sets client connection Name";
+        }
+
+        leaf connection-name {
+            type  string;
+        description
+            "Sets client connection Name";
+        }
+
+        leaf vrf-name {
+            type  string;
+        description
+            "Use this attribute to set the Connection VRF name";
+        }
+    }
+
+    notification twamp-client-sessions-stopped {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "The TWAMP Client session has been stopped with the TWAMP Server.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf session-name {
+            type  string;
+        description
+            "Sets client connection Name";
+        }
+
+        leaf connection-name {
+            type  string;
+        description
+            "Sets client connection Name";
+        }
+
+        leaf vrf-name {
+            type  string;
+        description
+            "Use this attribute to set the Connection VRF name";
+        }
+    }
+
+    notification twamp-session-measurement-threshold-crossed {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates that the TWAMP Session Measurement has crossed the configured threshold.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf session-name {
+            type  string;
+        description
+            "TWAMP End-to-End Session name";
+        }
+
+        leaf average-delay {
+            type  uint64;
+        description
+            "This attribute represents the average delay value";
+        }
+    }
+
+    notification twamp-session-measurement-loss-changed {
+        if-feature feature-list:HAVE_TWAMP;
+
+        description "Indicates that the TWAMP Session Measurement loss has changed.";
+
+        leaf severity {
+            type cml-data-types:cml_notif_severity_t;
+            description "Notification severity level (value: MINOR)";
+        }
+
+        leaf eventClass {
+            type cml-data-types:cml_notif_class_t;
+            description "Notification event class (value: STATE)";
+        }
+
+        leaf session-name {
+            type  string;
+        description
+            "TWAMP End-to-End Session name";
+        }
+
+        leaf packet-loss {
+            type  decimal64 {
+                 fraction-digits 4;            }
+        description
+            "This attribute represents the percentage of lost packets in a
+                    measurement interval";
         }
     }
 

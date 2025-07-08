@@ -23,7 +23,7 @@ module ipi-ip-sla {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ietf-yang-types {
@@ -38,7 +38,7 @@ module ipi-ip-sla {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -53,6 +53,41 @@ module ipi-ip-sla {
     description
         "Datamodel for ipsla definations";
 
+
+    revision "2025-06-12" {
+        description "Added .h file ipsla_api.h for protocol-api-header-file ";
+        reference " 6.0.0.";
+    }
+
+    revision "2025-05-08" {
+        description "Added Support for IP-Source";
+        reference " 0.5.5.";
+    }
+
+    revision "2025-05-07" {
+        description "Removed 'when' statement for the 'scheduled-processes' container and added a leafref for the 'scheduled-pid' attribute referencing the 'identifier' attribute.";
+        reference " 0.5.4.";
+    }
+
+    revision "2025-04-15" {
+        description "Adding dependentObject for object level reordering of ip-sla and icmp-echo-process ";
+        reference " 0.5.3.";
+    }
+
+    revision "2025-04-11" {
+        description "Updated data types of packets-sent and packets-received from UINT32 to UINT64";
+        reference " 0.5.2.";
+    }
+
+    revision "2025-04-04" {
+        description "Added when tag for 'scheduled-processes' container";
+        reference " 0.5.1.";
+    }
+
+    revision "2025-02-19" {
+        description "Added streaming telemetry support";
+        reference " 0.5.0.";
+    }
 
     revision "2023-12-07" {
         description "Added Dependency tag for IP SLA Schedule Set";
@@ -108,10 +143,8 @@ module ipi-ip-sla {
         description
             "Grouping for IPSLA schedule configuration data";
         leaf scheduled-pid  {
-            type  uint16 {
-                 range "1..65535"  {
-                    description "1..65535: Supported range 1 - 65535";
-                 }
+            type  leafref {
+                path  "/ip-sla/processes/process/config/identifier";
             }
             description "Use this attribute to schedule the IPSLA measurement operation.";
         } // END of scheduled-pid definition.
@@ -188,6 +221,11 @@ module ipi-ip-sla {
             description "Source Interface name";
         } // END of source-interface definition.
 
+        leaf source-ip  {
+            type  inet:ip-address;
+            description "Source IP Interface name";
+        } // END of source-ip definition.
+
         leaf frequency  {
             type  uint8 {
                  range "1..60"  {
@@ -259,6 +297,15 @@ module ipi-ip-sla {
     grouping ip-sla-statistics-entries {
         description
             "Grouping for IP SLA stats data";
+        leaf destination  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            config false;
+            description "Destination IP or host name for ICMP Echo for this SLA session";
+        } // END of destination definition.
+
         leaf start-time  {
             type  yang:date-and-time {
                 pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[\\+\\-]\\d{2}:\\d{2})";
@@ -274,13 +321,13 @@ module ipi-ip-sla {
             } // END of elapsed-time definition.
 
             leaf packets-sent  {
-                type  uint32;
+                type  uint64;
                 config false;
                 description "Number of test packets sent";
             } // END of packets-sent definition.
 
             leaf packets-received  {
-                type  uint32;
+                type  uint64;
                 config false;
                 description "Number of test packets received";
             } // END of packets-received definition.

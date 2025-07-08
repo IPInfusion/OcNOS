@@ -23,7 +23,7 @@ module ipi-lldpv2 {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2024-11-14;
+        revision-date 2025-06-11;
     }
 
     import ipi-lldp-types {
@@ -33,7 +33,7 @@ module ipi-lldpv2 {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2025-02-12;
+        revision-date 2025-06-03;
     }
 
     import ietf-yang-types {
@@ -43,7 +43,7 @@ module ipi-lldpv2 {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2025-02-27;
+        revision-date 2025-07-01;
     }
 
     organization
@@ -58,6 +58,16 @@ module ipi-lldpv2 {
     description
         "Link Layer Discovery Protocol (LLDP)";
 
+
+    revision "2025-04-04" {
+        description "Modified/deleted some DCBX custom triggers";
+        reference " 0.8.8.";
+    }
+
+    revision "2025-03-05" {
+        description "Updated XPath for management-list";
+        reference " 0.8.7.";
+    }
 
     revision "2025-01-08" {
         description "Added new attribute disable-tx-rx";
@@ -1044,7 +1054,7 @@ module ipi-lldpv2 {
         } // END of oid definition.
 
     } // END of remote-management-info definition.
-    grouping management-list {
+    grouping management-list-top {
         description
             "Neighbor management information group";
 
@@ -1053,9 +1063,31 @@ module ipi-lldpv2 {
             config false;
             description
                 "Object list for neighbor management information";
-            uses remote-management-info;
+            leaf address  {
+                type  leafref {
+                    path  "../state/address";
+                }
+                description "Neighbor mac-address";
+            } // END of address definition.
+
+            container state {
+                config false;
+                description
+                    "Management list operational state data";
+                uses remote-management-info;
+            } // END of state-container definition.
         } // End of management-list-list
-    } // END of management-list definition.
+    } // END of management-list-top definition.
+    grouping management-lists-top {
+        description
+            "Top level grouping for management-lists";
+        container management-lists {
+            config false;
+            description
+                "Top level container each neighbor management information";
+            uses management-list-top;
+        } // END of management-lists-container definition.
+    } // END of management-lists-top definition.
     grouping neighbor-state {
         description
             "LLDP neighbors operational data attributes group";
@@ -1281,8 +1313,8 @@ module ipi-lldpv2 {
                     "Neighbors operational state data";
                 uses neighbor-state;
                 uses vlan-list;
-                uses management-list;
             } // END of state-container definition.
+            uses management-lists-top;
         } // End of neighbor-list
     } // END of neighbor-top definition.
     grouping neighbors-agent-top {

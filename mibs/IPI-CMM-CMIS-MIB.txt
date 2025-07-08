@@ -1,4 +1,4 @@
-    -- /* Copyright (C) 2001-2024 IP Infusion, Inc. All Rights Reserved. */
+    -- /* Copyright (C) 2001-2025 IP Infusion, Inc. All Rights Reserved. */
 
     IPI-CMM-CMIS-MODULE-MIB DEFINITIONS ::= BEGIN
 
@@ -222,15 +222,15 @@
                           if-800gbase-lr1(169),
                           if-800gbase-er1-20(170),
                           if-800gbase-er1(171),
-                          if-flexo-8e-do-16qam--foice8point8-do(172),
-                          if-flexo-8-do-16qam--foic8point8-do(173),
-                          if-flexo-8e-dpo-16qam--foice8point8-dpo(174),
-                          if-flexo-8-dpo-16qam--foic8point8-dpo(175),
-                          if-flexo-6e-dpo-16qam--foic6e-dpo(176),
-                          if-flexo-6-dpo-16qam--foicpointe-dpo(177),
-                          if-800zr-a--150ghz-dwdm--tx-output-range-a(178),
-                          if-800zr-b--150ghz-dwdm--tx-output-range-b(179),
-                          if-800zr-c--150ghz-dwdm--tx-output-range-c(180),
+                          if-flexo-8e-do-16qam-foice8point8-do(172),
+                          if-flexo-8-do-16qam-foic8point8-do(173),
+                          if-flexo-8e-dpo-16qam-foice8point8-dpo(174),
+                          if-flexo-8-dpo-16qam-foic8point8-dpo(175),
+                          if-flexo-6e-dpo-16qam-foic6e-dpo(176),
+                          if-flexo-6-dpo-16qam-foicpointe-dpo(177),
+                          if-800zr-a-150ghz-dwdm-tx-output-range-a(178),
+                          if-800zr-b-150ghz-dwdm-tx-output-range-b(179),
+                          if-800zr-c-150ghz-dwdm-tx-output-range-c(180),
                           if-custom-100gofec31point5(1001),
                           if-custom-200gofec31point5(1002),
                           if-custom-otnmax200gsfec35(1003),
@@ -591,11 +591,11 @@
                                    rxsnrmargin(89),
                                    rxsnrmarginaverage(90),
                                    rxsnrmarginminimum(91),
-                                   rxsnrmarginmaximum(92)
+                                   rxsnrmarginmaximum(92),
                                    rxqfactor(93),
                                    rxqfactoraverage(94),
                                    rxqfactorminimum(95),
-                                   rxqfactormaximum(96)
+                                   rxqfactormaximum(96),
                                    rxqmargin(97),
                                    rxqmarginaverage(98),
                                    rxqmarginminimum(99),
@@ -627,6 +627,70 @@
                                rxtotalpowerdetectionandrxdspframelolhybrid(4),
                                rxsingalpowerdetectionandrxdspframelolhybrid(5)
                            }
+
+    CmisModuleTxFilterTypes ::= TEXTUAL-CONVENTION
+      STATUS      current
+      DESCRIPTION
+      "The Cmis module Tx Filter type."
+      SYNTAX  INTEGER {
+                        none(1),
+                        rootraisedcosine(2),
+                        raisedcosine(3),
+                        gaussian(4)
+                      }
+
+    CmisModuleFPPortTypes ::= TEXTUAL-CONVENTION
+      STATUS      deprecated
+      DESCRIPTION
+      "The Cmis transceiver front panel port type."
+      SYNTAX  INTEGER {
+                        unknown(-1),
+                        sfp(1),
+                        sfp-plus(2),
+                        sfp-28(3),
+                        sfp-56(4),
+                        sfp-56-dd(5),
+                        sfp-112(6),
+                        sfp-112-dd(7),
+                        qsfp(8),
+                        qsfp-plus(9),
+                        qsfp-28(10),
+                        qsfp-28-dd(11),
+                        qsfp-56(12),
+                        qsfp-56-dd(13),
+                        qsfp-112(14),
+                        qsfp-112-dd(15),
+                        xfp(16)
+                      }
+
+    CmisModuleFPPortModuleTypes ::= TEXTUAL-CONVENTION
+      STATUS      deprecated
+      DESCRIPTION
+      "The Cmis transceiver front panel port module type."
+      SYNTAX  INTEGER {
+                        unknown(-1),
+                        sfp(1),
+                        sfp-plus(2),
+                        sfp-plus-edfa(3),
+                        sfp-28(4),
+                        sfp-56(5),
+                        sfp-56-dd(6),
+                        sfp-112(7),
+                        sfp-112-dd(8),
+                        qsfp(9),
+                        qsfp-plus(10),
+                        qsfp-28(11),
+                        qsfp-28-dd(12),
+                        qsfp-28-edfa(13),
+                        qsfp-56(14),
+                        qsfp-56-dd(15),
+                        qsfp-112(16),
+                        qsfp-112-dd(17),
+                        qsa(18),
+                        xfp(19),
+                        pon-xfp(20)
+                      }
+
 
     cmmCmisModuleEEPROMTable     OBJECT-TYPE
       SYNTAX            SEQUENCE OF CmmCmisModuleEEPROMTableEntry
@@ -689,12 +753,15 @@
          cmmCmisModuleMaxMmfOm3LinkLength       INTEGER,
          cmmCmisModuleMaxMmfOm4LinkLength       INTEGER,
          cmmCmisModuleMaxMmfOm5LinkLength       INTEGER,
-         cmmCmisModuleRxLosType                 CmisModuleCcmisRxLosTypes,
+         cmmCmisModuleRxLosType                 CmisModuleCcmisRxLosTypes
        }
 
     cmmCmisModuleType  OBJECT-TYPE
       SYNTAX                INTEGER {
-                              qsfp-dd(1)
+                              qsfp-dd(1),
+                              sfp(2),
+                              qsfp(3),
+                              xfp(4)
                             }
       MAX-ACCESS            read-only
       STATUS                current
@@ -3578,12 +3645,152 @@
       ::= { cmmCmisModuleApplicationStateTableEntry 3 }
 
 
+    cmmCmisModuleAdvertisementTxOutputFilterTable OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmCmisModuleAdvertisementTxOutputFilterTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+      "Table to display Cmis module tx output filter advertisement information."
+      ::= { cmmCmisModuleObjects 33 }
+
+    cmmCmisModuleAdvertisementTxOutputFilterTableEntry OBJECT-TYPE
+      SYNTAX            CmmCmisModuleAdvertisementTxOutputFilterTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+      "A table to display Cmis module tx output filter advertisement information."
+      INDEX    { cmmStackUnitIndex, cmmCmisModuleType,
+                 cmmCmisModulePortNumber }
+        ::= { cmmCmisModuleAdvertisementTxOutputFilterTable 1 }
+
+    CmmCmisModuleAdvertisementTxOutputFilterTableEntry  ::=
+        SEQUENCE  {
+          cmmCmisModuleInsertionofLFonLDDetection   TruthValue,
+          cmmCmisModuleTxTransmitShapeControl       TruthValue
+        }
+
+    cmmCmisModuleInsertionofLFonLDDetection  OBJECT-TYPE
+      SYNTAX          TruthValue
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+      "The Cmis module provides status of insertion of LF on LD detection"
+        ::= { cmmCmisModuleAdvertisementTxOutputFilterTableEntry 1 }
+
+    cmmCmisModuleTxTransmitShapeControl  OBJECT-TYPE
+      SYNTAX          TruthValue
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+      "The Cmis module provides status of tx transmit shape control"
+        ::= { cmmCmisModuleAdvertisementTxOutputFilterTableEntry 2 }
+
+
+    cmmCmisModuleTxOutputFilterStatusTable OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmCmisModuleTxOutputFilterStatusTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+      "Table to display Cmis module tx output filter status information."
+        ::= { cmmCmisModuleObjects 34 }
+
+    cmmCmisModuleTxOutputFilterStatusTableEntry OBJECT-TYPE
+      SYNTAX            CmmCmisModuleTxOutputFilterStatusTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            current
+      DESCRIPTION
+      "A table to display Cmis module tx output filter status information."
+      INDEX    { cmmStackUnitIndex, cmmCmisModuleType,
+                 cmmCmisModulePortNumber, cmmCmisModuleLaneNumber }
+        ::= { cmmCmisModuleTxOutputFilterStatusTable 1 }
+
+    CmmCmisModuleTxOutputFilterStatusTableEntry  ::=
+      SEQUENCE  {
+                  cmmCmisModuleTxFilterType       CmisModuleTxFilterTypes,
+                  cmmCmisModuleTxFilterRollOfFactor  INTEGER
+                }
+
+    cmmCmisModuleTxFilterType  OBJECT-TYPE
+      SYNTAX          CmisModuleTxFilterTypes
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+        "Cmis Module Media lane tx filter configured type"
+        ::= { cmmCmisModuleTxOutputFilterStatusTableEntry 1 }
+
+    cmmCmisModuleTxFilterRollOfFactor  OBJECT-TYPE
+      SYNTAX          INTEGER
+      UNITS           "0.001 unit"
+      MAX-ACCESS      read-only
+      STATUS          current
+      DESCRIPTION
+      "The Cmis module provides media lane tx filter hardware configured value"
+        ::= { cmmCmisModuleTxOutputFilterStatusTableEntry 2 }
+
+
+    cmmCmisModuleMappingInfoTable     OBJECT-TYPE
+      SYNTAX            SEQUENCE OF CmmCmisModuleMappingInfoTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            deprecated
+      DESCRIPTION
+      "A list of entries containing Cmis module interface mapping information."
+        ::= { cmmCmisModuleObjects 35 }
+
+    cmmCmisModuleMappingInfoTableEntry OBJECT-TYPE
+      SYNTAX         CmmCmisModuleMappingInfoTableEntry
+      MAX-ACCESS        not-accessible
+      STATUS            deprecated
+      DESCRIPTION
+      "A list of table entries containing Cmis module interface mapping information."
+      INDEX    { cmmStackUnitIndex, cmmCmisModulePortNumber }
+        ::= { cmmCmisModuleMappingInfoTable 1 }
+
+    CmmCmisModuleMappingInfoTableEntry   ::=
+      SEQUENCE {
+            cmmCmisFPPort               DisplayString,
+            cmmCmisFPPortType           CmisModuleFPPortTypes,
+            cmmCmisFPPortModuleType     CmisModuleFPPortModuleTypes,
+            cmmCmisFPPortInterface      DisplayString
+          }
+
+    cmmCmisFPPort  OBJECT-TYPE
+      SYNTAX          DisplayString
+      MAX-ACCESS      read-only
+      STATUS          deprecated
+      DESCRIPTION
+      "Cmis module transceiver front panel port."
+      ::= { cmmCmisModuleMappingInfoTableEntry 1 }
+
+    cmmCmisFPPortType  OBJECT-TYPE
+      SYNTAX          CmisModuleFPPortTypes
+      MAX-ACCESS      read-only
+      STATUS          deprecated
+      DESCRIPTION
+      "Cmis module transceiver front panel port types."
+      ::= { cmmCmisModuleMappingInfoTableEntry 2 }
+
+    cmmCmisFPPortModuleType OBJECT-TYPE
+      SYNTAX          CmisModuleFPPortModuleTypes
+      MAX-ACCESS      read-only
+      STATUS          deprecated
+      DESCRIPTION
+      "Cmis module transceiver front panel port module types."
+      ::= { cmmCmisModuleMappingInfoTableEntry 3 }
+
+    cmmCmisFPPortInterface OBJECT-TYPE
+      SYNTAX          DisplayString
+      MAX-ACCESS      read-only
+      STATUS          deprecated
+      DESCRIPTION
+      "Cmis module transceiver front panel port interface name."
+      ::= { cmmCmisModuleMappingInfoTableEntry 4 }
+
 
     --
     -- ## Notifications
     --
 
-    cmmCmisModuleMonitorAlarm                      OBJECT IDENTIFIER ::= { cmmCmisModuleMonitorObjects 1 }
+    cmmCmisModuleMonitorAlarmSeverity              OBJECT IDENTIFIER ::= { cmmCmisModuleMonitorObjects 1 }
     cmmCmisModuleMonitorNotifications              OBJECT IDENTIFIER ::= { cmmCmisModuleMonitorObjects 2 }
     cmmCmisModuleMediaLaneMonitorNotifications     OBJECT IDENTIFIER ::= { cmmCmisModuleMonitorObjects 3 }
     cmmCmisModuleHostLaneMonitorNotifications      OBJECT IDENTIFIER ::= { cmmCmisModuleMonitorObjects 4 }
@@ -3600,7 +3807,7 @@
       STATUS       current
       DESCRIPTION
       "A generic threshold alarm type information"
-      ::= { cmmCmisModuleMonitorAlarm 1 }
+      ::= { cmmCmisModuleMonitorAlarmSeverity 1 }
 
    cmmCmisModuleNotifyAlarm   NOTIFICATION-TYPE
       OBJECTS     {
