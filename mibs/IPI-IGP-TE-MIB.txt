@@ -20,12 +20,32 @@ IMPORTS
       ipi  FROM IPI-MODULE-MIB;
 
 ipi-igp-te MODULE-IDENTITY
-   LAST-UPDATED "202505010000Z"
+   LAST-UPDATED "202511240000Z"
 
 ORGANIZATION "IP Infusion"
 CONTACT-INFO "support@ipinfusion.com"
    DESCRIPTION 
       "This MIB module is for managing Datamodel for IGP-TE"
+
+   REVISION      "202511240000Z"
+   DESCRIPTION 
+      "Added when tag in irb-twamp-session-parameter objectlist"
+
+   REVISION      "202510200000Z"
+   DESCRIPTION 
+      "Improved CLI validation for twamp session sender-ip and reflector-ip to accept all valid input formats"
+
+   REVISION      "202509170000Z"
+   DESCRIPTION 
+      "Added validation for hostname and IPv4 address formats to the TWAMP_HOSTPNAME_T data type"
+
+   REVISION      "202509080000Z"
+   DESCRIPTION 
+      "Ignored SNMP generation for uni-link config/state and delay, delay-variation, loss-percentage attributes"
+
+   REVISION      "202509040000Z"
+   DESCRIPTION 
+      "Removed EVPN_IRB_IF_MODE while configuring IRB interface"
 
    REVISION      "202505010000Z"
    DESCRIPTION 
@@ -126,45 +146,15 @@ ipiIgpTeInterfaceEntry OBJECT-TYPE
 	INDEX { ipiIgpTeInterfaceName }
 	::= { ipiIgpTeInterfaceTable 1 }
 
-IpiIgpTeInterfaceEntry::= SEQUENCE { 
-	ipiIgpTeUniLinkDelay Unsigned32,
-	ipiIgpTeUniLinkDelayVariation Unsigned32,
-	ipiIgpTeUniLinkLossPercentage INTEGER	}
+IpiIgpTeInterfaceEntry::= SEQUENCE {	}
 
 ipiIgpTeInterfaceName OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Interface name for which igp-te params are being configured"
 	::= { ipiIgpTeInterfaceEntry 1 }
-
-ipiIgpTeUniLinkDelay OBJECT-TYPE
-	SYNTAX Unsigned32(1..16777215) 
-	UNITS "microseconds"
-	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
-		"Use this attribute to specify a unidirectional, link delay value for the interface"
-	::= { ipiIgpTeInterfaceEntry 2 }
-
-ipiIgpTeUniLinkDelayVariation OBJECT-TYPE
-	SYNTAX Unsigned32(0..16777215) 
-	UNITS "microseconds"
-	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
-		"Use this attribute to specify a unidirectional, link delay variation value for the interface"
-	::= { ipiIgpTeInterfaceEntry 3 }
-
-ipiIgpTeUniLinkLossPercentage OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000001"
-	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
-		"Use this attribute to specify a unidirectional, link loss value for the interface"
-	::= { ipiIgpTeInterfaceEntry 4 }
 
 
 ipiIgpTeTwampSessionParameterTable OBJECT-TYPE 
@@ -195,7 +185,7 @@ IpiIgpTeTwampSessionParameterEntry::= SEQUENCE {
 	ipiIgpTeTwampSessionParameterLastAdvertisedPacketsSent Counter64,
 	ipiIgpTeTwampSessionParameterLastAdvertisedPacketsReceived Counter64,
 	ipiIgpTeTwampSessionParameterLastAdvertisedPacketsTimeout Counter64,
-	ipiIgpTeTwampSessionParameterLastAdvertisedPacketLoss INTEGER,
+	ipiIgpTeTwampSessionParameterLastAdvertisedPacketLoss OCTET STRING,
 	ipiIgpTeTwampSessionParameterLastCalculatedCalculationTime DateAndTime,
 	ipiIgpTeTwampSessionParameterLastCalculatedMinimumDelay Counter64,
 	ipiIgpTeTwampSessionParameterLastCalculatedMaximumDelay Counter64,
@@ -206,203 +196,201 @@ IpiIgpTeTwampSessionParameterEntry::= SEQUENCE {
 	ipiIgpTeTwampSessionParameterLastCalculatedPacketsSent Counter64,
 	ipiIgpTeTwampSessionParameterLastCalculatedPacketsReceived Counter64,
 	ipiIgpTeTwampSessionParameterLastCalculatedPacketsTimeout Counter64,
-	ipiIgpTeTwampSessionParameterLastCalculatedPacketLoss INTEGER	}
+	ipiIgpTeTwampSessionParameterLastCalculatedPacketLoss OCTET STRING	}
 
 ipiIgpTeTwampSessionParameterReflectorIp OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Use this attribute to set the reflector IP and start TWAMP delay measurement for the interface"
 	::= { ipiIgpTeTwampSessionParameterEntry 1 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedCalculationTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the time at which a calculation was made"
 	::= { ipiIgpTeTwampSessionParameterEntry 2 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedMinimumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay value"
 	::= { ipiIgpTeTwampSessionParameterEntry 3 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedMaximumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay value"
 	::= { ipiIgpTeTwampSessionParameterEntry 4 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedAverageDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay value"
 	::= { ipiIgpTeTwampSessionParameterEntry 5 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedMinimumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay variation value"
 	::= { ipiIgpTeTwampSessionParameterEntry 6 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedMaximumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay variation value"
 	::= { ipiIgpTeTwampSessionParameterEntry 7 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedAverageDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay variation value"
 	::= { ipiIgpTeTwampSessionParameterEntry 8 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedPacketsSent OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of sent packets in a measurement interval"
 	::= { ipiIgpTeTwampSessionParameterEntry 9 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedPacketsReceived OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of received packets in a measurement interval"
 	::= { ipiIgpTeTwampSessionParameterEntry 10 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedPacketsTimeout OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of lost packets in a measurement interval"
 	::= { ipiIgpTeTwampSessionParameterEntry 11 }
 
 ipiIgpTeTwampSessionParameterLastAdvertisedPacketLoss OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000100"
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the percentage of lost packets in a measurement interval"
 	::= { ipiIgpTeTwampSessionParameterEntry 12 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedCalculationTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the time at which a calculation was made"
 	::= { ipiIgpTeTwampSessionParameterEntry 13 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedMinimumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay value"
 	::= { ipiIgpTeTwampSessionParameterEntry 14 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedMaximumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay value"
 	::= { ipiIgpTeTwampSessionParameterEntry 15 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedAverageDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay value"
 	::= { ipiIgpTeTwampSessionParameterEntry 16 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedMinimumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay variation value"
 	::= { ipiIgpTeTwampSessionParameterEntry 17 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedMaximumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay variation value"
 	::= { ipiIgpTeTwampSessionParameterEntry 18 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedAverageDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay variation value"
 	::= { ipiIgpTeTwampSessionParameterEntry 19 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedPacketsSent OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of sent packets in a measurement interval"
 	::= { ipiIgpTeTwampSessionParameterEntry 20 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedPacketsReceived OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of received packets in a measurement interval"
 	::= { ipiIgpTeTwampSessionParameterEntry 21 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedPacketsTimeout OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of lost packets in a measurement interval"
 	::= { ipiIgpTeTwampSessionParameterEntry 22 }
 
 ipiIgpTeTwampSessionParameterLastCalculatedPacketLoss OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000100"
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the percentage of lost packets in a measurement interval"
 	::= { ipiIgpTeTwampSessionParameterEntry 23 }
 
@@ -435,7 +423,7 @@ IpiIgpTeIrbTwampSessionParameterEntry::= SEQUENCE {
 	ipiIgpTeIrbTwampSessionParameterLastAdvertisedPacketsSent Counter64,
 	ipiIgpTeIrbTwampSessionParameterLastAdvertisedPacketsReceived Counter64,
 	ipiIgpTeIrbTwampSessionParameterLastAdvertisedPacketsTimeout Counter64,
-	ipiIgpTeIrbTwampSessionParameterLastAdvertisedPacketLoss INTEGER,
+	ipiIgpTeIrbTwampSessionParameterLastAdvertisedPacketLoss OCTET STRING,
 	ipiIgpTeIrbTwampSessionParameterLastCalculatedCalculationTime DateAndTime,
 	ipiIgpTeIrbTwampSessionParameterLastCalculatedMinimumDelay Counter64,
 	ipiIgpTeIrbTwampSessionParameterLastCalculatedMaximumDelay Counter64,
@@ -446,203 +434,201 @@ IpiIgpTeIrbTwampSessionParameterEntry::= SEQUENCE {
 	ipiIgpTeIrbTwampSessionParameterLastCalculatedPacketsSent Counter64,
 	ipiIgpTeIrbTwampSessionParameterLastCalculatedPacketsReceived Counter64,
 	ipiIgpTeIrbTwampSessionParameterLastCalculatedPacketsTimeout Counter64,
-	ipiIgpTeIrbTwampSessionParameterLastCalculatedPacketLoss INTEGER	}
+	ipiIgpTeIrbTwampSessionParameterLastCalculatedPacketLoss OCTET STRING	}
 
 ipiIgpTeIrbTwampSessionParameterReflectorIp OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Use this attribute to set the reflector IP and start TWAMP delay measurement for the interface"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 1 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedCalculationTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the time at which a calculation was made"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 2 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedMinimumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 3 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedMaximumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 4 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedAverageDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 5 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedMinimumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay variation value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 6 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedMaximumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay variation value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 7 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedAverageDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay variation value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 8 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedPacketsSent OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of sent packets in a measurement interval"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 9 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedPacketsReceived OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of received packets in a measurement interval"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 10 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedPacketsTimeout OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of lost packets in a measurement interval"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 11 }
 
 ipiIgpTeIrbTwampSessionParameterLastAdvertisedPacketLoss OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000100"
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the percentage of lost packets in a measurement interval"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 12 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedCalculationTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the time at which a calculation was made"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 13 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedMinimumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 14 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedMaximumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 15 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedAverageDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 16 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedMinimumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay variation value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 17 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedMaximumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay variation value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 18 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedAverageDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay variation value"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 19 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedPacketsSent OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of sent packets in a measurement interval"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 20 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedPacketsReceived OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of received packets in a measurement interval"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 21 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedPacketsTimeout OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of lost packets in a measurement interval"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 22 }
 
 ipiIgpTeIrbTwampSessionParameterLastCalculatedPacketLoss OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000100"
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the percentage of lost packets in a measurement interval"
 	::= { ipiIgpTeIrbTwampSessionParameterEntry 23 }
 

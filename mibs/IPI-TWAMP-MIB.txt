@@ -20,12 +20,52 @@ IMPORTS
       ipi  FROM IPI-MODULE-MIB;
 
 ipi-twamp MODULE-IDENTITY
-   LAST-UPDATED "202506120000Z"
+   LAST-UPDATED "202511100000Z"
 
 ORGANIZATION "IP Infusion"
 CONTACT-INFO "support@ipinfusion.com"
    DESCRIPTION 
       "This MIB module is for managing Two-Way Active Measurement Protocol (TWAMP)"
+
+   REVISION      "202511100000Z"
+   DESCRIPTION 
+      "Removed pattern tag from vrf-name"
+
+   REVISION      "202511030000Z"
+   DESCRIPTION 
+      "Overall-packet-rate structure and notifications added"
+
+   REVISION      "202510200000Z"
+   DESCRIPTION 
+      "Improved CLI validation for twamp session sender-ip and reflector-ip to accept all valid input formats"
+
+   REVISION      "202509180000Z"
+   DESCRIPTION 
+      "Increased server maximum-sessions range to scaled up values on Q2"
+
+   REVISION      "202509170000Z"
+   DESCRIPTION 
+      "Added validation for hostname and IPv4 address formats to the TWAMP_HOSTPNAME_T data type"
+
+   REVISION      "202508270000Z"
+   DESCRIPTION 
+      "Updated reflector-port to show default value when configured by user"
+
+   REVISION      "202508110000Z"
+   DESCRIPTION 
+      "Increased the twamp-session burst-count attribute range and added rate alarm notifications"
+
+   REVISION      "202507300000Z"
+   DESCRIPTION 
+      "Updated default values for sender-ip-address, sender-udp-port and upstream-intf leaves"
+
+   REVISION      "202507140000Z"
+   DESCRIPTION 
+      "Updated sender-ip-address and sender-udp-port leaves"
+
+   REVISION      "202506160000Z"
+   DESCRIPTION 
+      "Added twamp-session as a dependentObject for twamp-light control"
 
    REVISION      "202506120000Z"
    DESCRIPTION 
@@ -171,58 +211,102 @@ CONTACT-INFO "support@ipinfusion.com"
 ipiTwampServerMaxConnections OBJECT-TYPE
 	SYNTAX Unsigned32(1..32) 
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Set the maximum connections"
 	::= { ipi-twamp 1 }
 
 ipiTwampServerMaxConnectionsPerClient OBJECT-TYPE
 	SYNTAX Unsigned32(1..4) 
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Set the maximum number of connections per client"
 	::= { ipi-twamp 2 }
 
 ipiTwampServerMaximumSessions OBJECT-TYPE
-	SYNTAX Unsigned32(1..64) 
+	SYNTAX Unsigned32(1..2000) 
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Set the maximum number of test sessions for the server"
 	::= { ipi-twamp 3 }
 
 ipiTwampServerMaximumSessionsPerConnection OBJECT-TYPE
-	SYNTAX Unsigned32(1..64) 
+	SYNTAX Unsigned32(1..2000) 
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Set the maximum number of test sessions per client connection"
 	::= { ipi-twamp 4 }
 
 ipiTwampServerNbConnections OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the number of connections to the TWAMP server"
 	::= { ipi-twamp 5 }
 
 ipiTwampServerNbSessions OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the number of sessions accepted by the server"
 	::= { ipi-twamp 6 }
 
 ipiTwampServerNbRunningSessions OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the number of running sessions on the server"
 	::= { ipi-twamp 7 }
+
+ipiTwampOverallPacketRatePacketSendingRate OBJECT-TYPE
+	SYNTAX Unsigned32
+	UNITS "pps"
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"TWAMP packet sending rate"
+	::= { ipi-twamp 8 }
+
+ipiTwampOverallPacketRateSendersRate OBJECT-TYPE
+	SYNTAX Unsigned32
+	UNITS "pps"
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"TWAMP senders rate"
+	::= { ipi-twamp 9 }
+
+ipiTwampOverallPacketRateReflectorsRate OBJECT-TYPE
+	SYNTAX Unsigned32
+	UNITS "pps"
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"TWAMP reflectors rate"
+	::= { ipi-twamp 10 }
+
+ipiTwampOverallPacketRateMaxSendingRate OBJECT-TYPE
+	SYNTAX Unsigned32
+	UNITS "pps"
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"TWAMP maximum supported sending rate"
+	::= { ipi-twamp 11 }
+
+ipiTwampOverallPacketRateMaxSendingRateCrossed OBJECT-TYPE
+	SYNTAX INTEGER { false(0), true(1) }
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"TWAMP maximum supported sending rate crossed"
+	::= { ipi-twamp 12 }
 
 
 ipiTwampTestSessionTable OBJECT-TYPE 
@@ -231,7 +315,7 @@ ipiTwampTestSessionTable OBJECT-TYPE
 	STATUS current
 	DESCRIPTION 
 		"This table provides information for List of TWAMP Light Control Test Session"
-	::= { ipi-twamp 8 }
+	::= { ipi-twamp 13 }
 
 ipiTwampTestSessionEntry OBJECT-TYPE
 	SYNTAX IpiTwampTestSessionEntry
@@ -247,7 +331,7 @@ IpiTwampTestSessionEntry::= SEQUENCE {
 	ipiTwampTestSessionElapsedTime Unsigned32,
 	ipiTwampTestSessionPacketsSent Counter64,
 	ipiTwampTestSessionPacketsReceived Counter64,
-	ipiTwampTestSessionPacketLoss INTEGER,
+	ipiTwampTestSessionPacketLoss OCTET STRING,
 	ipiTwampRoundTripDelayMinimum Counter64,
 	ipiTwampRoundTripDelayMaximum Counter64,
 	ipiTwampRoundTripDelayAverage Counter64,
@@ -268,222 +352,221 @@ IpiTwampTestSessionEntry::= SEQUENCE {
 	ipiTwampReverseDelayVariationAverage Counter64	}
 
 ipiTwampTestSessionSessionName OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (1..128))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Test Session name associated with this instance"
 	::= { ipiTwampTestSessionEntry 1 }
 
 ipiTwampTestSessionVrfName OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Use this attribute to set the session VRF name"
 	::= { ipiTwampTestSessionEntry 2 }
 
 ipiTwampTestSessionStartTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the start time of a Test Session"
 	::= { ipiTwampTestSessionEntry 3 }
 
 ipiTwampTestSessionElapsedTime OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	UNITS "milliseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the elapsed time of a Test Session"
 	::= { ipiTwampTestSessionEntry 4 }
 
 ipiTwampTestSessionPacketsSent OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of sent packets for a Test Session"
 	::= { ipiTwampTestSessionEntry 5 }
 
 ipiTwampTestSessionPacketsReceived OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of received packets for a Test Session"
 	::= { ipiTwampTestSessionEntry 6 }
 
 ipiTwampTestSessionPacketLoss OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000100"
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of lost packets for a Test Session"
 	::= { ipiTwampTestSessionEntry 7 }
 
 ipiTwampRoundTripDelayMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampTestSessionEntry 8 }
 
 ipiTwampRoundTripDelayMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampTestSessionEntry 9 }
 
 ipiTwampRoundTripDelayAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampTestSessionEntry 10 }
 
 ipiTwampForwardDelayMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampTestSessionEntry 11 }
 
 ipiTwampForwardDelayMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampTestSessionEntry 12 }
 
 ipiTwampForwardDelayAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampTestSessionEntry 13 }
 
 ipiTwampReverseDelayMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampTestSessionEntry 14 }
 
 ipiTwampReverseDelayMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampTestSessionEntry 15 }
 
 ipiTwampReverseDelayAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampTestSessionEntry 16 }
 
 ipiTwampRoundTripDelayVariationMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampTestSessionEntry 17 }
 
 ipiTwampRoundTripDelayVariationMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampTestSessionEntry 18 }
 
 ipiTwampRoundTripDelayVariationAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampTestSessionEntry 19 }
 
 ipiTwampForwardDelayVariationMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampTestSessionEntry 20 }
 
 ipiTwampForwardDelayVariationMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampTestSessionEntry 21 }
 
 ipiTwampForwardDelayVariationAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampTestSessionEntry 22 }
 
 ipiTwampReverseDelayVariationMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampTestSessionEntry 23 }
 
 ipiTwampReverseDelayVariationMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampTestSessionEntry 24 }
 
 ipiTwampReverseDelayVariationAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampTestSessionEntry 25 }
 
@@ -494,7 +577,7 @@ ipiTwampConnectionTable OBJECT-TYPE
 	STATUS current
 	DESCRIPTION 
 		"This table provides information for Top level list for client connections to the TWAMP server"
-	::= { ipi-twamp 9 }
+	::= { ipi-twamp 14 }
 
 ipiTwampConnectionEntry OBJECT-TYPE
 	SYNTAX IpiTwampConnectionEntry
@@ -517,74 +600,74 @@ IpiTwampConnectionEntry::= SEQUENCE {
 	ipiTwampConnectionNbAcceptedSessions Unsigned32	}
 
 ipiTwampConnectionConnectionId OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Connection ID"
 	::= { ipiTwampConnectionEntry 1 }
 
 ipiTwampConnectionClientAddress OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"IP address of the client"
 	::= { ipiTwampConnectionEntry 2 }
 
 ipiTwampConnectionClientPort OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Port used by the client"
 	::= { ipiTwampConnectionEntry 3 }
 
 ipiTwampConnectionClientVrf OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"VRF where the client is connected"
 	::= { ipiTwampConnectionEntry 4 }
 
 ipiTwampConnectionConnectionState OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"State of the connection with the client"
 	::= { ipiTwampConnectionEntry 5 }
 
 ipiTwampConnectionConnectionTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Time when the connection was established"
 	::= { ipiTwampConnectionEntry 6 }
 
 ipiTwampConnectionLastActivityTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Time of the last activity that happened on the connection"
 	::= { ipiTwampConnectionEntry 7 }
 
 ipiTwampConnectionNbSessionRequests OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Number of session requests received on the connection"
 	::= { ipiTwampConnectionEntry 8 }
 
 ipiTwampConnectionNbAcceptedSessions OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Number of accepted sessions on the connection"
 	::= { ipiTwampConnectionEntry 9 }
 
@@ -595,7 +678,7 @@ ipiTwampSessionssessionTable OBJECT-TYPE
 	STATUS current
 	DESCRIPTION 
 		"This table provides information for Top level list for sessions accepted by the TWAMP server"
-	::= { ipi-twamp 10 }
+	::= { ipi-twamp 15 }
 
 ipiTwampSessionssessionEntry OBJECT-TYPE
 	SYNTAX IpiTwampSessionssessionEntry
@@ -619,82 +702,82 @@ IpiTwampSessionssessionEntry::= SEQUENCE {
 	ipiTwampSessionTimeout Unsigned32	}
 
 ipiTwampSessionSessionId OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Session ID"
 	::= { ipiTwampSessionssessionEntry 1 }
 
 ipiTwampSessionConnectionId OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Connection ID"
 	::= { ipiTwampSessionssessionEntry 2 }
 
 ipiTwampSessionSessionState OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Session state"
 	::= { ipiTwampSessionssessionEntry 3 }
 
 ipiTwampSessionSenderAddress OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"IP address of the TWAMP sender"
 	::= { ipiTwampSessionssessionEntry 4 }
 
 ipiTwampSessionSenderPort OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Port used by the sender"
 	::= { ipiTwampSessionssessionEntry 5 }
 
 ipiTwampSessionReceiverAddress OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"IP address of the TWAMP receiver"
 	::= { ipiTwampSessionssessionEntry 6 }
 
 ipiTwampSessionReceiverPort OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Port used by the receiver"
 	::= { ipiTwampSessionssessionEntry 7 }
 
 ipiTwampSessionReceiverVrf OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"VRF where the receiver is running"
 	::= { ipiTwampSessionssessionEntry 8 }
 
 ipiTwampSessionStartTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Start-Time requested by the client for the session"
 	::= { ipiTwampSessionssessionEntry 9 }
 
 ipiTwampSessionTimeout OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Timeout requested for the session"
 	::= { ipiTwampSessionssessionEntry 10 }
 
@@ -789,4 +872,18 @@ twampdelaythresholdbreached NOTIFICATION-TYPE
    DESCRIPTION
            "This event is generated when the RTT delay value is greater than the threshold value"
    ::= { ipiCMLSEPtwampNotificationsPrefix 12 }
+
+twampoverallratecrossed NOTIFICATION-TYPE
+   OBJECTS { ipiTwampOverallPacketRatePacketSendingRate, ipiTwampOverallPacketRateSendersRate, ipiTwampOverallPacketRateReflectorsRate, ipiTwampOverallPacketRateMaxSendingRate, ipiTwampOverallPacketRateMaxSendingRateCrossed }
+   STATUS  current
+   DESCRIPTION
+           "Indicates that the overall supported TWAMP rate limit has been crossed"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 13 }
+
+twampoverallratecrossedcleared NOTIFICATION-TYPE
+   OBJECTS { ipiTwampOverallPacketRatePacketSendingRate, ipiTwampOverallPacketRateSendersRate, ipiTwampOverallPacketRateReflectorsRate, ipiTwampOverallPacketRateMaxSendingRate, ipiTwampOverallPacketRateMaxSendingRateCrossed }
+   STATUS  current
+   DESCRIPTION
+           "Indicates that the overall crossed TWAMP rate limit has been cleared"
+   ::= { ipiCMLSEPtwampNotificationsPrefix 14 }
 END

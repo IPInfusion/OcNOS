@@ -1,0 +1,178 @@
+IPI-ALARMS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+      OBJECT-TYPE, MODULE-IDENTITY,
+      Gauge32, Counter32, Integer32, Unsigned32,
+      IpAddress, Counter64,
+      TimeTicks, NOTIFICATION-TYPE
+          FROM SNMPv2-SMI
+      DateAndTime, DisplayString,
+      PhysAddress, RowStatus, TEXTUAL-CONVENTION
+          FROM SNMPv2-TC
+      MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+          FROM SNMPv2-CONF
+      snmpTraps
+          FROM SNMPv2-MIB
+      enterprises, OBJECT-IDENTITY
+          FROM SNMPv2-SMI
+      Ipv6Address
+          FROM IPV6-TC
+      ipi  FROM IPI-MODULE-MIB;
+
+ipi-alarms MODULE-IDENTITY
+   LAST-UPDATED "202509110000Z"
+
+ORGANIZATION "IP Infusion"
+CONTACT-INFO "support@ipinfusion.com"
+   DESCRIPTION 
+      "This MIB module is for managing Datamodel for operational state data related to alarms that the device is reporting"
+
+   REVISION      "202509110000Z"
+   DESCRIPTION 
+      "Added CHECK_SNMP flag in subType for alarm notification"
+
+   REVISION      "202508080000Z"
+   DESCRIPTION 
+      "Added SNMP MIB file generation support for datamodel"
+
+   REVISION      "202309110000Z"
+   DESCRIPTION 
+      "Added if-feature for platform module ,to avoide sku compilation failure"
+
+   REVISION      "202305170000Z"
+   DESCRIPTION 
+      "Added units tag for milliseconds in time-created attribute"
+
+   REVISION      "202210200000Z"
+   DESCRIPTION 
+      "Added attribute is-clear on Netconf notification"
+
+   REVISION      "202209300000Z"
+   DESCRIPTION 
+      "Import cml-data-types used by notifications"
+
+   REVISION      "202208090000Z"
+   DESCRIPTION 
+      "Added skip SMI generation"
+
+   REVISION      "202206010000Z"
+   DESCRIPTION 
+      "Updated the yang file with feature"
+
+   REVISION      "202109030000Z"
+   DESCRIPTION 
+      "Update descriptions of attribute"
+
+   REVISION      "202107280000Z"
+   DESCRIPTION 
+      "Initial Version"
+   ::= { ipi  3400 } 
+
+
+ipiAlarmsAlarmTable OBJECT-TYPE 
+	SYNTAX SEQUENCE OF IpiAlarmsAlarmEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"This table provides information for List of alarms, keyed by a unique id"
+	::= { ipi-alarms 1 }
+
+ipiAlarmsAlarmEntry OBJECT-TYPE
+	SYNTAX IpiAlarmsAlarmEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION 
+		"An entry containing information for List of alarms, keyed by a unique id"
+	INDEX { ipiAlarmsAlarmId }
+	::= { ipiAlarmsAlarmTable 1 }
+
+IpiAlarmsAlarmEntry::= SEQUENCE { 
+	ipiAlarmsAlarmId OCTET STRING,
+	ipiAlarmsAlarmResource OCTET STRING,
+	ipiAlarmsAlarmText OCTET STRING,
+	ipiAlarmsAlarmTimeCreated TimeTicks,
+	ipiAlarmsAlarmAlarmReportedTimestamp OCTET STRING,
+	ipiAlarmsAlarmAlarmSeverity INTEGER,
+	ipiAlarmsAlarmTypeId INTEGER,
+	ipiAlarmsAlarmIsClear INTEGER	}
+
+ipiAlarmsAlarmId OBJECT-TYPE
+	SYNTAX OCTET STRING (SIZE (0..1965))
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"References the unique alarm id"
+	::= { ipiAlarmsAlarmEntry 1 }
+
+ipiAlarmsAlarmResource OBJECT-TYPE
+	SYNTAX OCTET STRING (SIZE (0..1965))
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The item that is under alarm within the device"
+	::= { ipiAlarmsAlarmEntry 2 }
+
+ipiAlarmsAlarmText OBJECT-TYPE
+	SYNTAX OCTET STRING (SIZE (0..1965))
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The string used to inform operators about the alarm"
+	::= { ipiAlarmsAlarmEntry 3 }
+
+ipiAlarmsAlarmTimeCreated OBJECT-TYPE
+	SYNTAX TimeTicks
+	UNITS "milliseconds"
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The time at which the alarm was raised by the system. This value is expressed relative to the Unix Epoch"
+	::= { ipiAlarmsAlarmEntry 4 }
+
+ipiAlarmsAlarmAlarmReportedTimestamp OBJECT-TYPE
+	SYNTAX OCTET STRING (SIZE (0..1965))
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The date-time at which the alarm was raised by the system"
+	::= { ipiAlarmsAlarmEntry 5 }
+
+ipiAlarmsAlarmAlarmSeverity OBJECT-TYPE
+	SYNTAX INTEGER {critical(0), major(1), minor(2), warning(3), unknown(4)}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The severity level indicating the criticality and impact of the alarm"
+	::= { ipiAlarmsAlarmEntry 6 }
+
+ipiAlarmsAlarmTypeId OBJECT-TYPE
+	SYNTAX INTEGER {ais(0), eqpt(1), los(2), ots(3), opwr(4), unknown(5)}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The abbreviated name of the alarm"
+	::= { ipiAlarmsAlarmEntry 7 }
+
+ipiAlarmsAlarmIsClear OBJECT-TYPE
+	SYNTAX INTEGER { false(0), true(1) }
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Indicates if this alarm is a clear alarm or not"
+	::= { ipiAlarmsAlarmEntry 8 }
+
+
+--
+-- Notifications
+--
+
+ipiCMLSEPalarmsNotificationsPrefix OBJECT IDENTIFIER ::=
+        { ipi-alarms 0 }
+
+alarm NOTIFICATION-TYPE
+   OBJECTS { ipiAlarmsAlarmId, ipiAlarmsAlarmResource, ipiAlarmsAlarmText, ipiAlarmsAlarmTimeCreated, ipiAlarmsAlarmAlarmReportedTimestamp, ipiAlarmsAlarmAlarmSeverity, ipiAlarmsAlarmTypeId, ipiAlarmsAlarmIsClear }
+   STATUS  current
+   DESCRIPTION
+           "Notify the event of an alarm raised"
+   ::= { ipiCMLSEPalarmsNotificationsPrefix 1 }
+END

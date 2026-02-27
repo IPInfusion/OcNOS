@@ -20,12 +20,36 @@ IMPORTS
       ipi  FROM IPI-MODULE-MIB;
 
 ipi-twamp-session MODULE-IDENTITY
-   LAST-UPDATED "202505150000Z"
+   LAST-UPDATED "202511100000Z"
 
 ORGANIZATION "IP Infusion"
 CONTACT-INFO "support@ipinfusion.com"
    DESCRIPTION 
       "This MIB module is for managing This module provides TWAMP Session configuration"
+
+   REVISION      "202511100000Z"
+   DESCRIPTION 
+      "Removed pattern tag from vrf-name"
+
+   REVISION      "202510200000Z"
+   DESCRIPTION 
+      "Improved CLI validation for twamp session sender-ip and reflector-ip to accept all valid input formats"
+
+   REVISION      "202509180000Z"
+   DESCRIPTION 
+      "Adjusted helpstring for burst count"
+
+   REVISION      "202509170000Z"
+   DESCRIPTION 
+      "Added validation for hostname and IPv4 address formats to the TWAMP_HOSTPNAME_T data type"
+
+   REVISION      "202506200000Z"
+   DESCRIPTION 
+      "Increased the burst-count attribute range"
+
+   REVISION      "202506160000Z"
+   DESCRIPTION 
+      "Added twamp-light control as a dependentObject for twamp-session"
 
    REVISION      "202505150000Z"
    DESCRIPTION 
@@ -80,14 +104,14 @@ IpiTwampSessionSessionssessionEntry::= SEQUENCE {
 	ipiTwampSessionLastCalculatedPacketsSent Counter64,
 	ipiTwampSessionLastCalculatedPacketsReceived Counter64,
 	ipiTwampSessionLastCalculatedPacketsTimeout Counter64,
-	ipiTwampSessionLastCalculatedPacketLoss INTEGER,
+	ipiTwampSessionLastCalculatedPacketLoss OCTET STRING,
 	ipiTwampSessionLastNotifiedTimeNotifiedPacketLoss DateAndTime,
-	ipiTwampSessionLastNotifiedPacketLoss INTEGER,
+	ipiTwampSessionLastNotifiedPacketLoss OCTET STRING,
 	ipiTwampSessionLastNotifiedTimeNotifiedAverageDelay DateAndTime,
 	ipiTwampSessionLastNotifiedAverageDelay Counter64,
 	ipiTwampSessionPacketsPacketsSent Counter64,
 	ipiTwampSessionPacketsPacketsReceived Counter64,
-	ipiTwampSessionPacketsPacketLoss INTEGER,
+	ipiTwampSessionPacketsPacketLoss OCTET STRING,
 	ipiTwampSessionRoundTripDelayMinimum Counter64,
 	ipiTwampSessionRoundTripDelayMaximum Counter64,
 	ipiTwampSessionRoundTripDelayAverage Counter64,
@@ -108,343 +132,340 @@ IpiTwampSessionSessionssessionEntry::= SEQUENCE {
 	ipiTwampSessionReverseDelayVariationAverage Counter64	}
 
 ipiTwampSessionSessionSessionName OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (1..32))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"TWAMP End-to-End Session name"
 	::= { ipiTwampSessionSessionssessionEntry 1 }
 
 ipiTwampSessionSessionStartTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the start time of a Test Session"
 	::= { ipiTwampSessionSessionssessionEntry 2 }
 
 ipiTwampSessionSessionElapsedTime OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	UNITS "milliseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the elapsed time of a Test Session"
 	::= { ipiTwampSessionSessionssessionEntry 3 }
 
 ipiTwampSessionLastCalculatedCalculationTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the time at which a calculation was made"
 	::= { ipiTwampSessionSessionssessionEntry 4 }
 
 ipiTwampSessionLastCalculatedMinimumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay value"
 	::= { ipiTwampSessionSessionssessionEntry 5 }
 
 ipiTwampSessionLastCalculatedMaximumDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay value"
 	::= { ipiTwampSessionSessionssessionEntry 6 }
 
 ipiTwampSessionLastCalculatedAverageDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay value"
 	::= { ipiTwampSessionSessionssessionEntry 7 }
 
 ipiTwampSessionLastCalculatedMinimumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum delay variation value"
 	::= { ipiTwampSessionSessionssessionEntry 8 }
 
 ipiTwampSessionLastCalculatedMaximumDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum delay variation value"
 	::= { ipiTwampSessionSessionssessionEntry 9 }
 
 ipiTwampSessionLastCalculatedAverageDelayVariation OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay variation value"
 	::= { ipiTwampSessionSessionssessionEntry 10 }
 
 ipiTwampSessionLastCalculatedPacketsSent OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of sent packets in a measurement interval"
 	::= { ipiTwampSessionSessionssessionEntry 11 }
 
 ipiTwampSessionLastCalculatedPacketsReceived OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of received packets in a measurement interval"
 	::= { ipiTwampSessionSessionssessionEntry 12 }
 
 ipiTwampSessionLastCalculatedPacketsTimeout OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of lost packets in a measurement interval"
 	::= { ipiTwampSessionSessionssessionEntry 13 }
 
 ipiTwampSessionLastCalculatedPacketLoss OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000100"
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the percentage of lost packets in a measurement interval"
 	::= { ipiTwampSessionSessionssessionEntry 14 }
 
 ipiTwampSessionLastNotifiedTimeNotifiedPacketLoss OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the time at which the packet loss was notified"
 	::= { ipiTwampSessionSessionssessionEntry 15 }
 
 ipiTwampSessionLastNotifiedPacketLoss OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000100"
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of lost packets for a Session that has been notified"
 	::= { ipiTwampSessionSessionssessionEntry 16 }
 
 ipiTwampSessionLastNotifiedTimeNotifiedAverageDelay OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the time at which the average delay was notified"
 	::= { ipiTwampSessionSessionssessionEntry 17 }
 
 ipiTwampSessionLastNotifiedAverageDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average delay value that has been notified"
 	::= { ipiTwampSessionSessionssessionEntry 18 }
 
 ipiTwampSessionPacketsPacketsSent OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of sent packets for a session"
 	::= { ipiTwampSessionSessionssessionEntry 19 }
 
 ipiTwampSessionPacketsPacketsReceived OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of received packets for a session"
 	::= { ipiTwampSessionSessionssessionEntry 20 }
 
 ipiTwampSessionPacketsPacketLoss OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000100"
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the amount of lost packets for a session"
 	::= { ipiTwampSessionSessionssessionEntry 21 }
 
 ipiTwampSessionRoundTripDelayMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 22 }
 
 ipiTwampSessionRoundTripDelayMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 23 }
 
 ipiTwampSessionRoundTripDelayAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 24 }
 
 ipiTwampSessionRoundForwardDelayMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 25 }
 
 ipiTwampSessionRoundForwardDelayMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 26 }
 
 ipiTwampSessionRoundForwardDelayAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 27 }
 
 ipiTwampSessionReverseDelayMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 28 }
 
 ipiTwampSessionReverseDelayMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 29 }
 
 ipiTwampSessionReverseDelayAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 30 }
 
 ipiTwampSessionRoundTripDelayVariationMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 31 }
 
 ipiTwampSessionRoundTripDelayVariationMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 32 }
 
 ipiTwampSessionRoundTripDelayVariationAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 33 }
 
 ipiTwampSessionForwardDelayVariationMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 34 }
 
 ipiTwampSessionForwardDelayVariationMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 35 }
 
 ipiTwampSessionForwardDelayVariationAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 36 }
 
 ipiTwampSessionReverseDelayVariationMinimum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the minimum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 37 }
 
 ipiTwampSessionReverseDelayVariationMaximum OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the maximum value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 38 }
 
 ipiTwampSessionReverseDelayVariationAverage OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	UNITS "microseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"This attribute represents the average value within the statistics"
 	::= { ipiTwampSessionSessionssessionEntry 39 }
 

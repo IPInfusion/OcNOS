@@ -20,12 +20,20 @@ IMPORTS
       ipi  FROM IPI-MODULE-MIB;
 
 ipi-ip-sla MODULE-IDENTITY
-   LAST-UPDATED "202506120000Z"
+   LAST-UPDATED "202510260000Z"
 
 ORGANIZATION "IP Infusion"
 CONTACT-INFO "support@ipinfusion.com"
    DESCRIPTION 
       "This MIB module is for managing Datamodel for ipsla definations"
+
+   REVISION      "202510260000Z"
+   DESCRIPTION 
+      "Added SNMP support for Return Code and Last Run Time"
+
+   REVISION      "202508220000Z"
+   DESCRIPTION 
+      "Added dependentObject of time-range for ip schedule process."
 
    REVISION      "202506120000Z"
    DESCRIPTION 
@@ -109,100 +117,117 @@ IpiIpSlaProcessesprocessEntry::= SEQUENCE {
 	ipiIpSlaIpSlaStatisticsElapsedTime Counter64,
 	ipiIpSlaIpSlaStatisticsPacketsSent Counter64,
 	ipiIpSlaIpSlaStatisticsPacketsReceived Counter64,
-	ipiIpSlaIpSlaStatisticsPacketsLost INTEGER,
+	ipiIpSlaIpSlaStatisticsPacketsLost OCTET STRING,
 	ipiIpSlaIpSlaStatisticsInvalidTests Unsigned32,
 	ipiIpSlaIpSlaStatisticsMinimumRoundTripDelay Counter64,
 	ipiIpSlaIpSlaStatisticsMaximumRoundTripDelay Counter64,
-	ipiIpSlaIpSlaStatisticsAverageRoundTripDelay Counter64	}
+	ipiIpSlaIpSlaStatisticsAverageRoundTripDelay Counter64,
+	ipiIpSlaIpSlaStatisticsReturnCode OCTET STRING,
+	ipiIpSlaIpSlaStatisticsLastRunTime DateAndTime	}
 
 ipiIpSlaProcessIdentifier OBJECT-TYPE
 	SYNTAX Unsigned32(1..65535) 
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Use this attribute to set the IPSLA."
 	::= { ipiIpSlaProcessesprocessEntry 1 }
 
 ipiIpSlaIpSlaStatisticsDestination OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Destination IP or host name for ICMP Echo for this SLA session"
 	::= { ipiIpSlaProcessesprocessEntry 2 }
 
 ipiIpSlaIpSlaStatisticsStartTime OBJECT-TYPE
-	SYNTAX DateAndTime 
+	SYNTAX DateAndTime
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Time at which ip sla measurement started"
 	::= { ipiIpSlaProcessesprocessEntry 3 }
 
 ipiIpSlaIpSlaStatisticsElapsedTime OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Time elapsed since the ip sla measurement started. In milliseconds"
 	::= { ipiIpSlaProcessesprocessEntry 4 }
 
 ipiIpSlaIpSlaStatisticsPacketsSent OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Number of test packets sent"
 	::= { ipiIpSlaProcessesprocessEntry 5 }
 
 ipiIpSlaIpSlaStatisticsPacketsReceived OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Number of test packets received"
 	::= { ipiIpSlaProcessesprocessEntry 6 }
 
 ipiIpSlaIpSlaStatisticsPacketsLost OBJECT-TYPE
-	SYNTAX INTEGER 
-	UNITS "0.000001"
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Packet loss percentage"
 	::= { ipiIpSlaProcessesprocessEntry 7 }
 
 ipiIpSlaIpSlaStatisticsInvalidTests OBJECT-TYPE
-	SYNTAX Unsigned32 
+	SYNTAX Unsigned32
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Number of Invalid tests"
 	::= { ipiIpSlaProcessesprocessEntry 8 }
 
 ipiIpSlaIpSlaStatisticsMinimumRoundTripDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Minimum Round trip delay time"
 	::= { ipiIpSlaProcessesprocessEntry 9 }
 
 ipiIpSlaIpSlaStatisticsMaximumRoundTripDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Maximum Round Trip delay time"
 	::= { ipiIpSlaProcessesprocessEntry 10 }
 
 ipiIpSlaIpSlaStatisticsAverageRoundTripDelay OBJECT-TYPE
-	SYNTAX Counter64 
+	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Average Round Trip delay time"
 	::= { ipiIpSlaProcessesprocessEntry 11 }
+
+ipiIpSlaIpSlaStatisticsReturnCode OBJECT-TYPE
+	SYNTAX OCTET STRING (SIZE (0..1965))
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"status of the IP SLA"
+	::= { ipiIpSlaProcessesprocessEntry 12 }
+
+ipiIpSlaIpSlaStatisticsLastRunTime OBJECT-TYPE
+	SYNTAX DateAndTime
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Time at which ip sla last run"
+	::= { ipiIpSlaProcessesprocessEntry 13 }
 
 
 ipiIpSlaIcmpEchoProcessTable OBJECT-TYPE 
@@ -231,26 +256,26 @@ IpiIpSlaIcmpEchoProcessEntry::= SEQUENCE {
 	ipiIpSlaIcmpEchoProcessThreshold Unsigned32	}
 
 ipiIpSlaIcmpEchoProcessHost OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Use this attribute to set the ICMP Echo host name or IP address."
 	::= { ipiIpSlaIcmpEchoProcessEntry 1 }
 
 ipiIpSlaIcmpEchoProcessSourceInterface OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Source Interface name"
 	::= { ipiIpSlaIcmpEchoProcessEntry 2 }
 
 ipiIpSlaIcmpEchoProcessSourceIp OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Source IP Interface name"
 	::= { ipiIpSlaIcmpEchoProcessEntry 3 }
 
@@ -258,8 +283,8 @@ ipiIpSlaIcmpEchoProcessFrequency OBJECT-TYPE
 	SYNTAX Unsigned32(1..60) 
 	UNITS "seconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"The frequency (interval) correlates to how often the ICMP packet is sent. The unit of this parameter is in seconds."
 	::= { ipiIpSlaIcmpEchoProcessEntry 4 }
 
@@ -267,8 +292,8 @@ ipiIpSlaIcmpEchoProcessTimeout OBJECT-TYPE
 	SYNTAX Unsigned32(1000..60000) 
 	UNITS "milliseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"The timeout value correlates to how long the Ping application will wait for the response after sending packets ICMP Echo packets."
 	::= { ipiIpSlaIcmpEchoProcessEntry 5 }
 
@@ -276,8 +301,8 @@ ipiIpSlaIcmpEchoProcessThreshold OBJECT-TYPE
 	SYNTAX Unsigned32(1000..60000) 
 	UNITS "milliseconds"
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"The threshold value correlates to the limit the administrator sets as what would be a successful test. Threshold can be configured in milli-seconds."
 	::= { ipiIpSlaIcmpEchoProcessEntry 6 }
 
@@ -306,24 +331,24 @@ IpiIpSlaScheduledProcessEntry::= SEQUENCE {
 ipiIpSlaScheduledProcessScheduledPid OBJECT-TYPE
 	SYNTAX Unsigned32(1..65535) 
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Use this attribute to schedule the IPSLA measurement operation."
 	::= { ipiIpSlaScheduledProcessEntry 1 }
 
 ipiIpSlaScheduledProcessTimeRangeName OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"Time range object name to schedule this SLA operation."
 	::= { ipiIpSlaScheduledProcessEntry 2 }
 
 ipiIpSlaScheduledProcessVrfName OBJECT-TYPE
-	SYNTAX OCTET STRING 
+	SYNTAX OCTET STRING (SIZE (0..1965))
 	MAX-ACCESS read-only
-	STATUS current 
-	DESCRIPTION 
+	STATUS current
+	DESCRIPTION
 		"VRF name"
 	::= { ipiIpSlaScheduledProcessEntry 3 }
 

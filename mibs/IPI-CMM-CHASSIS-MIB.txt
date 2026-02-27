@@ -1,4 +1,4 @@
-    -- /* Copyright (C) 2001-2024 IP Infusion, Inc. All Rights Reserved. */
+    -- /* Copyright (C) 2001-2026 IP Infusion, Inc. All Rights Reserved. */
 
     IPI-CMM-CHASSIS-MIB DEFINITIONS ::= BEGIN
 
@@ -185,7 +185,10 @@
            cmmStackUnitNum100GigEtherPorts     INTEGER,
            cmmStackUnitSwitchChipRev           DisplayString,
            cmmStackSupportedLabelRevision      DisplayString,
-           cmmStackUnitSupportedSwitchChipRev  DisplayString
+           cmmStackUnitSupportedSwitchChipRev  DisplayString,
+           cmmStackUnitNum400GigEtherPorts     INTEGER,
+           cmmStackBiosVersion                 DisplayString,
+           cmmStackMfuVersion                  DisplayString
         }
 
        cmmStackUnitIndex  OBJECT-TYPE
@@ -451,6 +454,33 @@
             "The Unit's Switch Supported Chip Revision."
         ::= { cmmStackUnitEntry 30 }
 
+       cmmStackUnitNum400GigEtherPorts     OBJECT-TYPE
+        SYNTAX        INTEGER
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The number of 400G Ethernet/802.3 interfaces
+            in this unit. '-100001' indicates unavailable"
+        ::= { cmmStackUnitEntry 31 }
+
+       cmmStackBiosVersion OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's BIOS version.
+             Blank indicates unavailable."
+        ::= { cmmStackUnitEntry 32 }
+
+       cmmStackMfuVersion OBJECT-TYPE
+        SYNTAX        DisplayString
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The unit's MFU firmware version.
+             Blank indicates unavailable."
+        ::= { cmmStackUnitEntry 33 }
+
 
     -- ## Transceiver EEPROM Entry
      cmmTransEEPROMTable    OBJECT-TYPE
@@ -531,7 +561,8 @@
            cmmTransChannelNumber          INTEGER,
            cmmTransGridSpacing            INTEGER,
            cmmTransLaserFirstFrequency    INTEGER,
-           cmmTransLaserLastFrequency     INTEGER
+           cmmTransLaserLastFrequency     INTEGER,
+           cmmTransInterfaceName          DisplayString
         }
 
        cmmTransIndex   OBJECT-TYPE
@@ -1451,7 +1482,7 @@
 
         cmmTransWavelength  OBJECT-TYPE
         SYNTAX              INTEGER
-        UNITS               "0.001 nm"
+        UNITS               "0.01 nm"
         MAX-ACCESS          read-only
         STATUS              current
         DESCRIPTION
@@ -1502,6 +1533,14 @@
             '-100001' indicates unavailable
             '-100002' indicates not-applicable."
         ::= { cmmTransEEPROMEntry 59 }
+
+        cmmTransInterfaceName   OBJECT-TYPE
+        SYNTAX          DisplayString
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "Front Panel Interface Name where transceiver present."
+        ::= { cmmTransEEPROMEntry 60 }
 
 
     -- ## DDMChannel Entry
@@ -6563,7 +6602,7 @@
             "Set when Power supply unit is inserted"
         ::= { cmmAlarmMibNotifications 61 }
 
-    cmmPsuRemovedCritical   NOTIFICATION-TYPE
+    cmmPsuAbsentCritical   NOTIFICATION-TYPE
         OBJECTS      {
                       cmmStackUnitIndex,
                       cmmSysPSUIndex,
@@ -6572,7 +6611,7 @@
                      }
         STATUS       current
         DESCRIPTION
-            "Set when Power supply unit is Removed"
+            "Set when Power supply unit is Removed or not present during bootup"
         ::= { cmmAlarmMibNotifications 62 }
 
     cmmPsuAcFailedCritical  NOTIFICATION-TYPE
@@ -7563,7 +7602,7 @@
             "Set when fan tray is inserted"
         ::= { cmmAlarmMibNotifications 141 }
 
-    cmmFanTrayRemovedCritical   NOTIFICATION-TYPE
+    cmmFanTrayAbsentCritical   NOTIFICATION-TYPE
         OBJECTS      {
                       cmmStackUnitIndex,
                       cmmFanTrayNumber,
@@ -7571,7 +7610,7 @@
                      }
         STATUS       current
         DESCRIPTION
-            "Set when fan tray is Removed"
+            "Set when fan tray is Removed or not present during bootup"
         ::= { cmmAlarmMibNotifications 142 }
 
     cmmFanTrayFaultyCritical  NOTIFICATION-TYPE

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2024 IP Infusion, Inc.
- * All rights reserved.
+ * Copyright (C) 2024-2026 IP Infusion, Inc. All Rights Reserved.
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -21,6 +20,14 @@ module ipi-oc-ni-deviations {
   import openconfig-policy-types { prefix oc-pol-types; }
   import openconfig-inet-types { prefix oc-inet; }
   import openconfig-mpls-types { prefix oc-mplst; }
+
+  revision "2026-01-12" {
+    description "The limitation to a false value for disabling the global graceful-restart of rsvp-te has been removed";
+  }
+
+  revision "2025-12-09" {
+    description "Removed pattern check for bridge and bridge-domain NIs. The check will be done by OcNOS code instead";
+  }
 
   revision "2024-10-28" {
     description "Removed deviation for 'recurse' on static-routes next-hop, and added deviation for 'desired-minimum-tx-interval', 'detection-multiplier', and 'required-minimum-receive'";
@@ -2225,16 +2232,6 @@ module ipi-oc-ni-deviations {
       must "(../oc-netinst:type != 'oc-ni-types:DEFAULT_INSTANCE') or (. = 'default')" {
         error-message "For DEFAULT instances the name must be 'default'";
       }
-
-      must "not(../oc-netinst:type = 'oc-ni-types:L2L3' and not(../../oc-netinst:encapsulation/oc-netinst:config/oc-netinst:encapsulation-type)) or " +
-           "((number(.) >= 1) and (number(.) <= 32))" {
-        error-message "For L2L3 instances the name must be a number from 1 to 32";
-      }
-
-      must "not((../oc-netinst:type = 'oc-ni-types:L2VSI') and not(../../oc-netinst:encapsulation/oc-netinst:config/oc-netinst:encapsulation-type)) or " +
-           "((number(.) >= 1) and (number(.) <= 2147483647))" {
-        error-message "For L2VSI instances the name must be a number from 1 to 2147483647";
-      }
     }
   }
 
@@ -2500,14 +2497,6 @@ module ipi-oc-ni-deviations {
     deviate replace {
       type uint32 {
         range "60000..3600000";
-      }
-    }
-  }
-
-  deviation /oc-netinst:network-instances/oc-netinst:network-instance/oc-netinst:mpls/oc-netinst:signaling-protocols/oc-netinst:rsvp-te/oc-netinst:global/oc-netinst:graceful-restart {
-    deviate add {
-      must "(config/enable = 'true')" {
-        error-message "Only enable=true is allowed for the graceful-restart enabled";
       }
     }
   }

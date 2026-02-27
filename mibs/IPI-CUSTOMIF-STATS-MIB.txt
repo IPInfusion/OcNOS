@@ -1,4 +1,4 @@
--- /* Copyright (C) 2001-2024 IP Infusion, Inc. All Rights Reserved. */
+-- /* Copyright (C) 2001-2026 IP Infusion, Inc. All Rights Reserved. */
 
 IPI-CUSTOMIF-STATS-MIB DEFINITIONS ::= BEGIN
 
@@ -12,11 +12,17 @@ IMPORTS
     OBJECT-GROUP FROM SNMPv2-CONF;
 
 customIfMib MODULE-IDENTITY
-    LAST-UPDATED "202008210000Z"  -- Aug 21, 2020 12:00:00 GMT
+    LAST-UPDATED "202601200000Z"  -- Jan 20, 2026 12:00:00 GMT
     ORGANIZATION "IP Infusion"
     CONTACT-INFO "support@ipinfusion.com"
     DESCRIPTION
        "IPI QUEUE STATISTICS MIB. "
+    REVISION     "202601200000Z"
+    DESCRIPTION
+       "Added Rx IP and Tx Vlan translate discards for If port and cpu port"
+    REVISION     "202508140000Z"
+    DESCRIPTION
+       "ifProtocolStatsTable moved to current, supported for all platforms."
     REVISION     "202008210000Z"
     DESCRIPTION
        "Deprecate ifProtocolStatsTable. Fix compilation issues."
@@ -28,14 +34,16 @@ customIfAlarmObjects   OBJECT IDENTIFIER ::={ customIfMib 3}
 customIfGlobalObjects   OBJECT IDENTIFIER ::={ customIfMib 4}
 ifCustomMib     OBJECT IDENTIFIER ::={ customIfMib 5}
 ifXCustomMib     OBJECT IDENTIFIER ::={ customIfMib 6}
+pfcDeadlockDetectionObjects     OBJECT IDENTIFIER ::={ customIfMib 7}
 
 ifDropStatsTable     OBJECT-TYPE
     SYNTAX      SEQUENCE OF IFDropStatsEntry
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
-            "A Table object containing drop statistics per interface
-             given by the interface index."
+            "Show the Priority Flow Control Deadlock Recovery Action state.
+             0 means it will allow traffic during recovery,
+             1 means it will drop traffic during recovery."
     ::= { customIfTable 1 }
 
 ifDropStatsEntry    OBJECT-TYPE
@@ -104,7 +112,13 @@ IFDropStatsEntry ::=
              ifObmDrops                                      Counter64,
              ifObmDropsLastIncrement                         Counter64,
              ifObmDropsLastIncrementTime                     DateAndTime,
-             ifObmDropsCntrSize                              INTEGER
+             ifObmDropsCntrSize                              INTEGER,
+             ifRxIPDiscards                                  Counter64,
+             ifRxIPDiscardsLastIncrement                     Counter64,
+             ifRxIPDiscardsLastIncrementTime                 DateAndTime,
+             ifTxVlanXlateDiscards                           Counter64,
+             ifTxVlanXlateDiscardsLastIncrement              Counter64,
+             ifTxVlanXlateDiscardsLastIncrementTime          DateAndTime
             }
 
 ifRxBadCrcErrors  OBJECT-TYPE
@@ -637,6 +651,59 @@ ifObmDropsCntrSize  OBJECT-TYPE
          "Size of over subscription counters in bytes."
     ::= { ifDropStatsEntry 55 }
 
+ifRxIPDiscards  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+          "Receive IPv4 and IPv6 L3 Discard packet counter."
+    ::= { ifDropStatsEntry 56 }
+
+ifRxIPDiscardsLastIncrement  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+          "Last Receive IPv4 and IPv6 L3 Discard packet counter.
+           This is Updated at every 5sec interval."
+    ::= { ifDropStatsEntry 57 }
+
+ifRxIPDiscardsLastIncrementTime  OBJECT-TYPE
+    SYNTAX      DateAndTime
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Last increment time of IP Discards.
+             This is Updated at every 5sec interval."
+    ::= { ifDropStatsEntry 58 }
+
+ifTxVlanXlateDiscards  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+         "Packets dropped due to miss in Vlan Translate table counter."
+    ::= { ifDropStatsEntry 59 }
+
+ifTxVlanXlateDiscardsLastIncrement  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+         "Last number of Packets dropped due to miss in Vlan Translate table
+         counter.
+          This is Updated at every 5sec interval."
+    ::= { ifDropStatsEntry 60 }
+
+ifTxVlanXlateDiscardsLastIncrementTime  OBJECT-TYPE
+    SYNTAX      DateAndTime
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Last increment time of Tx Vlan Translate Discards.
+             This is Updated at every 5sec interval."
+    ::= { ifDropStatsEntry 61 }
+
 ifQueueStatsTable     OBJECT-TYPE
     SYNTAX      SEQUENCE OF IFQueueStatsEntry
     MAX-ACCESS  not-accessible
@@ -671,7 +738,9 @@ IFQueueStatsEntry ::=
              ifQueueGreenDropPkts        Counter64,
              ifQueueYellowDropPkts       Counter64,
              ifQueueRedDropPkts          Counter64,
-             ifQueueNonRedDropPkts       Counter64
+             ifQueueNonRedDropPkts       Counter64,
+             ifQueuePFCPauseSentPkts     Counter64,
+             ifQueuePFCPauseRecdPkts     Counter64
              }
 
 queuetype  OBJECT-TYPE
@@ -798,11 +867,28 @@ ifQueueNonRedDropPkts  OBJECT-TYPE
             queue on an interface."
     ::= { ifQueueStatsEntry 14 }
 
+ifQueuePFCPauseSentPkts  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "The number of PFC Pause frames that are sent through the
+            queue on an interface."
+    ::= { ifQueueStatsEntry 15 }
+
+ifQueuePFCPauseRecdPkts  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "The number of PFC Pause frames that are received through the
+            queue on an interface."
+    ::= { ifQueueStatsEntry 16 }
 
 ifProtocolStatsTable     OBJECT-TYPE
     SYNTAX      SEQUENCE OF IfProtocolStatsEntry
     MAX-ACCESS  not-accessible
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "A Table object containing protocol statistics per interface
              given by the interface index."
@@ -811,7 +897,7 @@ ifProtocolStatsTable     OBJECT-TYPE
 ifProtocolStatsEntry    OBJECT-TYPE
     SYNTAX      IfProtocolStatsEntry
     MAX-ACCESS  not-accessible
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "An entry containing protocol statistics per interface
              given by the interface index."
@@ -839,13 +925,14 @@ IfProtocolStatsEntry ::=
              ifIgmpProtocolPkts          Counter32,
              ifVrrpProtocolPkts          Counter32,
              ifPimProtocolPkts           Counter32,
-             ifEapolProtocolPkts         Counter32
+             ifEapolProtocolPkts         Counter32,
+             ifTTL01ProtocolPkts         Counter32
              }
 
 ifLacpProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "LACP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 1 }
@@ -853,7 +940,7 @@ ifLacpProtocolPkts  OBJECT-TYPE
 ifStpProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "STP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 2 }
@@ -861,7 +948,7 @@ ifStpProtocolPkts  OBJECT-TYPE
 ifLldpProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "LLDP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 3 }
@@ -869,7 +956,7 @@ ifLldpProtocolPkts  OBJECT-TYPE
 ifBgpProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "BGP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 4 }
@@ -877,7 +964,7 @@ ifBgpProtocolPkts  OBJECT-TYPE
 ifRipProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "RIP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 5 }
@@ -885,7 +972,7 @@ ifRipProtocolPkts  OBJECT-TYPE
 ifOspfProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "OSPF Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 6 }
@@ -893,7 +980,7 @@ ifOspfProtocolPkts  OBJECT-TYPE
 ifIsisProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "ISIS Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 7 }
@@ -901,7 +988,7 @@ ifIsisProtocolPkts  OBJECT-TYPE
 ifEfmProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "EFM Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 8 }
@@ -909,7 +996,7 @@ ifEfmProtocolPkts  OBJECT-TYPE
 ifSlowProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "SLOW Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 9 }
@@ -917,7 +1004,7 @@ ifSlowProtocolPkts  OBJECT-TYPE
 ifElmiProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "ELMI Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 10 }
@@ -925,7 +1012,7 @@ ifElmiProtocolPkts  OBJECT-TYPE
 ifLdpOrRsvpProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "LDP/RSVP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 11 }
@@ -933,7 +1020,7 @@ ifLdpOrRsvpProtocolPkts  OBJECT-TYPE
 ifTrillProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "TRILL Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 12 }
@@ -941,7 +1028,7 @@ ifTrillProtocolPkts  OBJECT-TYPE
 ifIcmp6ProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "ICMP6 Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 13 }
@@ -949,7 +1036,7 @@ ifIcmp6ProtocolPkts  OBJECT-TYPE
 ifArpProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "ARP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 14 }
@@ -957,7 +1044,7 @@ ifArpProtocolPkts  OBJECT-TYPE
 ifDhcpProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "DHCP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 15 }
@@ -965,7 +1052,7 @@ ifDhcpProtocolPkts  OBJECT-TYPE
 ifVxLanProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "VXLAN Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 16 }
@@ -973,7 +1060,7 @@ ifVxLanProtocolPkts  OBJECT-TYPE
 ifIgmpProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "IGMP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 17 }
@@ -981,7 +1068,7 @@ ifIgmpProtocolPkts  OBJECT-TYPE
 ifVrrpProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "VRRP Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 18 }
@@ -989,7 +1076,7 @@ ifVrrpProtocolPkts  OBJECT-TYPE
 ifPimProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "PIM Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 19 }
@@ -997,10 +1084,18 @@ ifPimProtocolPkts  OBJECT-TYPE
 ifEapolProtocolPkts  OBJECT-TYPE
     SYNTAX      Counter32
     MAX-ACCESS  read-only
-    STATUS      deprecated
+    STATUS      current
     DESCRIPTION
             "EAPOL Protocol Packets received on the interface."
     ::= { ifProtocolStatsEntry 20 }
+
+ifTTL01ProtocolPkts  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "TTL0 and TTL1 Protocol Packets received on the interface."
+    ::= { ifProtocolStatsEntry 21 }
 
 ifRateStatsTable     OBJECT-TYPE
     SYNTAX      SEQUENCE OF IfRateStatsEntry
@@ -1276,9 +1371,7 @@ IfStormCtrlEntry  ::=
              }
 
 ifStormCtrlBcastEnable    OBJECT-TYPE
-    SYNTAX      TruthValue {  false(0),
-                              true(1)
-                           }
+    SYNTAX      TruthValue
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -1332,9 +1425,7 @@ ifStormCtrlBcastBurst   OBJECT-TYPE
     ::= { ifStormCtrlEntry 5 }
 
 ifStormCtrlMcastEnable    OBJECT-TYPE
-    SYNTAX      TruthValue {  false(0),
-                              true(1)
-                           }
+    SYNTAX      TruthValue
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -1369,7 +1460,7 @@ ifStormCtrlMcastRateType    OBJECT-TYPE
                        kbps(1),
                        mbps(2),
                        gbps(3),
-                       fps(3)
+                       fps(4)
                 }
     MAX-ACCESS  read-only
     STATUS      current
@@ -1388,9 +1479,7 @@ ifStormCtrlMcastBurst   OBJECT-TYPE
     ::= { ifStormCtrlEntry 10 }
 
 ifStormCtrlDLFEnable    OBJECT-TYPE
-    SYNTAX      TruthValue {  false(0),
-                              true(1)
-                           }
+    SYNTAX      TruthValue
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -1601,6 +1690,38 @@ ifCurBandwidth OBJECT-TYPE
            "Interface current bandwidth."
     ::= { ifCustomStateEntry 1 }
 
+--- ## Custom Stats Table####
+
+ifCustomStatsTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF IfCustomStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A Table object containing custom interface state information"
+    ::= { customIfTable 11 }
+
+ifCustomStatsEntry    OBJECT-TYPE
+    SYNTAX      IfCustomStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry containing custom interface statistics"
+    INDEX   { ifIndex }
+    ::= { ifCustomStatsTable 1 }
+
+IfCustomStatsEntry ::=
+    SEQUENCE {
+              ifECNMarkedPkts        Counter64
+             }
+
+ifECNMarkedPkts    OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+           "The number of ECN Marked packets that are received through the
+            interface."
+    ::= { ifCustomStatsEntry 1 }
 
 --- ###CPU STATISTICS GROUP ####
 
@@ -1676,7 +1797,13 @@ CPUPortDropStatsEntry ::=
              cpuTxUcastQDropsLastIncrementTime     DateAndTime,
              cpuTxMcastQDrops                      Counter64,
              cpuTxMcastQDropsLastIncrement         Counter64,
-             cpuTxMcastQDropsLastIncrementTime     DateAndTime
+             cpuTxMcastQDropsLastIncrementTime     DateAndTime,
+             cpuRxIPDiscards                       Counter64,
+             cpuRxIPDiscardsLastIncrement          Counter64,
+             cpuRxIPDiscardsLastIncrementTime      DateAndTime,
+             cpuTxVlanXlateDiscards                Counter64,
+             cpuTxVlanXlateDiscardsLastIncrement   Counter64,
+             cpuTxVlanXlateDiscardsLastIncrementTime  DateAndTime
             }
 
 cpuId  OBJECT-TYPE
@@ -2182,6 +2309,59 @@ cpuTxMcastQDropsLastIncrementTime  OBJECT-TYPE
              This is Updated at every 5sec interval."
     ::= { cpuPortDropStatsEntry 52 }
 
+cpuRxIPDiscards  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+          "Receive IPv4 and IPv6 L3 Discard packet counter."
+    ::= { cpuPortDropStatsEntry 53 }
+
+cpuRxIPDiscardsLastIncrement  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+          "Last Receive IPv4 and IPv6 L3 Discard packet counter.
+           This is Updated at every 5sec interval."
+    ::= { cpuPortDropStatsEntry 54 }
+
+cpuRxIPDiscardsLastIncrementTime  OBJECT-TYPE
+    SYNTAX      DateAndTime
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Last increment time of IP Discards.
+             This is Updated at every 5sec interval."
+    ::= { cpuPortDropStatsEntry 55 }
+
+cpuTxVlanXlateDiscards  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+         "Packets dropped due to miss in Vlan Translate table counter."
+    ::= { cpuPortDropStatsEntry 56 }
+
+cpuTxVlanXlateDiscardsLastIncrement  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+         "Last number of Packets dropped due to miss in Vlan Translate table
+         counter.
+          This is Updated at every 5sec interval."
+    ::= { cpuPortDropStatsEntry 57 }
+
+cpuTxVlanXlateDiscardsLastIncrementTime  OBJECT-TYPE
+    SYNTAX      DateAndTime
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Last increment time of Tx Vlan Translate Discards.
+             This is Updated at every 5sec interval."
+    ::= { cpuPortDropStatsEntry 58 }
+
 cpuQInfoTable     OBJECT-TYPE
     SYNTAX      SEQUENCE OF CpuQInfoEntry
     MAX-ACCESS  not-accessible
@@ -2477,6 +2657,40 @@ cpuQueueMonitor    OBJECT-TYPE
              interface."
         ::= { customIfTraps 11 }
 
+    ifPFCPauseSentTrap       NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      queueId,
+                      ifQueuePFCPauseSentPkts
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information containing PFC Pause Frames sent statistics per interface
+             per queue."
+        ::= { customIfTraps 12 }
+
+    ifPFCPauseRecdTrap       NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      queueId,
+                      ifQueuePFCPauseRecdPkts
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information containing PFC Pause Frames Received statistics per interface
+             per queue."
+        ::= { customIfTraps 13 }
+
+    ifECNMarkedTrap          NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      ifQueueECNMarkedPkts
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send information containing ECN Marked Packet statistics per interface."
+        ::= { customIfTraps 14 }
+
     cpuQueueFull     NOTIFICATION-TYPE
         OBJECTS      {
                       cpuQueueName,
@@ -2733,5 +2947,197 @@ ifGlobalOutControlBytes     OBJECT-TYPE
     DESCRIPTION
            "Global counter for TX Control Bytes"
     ::= { ifLbGlobalEntry 7 }
+
+--- ##PFC DeadlockDetection Global Table####
+
+pfcDeadlockDetectionGlobalTable     OBJECT-TYPE
+    SYNTAX                           SEQUENCE OF pfcDeadlockDetectionGlobalEntry
+    MAX-ACCESS                       not-accessible
+    STATUS                           current
+    DESCRIPTION
+            "A Table object containing PFC Deadlock Detection recovery action
+             information."
+    ::= { pfcDeadlockDetectionObjects     1 }
+
+pfcDeadlockDetectionGlobalEntry    OBJECT-TYPE
+    SYNTAX      pfcDeadlockDetectionGlobalEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry containing PFC Deadlock Detection recovery action
+            information given the unit index."
+    INDEX { pfcDeadlockDetectionLbUnit }
+    ::= { pfcDeadlockDetectionGlobalTable 1 }
+
+PfcDeadlockDetectionGlobalEntry ::=
+    SEQUENCE {
+             pfcDeadlockDetectionLbUnit                      Integer32,
+             pfcDeadlockRecoveryActionDrop                   TruthValue
+             }
+
+pfcDeadlockDetectionLbUnit        OBJECT-TYPE
+    SYNTAX      Integer32 (1..65535)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "The unique stack unit number."
+    ::= { pfcDeadlockDetectionGlobalEntry    1 }
+
+pfcDeadlockRecoveryActionDrop OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The configured value defines whether priority flow control
+            recovery-action drop is enabled or disabled.
+            0 - PFC deadlock detection recovery action drop is enabled
+            1 - PFC deadlock detection recovery action drop is disabled"
+    ::= { pfcDeadlockDetectionGlobalEntry    2 }
+
+--- ##PFC DeadlockDetection Interface Table####
+
+pfcDeadlockDetectionIfTable          OBJECT-TYPE
+    SYNTAX                           SEQUENCE OF pfcDeadlockDetectionIfEntry
+    MAX-ACCESS                       not-accessible
+    STATUS                           current
+    DESCRIPTION
+           "A Table object containing PFC Deadlock statistics per interface"
+    ::= { pfcDeadlockDetectionObjects     2 }
+
+pfcDeadlockDetectionIfEntry    OBJECT-TYPE
+    SYNTAX      pfcDeadlockDetectionIfEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A Table object containing PFC Deadlock statistics per interface
+             given by the interface index."
+    INDEX   { ifIndex }
+    ::= { pfcDeadlockDetectionIfTable 1 }
+
+PfcDeadlockDetectionIfEntry ::=
+    SEQUENCE {
+             pfcDeadlockDetectionMultiplier        INTEGER,
+             pfcDeadlockDetectionGranularity       INTEGER,
+             pfcDeadlockRecoveryTime               INTEGER
+            }
+
+pfcDeadlockDetectionMultiplier OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The PFC deadlock detection multiplier configured in the interface"
+    ::= { pfcDeadlockDetectionIfEntry 1 }
+
+pfcDeadlockDetectionGranularity OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The PFC deadlock time granularity in miliseconds of the detection multiplier configured in the interface"
+    ::= { pfcDeadlockDetectionIfEntry 2 }
+
+pfcDeadlockRecoveryTime OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The PFC deadlock recovery time in miliseconds configured in the interface"
+    ::= { pfcDeadlockDetectionIfEntry 3 }
+
+
+--- ## PFC DeadlockDetection Interface+Queue Table ####
+
+pfcDeadlockDetectionIfQTable     OBJECT-TYPE
+    SYNTAX                     SEQUENCE OF pfcDeadlockDetectionIfQEntry
+    MAX-ACCESS                 not-accessible
+    STATUS                     current
+    DESCRIPTION
+            "A Table object containing PFC Deadlock statistics per interface
+             and per queue given by the interface and the queue index."
+    ::= { pfcDeadlockDetectionObjects     3 }
+
+pfcDeadlockDetectionIfQEntry    OBJECT-TYPE
+    SYNTAX      pfcDeadlockDetectionIfQEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A Table object containing PFC Deadlock statistics per interface and
+            per queue given by the interface and queue indexes."
+    INDEX   { ifIndex, pfcDeadlockDetectionIfQueueId }
+    ::= { pfcDeadlockDetectionIfQTable 1 }
+
+PfcDeadlockDetectionIfQEntry ::=
+    SEQUENCE {
+             pfcDeadlockDetectionIfQueueId         Integer32,
+             pfcDeadlocksDetectedIfQ               Counter64,
+             pfcDeadlockDetectedLastTimeIfQ        DateAndTime,
+             pfcDeadlockRecoveryLastTimeIfQ        DateAndTime
+            }
+
+pfcDeadlockDetectionIfQueueId OBJECT-TYPE
+    SYNTAX      Integer32 ( 1 .. 8)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The PFC queue Id which indexes the deadlock detection and recovery
+            stats entries."
+    ::= { pfcDeadlockDetectionIfQEntry 1 }
+
+pfcDeadlocksDetectedIfQ OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The number of times a PFC Deadlock was detected in specified interface/queue"
+    ::= { pfcDeadlockDetectionIfQEntry 2 }
+
+pfcDeadlockDetectedLastTimeIfQ  OBJECT-TYPE
+    SYNTAX      DateAndTime
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Last time there was a PFC Deadlock Detection in specified interface/queue."
+    ::= { pfcDeadlockDetectionIfQEntry 3 }
+
+pfcDeadlockRecoveryLastTimeIfQ  OBJECT-TYPE
+    SYNTAX      DateAndTime
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Last time there was a PFC Deadlock Recovery in specified interface/queue."
+    ::= { pfcDeadlockDetectionIfQEntry 4 }
+
+---  ## PFC Deadlock Alarm Objects
+
+pfcDeadlockAlarmObjects     OBJECT IDENTIFIER ::={ pfcDeadlockDetectionObjects     4}
+
+    pfcDeadlockDetectedTrap   NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      queueId,
+                      pfcIfQDeadlocksDetected,
+                      pfcIfQDeadlockDetectedLastTime,
+                      pfcIfQDeadlockRecoveryLastTime
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send PFC Deadlock recovery start notification on
+             interface."
+        ::= { pfcDeadlockAlarmObjects     1 }
+
+    pfcDeadlockRecoveryTrap   NOTIFICATION-TYPE
+        OBJECTS      {
+                      ifIndex,
+                      queueId,
+                      pfcIfQDeadlocksDetected,
+                      pfcIfQDeadlockDetectedLastTime,
+                      pfcIfQDeadlockRecoveryLastTime
+                     }
+        STATUS       current
+        DESCRIPTION
+            "Trap to send PFC Deadlock recovery stop notification on
+             interface."
+        ::= { pfcDeadlockAlarmObjects     2 }
 
 END
