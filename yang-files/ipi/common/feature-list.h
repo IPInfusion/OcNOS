@@ -2,7 +2,7 @@
 #define _H_feature_list
 
 #define y_feature_list_M_feature_list (const xmlChar  *)"feature-list"
-#define y_feature_list_R_feature_list (const xmlChar *)"2026-02-24"
+#define y_feature_list_R_feature_list (const xmlChar *)"2026-07-03"
 
 #include <xmlstring.h>
 #include "dlq.h"
@@ -182,7 +182,6 @@ extern "C" {
 #define u_feature_list_F_HAVE_LINUX_ROUTE_H 1
 #define u_feature_list_F_HAVE_LINUX_VERSION_H 1
 #define u_feature_list_F_HAVE_LLDPV2 1
-#define u_feature_list_F_HAVE_MACSEC 1
 #define u_feature_list_F_HAVE_MAC_AUTH 1
 #define u_feature_list_F_HAVE_MALLOC_H 1
 #define u_feature_list_F_HAVE_MCAST 1
@@ -476,6 +475,7 @@ extern "C" {
 #define u_feature_list_F_NOT_HAVE_NSM_IF_ARBITER 1
 #define u_feature_list_F_NOT_HAVE_LBD 1
 #define u_feature_list_F_NOT_HAVE_INTERFACE_NAME_MAPPING 1
+#define u_feature_list_F_NOT_HAVE_MACSEC 1
 #define u_feature_list_F_NOT_HAVE_ALLOWED_ETHERTYPE 1
 #define u_feature_list_F_NOT_HAVE_TDM_VC 1
 #define u_feature_list_F_NOT_HAVE_OBM_DROP_CNTRS 1
@@ -560,6 +560,7 @@ extern "C" {
 #define u_feature_list_F_NOT_HAVE_VXLAN_OAM 1
 #define u_feature_list_F_NOT_HAVE_GUEST_VM_HIDDEN_CLI 1
 #define u_feature_list_F_NOT_HAVE_CUSTOM1_SUBINTERFACE 1
+#define u_feature_list_F_NOT_HAVE_MACSEC_J2P_SEC_TAG_VALIDATE_STRICT_MODE_NOT_SET 1
 #define u_feature_list_F_NOT_HAVE_IPSEC_HW 1
 #define u_feature_list_F_NOT_HAVE_FLEXE 1
 #define u_feature_list_F_NOT_HAVE_HWTABLE_SNMP 1

@@ -21,17 +21,17 @@ module ipi-platform {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2026-02-12;
+        revision-date 2026-03-10;
     }
 
     import ipi-platform-types {
         prefix ipi-platform-types;
-        revision-date 2025-09-04;
+        revision-date 2026-04-16;
     }
 
     import ipi-platform-profile-types {
         prefix ipi-platform-profile-types;
-        revision-date 2025-09-10;
+        revision-date 2026-04-16;
     }
 
     import ipi-platform-transceiver-types {
@@ -46,7 +46,7 @@ module ipi-platform {
 
     import ipi-platform-cmis-types {
         prefix ipi-platform-cmis-types;
-        revision-date 2025-10-14;
+        revision-date 2026-02-18;
     }
 
     import ietf-yang-types {
@@ -56,7 +56,7 @@ module ipi-platform {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2026-01-20;
+        revision-date 2026-05-15;
     }
 
     import ipi-platform-sff8024-types {
@@ -66,7 +66,7 @@ module ipi-platform {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2026-02-24;
+        revision-date 2026-07-03;
     }
 
     include ipi-platform-dpll { revision-date 2024-07-01;}
@@ -85,7 +85,7 @@ module ipi-platform {
     include ipi-platform-ceragon { revision-date 2023-08-31;}
     include ipi-platform-edfa { revision-date 2023-04-11;}
     include ipi-platform-smart-sfp { revision-date 2025-07-31;}
-    include ipi-platform-profile { revision-date 2026-02-12;}
+    include ipi-platform-profile { revision-date 2026-04-16;}
     include ipi-platform-profile-extended { revision-date 2025-07-01;}
     include ipi-platform-profile-hardware-routing-limits { revision-date 2025-10-20;}
     include ipi-platform-profile-hardware-l2vpn-instances-limits { revision-date 2025-11-12;}
@@ -107,6 +107,26 @@ module ipi-platform {
                 relationship supported by the model is containment, e.g.,
                 components containing subcomponents.";
 
+
+    revision "2026-05-27" {
+        description "Added new phyport mode plus disable cli command";
+        reference " 0.31.14.";
+    }
+
+    revision "2026-04-16" {
+        description "Added new cpu-queue mgmt under ltsw platform";
+        reference " 0.31.13.";
+    }
+
+    revision "2026-03-23" {
+        description "Making l3-slowpath/rsvd mc cpu queue configurable ";
+        reference " 0.31.12.";
+    }
+
+    revision "2026-02-18" {
+        description "CMIS: Added undefined interface, modulation and bit rate types";
+        reference " 0.31.11.";
+    }
 
     revision "2026-02-12" {
         description "Handled twamp-ipv4 disable command for Q2 ";
@@ -2731,6 +2751,56 @@ module ipi-platform {
             uses platform-temperature-thresholds-top;
         } // END of temperature-container definition.
     } // END of platform-component-temperature definition.
+    grouping platform-component-phyport-config {
+        description
+            "Config level grouping for phyport configuration";
+        leaf ifname  {
+            type  string {
+                length "1..1965";
+                pattern "[^?' =,>|]+";
+            }
+            description "Phy port interface name";
+        } // END of ifname definition.
+
+        leaf disable  {
+            type  empty;
+            description "Disable the phy port";
+        } // END of disable definition.
+
+    } // END of platform-component-phyport-config definition.
+    grouping platform-component-phyport {
+        description
+            "Global phyport configuration group";
+        container phyports {
+            description
+                "platform phyport properties";
+
+            list phyport {
+            // when " ipi-platform:components/phyports/phyport/config/disable ";
+                key "ifname";
+                description
+                    "platform phyport list";
+                leaf ifname  {
+                    type  leafref {
+                        path  "../config/ifname";
+                    }
+                    description "Phy port interface name";
+                } // END of ifname definition.
+
+                container config {
+                    description
+                        "Configuration data";
+                    uses platform-component-phyport-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational data";
+                    uses platform-component-phyport-config;
+                } // END of state-container definition.
+            } // End of phyport-list
+        } // END of phyports-container definition.
+    } // END of platform-component-phyport definition.
 
     grouping  components-grouping {
     description
@@ -2790,6 +2860,7 @@ module ipi-platform {
         uses platform-component-disk-activity;
         uses platform-component-temperature;
         uses platform-component-fan-duty-cyle;
+        uses platform-component-phyport;
     } // END of components-container definition.
     } // END of components-grouping definition.
 

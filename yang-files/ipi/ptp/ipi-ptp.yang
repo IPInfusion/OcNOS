@@ -31,7 +31,7 @@ module ipi-ptp {
 
     import cml-data-types {
         prefix cml-data-types;
-        revision-date 2026-01-20;
+        revision-date 2026-05-15;
     }
 
     import ipi-ptp-types {
@@ -41,12 +41,12 @@ module ipi-ptp {
 
     import ipi-interface {
         prefix ipi-interface;
-        revision-date 2026-02-12;
+        revision-date 2026-03-10;
     }
 
     import feature-list {
         prefix feature-list;
-        revision-date 2026-02-24;
+        revision-date 2026-07-03;
     }
 
     include ipi-ptp-notifications { revision-date 2024-11-19;}
@@ -62,6 +62,11 @@ module ipi-ptp {
     description
         "Datamodel for PTP configurations";
 
+
+    revision "2026-06-16" {
+        description "CLI implementation for 2-step PTP FIFO timestamp";
+        reference " 0.10.0.";
+    }
 
     revision "2025-10-17" {
         description "Give log interval range for SMPTE in CLI help";
@@ -441,6 +446,34 @@ module ipi-ptp {
         } // END of profile definition.
 
     } // END of ptp-instance-base-config definition.
+    grouping ptp-global-top {
+        description
+            "Grouping for PTP global configuration";
+        container global {
+            description
+                "Container for PTP global configuration";
+            container config {
+                description
+                    "Configuration data";
+                uses ptp-global-config;
+            } // END of config-container definition.
+            container state {
+                config false;
+                description
+                    "Operational state data";
+                uses ptp-global-config;
+            } // END of state-container definition.
+        } // END of global-container definition.
+    } // END of ptp-global-top definition.
+    grouping ptp-global-config {
+        description
+            "Grouping for global configuration for PTP";
+        leaf two-step-time-stamp  {
+            type  empty;
+            description "Use this attribute to enable 2-step PTP FIFO timestamp.";
+        } // END of two-step-time-stamp definition.
+
+    } // END of ptp-global-config definition.
     grouping ptp-debug-top {
         description
             "Grouping for ptp debug configuration";
@@ -2142,7 +2175,7 @@ module ipi-ptp {
         leaf duration  {
             type  string {
                 length "1..1965";
-                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)";
+                pattern "((([0-1]?[0-9])|(2[0-3])):[0-5][0-9]:[0-5][0-9])|([0-9]+d(([0-1][0-9])|(2[0-3]))h[0-5][0-9]m)|([0-9]+w[0-9]+d[0-9]+h)";
             }
             description "PTP servo state Duration";
         } // END of duration definition.
@@ -2513,6 +2546,7 @@ module ipi-ptp {
             "PTP clock";
         uses ptp-instance-top;
         uses ptp-debug-top;
+        uses ptp-global-top;
         uses ptp-interface-top;
     } // END of ptp-container definition.
     } // END of ptp-grouping definition.

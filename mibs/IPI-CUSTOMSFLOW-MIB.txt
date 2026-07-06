@@ -1,0 +1,302 @@
+-- /* Copyright (C) 2001-2026 IP Infusion, Inc. All Rights Reserved. */
+
+IPI-CUSTOMSFLOW-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+
+      MODULE-IDENTITY, OBJECT-TYPE, BITS, Integer32, enterprises
+              FROM SNMPv2-SMI
+      MODULE-COMPLIANCE, OBJECT-GROUP
+              FROM SNMPv2-CONF
+      TEXTUAL-CONVENTION
+              FROM SNMPv2-TC
+      InterfaceIndex
+              FROM IF-MIB
+      ipi
+              FROM IPI-MODULE-MIB
+      sFlowFsTable, sFlowCpTable, SFlowDataSource, SFlowInstance,
+      sFlowAgent
+              FROM SFLOW-MIB5;
+
+      sFlowIpiMIB  MODULE-IDENTITY
+        LAST-UPDATED "202605270000Z"   -- May 27, 2026
+        ORGANIZATION "IP Infusion"
+        CONTACT-INFO "support@ipinfusion.com"
+        DESCRIPTION
+           "IPI EXTENDED SFLOW MIB. "
+
+        --
+        -- Revision History
+        --
+
+        REVISION    "202605270000Z"      -- May 27, 2026
+        DESCRIPTION
+                 "Version 1.0
+
+                  Replace sFlowFsTable for sFlowIpiFsTable.
+                  Replace sFlowCpTable for sFlowIpiCpTable.
+                  Add sFlowDisabledReceiversTable."
+
+        ::= { enterprises sflow(14706) 2 }
+
+
+      --
+      -- Flow Ipi Sampling Table
+      --
+
+
+      sFlowIpiFsTable OBJECT-TYPE
+              SYNTAX      SEQUENCE OF SFlowIpiFsEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "A table of the flow samplers within a device."
+              ::= { sFlowAgent 7 }
+
+      sFlowIpiFsEntry OBJECT-TYPE
+              SYNTAX      SFlowIpiFsEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "Attributes of a flow sampler."
+              INDEX { sFlowFsDataSource, sFlowFsInstance }
+              ::= { sFlowFsTable 1 }
+
+      SFlowIpiFsEntry ::= SEQUENCE {
+              sFlowIpiFsDataSource               SFlowDataSource,
+              sFlowIpiFsInstance                 SFlowInstance,
+              sFlowIpiFsPacketSamplingRate       Integer32,
+              sFlowIpiFsMaximumHeaderSize        Integer32
+      }
+
+      sFlowIpiFsDataSource OBJECT-TYPE
+              SYNTAX      SFlowDataSource
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "sFlowDataSource for this flow sampler."
+              ::= { sFlowIpiFsEntry 1 }
+
+      sFlowIpiFsInstance OBJECT-TYPE
+              SYNTAX      SFlowInstance
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "The sFlow instance for this flow sampler."
+              ::= { sFlowIpiFsEntry 2 }
+
+      sFlowIpiFsPacketSamplingRate OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                "The statistical sampling rate for packet sampling from this
+                 source.
+
+                 Set to N to sample 1/Nth of the packets in the monitored flows.
+                 An agent should choose its own algorithm to introduce variance
+                 into the sampling so that exactly every Nth packet is not
+                 counted. A sampling rate of 1 counts all packets. A sampling
+                 rate of 0 disables sampling.
+
+                 The agent is permitted to have minimum and maximum allowable
+                 values for the sampling rate. A minimum rate lets the agent
+                 designer set an upper bound on the overhead associated with
+                 sampling, and a maximum rate may be the result of hardware
+                 restrictions (such as counter size). In addition not all values
+                 between the maximum and minimum may be realizable as the
+                 sampling rate (again because of implementation considerations).
+
+                 When the sampling rate is set the agent is free to adjust the
+                 value so that it lies between the maximum and minimum values
+                 and has the closest achievable value.
+
+                 When read, the agent must return the actual sampling rate it
+                 will be using (after the adjustments previously described). The
+                 sampling algorithm must converge so that over time the number
+                 of packets sampled approaches 1/Nth of the total number of
+                 packets in the monitored flows."
+              DEFVAL { 0 }
+              ::= { sFlowIpiFsEntry 3 }
+
+      sFlowIpiFsMaximumHeaderSize OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                "The maximum number of bytes that should be copied from a
+                 sampled packet. The agent may have an internal maximum and
+                 minimum permissible sizes. If an attempt is made to set this
+                 value outside the permissible range then the agent should
+                 adjust the value to the closest permissible value."
+              DEFVAL { 128 }
+              ::= { sFlowIpiFsEntry 4 }
+
+
+      --
+      -- Ipi Counter Polling Table
+      --
+
+
+      sFlowIpiCpTable OBJECT-TYPE
+              SYNTAX      SEQUENCE OF SFlowIpiCpEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "A table of the counter pollers within a device."
+              ::= { sFlowAgent 8 }
+
+      sFlowIpiCpEntry OBJECT-TYPE
+              SYNTAX      SFlowIpiCpEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "Attributes of a counter poller."
+              INDEX { sFlowCpDataSource, sFlowCpInstance }
+              ::= { sFlowIpiCpTable 1 }
+
+      SFlowIpiCpEntry ::= SEQUENCE {
+              sFlowIpiCpDataSource               SFlowDataSource,
+              sFlowIpiCpInstance                 SFlowInstance,
+              sFlowIpiCpInterval                 Integer32
+      }
+
+      sFlowIpiCpDataSource OBJECT-TYPE
+              SYNTAX      SFlowDataSource
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "Identifies the source of the data for the counter poller."
+              ::= { sFlowIpiCpEntry 1 }
+
+      sFlowIpiCpInstance OBJECT-TYPE
+              SYNTAX      SFlowInstance
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "The sFlowInstance for this counter poller."
+              ::= { sFlowIpiCpEntry 2 }
+
+      sFlowIpiCpInterval OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                "The maximum number of seconds between successive samples of the
+                 counters associated with this data source. A sampling interval
+                 of 0 disables counter sampling.
+
+                 The agent is permitted to have minimum and maximum allowable
+                 values for the counter polling interval. A minimum interval
+                 lets the agent designer set an upper bound on the overhead
+                 associated with polling, and a maximum interval may be the
+                 result of implementation restrictions (such as counter size).
+                 In addition not all values between the maximum and minimum may
+                 be realizable as the sampling interval (again because of
+                 implementation considerations).
+
+                 When the sampling rate is set the agent is free to adjust the
+                 value so that it lies between the maximum and minimum values
+                 and has the closest achievable value.
+
+                 When read, the agent must return the actual sampling interval
+                 it will be using (after the adjustments previously described).
+                 The sampling algorithm must converge so that over time the
+                 number of packets sampled approaches 1/Nth of the total number
+                 of packets in the monitored flows."
+              DEFVAL { 0 }
+              ::= { sFlowIpiCpEntry 3 }
+
+
+      --
+      -- Disabled Receivers Table
+      --
+
+
+      sFlowDisabledReceiversTable OBJECT-TYPE
+              SYNTAX      SEQUENCE OF SFlowDisabledReceiversEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "A table of the disabled receivers within an interface."
+              ::= { sFlowAgent 9 }
+
+      sFlowDisabledReceiversEntry OBJECT-TYPE
+              SYNTAX      SFlowDisabledReceiversEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "Entry in sFlowDisabledReceivers table."
+              INDEX { sFlowIfIndex }
+              ::= { sFlowDisabledReceiversTable 1 }
+
+      SFlowDisabledReceivers ::= TEXTUAL-CONVENTION
+              STATUS      current
+              DESCRIPTION
+                "Represents the sFlow receiver indices which are disabled for an interface."
+              SYNTAX      BITS {
+                              rcvrId1(0),
+                              rcvrId2(1),
+                              rcvrId3(2),
+                              rcvrId4(3),
+                              rcvrId5(4),
+                          }
+
+      SFlowDisabledReceiversEntry ::= SEQUENCE {
+              sFlowIfIndex            InterfaceIndex,
+              sFlowDisabledReceivers  SFlowDisabledReceivers
+      }
+
+      sFlowIfIndex OBJECT-TYPE
+              SYNTAX      InterfaceIndex
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                "Index of interface."
+              ::= { sFlowDisabledReceiversEntry 1 }
+
+      sFlowDisabledReceivers OBJECT-TYPE
+              SYNTAX      SFlowDisabledReceivers
+              MAX-ACCESS  read-only
+              STATUS      current
+              DESCRIPTION
+                "A list of disabled receivers for an interface."
+              ::= { sFlowDisabledReceiversEntry 2 }
+
+
+       --
+       -- Compliance Statements
+       --
+
+      sFlowIpiMIBConformance OBJECT IDENTIFIER ::= { sFlowIpiMIB 1 }
+      sFlowIpiMIBGroups      OBJECT IDENTIFIER ::= { sFlowIpiMIBConformance 1 }
+      sFlowIpiMIBCompliances OBJECT IDENTIFIER ::= { sFlowIpiMIBConformance 2 }
+
+      sFlowIpiCompliance MODULE-COMPLIANCE
+              STATUS      current
+              DESCRIPTION
+                "Compliance statements for sFlow Tables."
+
+              MODULE -- this module
+                  MANDATORY-GROUPS { sFlowLegacyTableGroup, sFlowIpiTableGroup }
+
+              ::= { sFlowIpiMIBCompliances 1 }
+
+      sFlowLegacyTableGroup OBJECT-GROUP
+              OBJECTS { sFlowFsTable, sFlowCpTable }
+               STATUS deprecated
+               DESCRIPTION
+                 "These tables have been replaced by sFlowIpiFsTable, sFlowIpiCpTable
+                 and sFlowDisabledReceiversTable"
+                ::= { sFlowIpiMIBGroups 1 }
+
+      sFlowIpiTableGroup OBJECT-GROUP
+              OBJECTS { sFlowIpiFsTable, sFlowIpiCpTable, sFlowDisabledReceiversTable }
+               STATUS current
+               DESCRIPTION
+                 "These tables replaced sFlowFsTable and sFlowCpTable"
+                ::= { sFlowIpiMIBGroups 2 }
+
+
+END
+
