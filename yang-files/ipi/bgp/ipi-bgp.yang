@@ -31,17 +31,17 @@ module ipi-bgp {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2026-07-03;
+        revision-date 2026-09-15;
     }
 
     include ipi-bgp-instance { revision-date 2026-05-28;}
     include ipi-bgp-flowspec { revision-date 2026-02-12;}
     include ipi-bgp-common { revision-date 2025-12-22;}
-    include ipi-bgp-address-family { revision-date 2026-01-06;}
+    include ipi-bgp-address-family { revision-date 2026-09-04;}
     include ipi-bgp-evpn-rib { revision-date 2023-09-12;}
-    include ipi-bgp-peer-group { revision-date 2026-06-24;}
-    include ipi-bgp-peer { revision-date 2026-06-22;}
-    include ipi-bgp-address-family-vrf { revision-date 2025-12-18;}
+    include ipi-bgp-peer-group { revision-date 2026-09-05;}
+    include ipi-bgp-peer { revision-date 2026-09-05;}
+    include ipi-bgp-address-family-vrf { revision-date 2026-07-28;}
     include ipi-bgp-link-state { revision-date 2023-09-12;}
     include ipi-bgp-epe { revision-date 2024-02-08;}
     include ipi-bgp-rpki { revision-date 2025-12-22;}
@@ -57,6 +57,26 @@ module ipi-bgp {
     description
         "YANG version of the ipi-bgp";
 
+
+    revision "2026-09-08" {
+        description "Added attribute 'nexthop-tracking-delay-msec' for BGP NHT support";
+        reference " 0.19.3.";
+    }
+
+    revision "2026-09-05" {
+        description "Removed auto-populate of 'activate' for a peer/peer-group when allow-ebgp-vpn is configured";
+        reference " 0.19.2.";
+    }
+
+    revision "2026-09-04" {
+        description "Removed add-path commands for Ipv4 LU Address-family";
+        reference " 0.19.1.";
+    }
+
+    revision "2026-07-28" {
+        description "Added autoPopulate-custom for object-list 'peers/peer' for peer-group update";
+        reference " 0.19.0.";
+    }
 
     revision "2026-06-24" {
         description "Added peer-group allowas-in for BGP LU address-family";
@@ -1379,7 +1399,7 @@ tion' and rd_string/IP-VRF";
         } // END of enable-nexthop-tracking definition.
 
         leaf nexthop-tracking-delay  {
-            // when " ipi-bgp:bgp/global/config/enable-nexthop-tracking ";
+            // when " ipi-bgp:bgp/global/config/enable-nexthop-tracking + !ipi-bgp:bgp/global/config/nexthop-tracking-delay-msec ";
             type  uint8 {
                  range "1..100"  {
                     description "1..100: Supported range 1 - 100";
@@ -1394,6 +1414,23 @@ tion' and rd_string/IP-VRF";
                         determine which prefixes are affected by the nexthop changes, after it
                         receives the trigger from NSM about one or more nexthop changes.";
         } // END of nexthop-tracking-delay definition.
+
+        leaf nexthop-tracking-delay-msec  {
+            // when " ipi-bgp:bgp/global/config/enable-nexthop-tracking + !ipi-bgp:bgp/global/config/nexthop-tracking-delay ";
+            type  uint32 {
+                 range "400..60000"  {
+                    description "400..60000: Supported range 400 - 60000";
+                 }
+            }
+            default "5000";
+            description "Use this attribute to set the delay time for nexthop address tracking.
+                        This attribute configures the delayinterval between routing table
+                        walks for nexthop delay tracking, after which BGP does a routing table
+                        scan on receiving a nexthop change trigger from NSM. The time period
+                        determines how long BGP waits before it walks the full BGP table to
+                        determine which prefixes are affected by the nexthop changes, after it
+                        receives the trigger from NSM about one or more nexthop changes.";
+        } // END of nexthop-tracking-delay-msec definition.
 
         leaf enable-rfc-1771-strict-origin  {
             type  empty;

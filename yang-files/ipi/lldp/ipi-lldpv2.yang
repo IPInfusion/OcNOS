@@ -41,7 +41,7 @@ module ipi-lldpv2 {
 
     import feature-list {
         prefix feature-list;
-        revision-date 2026-07-03;
+        revision-date 2026-09-15;
     }
 
     organization
@@ -56,6 +56,11 @@ module ipi-lldpv2 {
     description
         "Link Layer Discovery Protocol (LLDP)";
 
+
+    revision "2026-08-11" {
+        description "Added CLI lldp management-ip-address";
+        reference " 0.9.0.";
+    }
 
     revision "2025-09-25" {
         description "Added clear lldp neighbors command";
@@ -1383,6 +1388,50 @@ module ipi-lldpv2 {
         } // END of tlvs-unrecognized definition.
 
     } // END of lldp-v2-receive-counters definition.
+    grouping lldp-management-address-config {
+        description
+            "Grpouing for lldp mangement address config";
+        leaf management-ip-address  {
+            type  leafref {
+                path  "/ipi-interface:interfaces/ipi-interface:interface/ipi-interface:name";
+            }
+            description "Use this attribute to map an interface as management interface";
+        } // END of management-ip-address definition.
+
+    } // END of lldp-management-address-config definition.
+    grouping lldp-management-ip-address-top {
+        description
+            "Top level grouping for LLDP management ip address";
+        container ip-addresses {
+            description
+                "container for interface level configuration for LLDP management ip
+                        address";
+
+            list ip-address {
+                key "management-ip-address";
+                description
+                    "ip address object list";
+                leaf management-ip-address  {
+                    type  leafref {
+                        path  "../config/management-ip-address";
+                    }
+                    description "Use this attribute to map an interface as management interface";
+                } // END of management-ip-address definition.
+
+                container config {
+                    description
+                        "configuration container for interface list";
+                    uses lldp-management-address-config;
+                } // END of config-container definition.
+                container state {
+                    config false;
+                    description
+                        "Operational data for interface";
+                    uses lldp-management-address-config;
+                } // END of state-container definition.
+            } // End of ip-address-list
+        } // END of ip-addresses-container definition.
+    } // END of lldp-management-ip-address-top definition.
     grouping receive-top {
         description
             "LLDP receive information top level group";
@@ -1732,6 +1781,7 @@ module ipi-lldpv2 {
         uses lldp-global-top;
         uses lldp-debug-top;
         uses lldp-interface-top;
+        uses lldp-management-ip-address-top;
     } // END of lldp-container definition.
     } // END of lldp-grouping definition.
 
